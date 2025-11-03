@@ -4,7 +4,7 @@ import {
     Text,
     View,
     Switch,
-    ScrollView, 
+    ScrollView,
     TouchableOpacity,
     ActivityIndicator,
     Modal
@@ -56,7 +56,7 @@ export const ViewedProfiles = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color="#ED1E24" />
                 </TouchableOpacity>
-                <Text style={styles.headerText}></Text>
+                <Text style={styles.headerText}>Viewed Profiles<Text style={styles.profileId}> ({count})</Text></Text>
             </View>
 
             <View style={styles.sortContainer}>
@@ -86,13 +86,6 @@ export const ViewedProfiles = () => {
                     </View>
                 </View>
             </Modal>
-
-            <View style={styles.contentContainer}>
-                <Text style={styles.profileName}>
-                    Viewed Profiles
-                    <Text style={styles.profileId}> ({count})</Text>
-                </Text>
-            </View>
 
             <View style={styles.cardContainer}>
                 <ViewedProfileCard sortBy={sortBy} />

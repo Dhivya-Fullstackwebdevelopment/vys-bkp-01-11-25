@@ -290,7 +290,7 @@ export const fetchDashboardData = async () => {
 };
 
 
-export const fetchMutualInterests = async (perPage, page) => {
+export const fetchMutualInterests = async (perPage, page, sortBy = "datetime") => {
     try {
 
         const profileId = await retrieveProfileId();
@@ -300,6 +300,7 @@ export const fetchMutualInterests = async (perPage, page) => {
         }
         const response = await axios.post(`${BASE_URL}/Get_mutual_intrests/`, {
             profile_id: profileId,
+            sort_by: sortBy,
             per_page: perPage,
             page_number: page,
         });
@@ -361,7 +362,7 @@ export const fetchGalleryCount = async () => {
     }
 };
 
-export const getWishlistProfiles = async (perPage, page) => {
+export const getWishlistProfiles = async (perPage, page, sortBy = "datetime") => {
 
     const profileId = await retrieveProfileId();
     if (!profileId) {
@@ -371,6 +372,7 @@ export const getWishlistProfiles = async (perPage, page) => {
     try {
         const response = await axios.post(`${BASE_URL}/Get_profile_wishlist/`, {
             profile_id: profileId,
+            sort_by: sortBy,
             per_page: perPage,
             page_number: page,
         });
@@ -411,7 +413,7 @@ export const getWishlistProfilesCount = async () => {
     }
 };
 
-export const getInterestsList = async (perPage, page) => {
+export const getInterestsList = async (perPage, page, sortBy = "datetime") => {
     const profileId = await retrieveProfileId();
     if (!profileId) {
         console.warn('Profile ID is empty, skipping API call.');
@@ -420,6 +422,7 @@ export const getInterestsList = async (perPage, page) => {
     try {
         const response = await axios.post(`${BASE_URL}/My_intrests_list/`, {
             profile_id: profileId,
+            sort_by: sortBy,
             per_page: perPage,
             page_number: page
         });
@@ -576,7 +579,7 @@ export const fetchViewedProfilesCount = async () => {
     }
 };
 
-export const fetchVisitorProfiles = async (perPage, page) => {
+export const fetchVisitorProfiles = async (perPage, page, sortBy = "datetime") => {
     const profileId = await retrieveProfileId();
     if (!profileId) {
         console.warn('Profile ID is empty, skipping API call.');
@@ -585,7 +588,7 @@ export const fetchVisitorProfiles = async (perPage, page) => {
     try {
         const response = await axios.post(
             `${BASE_URL}/My_profile_visit/`,
-            { profile_id: profileId, per_page: perPage, page_number: page },
+            { profile_id: profileId, per_page: perPage, page_number: page, sort_by: sortBy, },
             {
                 headers: {
                     "Content-Type": "application/json",
@@ -614,6 +617,35 @@ export const fetchVisitorProfilesCount = async () => {
     try {
         const response = await axios.post(
             `${BASE_URL}/My_profile_visit/`,
+            { profile_id: profileId },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            }
+        );
+
+        const result = response.data;
+        if (result.Status === 1) {
+            return result;
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        console.error("Error fetching visitor profiles:", error);
+        throw error;
+    }
+};
+
+export const fetchVysassistCount = async () => {
+    const profileId = await retrieveProfileId();
+    if (!profileId) {
+        console.warn('Profile ID is empty, skipping API call.');
+        return null;
+    }
+    try {
+        const response = await axios.post(
+            `${BASE_URL}/My_vysassist_list/`,
             { profile_id: profileId },
             {
                 headers: {
@@ -2043,7 +2075,7 @@ export const sendVysassistRequest = async (viewedid, message) => {
     }
 };
 
-export const fetchPhotoRequest = async () => {
+export const fetchPhotoRequest = async (perPage, page, sortBy = "datetime") => {
     try {
         const profileId = await retrieveProfileId();
         if (!profileId) {
@@ -2053,6 +2085,9 @@ export const fetchPhotoRequest = async () => {
         const response = await axios.post(`${BASE_URL}/Get_photo_request_list/`,
             {
                 profile_id: profileId,
+                sort_by: sortBy,
+                per_page: perPage,
+                page_number: page,
             }
         );
 
@@ -2202,7 +2237,7 @@ export const updatePhotoRequestReject = async (selectedProfileId, rejectionReaso
 };
 
 
-export const fetchPersonalNotes = async (perPage, page) => {
+export const fetchPersonalNotes = async (perPage, page, sortBy = "datetime") => {
     try {
         const profileId = await retrieveProfileId();
         if (!profileId) {
@@ -2212,6 +2247,7 @@ export const fetchPersonalNotes = async (perPage, page) => {
         const response = await axios.post(`${BASE_URL}/Get_personal_notes/`,
             {
                 profile_id: profileId,
+                sort_by: sortBy,
                 per_page: perPage,
                 page_number: page,
             }
@@ -2519,7 +2555,7 @@ export const savePlanPackage = async (profileId, selectedPlanId, selectedAddons,
     }
 };
 
-export const getVysassistList = async (perPage, page) => {
+export const getVysassistList = async (perPage, page, sortBy = "datetime") => {
     try {
         const profileId = await retrieveProfileId();
         if (!profileId) {
@@ -2529,6 +2565,7 @@ export const getVysassistList = async (perPage, page) => {
 
         const requestData = {
             profile_id: profileId,
+            sort_by: sortBy,
             per_page: perPage,
             page_number: page,
         };
@@ -2744,32 +2781,32 @@ export const fetchProfileDataCheck = async (viewedProfileId, pageID) => {
 
 // Add this to your CommonApiCall/CommonApiCall.js file
 export const getProfileListMatch = async (allProfileIds) => {
-  try {
-    const token = await AsyncStorage.getItem("authToken");
-    const loginuser_profileId = await AsyncStorage.getItem("loginuser_profileId");
-    
-    const formData = new FormData();
-    formData.append('all_profile_ids', allProfileIds);
-    
-    const response = await axios.post(
-      `${Base_Url}/auth/Get_prof_list_match/`,
-      formData,
-      {
-        headers: {
-          Authorization: `Token ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-    
-    if (response.data) {
-      console.log("Profile list match response:", response.data);
-      return response.data;
+    try {
+        const token = await AsyncStorage.getItem("authToken");
+        const loginuser_profileId = await AsyncStorage.getItem("loginuser_profileId");
+
+        const formData = new FormData();
+        formData.append('all_profile_ids', allProfileIds);
+
+        const response = await axios.post(
+            `${Base_Url}/auth/Get_prof_list_match/`,
+            formData,
+            {
+                headers: {
+                    Authorization: `Token ${token}`,
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+
+        if (response.data) {
+            console.log("Profile list match response:", response.data);
+            return response.data;
+        }
+    } catch (error) {
+        console.error("Error fetching profile list match:", error);
+        return null;
     }
-  } catch (error) {
-    console.error("Error fetching profile list match:", error);
-    return null;
-  }
 };
 
 

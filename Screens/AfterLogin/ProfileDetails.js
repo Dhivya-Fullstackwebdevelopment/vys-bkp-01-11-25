@@ -1326,7 +1326,8 @@ export const ProfileDetails = () => {
                 <Text style={styles.label}>Star: <Text style={styles.value}>{basic_details.star}</Text></Text>
                 <Text style={styles.label}>Profession: <Text style={styles.value}>{basic_details.profession}</Text></Text>
                 <Text style={styles.label}>Education: <Text style={styles.value}>{basic_details.education}</Text></Text>
-                <Text style={styles.label}>About: <Text style={styles.value}>{basic_details.about}</Text></Text>
+                {/* <Text style={styles.label}>About: <Text style={styles.value}>{basic_details.about}</Text></Text> */}
+                 <Text style={styles.label}>Degree: <Text style={styles.value}>{basic_details.degeree}</Text></Text>
               </View>
 
 

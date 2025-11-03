@@ -19,7 +19,7 @@ import {
 } from "../../CommonApiCall/CommonApiCall";
 import { ProfileNotFound } from "../ProfileNotFound";
 
-export const VysassistCard = () => {
+export const VysassistCard = ({ sortBy = "datetime" }) => {
   const [profiles, setProfiles] = useState([]);
   const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,7 +44,7 @@ export const VysassistCard = () => {
 
     try {
       const perPage = 10;
-      const response = await getVysassistList(perPage, page);
+      const response = await getVysassistList(perPage, page, sortBy);
 
       if (response && response.Status === 0) {
         // Handle the "No Vysassist found" case
@@ -67,12 +67,12 @@ export const VysassistCard = () => {
           const globalIndex = (page - 1) * 10 + index; // Calculate global index based on page
           acc[globalIndex] = profile.vys_profileid;
           return acc;
-      }, {});
-      
-      setAllProfileIds(prev => ({
+        }, {});
+
+        setAllProfileIds(prev => ({
           ...prev,
           ...profileIds
-      }));
+        }));
         setTotalPages(response.data.total_pages || 1);
         setTotalRecords(response.data.total_records || 0);
         setCurrentPage(page);
@@ -99,7 +99,7 @@ export const VysassistCard = () => {
   useEffect(() => {
     // Initial load
     loadProfiles(1, true);
-  }, []);
+  }, [sortBy]);
 
   useEffect(() => {
     const loadWishlistProfiles = async () => {

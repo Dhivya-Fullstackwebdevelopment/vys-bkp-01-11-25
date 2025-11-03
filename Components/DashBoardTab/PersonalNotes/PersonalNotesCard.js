@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import { ProfileNotFound } from "../../ProfileNotFound";
 import { SuggestedProfiles } from "../../HomeTab/SuggestedProfiles";
 
-export const PersonalNotesCard = () => {
+export const PersonalNotesCard = ({ sortBy = "datetime" }) => {
   const navigation = useNavigation();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [profiles, setProfiles] = useState([]);
@@ -38,7 +38,7 @@ export const PersonalNotesCard = () => {
 
     try {
       const perPage = 10;
-      const response = await fetchPersonalNotes(perPage, page);
+      const response = await fetchPersonalNotes(perPage, page, sortBy);
       console.log(
         "Api response.data.profiles ==>",
         JSON.stringify(response.data.profiles)
@@ -83,7 +83,7 @@ export const PersonalNotesCard = () => {
 
   useEffect(() => {
     loadPersonalNotes(1, true);
-  }, []);
+  }, [sortBy]);
 
   const handleSavePress = () => {
     setIsBookmarked(!isBookmarked);

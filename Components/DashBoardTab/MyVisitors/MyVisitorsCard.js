@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import { ProfileNotFound } from "../../ProfileNotFound";
 import { SuggestedProfiles } from "../../HomeTab/SuggestedProfiles";
 
-export const MyVisitorsCard = () => {
+export const MyVisitorsCard = ({ sortBy = "datetime" }) => {
   const navigation = useNavigation();
   const [profiles, setProfiles] = useState([]);
   const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
@@ -37,7 +37,7 @@ export const MyVisitorsCard = () => {
 
     try {
       const perPage = 10;
-      const response = await fetchVisitorProfiles(perPage, page);
+      const response = await fetchVisitorProfiles(perPage, page, sortBy);
 
       if (response && response.Status === 0) {
         setProfiles([]);
@@ -50,18 +50,18 @@ export const MyVisitorsCard = () => {
         } else {
           setProfiles(prevProfiles => [...prevProfiles, ...(response.data.profiles || [])]);
         }
-        
+
         // Update profile IDs mapping
         const profileIds = response.data.profiles.reduce((acc, profile, index) => {
           const globalIndex = (page - 1) * 10 + index; // Calculate global index based on page
           acc[globalIndex] = profile.viwed_profileid;
           return acc;
-      }, {});
-      
-      setAllProfileIds(prev => ({
+        }, {});
+
+        setAllProfileIds(prev => ({
           ...prev,
           ...profileIds
-      }));
+        }));
         setTotalPages(response.data.total_pages || 1);
         setTotalRecords(response.data.total_records || 0);
         setCurrentPage(page);
@@ -86,7 +86,7 @@ export const MyVisitorsCard = () => {
 
   useEffect(() => {
     loadProfiles(1, true);
-  }, []);
+  }, [sortBy]);
 
   const handleSavePress = async (profileId) => {
     const updatedBookmarkedProfiles = new Set(bookmarkedProfiles);
@@ -169,45 +169,45 @@ export const MyVisitorsCard = () => {
   }
 
   const renderFooter = () => {
-      if (!isLoadingMore) return null;
-  
-      return (
-        <View style={styles.footer}>
-          <ActivityIndicator size="large" color="#0000ff" />
-          <Text style={styles.footerText}>Loading more profiles...</Text>
-        </View>
-      );
-    };
+    if (!isLoadingMore) return null;
+
+    return (
+      <View style={styles.footer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.footerText}>Loading more profiles...</Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.profileScrollView}>
-    <FlatList
-      data={profiles}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.viwed_profileid.toString()}
-      // style={styles.profileScrollView}
-      contentContainerStyle={styles.listContent}
-      showsVerticalScrollIndicator={false}
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.2}
-      ListFooterComponent={() => (
-                <>
-                  {renderFooter()}
-                  <View style={styles.suggestedWrapper}>
-                    <SuggestedProfiles />
-                  </View>
-                </>
-              )}
-      ListEmptyComponent={
-        isLoading ? (
-          <View style={styles.emptyContainer}>
-            <ActivityIndicator size="large" color="#0000ff" />
-          </View>
-        ) : (
-          <ProfileNotFound />
-        )
-      }
-    />
+      <FlatList
+        data={profiles}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.viwed_profileid.toString()}
+        // style={styles.profileScrollView}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.2}
+        ListFooterComponent={() => (
+          <>
+            {renderFooter()}
+            <View style={styles.suggestedWrapper}>
+              <SuggestedProfiles />
+            </View>
+          </>
+        )}
+        ListEmptyComponent={
+          isLoading ? (
+            <View style={styles.emptyContainer}>
+              <ActivityIndicator size="large" color="#0000ff" />
+            </View>
+          ) : (
+            <ProfileNotFound />
+          )
+        }
+      />
     </View>
   );
 };
@@ -334,5 +334,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFDE594D',
     paddingTop: 10,
     marginTop: 20,
+  },
+  cardContainer: {
+    width: "100%",
   },
 });

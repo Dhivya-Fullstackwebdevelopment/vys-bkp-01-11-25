@@ -17,7 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import { ProfileNotFound } from "../../ProfileNotFound";
 import { SuggestedProfiles } from "../../HomeTab/SuggestedProfiles";
 import { FeaturedProfiles } from "../../HomeTab/FeaturedProfiles";
-export const InterestSentCard = () => {
+export const InterestSentCard = ({ sortBy = "datetime" }) => {
   const navigation = useNavigation();
   const [profiles, setProfiles] = useState([]);
   const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
@@ -42,7 +42,7 @@ export const InterestSentCard = () => {
 
     try {
       const perPage = 10;
-      const response = await getInterestsList(perPage, page);
+      const response = await getInterestsList(perPage, page, sortBy);
 
       if (response && response.Status === 0) {
         setProfiles([]);
@@ -87,7 +87,7 @@ export const InterestSentCard = () => {
 
   useEffect(() => {
     loadProfiles(1, true);
-  }, []);
+  }, [sortBy]);
 
   const handleEndReached = () => {
     if (!isLoadingMore && currentPage < totalPages) {

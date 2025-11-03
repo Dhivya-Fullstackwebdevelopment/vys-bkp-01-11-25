@@ -18,7 +18,7 @@ import { useNavigation } from "@react-navigation/native";
 import { ProfileNotFound } from "../../ProfileNotFound";
 import { SuggestedProfiles } from "../../HomeTab/SuggestedProfiles";
 
-export const DashBoardMutualInterestCard = () => {
+export const DashBoardMutualInterestCard = ({ sortBy = "datetime" }) => {
   const navigation = useNavigation();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [profiles, setProfiles] = useState([]);
@@ -43,7 +43,7 @@ export const DashBoardMutualInterestCard = () => {
 
     try {
       const perPage = 10;
-      const response = await fetchMutualInterests(perPage, page);
+      const response = await fetchMutualInterests(perPage, page, sortBy);
       console.log("Loading profiles:", { response });
       if (response && response.Status === 0) {
         // Handle the "No Vysassist found" case
@@ -69,7 +69,7 @@ export const DashBoardMutualInterestCard = () => {
           acc[globalIndex] = profile.mutint_profileid;
           return acc;
         }, {});
-      
+
         setAllProfileIds(prev => ({
           ...prev,
           ...profileIds
@@ -95,7 +95,7 @@ export const DashBoardMutualInterestCard = () => {
 
   useEffect(() => {
     loadProfiles(1, true);
-  }, []);
+  }, [sortBy]);
 
   // Bookmark Toast Message Indicator
   const handleSavePress = async (profileId) => {

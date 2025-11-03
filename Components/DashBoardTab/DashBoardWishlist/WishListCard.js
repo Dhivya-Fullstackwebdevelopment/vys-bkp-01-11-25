@@ -11,7 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { ProfileNotFound } from "../../ProfileNotFound";
 import { SuggestedProfiles } from "../../HomeTab/SuggestedProfiles";
 
-export const WishlistCard = () => {
+export const WishlistCard = ({ sortBy = "datetime" }) => {
     const [profiles, setProfiles] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -32,7 +32,7 @@ export const WishlistCard = () => {
         }
 
         try {
-            const response = await getWishlistProfiles(10, page);
+            const response = await getWishlistProfiles(10, page, sortBy);
             console.log('Wishlist profiles response:', response);
             if (response && response.Status === 0) {
                 // Handle the "No Vysassist found" case
@@ -40,34 +40,34 @@ export const WishlistCard = () => {
                 setTotalPages(1);
                 setTotalRecords(0);
                 setCurrentPage(1);
-              } else if (response && response.data) {
+            } else if (response && response.data) {
                 if (isInitialLoad) {
-                  setProfiles(response.data.profiles || []);
+                    setProfiles(response.data.profiles || []);
                 } else {
-                  setProfiles((prevProfiles) => [
-                    ...prevProfiles,
-                    ...(response.data.profiles || []),
-                  ]);
+                    setProfiles((prevProfiles) => [
+                        ...prevProfiles,
+                        ...(response.data.profiles || []),
+                    ]);
                 }
-                
+
                 // Update profile IDs mapping
                 const profileIds = response.data.profiles.reduce((acc, profile, index) => {
-                  const globalIndex = (page - 1) * 10 + index; // Calculate global index based on page
-                  acc[globalIndex] = profile.wishlist_profileid;
-                  return acc;
-              }, {});
-              
-              setAllProfileIds(prev => ({
-                  ...prev,
-                  ...profileIds
-              }));
+                    const globalIndex = (page - 1) * 10 + index; // Calculate global index based on page
+                    acc[globalIndex] = profile.wishlist_profileid;
+                    return acc;
+                }, {});
+
+                setAllProfileIds(prev => ({
+                    ...prev,
+                    ...profileIds
+                }));
                 setTotalPages(response.data.total_pages || 1);
                 setTotalRecords(response.data.total_records || 0);
                 setCurrentPage(page);
-              } else {
+            } else {
                 console.warn("No profiles found or error in response.");
                 setProfiles([]);
-              }
+            }
         } catch (error) {
             console.error('Error loading wishlist profiles:', error);
             setProfiles([]);
@@ -79,7 +79,7 @@ export const WishlistCard = () => {
 
     useEffect(() => {
         loadProfiles(1, true);
-    }, []);
+    }, [sortBy]);
 
     const handleEndReached = () => {
         if (!isLoadingMore && currentPage < totalPages) {
@@ -105,9 +105,9 @@ export const WishlistCard = () => {
         }
         return { uri: image }; // Direct URL case
     };
-    
+
     const handleProfileClick = async (viewedProfileId) => {
-        navigation.navigate("ProfileDetails", { 
+        navigation.navigate("ProfileDetails", {
             viewedProfileId,
             allProfileIds
         });
@@ -120,13 +120,13 @@ export const WishlistCard = () => {
                 onEndReached={handleEndReached}
                 onEndReachedThreshold={0.2}
                 ListFooterComponent={() => (
-                          <>
-                            {renderFooter()}
-                            <View style={styles.suggestedWrapper}>
-                              <SuggestedProfiles />
-                            </View>
-                          </>
-                        )}
+                    <>
+                        {renderFooter()}
+                        <View style={styles.suggestedWrapper}>
+                            <SuggestedProfiles />
+                        </View>
+                    </>
+                )}
                 ListEmptyComponent={
                     isLoading ? (
                         <View style={styles.emptyContainer}>
@@ -138,22 +138,22 @@ export const WishlistCard = () => {
                 }
                 renderItem={({ item }) => (
                     <TouchableOpacity style={styles.profileDiv}
-                    onPress={() => handleProfileClick(item.wishlist_profileid)}>
+                        onPress={() => handleProfileClick(item.wishlist_profileid)}>
                         <View style={styles.profileContainer}>
-                        <Image
-                                source={getImageSource(item.wishlist_Profile_img )}
+                            <Image
+                                source={getImageSource(item.wishlist_Profile_img)}
                                 style={styles.profileImage}
                             />
-                        <View style={styles.profileContent}>
-                            <Text style={styles.profileName}>
-                                {item.wishlist_profile_name} <Text style={styles.profileId}>({item.wishlist_profileid})</Text>
-                            </Text>
-                            <Text style={styles.profileAge}>
-                                {item.wishlist_profile_age} Yrs
-                            </Text>
-                            <Text style={styles.zodiac}>{item.wishlist_star}</Text>
-                            <Text style={styles.employed}>{item.wishlist_profession}</Text>
-                        </View>
+                            <View style={styles.profileContent}>
+                                <Text style={styles.profileName}>
+                                    {item.wishlist_profile_name} <Text style={styles.profileId}>({item.wishlist_profileid})</Text>
+                                </Text>
+                                <Text style={styles.profileAge}>
+                                    {item.wishlist_profile_age} Yrs
+                                </Text>
+                                <Text style={styles.zodiac}>{item.wishlist_star}</Text>
+                                <Text style={styles.employed}>{item.wishlist_profession}</Text>
+                            </View>
                         </View>
                     </TouchableOpacity>
                 )}
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     profileDiv: {
         width: "100%",
         paddingHorizontal: 10,
-      },
+    },
     profileContainer: {
         flexDirection: "row",
         alignItems: "flex-start",
@@ -251,5 +251,5 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFDE594D',
         paddingTop: 10,
         marginTop: 20,
-      },
+    },
 });

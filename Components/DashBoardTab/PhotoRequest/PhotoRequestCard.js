@@ -26,7 +26,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const PhotoRequestCard = () => {
+export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
     const navigation = useNavigation();
     const [profiles, setProfiles] = useState([]);
     const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
@@ -35,6 +35,8 @@ export const PhotoRequestCard = () => {
     const [rejectReason, setRejectReason] = useState("");
     const [isModalVisible, setModalVisible] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleRejectPress = () => {
         setModalVisible(true); // Show the modal
@@ -48,7 +50,7 @@ export const PhotoRequestCard = () => {
     const handleSubmitReason = async (selectedId) => {
         // Handle submission of rejection reason
         console.log('Rejection Reason:', selectedId);
-        const success = await updatePhotoRequestReject(selectedId,rejectionReason);
+        const success = await updatePhotoRequestReject(selectedId, rejectionReason);
 
         if (success) {
             // Optional: Perform additional actions on success, like refreshing the list.
@@ -57,18 +59,74 @@ export const PhotoRequestCard = () => {
     };
 
     // Fetch photo requests and profile details from the API
-    useEffect(() => {
-        const loadProfiles = async () => {
-            const { success, profiles } = await fetchPhotoRequest();
-            console.log('Profiles all list data ===?', profiles);
-            if (success) {
-                setProfiles(profiles);
+    // useEffect(() => {
+    //     const loadProfiles = async () => {
+    //         const { success, profiles } = await fetchPhotoRequest(sortBy);
+    //         console.log('Profiles all list data ===?', profiles);
+    //         if (success) {
+    //             setProfiles(profiles);
+    //         }
+    //     };
+
+    //     loadProfiles();
+    // }, [sortBy]);
+
+    const loadProfiles = async (page = 1, isInitialLoad = false) => {
+        if ((isLoading && isInitialLoad) || (isLoadingMore && !isInitialLoad)) return;
+
+        if (isInitialLoad) {
+            setIsLoading(true);
+        } else {
+            setIsLoadingMore(true);
+        }
+
+        try {
+            const perPage = 10;
+            const response = await fetchPhotoRequest(perPage, page, sortBy);
+
+            if (response && response.Status === 0) {
+                setProfiles([]);
+                setTotalPages(1);
+                setTotalRecords(0);
+                setCurrentPage(1);
+            } else if (response && response.data) {
+                if (isInitialLoad) {
+                    setProfiles(response.data.profiles || []);
+                } else {
+                    setProfiles(prevProfiles => [...prevProfiles, ...(response.data.profiles || [])]);
+                }
+
+                // Update profile IDs mapping
+                const profileIds = response.data.profiles.reduce((acc, profile, index) => {
+                    const globalIndex = (page - 1) * 10 + index; // Calculate global index based on page
+                    acc[globalIndex] = profile.viwed_profileid;
+                    return acc;
+                }, {});
+
+                setAllProfileIds(prev => ({
+                    ...prev,
+                    ...profileIds
+                }));
+                setTotalPages(response.data.total_pages || 1);
+                setTotalRecords(response.data.total_records || 0);
+                setCurrentPage(page);
+            } else {
+                console.warn("No profiles found or error in response.");
+                setProfiles([]);
             }
-        };
+        } catch (error) {
+            console.error("Error loading profiles:", error);
+            setProfiles([]);
+        } finally {
+            setIsLoading(false);
+            setIsLoadingMore(false);
+        }
+    };
 
-        loadProfiles();
-    }, []);
 
+    useEffect(() => {
+        loadProfiles(1, true);
+    }, [sortBy]);
 
 
     const handleSavePress = async (profileId) => {
@@ -129,10 +187,10 @@ export const PhotoRequestCard = () => {
             navigation.navigate("ChatRoom", {
                 // from_profile_id: viewedProfileId  // Pass the profile ID as a parameter
                 room_name: result.room_id_name,
-        username: viewedProfileId.req_profile_name,
-        from_profile_id: viewedProfileId,
-        profile_image: viewedProfileId.req_Profile_img,
-        last_mesaage_visit: viewedProfileId.req_lastvisit,
+                username: viewedProfileId.req_profile_name,
+                from_profile_id: viewedProfileId,
+                profile_image: viewedProfileId.req_Profile_img,
+                last_mesaage_visit: viewedProfileId.req_lastvisit,
             });
         } catch (error) {
             console.error('API call failed:', error);
