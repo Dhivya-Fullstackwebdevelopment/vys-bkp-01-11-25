@@ -72,9 +72,14 @@ export const FamilyDetails = () => {
     eyewear: z.string().optional(),
     weight: z.string().optional(),
     suyaGothram: z.string().min(1, "suyaGothram is required"),
-    noOfChildren: z.string().optional(), // <-- Add noOfChildren to schema
-    fatherAlive: z.string().optional(), // Add fatherAlive to schema
-    motherAlive: z.string().optional(), // Add motherAlive to schema
+    noOfChildren: z.string().optional(),
+    fatherAlive: z.string().optional(),
+    motherAlive: z.string().optional(),
+    propertyDetails: z.string().optional(),
+    propertyWorth: z.string().optional(),
+    uncleGothram: z.string().optional(),
+    ancestorOrigin: z.string().optional(),
+    aboutFamily: z.string().optional(),
   })
   // .refine((data) => {
   //   // Check if brotherValue is greater than or equal to 1, then brotherMarriedValue must be required
@@ -380,9 +385,11 @@ export const FamilyDetails = () => {
         bodytype: data.bodytype,
         eyewear: data.eyewear,
         // Include other fields as necessary
-        no_of_children: data.noOfChildren || undefined, // <-- Add no_of_children if present
+        no_of_children: data.noOfChildren || "0", // <-- Add no_of_children if present
         father_alive: data.fatherAlive || "yes", // Add father_alive
         mother_alive: data.motherAlive || "yes", // Add mother_alive
+        property_details: data.propertyDetails,
+        about_family: data.aboutFamily,
       };
 
       console.log("Formatted Data:", formattedData);

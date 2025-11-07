@@ -797,8 +797,9 @@ export const ProfileDetailsEdit = () => {
                                 <RNPickerSelect
                                     onValueChange={(value) => handleChange('personal_body_type', value)}
                                     items={[
-                                        { label: 'Yes', value: 'Yes' },
-                                        { label: 'No', value: 'NO' },
+                                        { label: 'Slim', value: 'Slim' },
+                                        { label: 'Fat', value: 'Fat' },
+                                        { label: 'Normal', value: 'Normal' },
                                         // { label: 'Glasses', value: 'glasses' },
                                         // { label: 'Contact Lenses', value: 'contact_lenses' },
                                     ]}

@@ -326,8 +326,8 @@ export const PartnerSettings = () => {
                 pref_education: data.education.join(','),
                 // pref_anual_income: data.annualIncome.join(','),
                 pref_anual_income: data.annualIncome,
-                pref_chevvai: data.chevvai,
-                pref_ragukethu: data.rehu,
+                pref_chevvai: data.chevvai || "",
+                pref_ragukethu: data.rehu || "",
                 pref_foreign_intrest: data.foreignInterest,
                 pref_porutham_star: StarString, // Star IDs as a comma-separated string
                 pref_porutham_star_rasi: combinedString, // Combined star-rasi as a comma-separated string

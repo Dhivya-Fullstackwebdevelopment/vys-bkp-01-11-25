@@ -34,33 +34,54 @@ import CountryPicker from 'react-native-country-picker-modal';
 
 export const EduDetails = () => {
     const navigation = useNavigation();
-
-
-
     const [selectedDegrees, setSelectedDegrees] = useState([]);
+    const [selectedDistrict, setSelectedDistrict] = useState(null);
+    // // Handler for updating selected degrees
+    // const handleDegreeChange = (item) => {
+    //     setSelectedDegrees((prevSelected) => {
+    //         // Check if the item is already selected
+    //         const isAlreadySelected = prevSelected.some((degree) => degree.value === item.value);
 
-    // Handler for updating selected degrees
+    //         if (isAlreadySelected) {
+    //             // If already selected, remove it (toggle selection)
+    //             return prevSelected.filter((degree) => degree.value !== item.value);
+    //         } else {
+    //             // If not selected, add it to the array
+    //             return [...prevSelected, item];
+    //         }
+    //     });
+
+    //     handleChange("degreeval", selectedDegrees); // Optional: Call parent function
+    // };
+
+    // Replace your handleDegreeChange function with this:
     const handleDegreeChange = (item) => {
         setSelectedDegrees((prevSelected) => {
             // Check if the item is already selected
             const isAlreadySelected = prevSelected.some((degree) => degree.value === item.value);
 
+            let newSelection;
             if (isAlreadySelected) {
                 // If already selected, remove it (toggle selection)
-                return prevSelected.filter((degree) => degree.value !== item.value);
+                newSelection = prevSelected.filter((degree) => degree.value !== item.value);
             } else {
                 // If not selected, add it to the array
-                return [...prevSelected, item];
+                newSelection = [...prevSelected, item];
             }
-        });
 
-        handleChange("degreeval", selectedDegrees); // Optional: Call parent function
+            // Check if "Other" (value 86) is in the new selection
+            const hasOther = newSelection.some((degree) => degree.value === 86 || degree.value === '86');
+            setIsOtherSelected(hasOther);
+
+            return newSelection;
+        });
     };
 
-
-
-
-
+    // // Handler for updating selected degrees
+    // const handleDegreeChange = (values) => {
+    //     // 'values' is the new, complete array of selected values, e.g., ['1', '2', 'other']
+    //     setSelectedDegrees(values);
+    // };
 
     const [formData, setFormData] = useState({
         edValue: "",
@@ -108,9 +129,7 @@ export const EduDetails = () => {
     const [natureOfBusiness, setNatureOfBusiness] = useState("");
     const [submitting, setSubmitting] = useState(false); // Add state to track submission
     const [isOtherSelected, setIsOtherSelected] = useState(false);
-
-
-
+    const [otherDegree, setOtherDegree] = useState("");
 
     // const [currency, setCurrency] = useState(
     //     { flag: '🌍', code: 'USD', currency: 'United States Dollar' }
@@ -388,6 +407,40 @@ export const EduDetails = () => {
             if (!profileId) {
                 throw new Error("ProfileId not found in sessionStorage");
             }
+
+            const degreeValues = selectedDegrees
+                .filter(degree => degree.value !== 86 && degree.value !== '86') // Filter out "Other" (86)
+                .map(degree => degree.value); // Extract just the value
+
+            const degreePayload = degreeValues.join(','); // Join IDs with comma
+
+            // FIXED: Check if degree with ID 86 is selected
+            const isOtherDegreeSelected = selectedDegrees.some(
+                degree => degree.value === 86 || degree.value === '86'
+            );
+            const finalOtherDegree = isOtherDegreeSelected ? otherDegree : "";
+
+            // --- Process City ---
+            let finalCityName = ""; // This will hold the final city name string
+
+            if (isOtherSelected) {
+                // Case 1: User typed the city name manually.
+                // formData.ciValue already holds the typed string.
+                finalCityName = formData.ciValue;
+            } else if (formData.ciValue) {
+                // Case 2: User selected from the dropdown.
+                // formData.ciValue holds the city ID. We need to find the city *name* (label).
+                const selectedCityObject = cityList.find(city => city.value === formData.ciValue);
+
+                if (selectedCityObject) {
+                    finalCityName = selectedCityObject.label; // Get the name from the object
+                }
+            }
+            const finalWorkOtherCity = isOtherSelected ? formData.ciValue : "";
+
+            // --- Process Currency ---
+            const currencyCode = currency.currency === 'Select Currency' ? 'INR' : currency.currency;
+
             const formattedData = {
                 profile_id: profileId,
                 highest_education: formData.edValue,
@@ -400,11 +453,29 @@ export const EduDetails = () => {
                 work_state: formData.sValue,
                 work_pincode: formData.pincode,
                 career_plans: formData.careerNotes,
-                work_city: formData.ciValue,
+                // work_city: formData.ciValue,
                 work_place: formData.workPlace,
                 status: "1",
                 Profile_district: formData.district,
-                field_ofstudy: formData.fieldofvalue
+                field_ofstudy: formData.fieldofvalue,
+                company_name: (formData.boxValue === "1" || formData.boxValue === "6" || formData.boxValue === "7") ? companyName : "",
+                designation: (formData.boxValue === "1" || formData.boxValue === "6" || formData.boxValue === "7") ? designation : "",
+                profession_details: (formData.boxValue === "1" || formData.boxValue === "6" || formData.boxValue === "7") ? professionDetail : "",
+
+                business_name: (formData.boxValue === "2" || formData.boxValue === "6") ? businessName : "",
+                business_address: (formData.boxValue === "2" || formData.boxValue === "6") ? businessAddress : "",
+                nature_of_business: (formData.boxValue === "2" || formData.boxValue === "6") ? natureOfBusiness : "",
+
+                // Currency
+                currency: currencyCode,
+
+                // Degree Details
+                degree: degreePayload,
+                other_degree: finalOtherDegree,
+
+                // City Details
+                work_city: finalCityName,
+                work_other_city: finalWorkOtherCity,
             };
 
             console.log("Formatted Data:", formattedData);
@@ -527,21 +598,21 @@ export const EduDetails = () => {
 
                     {["1", "2", "3", "4"].includes(formData.edValue) && (
                         <View style={styles.inputContainer}>
-                            <Text style={{ fontSize: 16, marginBottom: 8 }}>Degree</Text>
+                            <Text style={{ fontSize: 16, marginBottom: 8 }}>Specific Field</Text>
 
                             {/* Multiple Select Dropdown */}
                             <Dropdown
                                 style={styles.dropdown}
                                 placeholderStyle={{ color: "#aaa" }}
                                 selectedTextStyle={{ color: "#000" }}
-                                data={[...degreeOptions, { label: "Other", value: "other" }]} // Add "Other" option
+                                data={degreeOptions} // Don't add "Other" here, it should come from API
                                 placeholder="Select degrees"
                                 labelField="label"
                                 valueField="value"
-                                value={selectedDegrees} // Array of selected values
-                                onChange={(items) => handleDegreeChange(items)} // Handle multiple selection
-                                multiple={true} // Enables multiple selection
-                                mode="BADGE" // Optional: to show selected badges
+                                value={selectedDegrees}
+                                onChange={(item) => handleDegreeChange(item)}
+                                multiple={true}
+                                mode="BADGE"
                             />
 
                             {/* Text Area to display selected values */}
@@ -553,29 +624,26 @@ export const EduDetails = () => {
                                     Array.isArray(selectedDegrees)
                                         ? selectedDegrees.map((degree) => degree.label).join(", ")
                                         : ""
-                                } // Safely handle unexpected values
+                                }
                             />
 
-                            {/* Conditionally render free text field when "Other" is selected */}
-                            {selectedDegrees.some((degree) => degree.value === "other") && (
-                                <TextInput
-                                    style={[styles.input, { marginTop: 16 }]}
-                                    placeholder="Please specify"
-                                    placeholderTextColor="#aaa"
-                                // value={otherDegree}
-                                // onChangeText={(text) => setOtherDegree(text)}
-                                />
+                            {/* Conditionally render free text field when "Other" (86) is selected */}
+                            {isOtherSelected && (
+                                <View style={{ marginTop: 16 }}>
+                                    <Text style={styles.label}>Other Education</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Enter your degree"
+                                        placeholderTextColor="#aaa"
+                                        value={otherDegree}
+                                        onChangeText={(text) => setOtherDegree(text)}
+                                    />
+                                </View>
                             )}
 
                             {error && <Text style={{ color: "red", marginTop: 8 }}>{error}</Text>}
                         </View>
                     )}
-
-
-
-
-
-
                     {/* About Education */}
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>About your Education<Text style={styles.redText}></Text></Text>
@@ -861,10 +929,6 @@ export const EduDetails = () => {
                     </View>
 
 
-
-
-
-
                     {/* Actual Income */}
                     {/* <View style={styles.inputContainer}>
                         <Text style={styles.label}>Actual Income</Text>
@@ -916,7 +980,14 @@ export const EduDetails = () => {
                                 onChange={(item) => {
                                     handleChange('sValue', item.value);
                                     fetchDistrictList(item.value);
-                                    setErrors(prev => ({ ...prev, sValue: undefined })); // Clear error on selection
+
+                                    // Reset district and city when state changes
+                                    setSelectedDistrict(null);
+                                    handleChange('district', '');
+                                    handleChange('ciValue', '');
+                                    setCityList([]);
+
+                                    setErrors(prev => ({ ...prev, sValue: undefined }));
                                 }}
                             />
                             {/* {errors.sValue && <Text style={styles.error}>{errors.sValue}</Text>} */}
@@ -939,7 +1010,8 @@ export const EduDetails = () => {
                                 onChange={(item) => {
                                     handleChange('district', item.value);
                                     fetchCityList(item.value);
-                                    setErrors(prev => ({ ...prev, district: undefined })); // Clear error on selection
+                                    setSelectedDistrict(item.value); // Set selected district
+                                    setErrors(prev => ({ ...prev, district: undefined }));
                                 }}
                             />
                             {/* {errors.district && <Text style={styles.error}>{errors.district}</Text>} */}
@@ -967,8 +1039,6 @@ export const EduDetails = () => {
                             {errors.ciValue && <Text style={styles.error}>{errors.ciValue}</Text>}
                         </View>
                     )} */}
-
-
 
                     {selectedCountry === "1" && (
                         <View style={styles.inputContainer}>
