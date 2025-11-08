@@ -301,6 +301,7 @@ export const ProfileDetails = () => {
   const [showContactDetails, setShowContactDetails] = useState(false);
   const [planId, setPlanId] = useState(null);
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
+  const restrictedPlanIds = ["1", "2", "3", "14", "15", "17"];
 
   const togglePersonalDetails = () => {
     setShowEducationDetails(false)
@@ -578,6 +579,24 @@ export const ProfileDetails = () => {
 
         // ✅ Continue with valid profile data
         setProfileData(data);
+        if (data?.basic_details) {
+          const profileId = data.basic_details.profile_id;
+          if (data.basic_details.wish_list === 1) {
+            // If wish_list is 1, ADD this profile to the Set
+            setBookmarkedProfiles(prevSet => {
+              const newSet = new Set(prevSet);
+              newSet.add(profileId);
+              return newSet;
+            });
+          } else {
+            // If wish_list is 0, REMOVE this profile from the Set
+            setBookmarkedProfiles(prevSet => {
+              const newSet = new Set(prevSet);
+              newSet.delete(profileId);
+              return newSet;
+            });
+          }
+        }
 
         if (data?.basic_details?.express_int === "1") {
           setExpressInt(true);
@@ -1327,7 +1346,7 @@ export const ProfileDetails = () => {
                 <Text style={styles.label}>Profession: <Text style={styles.value}>{basic_details.profession}</Text></Text>
                 <Text style={styles.label}>Education: <Text style={styles.value}>{basic_details.education}</Text></Text>
                 {/* <Text style={styles.label}>About: <Text style={styles.value}>{basic_details.about}</Text></Text> */}
-                 <Text style={styles.label}>Degree: <Text style={styles.value}>{basic_details.degeree}</Text></Text>
+                <Text style={styles.label}>Degree: <Text style={styles.value}>{basic_details.degeree}</Text></Text>
               </View>
 
 
@@ -1525,38 +1544,48 @@ export const ProfileDetails = () => {
               </View>
             </Modal>
 
+            {/* --- REPLACE THE ENTIRE MODAL WITH THIS --- */}
             <Modal
               animationType="slide"
               transparent={true}
               visible={showInterestModal}
-              onRequestClose={() => setShowInterestModal(false)}
+              onRequestClose={() => {
+                // Reset all modal state on close
+                setShowInterestModal(false);
+                setInterestMessage('');
+                setSelectedCategory('');
+                setExpressInterestError('');
+              }}
             >
               <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                   <Text style={styles.modalTitle}>Enter your Interest Message</Text>
 
-                  {isPickerVisible && ([1, 2, 3, 14, 15, 17].includes(planId)) && (
+                  {/* Show TextInput if:
+              1. User is on a premium plan (planId is in restrictedPlanIds)
+              2. User has NOT selected a category from the picker
+            */}
+                  {!selectedCategory && restrictedPlanIds.includes(planId) && (
                     <TextInput
                       style={styles.messageInput}
                       multiline
                       numberOfLines={4}
                       placeholder="Enter your message"
                       value={interestMessage}
-                      // onChangeText={setInterestMessage}
-                      onChangeText={(text) => {
-                        setInterestMessage(text);
-                      }}
+                      onChangeText={setInterestMessage} // Directly set the message
                     />
                   )}
-                  {interestMessage <= 0 && (
+
+                  {/* Show Picker if:
+              1. User has NOT typed a custom message
+            */}
+                  {(!interestMessage || interestMessage.length === 0) && (
                     <Picker
                       selectedValue={selectedCategory}
                       style={styles.categoryPicker}
                       onValueChange={(itemValue) => {
-                        setIsPickerVisible(false);
                         setSelectedCategory(itemValue);
                       }}
-
                     >
                       <Picker.Item label="Select Category" value="" />
                       <Picker.Item
@@ -1573,15 +1602,15 @@ export const ProfileDetails = () => {
                       />
                     </Picker>
                   )}
+
                   {expressInterestError ? (
                     <Text style={styles.errorText}>{expressInterestError}</Text>
                   ) : null}
+
                   <View style={styles.modalButtons}>
                     <TouchableOpacity
                       style={[styles.modalButton, styles.submitButtonpop]}
-                      onPress={() => {
-                        handleExpressInterestPress();
-                      }}
+                      onPress={handleExpressInterestPress} // This function already checks both fields
                     >
                       <Text style={styles.buttonText}>Submit</Text>
                     </TouchableOpacity>
@@ -1589,7 +1618,7 @@ export const ProfileDetails = () => {
                     <TouchableOpacity
                       style={[styles.modalButton, styles.closeButton]}
                       onPress={() => {
-                        setIsPickerVisible(true);
+                        // Reset all modal state on close
                         setShowInterestModal(false);
                         setInterestMessage('');
                         setSelectedCategory('');

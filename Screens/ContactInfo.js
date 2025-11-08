@@ -255,12 +255,42 @@ export const ContactInfo = () => {
     }
 
     try {
+      let cityValue = data.city;
+
+      // If it's a city ID (numeric), find the city name
+      // if (selectedCountry === "1" &&
+      //   ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) &&
+      //   !isOtherSelected &&
+      //   data.city &&
+      //   data.city !== "Other") {
+
+      //   const selectedCity = cityList.find(city => city.value === data.city);
+      //   if (selectedCity) {
+      //     cityValue = selectedCity.name || selectedCity.label;
+      //   }
+      // }
+      // // If it's "Other" or free text, use the input value directly
+      // else if (isOtherSelected && cityInputValue) {
+      //   cityValue = cityInputValue;
+      // }
+      if (selectedCountry === "1" &&
+        ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) &&
+        !isOtherSelected &&
+        data.city &&
+        data.city !== "Other") {
+
+        const selectedCity = cityList.find(city => city.value === data.city);
+        if (selectedCity) {
+          cityValue = selectedCity.label; // Use the city name
+        }
+      }
+
       const requestBody = {
         ProfileId: ProfileId,
         Profile_address: data.address,
         Profile_country: data.country,
         Profile_state: data.state || "",
-        Profile_city: data.city,
+        Profile_city: cityValue,
         Profile_pincode: data.pincode || "",
         Profile_alternate_mobile: data.alternateMobile || "",
         Profile_whatsapp: data.whatsappNumber || "",
@@ -270,7 +300,7 @@ export const ContactInfo = () => {
       };
 
       console.log("Request Body:", requestBody);
-      
+
       const response = await axios.post(`${config.apiUrl}/auth/Contact_registration/`, requestBody, {
         headers: {
           'Content-Type': 'application/json'
@@ -419,25 +449,25 @@ export const ContactInfo = () => {
               <Text style={styles.label}>
                 City
                 {selectedCountry === "1" &&
-                ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) && (
-                  <Tooltip
-                    popover={
-                      <Text>
-                        Select your city from the list. If your city is not listed, select Others.
-                      </Text>
-                    }
-                    backgroundColor="#fff"
-                   overlayColor="rgba(0, 0, 0, 0.5)"
-                    width={200}
-                    height={70}
-                    placement="bottom"
-                  >
-                    <Icon name="info-circle" size={16} color="#555" style={styles.infoIcon} />
-                  </Tooltip>
-                )}  
+                  ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) && (
+                    <Tooltip
+                      popover={
+                        <Text>
+                          Select your city from the list. If your city is not listed, select Others.
+                        </Text>
+                      }
+                      backgroundColor="#fff"
+                      overlayColor="rgba(0, 0, 0, 0.5)"
+                      width={200}
+                      height={70}
+                      placement="bottom"
+                    >
+                      <Icon name="info-circle" size={16} color="#555" style={styles.infoIcon} />
+                    </Tooltip>
+                  )}
               </Text>
               {/* Conditionally render Tooltip */}
-             
+
             </View>
 
             <Controller
@@ -490,7 +520,7 @@ export const ContactInfo = () => {
               }}
 
             />
-              {errors.city && <Text style={styles.error}>{errors.city.message}</Text>}
+            {errors.city && <Text style={styles.error}>{errors.city.message}</Text>}
 
           </View>
 
@@ -715,7 +745,7 @@ export const ContactInfo = () => {
                 )}
               />
             </View>
-            
+
             {errors.daughterMobile && (
               <Text style={styles.error}>{errors.daughterMobile.message}</Text>
             )}

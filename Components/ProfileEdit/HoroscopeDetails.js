@@ -81,15 +81,15 @@ export const HoroscopeDetails = () => {
     });
 
     const chevvaiDoshamOptions = [
-        { label: 'Unknown', value: 'unknown' },
-        { label: 'Yes', value: 'yes' },
-        { label: 'No', value: 'no' },
+        { label: 'Unknown', value: 'Unknown' },
+        { label: 'Yes', value: 'Yes' },
+        { label: 'No', value: 'No' },
     ];
 
     const raguDoshamOptions = [
-        { label: 'Unknown', value: 'unknown' },
-        { label: 'Yes', value: 'yes' },
-        { label: 'No', value: 'no' },
+        { label: 'Unknown', value: 'Unknown' },
+        { label: 'Yes', value: 'Yes' },
+        { label: 'No', value: 'No' },
     ];
 
     // Function to fetch profile data
@@ -180,15 +180,15 @@ export const HoroscopeDetails = () => {
     useEffect(() => {
         // Populate day, month and year options
         const days = Array.from({ length: 31 }, (_, i) => ({
-            label: i.toString().padStart(2, '0'),
-            value: i.toString().padStart(2, '0'),
+            label: i.toString(),
+            label: i.toString(),
         }));
         setDayOptions(days);
 
         // For months: 00 to 12
         const months = Array.from({ length: 13 }, (_, i) => ({
-            label: i.toString().padStart(2, '0'),
-            value: i.toString().padStart(2, '0'),
+            label: i.toString(),
+            label: i.toString(),
         }));
         setMonthOptions(months);
 
@@ -201,14 +201,29 @@ export const HoroscopeDetails = () => {
         if (horoscopeDetails && !isFetched) {
             // Parse dasa balance value
             let day = '', month = '', year = '';
-            if (horoscopeDetails.personal_dasa_bal) {
-                const parts = horoscopeDetails.personal_dasa_bal.split(', ');
-                parts.forEach(part => {
-                    const [key, value] = part.split(':');
-                    if (key === 'day') day = value;
-                    if (key === 'month') month = value;
-                    if (key === 'year') year = value;
-                });
+            const dasaBalance = horoscopeDetails.personal_dasa_bal;
+
+            if (dasaBalance && typeof dasaBalance === 'string') {
+                // Check for the new format first: "Y Years, M Months, D Days"
+                const yearMatch = dasaBalance.match(/(\d+)\s*Years/);
+                const monthMatch = dasaBalance.match(/(\d+)\s*Months/);
+                const dayMatch = dasaBalance.match(/(\d+)\s*Days/);
+
+                if (yearMatch || monthMatch || dayMatch) {
+                    // New format detected
+                    year = yearMatch ? yearMatch[1] : ''; // Get value or empty string
+                    month = monthMatch ? monthMatch[1] : '';
+                    day = dayMatch ? dayMatch[1] : '';
+                } else if (dasaBalance.includes(':')) {
+                    // Fallback to original parsing logic for "day:x, month:y, year:z"
+                    const parts = dasaBalance.split(', ');
+                    parts.forEach(part => {
+                        const [key, value] = part.split(':');
+                        if (key === 'day') day = value;
+                        if (key === 'month') month = value;
+                        if (key === 'year') year = value;
+                    });
+                }
             }
 
             setFormValues({
@@ -300,6 +315,25 @@ export const HoroscopeDetails = () => {
         if (validateForm()) {
             try {
                 console.log("formValues ====>", formValues);
+                const yearVal = formValues.personal_dasa_bal_year;
+                const monthVal = formValues.personal_dasa_bal_month;
+                const dayVal = formValues.personal_dasa_bal_day;
+
+                // Check if any value is selected (is not null or empty string)
+                const isAnyFieldSet = (yearVal !== null && yearVal !== undefined && yearVal !== '') ||
+                    (monthVal !== null && monthVal !== undefined && monthVal !== '') ||
+                    (dayVal !== null && dayVal !== undefined && dayVal !== '');
+
+                let formattedDasaBalance = ''; // Default to empty string
+
+                if (isAnyFieldSet) {
+                    // If at least one field is set, default others to '0'
+                    const finalYear = yearVal || '0';
+                    const finalMonth = monthVal || '0';
+                    const finalDay = dayVal || '0';
+
+                    formattedDasaBalance = `${finalYear} Years, ${finalMonth} Months, ${finalDay} Days`;
+                }
                 // Convert IDs to strings and ensure no null values
                 const profileData = {
                     birthstar_name: formValues.personal_bthstar_id ? String(formValues.personal_bthstar_id) : '',
@@ -311,8 +345,7 @@ export const HoroscopeDetails = () => {
                     suya_gothram: formValues.personal_surya_goth || '',
                     madulamn: formValues.personal_madulamn || '',
                     dasa_name: formValues.personal_dasa || '',
-                    dasa_balance: formValues.personal_dasa_bal_day ?
-                        `day:${formValues.personal_dasa_bal_day}, month:${formValues.personal_dasa_bal_month}, year:${formValues.personal_dasa_bal_year}` : '',
+                    dasa_balance: formattedDasaBalance,
                     horoscope_hints: formValues.personal_horoscope_hints || '',
                     didi: formValues.personal_didi || '',
                     amsa_kattam: '',
@@ -462,12 +495,12 @@ export const HoroscopeDetails = () => {
                         <View style={styles.formGroup}>
                             <Text style={styles.labelNew}>Dasa Balance</Text>
                             <View style={styles.dropdownFlex}>
-                                {/* Day Dropdown */}
+                                {/* Year Dropdown */}
                                 <View style={styles.dropdownFit}>
                                     <RNPickerSelect
-                                        onValueChange={(value) => handleChange('personal_dasa_bal_day', value)}
-                                        items={dayOptions}
-                                        value={formValues.personal_dasa_bal_day}
+                                        onValueChange={(value) => handleChange('personal_dasa_bal_year', value)}
+                                        items={yearOptions}
+                                        value={formValues.personal_dasa_bal_year}
                                         useNativeAndroidPickerStyle={false}
                                         Icon={() => (
                                             <Ionicons
@@ -477,11 +510,11 @@ export const HoroscopeDetails = () => {
                                                 style={{ marginTop: 10 }}
                                             />
                                         )}
-                                        placeholder={{ label: "Day", value: null }}
+                                        placeholder={{ label: "Year", value: null }}
                                         style={pickerSelectStyles}
                                     />
-                                    {validationErrors.personal_dasa_bal_day && (
-                                        <Text style={styles.error}>{validationErrors.personal_dasa_bal_day}</Text>
+                                    {validationErrors.personal_dasa_bal_year && (
+                                        <Text style={styles.error}>{validationErrors.personal_dasa_bal_year}</Text>
                                     )}
                                 </View>
 
@@ -508,12 +541,12 @@ export const HoroscopeDetails = () => {
                                     )}
                                 </View>
 
-                                {/* Year Dropdown */}
+                                {/* Day Dropdown */}
                                 <View style={styles.dropdownFit}>
                                     <RNPickerSelect
-                                        onValueChange={(value) => handleChange('personal_dasa_bal_year', value)}
-                                        items={yearOptions}
-                                        value={formValues.personal_dasa_bal_year}
+                                        onValueChange={(value) => handleChange('personal_dasa_bal_day', value)}
+                                        items={dayOptions}
+                                        value={formValues.personal_dasa_bal_day}
                                         useNativeAndroidPickerStyle={false}
                                         Icon={() => (
                                             <Ionicons
@@ -523,11 +556,11 @@ export const HoroscopeDetails = () => {
                                                 style={{ marginTop: 10 }}
                                             />
                                         )}
-                                        placeholder={{ label: "Year", value: null }}
+                                        placeholder={{ label: "Day", value: null }}
                                         style={pickerSelectStyles}
                                     />
-                                    {validationErrors.personal_dasa_bal_year && (
-                                        <Text style={styles.error}>{validationErrors.personal_dasa_bal_year}</Text>
+                                    {validationErrors.personal_dasa_bal_day && (
+                                        <Text style={styles.error}>{validationErrors.personal_dasa_bal_day}</Text>
                                     )}
                                 </View>
                             </View>

@@ -66,6 +66,7 @@ export const ProfileDetailsEdit = () => {
         personal_hobbies: '',
         personal_pysically_changed: '',
         personal_eye_wear: '',
+        personal_body_type: '',
         profile_created_by: '',
         personal_profile_marital_status_id: null,
         personal_profile_complexion_id: null,

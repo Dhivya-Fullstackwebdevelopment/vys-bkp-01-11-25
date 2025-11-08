@@ -953,9 +953,9 @@ const place = [
 
 
 const chevvaiDoshamOptions = [
-    { label: 'Unknown', value: 'unknown' },
-    { label: 'Yes', value: 'yes' },
-    { label: 'No', value: 'no' },
+    { label: 'Unknown', value: 'Unknown' },
+    { label: 'Yes', value: 'Yes' },
+    { label: 'No', value: 'No' },
 ];
 
 
@@ -966,6 +966,9 @@ const schema = z.object({
     stValue: z.string().min(1, "Birth Star is required"),
     raValue: z.string().min(1, "Rasi is required"),
     laValue: z.string().optional(),
+    didi: z.string().optional(),
+    chdoshamValue: z.string().optional(), // For chevvai_dosham
+    sarDoshamValue: z.string().optional(),
     naalikaiValue: z.string().optional(),
     dasaNameValue: z.string().optional(),
     horoscopeHintsValue: z.string().optional(),
@@ -1037,7 +1040,7 @@ export const HoroDetails = () => {
         setDayOptions([{ label: 'Days', value: '' }, ...days]);
 
         // For months: 00 to 12
-        const months = Array.from({ length: 12 }, (_, i) => ({
+        const months = Array.from({ length: 13 }, (_, i) => ({
             label: i.toString(),
             value: i.toString()
         }));
@@ -1191,7 +1194,7 @@ export const HoroDetails = () => {
                 time_of_birth: data.selectedTime, // This is now in HH:MM PM/AM format
                 birthstar_name: data.stValue,
                 birth_rasi_name: data.raValue,
-                lagnam_didi: data.laValue,
+                lagnam_didi: data.laValue || "",
 
                 // <--- FIX: Add || "" to prevent sending 'undefined'
                 chevvai_dosham: data.chdoshamValue || "",

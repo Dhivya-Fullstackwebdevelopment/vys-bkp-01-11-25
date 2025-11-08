@@ -47,13 +47,8 @@ export const ContactDetails = () => {
     const [districts, setDistricts] = useState([]);
     const [cities, setCities] = useState([]);
     const [isFetched, setIsFetched] = useState(false);
-
-
-
-
-
-
-
+    const [isCityDropdown, setIsCityDropdown] = useState(true); // Tracks if city is dropdown or textbox
+    const [customCity, setCustomCity] = useState("");
 
     const fetchCountryList = async () => {
         try {
@@ -201,13 +196,9 @@ export const ContactDetails = () => {
         }
     };
 
-
-
     useEffect(() => {
         fetchProfileData(); // Call the function when component mounts
     }, []);
-
-
 
 
     useEffect(() => {
@@ -233,14 +224,63 @@ export const ContactDetails = () => {
             });
             setIsFetched(true);  // Mark as fetched to prevent further updates
 
+            if (contactDetails.personal_prof_count_id) {
+                fetchStateList(contactDetails.personal_prof_count_id);
+            }
+            if (contactDetails.personal_prof_stat_id) {
+                // This will trigger the district-fetching useEffect
+                setSelectedStateId(contactDetails.personal_prof_stat_id);
+            }
+            if (contactDetails.personal_prof_district_id) {
+                // This will trigger the city-fetching useEffect
+                setSelectedCityId(contactDetails.personal_prof_district_id);
+            }
         }
     }, [contactDetails, isFetched]);
 
+    useEffect(() => {
+        // Only run after initial data is fetched AND city list is populated
+        if (isFetched && cities.length > 0 && contactDetails) {
 
+            // If an ID is already set (and not 'others'), we trust it.
+            if (formValues.personal_prof_city_id && formValues.personal_prof_city_id !== 'others') {
+                const idExists = cities.some(c => c.value === formValues.personal_prof_city_id);
+                if (idExists) {
+                    setIsCityDropdown(true);
+                    return; // ID is valid, nothing more to do
+                }
+            }
 
-    // Personal Menu
+            // If no valid ID, try to match by NAME
+            const targetCityName = contactDetails.personal_prof_city_name;
 
+            if (targetCityName) {
+                const matchedCity = cities.find(
+                    city => city.label.toLowerCase() === targetCityName.toLowerCase()
+                );
 
+                if (matchedCity) {
+                    // Match found! Set the dropdown ID and name.
+                    setFormValues(prev => ({
+                        ...prev,
+                        personal_prof_city_id: matchedCity.value,
+                        personal_prof_city_name: matchedCity.label,
+                    }));
+                    setIsCityDropdown(true);
+                    setCustomCity("");
+                } else {
+                    // No match found. Set to "Others" and show textbox.
+                    setFormValues(prev => ({
+                        ...prev,
+                        personal_prof_city_id: "others", // Use 'others' to track
+                        personal_prof_city_name: targetCityName,
+                    }));
+                    setIsCityDropdown(false);
+                    setCustomCity(targetCityName);
+                }
+            }
+        }
+    }, [cities, isFetched, contactDetails]); // Dependencies
 
 
 
@@ -268,32 +308,101 @@ export const ContactDetails = () => {
     // };
 
 
+    // --- ADD THIS NEW HANDLER ---
+    const handleCustomCityInput = (text) => {
+        setCustomCity(text);
+        setFormValues(prev => ({
+            ...prev,
+            personal_prof_city_name: text // Update the name
+        }));
+    };
+
+    // --- REPLACE your existing handleChange with this ---
     const handleChange = (field, value) => {
-        setFormValues((prevValues) => {
-            // Update the value to either the user input or empty string
-            const updatedValue = value === '' ? '' : value;
 
-            return {
-                ...prevValues,
-                [field]: updatedValue,
-            };
-        });
+        // Special handling for country
         if (field === 'personal_prof_count_id') {
-            fetchStateList(value); // Fetch states based on selected country
-        }
-        if (field === 'personal_prof_stat_id') {
-            setSelectedStateId(value); // Update the state ID
+            fetchStateList(value); // Fetch new states
+            setFormValues(prev => ({
+                ...prev,
+                personal_prof_count_id: value,
+                personal_prof_stat_id: null,
+                personal_prof_district_id: null,
+                personal_prof_city_id: null,
+                personal_prof_city_name: '',
+                personal_prof_stat_name: '',
+                personal_prof_district_name: '',
+            }));
+            setStateList([]);
+            setDistricts([]);
+            setCities([]);
+
+            // Special handling for state
+        } else if (field === 'personal_prof_stat_id') {
+            setSelectedStateId(value); // Trigger district fetch
+            setFormValues(prev => ({
+                ...prev,
+                personal_prof_stat_id: value,
+                personal_prof_district_id: null,
+                personal_prof_city_id: null,
+                personal_prof_city_name: '',
+            }));
+            setDistricts([]);
+            setCities([]);
+
+            // Special handling for district
+        } else if (field === 'personal_prof_district_id') {
+            setSelectedCityId(value); // Trigger city fetch
+            setFormValues(prev => ({
+                ...prev,
+                personal_prof_district_id: value,
+                personal_prof_city_id: null,
+                personal_prof_city_name: '',
+            }));
+            setCities([]);
+
+            // Special handling for city dropdown
+        } else if (field === 'personal_prof_city_id') {
+            if (value === 'others') {
+                setIsCityDropdown(false); // Show text input
+                setCustomCity('');       // Clear old custom value
+                setFormValues(prev => ({
+                    ...prev,
+                    personal_prof_city_id: 'others',
+                    personal_prof_city_name: '', // Clear name
+                }));
+            } else {
+                const selectedCity = cities.find(city => city.value === value);
+                setIsCityDropdown(true); // Ensure dropdown is showing
+                setFormValues(prev => ({
+                    ...prev,
+                    personal_prof_city_id: value,
+                    personal_prof_city_name: selectedCity ? selectedCity.label : '',
+                }));
+            }
+
+            // Special handling for city *text input* (non-India)
+        } else if (field === 'personal_prof_city_name') {
+            setFormValues(prev => ({
+                ...prev,
+                personal_prof_city_name: value, // Set name
+                personal_prof_city_id: null,    // Clear ID
+            }));
+
+            // Default handler for all other fields
+        } else {
+            setFormValues((prevValues) => ({
+                ...prevValues,
+                [field]: value,
+            }));
         }
 
-        if (field === 'personal_prof_district_id') {
-            setSelectedCityId(value); // Update the state ID
-        }
+        // Clear validation error
         setValidationErrors((prevErrors) => ({
             ...prevErrors,
             [field]: '',
         }));
     };
-
 
 
 
@@ -382,7 +491,7 @@ export const ContactDetails = () => {
             const profileData = {
 
                 Profile_address: formValues.personal_prof_addr,
-                Profile_city: formValues.personal_prof_city_id,
+                Profile_city: formValues.personal_prof_city_name,
                 Profile_district: formValues.personal_prof_district_id,
                 Profile_state: formValues.personal_prof_stat_id,
                 Profile_country: formValues.personal_prof_count_id,

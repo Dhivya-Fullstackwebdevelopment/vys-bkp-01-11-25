@@ -256,7 +256,7 @@ export const EducationalDetails = () => {
         personal_work_district: '',
         personal_work_city: '',
         personal_work_district_id: null,
-        personal_work_city_id: null,
+        personal_work_city_id: '',
     });
 
     const fetchProfileData = async () => {
@@ -330,20 +330,51 @@ export const EducationalDetails = () => {
                 setWorkDistrictInput(educationalDetails.personal_work_district);
             }
 
+            // if (educationalDetails.personal_work_city_id) {
+            //     setFormValues(prev => ({
+            //         ...prev,
+            //         personal_work_city_id: educationalDetails.personal_work_city_id
+            //     }));
+            //     setIsCityDropdown(true);
+            // } else if (educationalDetails.personal_work_city_name) {
+            //     setCustomCity(educationalDetails.personal_work_city_name);
+            //     setIsCityDropdown(false);
+            //     setFormValues(prev => ({
+            //         ...prev,
+            //         personal_work_city_id: "others"
+            //     }));
+            // }
+
             if (educationalDetails.personal_work_city_id) {
-                setFormValues(prev => ({
-                    ...prev,
-                    personal_work_city_id: educationalDetails.personal_work_city_id
-                }));
-                setIsCityDropdown(true);
+                // Check if it's a valid ID (number) or a city name (string)
+                const isNumericId = !isNaN(educationalDetails.personal_work_city_id);
+
+                if (isNumericId) {
+                    // It's a valid city ID
+                    setFormValues(prev => ({
+                        ...prev,
+                        personal_work_city_id: educationalDetails.personal_work_city_id
+                    }));
+                    setIsCityDropdown(true);
+                } else {
+                    // It's a city name stored as ID - treat as custom city
+                    setCustomCity(educationalDetails.personal_work_city_id);
+                    setIsCityDropdown(false);
+                    setFormValues(prev => ({
+                        ...prev,
+                        personal_work_city_id: "others",
+                        personal_work_city: educationalDetails.personal_work_city_id
+                    }));
+                }
             } else if (educationalDetails.personal_work_city_name) {
+                // No ID but has city name - will match against dropdown once loaded
                 setCustomCity(educationalDetails.personal_work_city_name);
-                setIsCityDropdown(false);
                 setFormValues(prev => ({
                     ...prev,
-                    personal_work_city_id: "others"
+                    personal_work_city: educationalDetails.personal_work_city_name
                 }));
             }
+
 
             // Check if country is India (ID: "1") to show appropriate state input
             if (educationalDetails.personal_work_coun_id === "1") {
@@ -366,7 +397,60 @@ export const EducationalDetails = () => {
 
             setIsFetched(true);
         }
-    }, [educationalDetails, isFetched]);
+    }, [educationalDetails, isFetched, cityList]);
+
+    // Add this new useEffect after the existing one
+    useEffect(() => {
+        if (educationalDetails && cityList.length > 0) {
+            const cityIdOrName = educationalDetails.personal_work_city_id;
+            const cityName = educationalDetails.personal_work_city_name;
+
+            // If city_id is actually a city name (string), try to find it in the dropdown
+            if (cityIdOrName && isNaN(cityIdOrName)) {
+                const matchingCity = cityList.find(
+                    city => city.label.toLowerCase().trim() === cityIdOrName.toLowerCase().trim()
+                );
+
+                if (matchingCity) {
+                    // Found in dropdown - use the proper ID
+                    setFormValues(prev => ({
+                        ...prev,
+                        personal_work_city_id: matchingCity.value,
+                        personal_work_city: matchingCity.label
+                    }));
+                    setIsCityDropdown(true);
+                    setCustomCity("");
+                } else {
+                    // Not found - keep as custom city
+                    setIsCityDropdown(false);
+                    setCustomCity(cityIdOrName);
+                }
+            }
+            // If we have a city name but no ID, try to match it
+            else if (cityName && !cityIdOrName) {
+                const matchingCity = cityList.find(
+                    city => city.label.toLowerCase().trim() === cityName.toLowerCase().trim()
+                );
+
+                if (matchingCity) {
+                    setFormValues(prev => ({
+                        ...prev,
+                        personal_work_city_id: matchingCity.value,
+                        personal_work_city: matchingCity.label
+                    }));
+                    setIsCityDropdown(true);
+                } else {
+                    setFormValues(prev => ({
+                        ...prev,
+                        personal_work_city_id: "others",
+                        personal_work_city: cityName
+                    }));
+                    setIsCityDropdown(false);
+                    setCustomCity(cityName);
+                }
+            }
+        }
+    }, [cityList, educationalDetails]);
 
     const handleChange = (field, value) => {
         setFormValues((prevValues) => {
@@ -501,7 +585,7 @@ export const EducationalDetails = () => {
             const selectedCity = cityList.find(city => city.value === value);
             setFormValues(prev => ({
                 ...prev,
-                personal_work_city_id: value,
+                personal_work_city_id: selectedCity,
                 personal_work_city: selectedCity ? selectedCity.label : ""
             }));
         }
@@ -623,8 +707,8 @@ export const EducationalDetails = () => {
                     : "",
                 work_city: formValues.personal_work_coun_id === "1"
                     ? (formValues.personal_work_city_id === "others"
-                        ? customCity
-                        : (formValues.personal_work_city || ""))
+                        ? customCity  // Custom city name
+                        : (formValues.personal_work_city || ""))  // Selected city NAME from dropdown
                     : "",
             };
 
