@@ -14,7 +14,7 @@ import * as Notifications from 'expo-notifications';
 // const BASE_URL = "https://matrimonyapi.rainyseasun.com/auth";
 // const BASE_URL ="https://vysyamaladev-afcbe2fdb9c7ckdv.westus2-01.azurewebsites.net/auth";
 // const BASE_URL = "https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net/auth";
-const BASE_URL = "https://vsysmalamat-ejh3ftcdbnezhhfv.westus2-01.azurewebsites.net/auth";
+const BASE_URL = "https://app.vysyamala.com/auth";
 
 // Retrieve Profile ID from session storage
 const retrieveProfileId = async () => {
@@ -1637,7 +1637,7 @@ export const downloadPdf = async (idparam) => {
     // const url = `https://vysyamaladev-afcbe2fdb9c7ckdv.westus2-01.azurewebsites.net/auth/generate-pdf/${profileId}/${idparam}`;
     // const url = `https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net/auth/New_horoscope_color/${idparam}/${profileId}/`;
     // const url = `https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net/auth/New_horoscope_color/${idparam}/${profileId}/`;
-    const url = `https://vsysmalamat-ejh3ftcdbnezhhfv.westus2-01.azurewebsites.net/auth/New_horoscope_color/${idparam}/${profileId}/`;
+    const url = `https://app.vysyamala.com/auth/New_horoscope_color/${idparam}/${profileId}/`;
     const fileName = `pdf_${idparam}.pdf`;
 
     // Request storage permission

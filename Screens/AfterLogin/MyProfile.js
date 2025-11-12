@@ -460,8 +460,8 @@ export const MyProfile = () => {
         }
         // Choose URL based on whether to include image or not
         const shareUrl = withImage
-            ? `https://vsysmalamat-ejh3ftcdbnezhhfv.westus2-01.azurewebsites.net/auth/profile/${profileId}/`
-            : `https://vsysmalamat-ejh3ftcdbnezhhfv.westus2-01.azurewebsites.net/auth/profile_view/${profileId}/`;
+            ? `https://app.vysyamala.com/auth/profile/${profileId}/`
+            : `https://app.vysyamala.com/auth/profile_view/${profileId}/`;
 
         const message =
             `Check out this profile!\n\n` +

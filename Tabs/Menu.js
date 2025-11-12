@@ -216,7 +216,7 @@ export const Menu = () => {
       const age = dashboardData?.profile_details?.age || 'Not available';
       const starName = dashboardData?.profile_details?.star_name || 'Not available';
       // const baseUrl = 'https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net';
-      // const baseUrl = 'https://vsysmalamat-ejh3ftcdbnezhhfv.westus2-01.azurewebsites.net';
+      // const baseUrl = 'https://app.vysyamala.com';
       const vysyamalaUrl = 'vysyamala.com';
       const profession = profileDetails?.prosession;
       const annualIncome = educationalDetails?.personal_ann_inc_name;
@@ -242,7 +242,7 @@ export const Menu = () => {
 
       // Construct the share URL with proper encoding
       // const shareUrl = `${baseUrl}/auth/profile/${encodeURIComponent(profileId)}/`;
-      const shareUrl = `https://vsysmalamat-ejh3ftcdbnezhhfv.westus2-01.azurewebsites.net/auth/profile/${profileId}/`;
+      const shareUrl = `https://app.vysyamala.com/auth/profile/${profileId}/`;
       const title = 'Check out this profile!';
 
       const message =
@@ -298,7 +298,7 @@ export const Menu = () => {
       const age = dashboardData?.profile_details?.age || 'Not available';
       const starName = dashboardData?.profile_details?.star_name || 'Not available';
       // const baseUrl = 'https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net';
-      //const baseUrl = 'https://vsysmalamat-ejh3ftcdbnezhhfv.westus2-01.azurewebsites.net';
+      //const baseUrl = 'https://app.vysyamala.com';
       const vysyamalaUrl = 'vysyamala.com';
       const profession = profileDetails?.prosession;
       const annualIncome = educationalDetails?.personal_ann_inc_name;
@@ -323,7 +323,7 @@ export const Menu = () => {
       }
 
       // Construct the share URL with proper encoding
-      const shareUrlWithoutImage = `https://vsysmalamat-ejh3ftcdbnezhhfv.westus2-01.azurewebsites.net/auth/profile_view/${profileId}/`
+      const shareUrlWithoutImage = `https://app.vysyamala.com/auth/profile_view/${profileId}/`
       const title = 'Check out this profile!';
 
       const message =

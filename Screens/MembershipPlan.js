@@ -77,7 +77,7 @@ export const MembershipPlan = ({ navigation, route }) => {
       try {
         const profile_id = await AsyncStorage.getItem("profile_id_new");
         const response = await axios.post(
-          "https://vsysmalamat-ejh3ftcdbnezhhfv.westus2-01.azurewebsites.net/auth/Free_packages/",
+          "https://app.vysyamala.com/auth/Free_packages/",
           { profile_id: profile_id },
           { headers: { 'Content-Type': 'application/json' } }
         );
