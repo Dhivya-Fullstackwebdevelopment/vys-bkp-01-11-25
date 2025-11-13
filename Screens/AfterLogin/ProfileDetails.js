@@ -1368,11 +1368,8 @@ export const ProfileDetails = () => {
 
             <View style={styles.detailsMeterFlex}>
 
-              <View style={{ position: 'absolute', bottom: 0, right: 10 }}>
-                <MatchingScore scorePercentage={parseInt(basic_details.matching_score)} viewedProfileId={viewedProfileId} />
-                {/* <Image source={{ uri: 'http://matrimonyapp.rainyseasun.com/assets/MatchingScore.png' }} /> */}
-              </View>
-              <View>
+
+              <View style={{ flex: 1, marginRight: 150 }}>
                 <Text style={styles.label}>Age: <Text style={styles.value}>{basic_details.age}</Text></Text>
                 <Text style={styles.label}>Height: <Text style={styles.value}>{basic_details.height} cms</Text></Text>
                 {basic_details.weight !== 0 || basic_details.weight !== null && (
@@ -1388,7 +1385,10 @@ export const ProfileDetails = () => {
                 {/* <Text style={styles.label}>About: <Text style={styles.value}>{basic_details.about}</Text></Text> */}
                 <Text style={styles.label}>Degree: <Text style={styles.value}>{basic_details.degeree}</Text></Text>
               </View>
-
+              <View style={{ position: 'absolute', top: 0, right: 10 }}>
+                <MatchingScore scorePercentage={parseInt(basic_details.matching_score)} viewedProfileId={viewedProfileId} />
+                {/* <Image source={{ uri: 'http://matrimonyapp.rainyseasun.com/assets/MatchingScore.png' }} /> */}
+              </View>
 
             </View>
             <View style={styles.detailsMeterFlex1}>

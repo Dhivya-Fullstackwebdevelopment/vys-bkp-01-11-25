@@ -174,7 +174,7 @@ export const DashBoard = () => {
         {/* red card */}
         <TouchableWithoutFeedback
           onPress={() => {
-            navigation.navigate("DashBoardMatchingProfiles");
+            navigation.navigate("HomeWithToast");
           }}
         >
           <View style={styles.redCardContainer}>

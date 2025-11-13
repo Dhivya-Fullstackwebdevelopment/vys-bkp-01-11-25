@@ -748,12 +748,12 @@ export const MyProfile = () => {
                                                 {profileDetails.package_name || "Gold"}
                                             </Text>
                                         </LinearGradient>
-                                        <Text style={styles.date}>
-                                            Valid Upto :
-                                            {profileDetails.valid_upto == ""
-                                                ? "2024-01-01"
-                                                : profileDetails.valid_upto}
-                                        </Text>
+                                        {profileDetails.valid_upto && (
+                                            <Text style={styles.date}>
+                                                Valid Upto :
+                                                {profileDetails.valid_upto}
+                                            </Text>
+                                        )}
                                     </View>
                                 )}
                             </View>

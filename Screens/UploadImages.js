@@ -167,7 +167,7 @@ export const UploadImages = () => {
   // Add loading overlay component
   const LoadingOverlay = () => {
     if (!submitting) return null;
-    
+
     return (
       <View style={[styles.loadingOverlay, StyleSheet.absoluteFill]}>
         <View style={styles.loadingContainer}>
@@ -178,10 +178,17 @@ export const UploadImages = () => {
     );
   };
 
+  const somethingToUpload =
+    daughterImages.length > 0 ||
+    horoscopeImages.length > 0 ||
+    idProofImages.length > 0 ||
+    divorceCertificateImages.length > 0;
+
+
   // Handle "Next" button click to upload images
   const handleNextButtonClick = async () => {
     if (submitting) return; // Prevent multiple submissions
-    
+
     try {
       setSubmitting(true); // Set submitting state to true
 
@@ -212,11 +219,13 @@ export const UploadImages = () => {
           await uploadFile(`${config.apiUrl}/auth/Divorceproof_upload/`, file, "divorcepf_file");
         }
       }
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: 'Images uploaded successfully',
-      });
+      if (somethingToUpload) {
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Images uploaded successfully!",
+        });
+      }
       // Alert.alert("Success", "Images uploaded successfully.");
       navigation.navigate("FamilyDetails");
     } catch (error) {
@@ -247,7 +256,7 @@ export const UploadImages = () => {
             onPress={() => selectFile(setDaughterImages)}
           >
             <Text style={styles.uploadText}>
-              Select a file 
+              Select a file
             </Text>
           </TouchableOpacity>
 
@@ -324,7 +333,7 @@ export const UploadImages = () => {
             onPress={() => selectFile(setHoroscopeImages)}
           >
             <Text style={styles.uploadText}>
-              Select a file 
+              Select a file
             </Text>
           </TouchableOpacity>
 
@@ -366,7 +375,7 @@ export const UploadImages = () => {
             onPress={() => selectFile(setIdProofImages)}
           >
             <Text style={styles.uploadText}>
-              Select a file 
+              Select a file
             </Text>
           </TouchableOpacity>
 
@@ -404,7 +413,7 @@ export const UploadImages = () => {
                 onPress={() => selectFile(setDivorceCertificateImages)}
               >
                 <Text style={styles.uploadText}>
-                  Select a file 
+                  Select a file
                 </Text>
               </TouchableOpacity>
 
@@ -647,14 +656,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 1000,
   },
-  
+
   loadingContainer: {
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
   },
-  
+
   loadingText: {
     marginTop: 10,
     color: '#535665',

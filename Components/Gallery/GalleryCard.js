@@ -236,25 +236,31 @@ export const GalleryCard = () => {
       style={styles.profileDiv}
     >
       <View style={styles.cardContainer}>
-        <View style={styles.profileContainer}>
+
+        {/* Profile Image Container (Needs relative positioning for the button overlay) */}
+        <View style={styles.imageWrapper}>
+          {/* <Image
+            source={getImageSource(item.img_url)}
+            style={styles.profileImage}
+            resizeMode="cover"
+          /> */}
           <Image
             source={getImageSource(item.img_url)}
             style={styles.profileImage}
             resizeMode="cover"
+            imageStyle={{ alignSelf: 'flex-start' }} // This positions image from top
           />
-          <View style={styles.profileContent}>
-            <Text style={styles.profileName}>
-              {item.profile_name || "N/A"}{" "}
-              <Text style={styles.profileId}>({item.profile_id})</Text>
-            </Text>
-            <Text style={styles.profileAge}>
-              {item.age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
-              {item.height || "N/A"}
-            </Text>
-            <Text style={styles.zodiac}>{item.star || "N/A"}</Text>
-            <Text style={styles.employed}>{item.profession || "N/A"}</Text>
-          </View>
+          {/* VIEW BUTTON OVERLAY (New Element) */}
+          {/* <View style={styles.viewButtonOverlay}>
+            <Text style={styles.viewButtonText}>View</Text>
+          </View> */}
         </View>
+
+        {/* Profile ID centered beneath the image (New Element) */}
+        <Text style={styles.profileIdCentered}>
+          {item.profile_id}
+        </Text>
+
       </View>
     </TouchableOpacity>
   );
@@ -341,8 +347,10 @@ const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: "#fff",
     borderRadius: 8,
-    padding: 8,
+    padding: 8, // Padding around the image and ID
     marginVertical: 6,
+    // Center alignment for the profile ID below the image
+    alignItems: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -362,10 +370,20 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  imageWrapper: {
+    width: "100%",
+    aspectRatio: 3 / 3,
+    borderRadius: 8,
+    overflow: "hidden",
+    position: 'relative',
+    justifyContent: 'flex-start',
+  },
   profileImage: {
     width: "100%",
     height: "100%",
     borderRadius: 8,
+    resizeMode: 'cover',
+    overflow: 'hidden',
   },
   saveIcon: {
     position: "absolute",
@@ -425,5 +443,31 @@ const styles = StyleSheet.create({
   footerText: {
     color: "#666",
     marginTop: 5,
+  },
+  viewButtonOverlay: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -50 }, { translateY: -50 }], // Center it exactly
+    backgroundColor: 'rgba(255, 255, 255, 0.85)', // Semi-transparent white
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 50,
+    borderWidth: 1,
+    // borderColor: '#ED1E24',
+  },
+
+  viewButtonText: {
+    // color: '#ED1E24', // Red text color
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  profileIdCentered: {
+    fontSize: 14,
+    color: "#4F515D",
+    fontWeight: 'bold',
+    marginTop: 5, // Small gap between image and ID
+    marginBottom: 5, // Gap before the next card
+    textAlign: 'center',
   },
 });

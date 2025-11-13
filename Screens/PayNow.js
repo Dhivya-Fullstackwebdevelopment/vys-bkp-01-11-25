@@ -494,7 +494,7 @@ export const PayNow = () => {
           <View style={styles.planRateFlex}>
             <View>
               <Text style={styles.plan}>{selectedPlanName}</Text>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
+              <TouchableOpacity onPress={() =>  navigation.navigate('MembershipPlan')}>
                 <Text style={styles.changePlan}>Change Plan</Text>
               </TouchableOpacity>
             </View>
