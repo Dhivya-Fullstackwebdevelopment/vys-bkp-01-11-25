@@ -14,6 +14,7 @@ import { SuggestedProfiles } from "../../Components/HomeTab/SuggestedProfiles";
 import { fetchPersonalNotesCount } from "../../CommonApiCall/CommonApiCall";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 
 export const PersonalNotes = () => {
   const navigation = useNavigation();
@@ -90,6 +91,7 @@ export const PersonalNotes = () => {
       <View style={styles.cardContainer}>
         <PersonalNotesCard sortBy={sortBy} />
       </View>
+      <BottomTabBarComponent />
     </View>
   );
 };
@@ -98,6 +100,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F4F4F4",
+    paddingBottom: 80,
   },
   headerContainer: {
     padding: 3,

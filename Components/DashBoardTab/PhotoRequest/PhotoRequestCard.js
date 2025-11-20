@@ -10,7 +10,7 @@ import {
     TextInput,
     Button,
     Pressable,
-
+    ActivityIndicator
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -281,6 +281,14 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
         }
     };
 
+    if (isLoading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#ED1E24" />
+                {/* <Text style={styles.loadingText}>Loading Photo Requests...</Text> */}
+            </View>
+        );
+    }
 
     return (
         <ScrollView style={styles.profileScrollView}>
@@ -710,5 +718,10 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#4F515D',
     },
-
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 50, // Give it some vertical height
+    },
 });

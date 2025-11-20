@@ -14,6 +14,7 @@ import {
 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 
 export const FeaturedOrSuggestProfiles = ({ route }) => {
   const navigation = useNavigation();
@@ -151,26 +152,29 @@ export const FeaturedOrSuggestProfiles = ({ route }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#ED1E24" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>
-          {type === "featured" ? "Featured Profiles" : "Suggested Profiles"}
-          <Text style={styles.profileId}> ({profiles.length})</Text>
-        </Text>
-      </View>
-      <FlatList
-        data={profiles}
-        renderItem={renderProfileItem}
-        keyExtractor={(item) => item.profile_id.toString()}
-        ListHeaderComponent={ListHeader}
-        contentContainerStyle={styles.cardContainer}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={() => <Text style={styles.errorText}>No profiles found</Text>}
-      />
-    </SafeAreaView>
+    <View style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#ED1E24" />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>
+            {type === "featured" ? "Featured Profiles" : "Suggested Profiles"}
+            <Text style={styles.profileId}> ({profiles.length})</Text>
+          </Text>
+        </View>
+        <FlatList
+          data={profiles}
+          renderItem={renderProfileItem}
+          keyExtractor={(item) => item.profile_id.toString()}
+          ListHeaderComponent={ListHeader}
+          contentContainerStyle={styles.cardContainer}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={() => <Text style={styles.errorText}>No profiles found</Text>}
+        />
+      </SafeAreaView>
+      <BottomTabBarComponent />
+    </View>
   );
 };
 

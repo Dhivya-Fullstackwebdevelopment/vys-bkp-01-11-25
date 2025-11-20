@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { VysassistCard } from "../../Components/Vysassist/VysassistCard";
 import { fetchVysassistCount } from "../../CommonApiCall/CommonApiCall";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 export const VysassistResults = () => {
   const navigation = useNavigation();
   const [count, setCount] = useState(null);
@@ -102,6 +103,7 @@ export const VysassistResults = () => {
           <VysassistCard sortBy={sortBy} />
         </View>
       </View>
+      <BottomTabBarComponent />
     </SafeAreaView>
   );
 };
@@ -110,6 +112,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F4F4F4",
+    paddingBottom: 80,
   },
   headerContainer: {
     padding: 3,

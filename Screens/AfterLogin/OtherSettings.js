@@ -39,6 +39,7 @@ import { PartnerSettings } from '../../Components/PartnerSetting';
 import { ProfileVisibility } from '../../Components/ProfileVisibility';
 import Toast from "react-native-toast-message";
 import { LinearGradient } from 'expo-linear-gradient';
+import { BottomTabBarComponent } from '../../Navigation/ReuseTabNavigation';
 // import { PartnerSettings } from '../PartnerSettings';
 
 export const OtherSettings = () => {
@@ -566,323 +567,97 @@ export const OtherSettings = () => {
     }, []);
 
     return (
+        <View style={{ flex: 1 }}>
+            <ScrollView>
+                <View style={styles.container}>
+                    <View style={styles.headerContainer}>
+                        <TouchableOpacity onPress={() => navigation.goBack()}>
+                            <Ionicons name="arrow-back" size={24} color="#ED1E24" />
+                        </TouchableOpacity>
 
-        <ScrollView>
-            <View style={styles.container}>
-                <View style={styles.headerContainer}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <Ionicons name="arrow-back" size={24} color="#ED1E24" />
-                    </TouchableOpacity>
-
-                    <Text style={styles.headerText}>
-                        {"Other Settings"}
-                    </Text>
-                </View>
-                {/* <View style={styles.contentContainer}>
+                        <Text style={styles.headerText}>
+                            {"Other Settings"}
+                        </Text>
+                    </View>
+                    {/* <View style={styles.contentContainer}>
                     <Text style={styles.profileName}>Other Settings */}
-                {/* <Text style={styles.profileId}> (05)</Text> */}
-                {/* </Text>
+                    {/* <Text style={styles.profileId}> (05)</Text> */}
+                    {/* </Text>
                 </View> */}
 
-                {/* Alert Settings */}
-                <View>
-                    <TouchableWithoutFeedback onPress={() => toggleMenu(pMenuOpen, setPMenuOpen, animatedHeightP, rotationP, 200)}>
-                        <View style={styles.detailsMenu}>
-                            <View style={styles.iconMenuFlex}>
-                                <MaterialIcons name="notifications" size={18} color="#fff" style={styles.saveIcon} />
-                                <Text style={styles.menuName}>Alert Settings</Text>
-                            </View>
-                            <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationP) }] }}>
-                                <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
-                            </Animated.View>
-                        </View>
-                    </TouchableWithoutFeedback>
-
-                    <Animated.View style={[styles.menuContainer, { height: pMenuOpen ? 'auto' : 0 }]}>
-                        {pMenuOpen && (
-                            <View style={styles.editOptions}>
-                                <ScrollView style={styles.scrollView}>
-                                    {/* Email Alerts */}
-                                    <View style={styles.checkBoxList}>
-                                        <Text style={styles.subCaption}>Email Alerts</Text>
-                                        {emailAlerts.map(alert => (
-                                            <View key={`email_${alert.id}`} style={styles.checkboxContainer}>
-                                                <Pressable
-                                                    style={[
-                                                        styles.checkboxBase,
-                                                        checkedAlerts[`email_${alert.id}`] && styles.checkboxChecked,
-                                                    ]}
-                                                    onPress={() => handleCheckboxToggle(`email_${alert.id}`)}
-                                                >
-                                                    {checkedAlerts[`email_${alert.id}`] && (
-                                                        <Ionicons name="checkmark" size={14} color="white" />
-                                                    )}
-                                                </Pressable>
-                                                <Pressable onPress={() => handleCheckboxToggle(`email_${alert.id}`)}>
-                                                    <Text style={styles.checkboxLabel}>{alert.alert_name}</Text>
-                                                </Pressable>
-                                            </View>
-                                        ))}
-                                    </View>
-
-                                    {/* SMS Alerts */}
-                                    <View style={styles.checkBoxList}>
-                                        <Text style={styles.subCaption}>SMS Alerts</Text>
-                                        {smsAlerts.map(alert => (
-                                            <View key={`sms_${alert.id}`} style={styles.checkboxContainer}>
-                                                <Pressable
-                                                    style={[
-                                                        styles.checkboxBase,
-                                                        checkedAlerts[`sms_${alert.id}`] && styles.checkboxChecked,
-                                                    ]}
-                                                    onPress={() => handleCheckboxToggle(`sms_${alert.id}`)}
-                                                >
-                                                    {checkedAlerts[`sms_${alert.id}`] && (
-                                                        <Ionicons name="checkmark" size={14} color="white" />
-                                                    )}
-                                                </Pressable>
-                                                <Pressable onPress={() => handleCheckboxToggle(`sms_${alert.id}`)}>
-                                                    <Text style={styles.checkboxLabel}>{alert.alert_name}</Text>
-                                                </Pressable>
-                                            </View>
-                                        ))}
-
-                                    </View>
-                                </ScrollView>
-
-                                {/* Save Button */}
-                                {/* <Button title="Save" onPress={handleSave} /> */}
-                                <View style={styles.formContainer1}>
-                                    <TouchableOpacity
-                                        style={styles.btn}
-                                        onPress={handleSave}
-                                    >
-                                        <LinearGradient
-                                            colors={["#BD1225", "#FF4050"]}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
-                                            useAngle={true}
-                                            angle={92.08}
-                                            angleCenter={{ x: 0.5, y: 0.5 }}
-                                            style={styles.linearGradient}
-                                        >
-                                            <View style={styles.loginContainer}>
-                                                <Text style={styles.login}>Save</Text>
-                                            </View>
-                                        </LinearGradient>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        )}
-                    </Animated.View>
-                </View>
-
-                {/* Education & Profession Details */}
-                <View>
-                    <TouchableWithoutFeedback onPress={() => toggleMenu(eduMenuOpen, setEduMenuOpen, animatedHeightEdu, rotationEdu, 600)}>
-                        <View style={styles.detailsMenu}>
-                            <View style={styles.iconMenuFlex}>
-                                <MaterialIcons name="image" size={18} color="#fff" style={styles.saveIcon} />
-                                <Text style={styles.menuName}>Photo / ID Settings</Text>
-                            </View>
-
-                            <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationEdu) }] }}>
-                                <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
-                            </Animated.View>
-                        </View>
-                    </TouchableWithoutFeedback>
-
-                    {eduMenuOpen && (
-                        <View style={styles.editOptions}>
-                            <View style={styles.formContainer}>
-                                <View style={styles.checkboxContainer}>
-                                    <Pressable
-                                        style={[styles.checkboxBase, checked && styles.checkboxChecked]}
-                                        onPress={handleCheckboxTogglePassword}
-                                    >
-                                        {checked && <Ionicons name="checkmark" size={14} color="white" />}
-                                    </Pressable>
-
-                                    <Pressable onPress={handleCheckboxTogglePassword}>
-                                        <Text style={styles.checkboxLabel}>
-                                            Protect my images with password (only people you share the password can view the images)
-                                        </Text>
-                                    </Pressable>
-                                </View>
-
-                                {checked && (
-                                    <View>
-                                        <Text style={styles.label}>
-                                            Enter Password<Text style={styles.redText}>*</Text>
-                                        </Text>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Password"
-                                            secureTextEntry={!showPassword}
-                                            value={password}
-                                            onChangeText={setPassword}
-                                        />
-                                        <Pressable
-                                            onPress={togglePasswordVisibility}
-                                            style={styles.passwordIDIcon}
-                                        >
-                                            <AntDesign
-                                                name={showPassword ? 'eye' : 'eyeo'}
-                                                size={18}
-                                                color="#535665"
-                                            />
-                                        </Pressable>
-                                    </View>
-                                )}
-                                {checked && (
-                                    <Button title="Save" onPress={handleSavePassword} />
-                                )}
-                            </View>
-                        </View>
-                    )}
-                </View>
-
-                {/* Partner Settings */}
-                <View style={{ flex: 1 }}>
-                    <TouchableWithoutFeedback onPress={() => toggleMenu(famMenuOpen, setFamMenuOpen, animatedHeightFam, rotationFam, 900)}>
-                        <View style={styles.detailsMenu}>
-                            <View style={styles.iconMenuFlex}>
-                                <FontAwesome6 name="user-gear" size={18} color="#fff" style={styles.saveIcon} />
-                                <Text style={styles.menuName}>Partner Settings</Text>
-                            </View>
-
-                            <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationFam) }] }}>
-                                <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
-                            </Animated.View>
-                        </View>
-                    </TouchableWithoutFeedback>
-
-                    <Animated.View >
-                        {famMenuOpen && (
-                            <ScrollView style={styles.scrollView}>
-                                <PartnerSettings />
-                            </ScrollView>
-                        )}
-                    </Animated.View>
-                </View>
-
-                {planId === "3" || planId === "17" && (
-                    <View style={{ flex: 1 }}>
-                        <TouchableWithoutFeedback onPress={() => toggleMenu(pvMenuOpen, setPvMenuOpen, animatedHeightPv, rotationPv, 900)}>
+                    {/* Alert Settings */}
+                    <View>
+                        <TouchableWithoutFeedback onPress={() => toggleMenu(pMenuOpen, setPMenuOpen, animatedHeightP, rotationP, 200)}>
                             <View style={styles.detailsMenu}>
                                 <View style={styles.iconMenuFlex}>
-                                    <FontAwesome6 name="user-gear" size={18} color="#fff" style={styles.saveIcon} />
-                                    <Text style={styles.menuName}>Profile Visibility</Text>
+                                    <MaterialIcons name="notifications" size={18} color="#fff" style={styles.saveIcon} />
+                                    <Text style={styles.menuName}>Alert Settings</Text>
                                 </View>
-
-                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationPv) }] }}>
+                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationP) }] }}>
                                     <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
                                 </Animated.View>
                             </View>
                         </TouchableWithoutFeedback>
 
-                        <Animated.View >
-                            {pvMenuOpen && (
-                                <ScrollView style={styles.scrollView}>
-                                    <ProfileVisibility />
-                                </ScrollView>
-                            )}
-                        </Animated.View>
-                    </View>
-                )}
-
-                {/* Change Password */}
-                <View>
-                    <TouchableWithoutFeedback onPress={() => toggleMenu(horMenuOpen, setHorMenuOpen, animatedHeightHor, rotationHor, 1360)}>
-                        <View style={styles.detailsMenu}>
-                            <View style={styles.iconMenuFlex}>
-                                <MaterialIcons name="lock" size={18} color="#fff" style={styles.saveIcon} />
-                                <Text style={styles.menuName}>Change Password</Text>
-                            </View>
-
-                            <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationHor) }] }}>
-                                <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
-                            </Animated.View>
-                        </View>
-                    </TouchableWithoutFeedback>
-
-                    <Animated.View style={[styles.menuContainer, { height: heightInterpolate(animatedHeightHor, 1360) }]}>
-
-                        {/* <Text style={styles.redText}>Edit</Text> */}
-
-                        {horMenuOpen && (
-
-                            <View style={styles.editOptions}>
-                                <View>
-                                    {/* Enter Old Password */}
-                                    <View>
-                                        <Text style={styles.subCaption}>Enter Old Password</Text>
-                                        <View style={styles.passwordInputContainer}>
-                                            <TextInput
-                                                style={styles.input}
-                                                placeholder="Enter Old Password"
-                                                secureTextEntry={!showOldPassword}
-                                                value={oldPassword}
-                                                onChangeText={setOldPassword}
-                                            />
-                                            <Pressable
-                                                onPress={() => setShowOldPassword((prev) => !prev)}
-                                                style={styles.passwordIcon}
-                                            >
-                                                <AntDesign name={showOldPassword ? "eye" : "eyeo"} size={18} color="#535665" />
-                                            </Pressable>
+                        <Animated.View style={[styles.menuContainer, { height: pMenuOpen ? 'auto' : 0 }]}>
+                            {pMenuOpen && (
+                                <View style={styles.editOptions}>
+                                    <ScrollView style={styles.scrollView}>
+                                        {/* Email Alerts */}
+                                        <View style={styles.checkBoxList}>
+                                            <Text style={styles.subCaption}>Email Alerts</Text>
+                                            {emailAlerts.map(alert => (
+                                                <View key={`email_${alert.id}`} style={styles.checkboxContainer}>
+                                                    <Pressable
+                                                        style={[
+                                                            styles.checkboxBase,
+                                                            checkedAlerts[`email_${alert.id}`] && styles.checkboxChecked,
+                                                        ]}
+                                                        onPress={() => handleCheckboxToggle(`email_${alert.id}`)}
+                                                    >
+                                                        {checkedAlerts[`email_${alert.id}`] && (
+                                                            <Ionicons name="checkmark" size={14} color="white" />
+                                                        )}
+                                                    </Pressable>
+                                                    <Pressable onPress={() => handleCheckboxToggle(`email_${alert.id}`)}>
+                                                        <Text style={styles.checkboxLabel}>{alert.alert_name}</Text>
+                                                    </Pressable>
+                                                </View>
+                                            ))}
                                         </View>
-                                        {oldPasswordError ? <Text style={styles.errorText}>{oldPasswordError}</Text> : null}
-                                    </View>
 
-                                    {/* Enter New Password */}
-                                    <View>
-                                        <Text style={styles.subCaption}>Enter New Password</Text>
-                                        <View style={styles.passwordInputContainer}>
-                                            <TextInput
-                                                style={styles.input}
-                                                placeholder="Enter New Password"
-                                                secureTextEntry={!showNewPassword}
-                                                value={newPassword}
-                                                onChangeText={setNewPassword}
-                                            />
-                                            <Pressable
-                                                onPress={() => setShowNewPassword((prev) => !prev)}
-                                                style={styles.passwordIcon}
-                                            >
-                                                <AntDesign name={showNewPassword ? "eye" : "eyeo"} size={18} color="#535665" />
-                                            </Pressable>
-                                        </View>
-                                        {newPasswordError ? <Text style={styles.errorText}>{newPasswordError}</Text> : null}
-                                    </View>
+                                        {/* SMS Alerts */}
+                                        <View style={styles.checkBoxList}>
+                                            <Text style={styles.subCaption}>SMS Alerts</Text>
+                                            {smsAlerts.map(alert => (
+                                                <View key={`sms_${alert.id}`} style={styles.checkboxContainer}>
+                                                    <Pressable
+                                                        style={[
+                                                            styles.checkboxBase,
+                                                            checkedAlerts[`sms_${alert.id}`] && styles.checkboxChecked,
+                                                        ]}
+                                                        onPress={() => handleCheckboxToggle(`sms_${alert.id}`)}
+                                                    >
+                                                        {checkedAlerts[`sms_${alert.id}`] && (
+                                                            <Ionicons name="checkmark" size={14} color="white" />
+                                                        )}
+                                                    </Pressable>
+                                                    <Pressable onPress={() => handleCheckboxToggle(`sms_${alert.id}`)}>
+                                                        <Text style={styles.checkboxLabel}>{alert.alert_name}</Text>
+                                                    </Pressable>
+                                                </View>
+                                            ))}
 
-                                    {/* Confirm New Password */}
-                                    <View>
-                                        <Text style={styles.subCaption}>Confirm New Password</Text>
-                                        <View style={styles.passwordInputContainer}>
-                                            <TextInput
-                                                style={styles.input}
-                                                placeholder="Confirm New Password"
-                                                secureTextEntry={!showConfirmPassword}
-                                                value={confirmPassword}
-                                                onChangeText={setConfirmPassword}
-                                            />
-                                            <Pressable
-                                                onPress={() => setShowConfirmPassword((prev) => !prev)}
-                                                style={styles.passwordIcon}
-                                            >
-                                                <AntDesign name={showConfirmPassword ? "eye" : "eyeo"} size={18} color="#535665" />
-                                            </Pressable>
                                         </View>
-                                        {confirmPasswordError ? <Text style={styles.errorText}>{confirmPasswordError}</Text> : null}
-                                    </View>
+                                    </ScrollView>
 
                                     {/* Save Button */}
-                                    {/* <Button title="Save" onPress={handleChangePassword} /> */}
+                                    {/* <Button title="Save" onPress={handleSave} /> */}
                                     <View style={styles.formContainer1}>
                                         <TouchableOpacity
                                             style={styles.btn}
-                                            onPress={handleChangePassword}>
+                                            onPress={handleSave}
+                                        >
                                             <LinearGradient
                                                 colors={["#BD1225", "#FF4050"]}
                                                 start={{ x: 0, y: 0 }}
@@ -890,7 +665,8 @@ export const OtherSettings = () => {
                                                 useAngle={true}
                                                 angle={92.08}
                                                 angleCenter={{ x: 0.5, y: 0.5 }}
-                                                style={styles.linearGradient}>
+                                                style={styles.linearGradient}
+                                            >
                                                 <View style={styles.loginContainer}>
                                                     <Text style={styles.login}>Save</Text>
                                                 </View>
@@ -898,14 +674,241 @@ export const OtherSettings = () => {
                                         </TouchableOpacity>
                                     </View>
                                 </View>
+                            )}
+                        </Animated.View>
+                    </View>
+
+                    {/* Education & Profession Details */}
+                    <View>
+                        <TouchableWithoutFeedback onPress={() => toggleMenu(eduMenuOpen, setEduMenuOpen, animatedHeightEdu, rotationEdu, 600)}>
+                            <View style={styles.detailsMenu}>
+                                <View style={styles.iconMenuFlex}>
+                                    <MaterialIcons name="image" size={18} color="#fff" style={styles.saveIcon} />
+                                    <Text style={styles.menuName}>Photo / ID Settings</Text>
+                                </View>
+
+                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationEdu) }] }}>
+                                    <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
+                                </Animated.View>
+                            </View>
+                        </TouchableWithoutFeedback>
+
+                        {eduMenuOpen && (
+                            <View style={styles.editOptions}>
+                                <View style={styles.formContainer}>
+                                    <View style={styles.checkboxContainer}>
+                                        <Pressable
+                                            style={[styles.checkboxBase, checked && styles.checkboxChecked]}
+                                            onPress={handleCheckboxTogglePassword}
+                                        >
+                                            {checked && <Ionicons name="checkmark" size={14} color="white" />}
+                                        </Pressable>
+
+                                        <Pressable onPress={handleCheckboxTogglePassword}>
+                                            <Text style={styles.checkboxLabel}>
+                                                Protect my images with password (only people you share the password can view the images)
+                                            </Text>
+                                        </Pressable>
+                                    </View>
+
+                                    {checked && (
+                                        <View>
+                                            <Text style={styles.label}>
+                                                Enter Password<Text style={styles.redText}>*</Text>
+                                            </Text>
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder="Password"
+                                                secureTextEntry={!showPassword}
+                                                value={password}
+                                                onChangeText={setPassword}
+                                            />
+                                            <Pressable
+                                                onPress={togglePasswordVisibility}
+                                                style={styles.passwordIDIcon}
+                                            >
+                                                <AntDesign
+                                                    name={showPassword ? 'eye' : 'eyeo'}
+                                                    size={18}
+                                                    color="#535665"
+                                                />
+                                            </Pressable>
+                                        </View>
+                                    )}
+                                    {checked && (
+                                        <Button title="Save" onPress={handleSavePassword} />
+                                    )}
+                                </View>
                             </View>
                         )}
-                        {/* Rasi Component */}
-                        {/* <Rasi /> */}
-                    </Animated.View>
+                    </View>
+
+                    {/* Partner Settings */}
+                    <View style={{ flex: 1 }}>
+                        <TouchableWithoutFeedback onPress={() => toggleMenu(famMenuOpen, setFamMenuOpen, animatedHeightFam, rotationFam, 900)}>
+                            <View style={styles.detailsMenu}>
+                                <View style={styles.iconMenuFlex}>
+                                    <FontAwesome6 name="user-gear" size={18} color="#fff" style={styles.saveIcon} />
+                                    <Text style={styles.menuName}>Partner Settings</Text>
+                                </View>
+
+                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationFam) }] }}>
+                                    <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
+                                </Animated.View>
+                            </View>
+                        </TouchableWithoutFeedback>
+
+                        <Animated.View >
+                            {famMenuOpen && (
+                                <ScrollView style={styles.scrollView}>
+                                    <PartnerSettings />
+                                </ScrollView>
+                            )}
+                        </Animated.View>
+                    </View>
+
+                    {planId === "3" || planId === "17" && (
+                        <View style={{ flex: 1 }}>
+                            <TouchableWithoutFeedback onPress={() => toggleMenu(pvMenuOpen, setPvMenuOpen, animatedHeightPv, rotationPv, 900)}>
+                                <View style={styles.detailsMenu}>
+                                    <View style={styles.iconMenuFlex}>
+                                        <FontAwesome6 name="user-gear" size={18} color="#fff" style={styles.saveIcon} />
+                                        <Text style={styles.menuName}>Profile Visibility</Text>
+                                    </View>
+
+                                    <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationPv) }] }}>
+                                        <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
+                                    </Animated.View>
+                                </View>
+                            </TouchableWithoutFeedback>
+
+                            <Animated.View >
+                                {pvMenuOpen && (
+                                    <ScrollView style={styles.scrollView}>
+                                        <ProfileVisibility />
+                                    </ScrollView>
+                                )}
+                            </Animated.View>
+                        </View>
+                    )}
+
+                    {/* Change Password */}
+                    <View>
+                        <TouchableWithoutFeedback onPress={() => toggleMenu(horMenuOpen, setHorMenuOpen, animatedHeightHor, rotationHor, 1360)}>
+                            <View style={styles.detailsMenu}>
+                                <View style={styles.iconMenuFlex}>
+                                    <MaterialIcons name="lock" size={18} color="#fff" style={styles.saveIcon} />
+                                    <Text style={styles.menuName}>Change Password</Text>
+                                </View>
+
+                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationHor) }] }}>
+                                    <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
+                                </Animated.View>
+                            </View>
+                        </TouchableWithoutFeedback>
+
+                        <Animated.View style={[styles.menuContainer, { height: heightInterpolate(animatedHeightHor, 1360) }]}>
+
+                            {/* <Text style={styles.redText}>Edit</Text> */}
+
+                            {horMenuOpen && (
+
+                                <View style={styles.editOptions}>
+                                    <View>
+                                        {/* Enter Old Password */}
+                                        <View>
+                                            <Text style={styles.subCaption}>Enter Old Password</Text>
+                                            <View style={styles.passwordInputContainer}>
+                                                <TextInput
+                                                    style={styles.input}
+                                                    placeholder="Enter Old Password"
+                                                    secureTextEntry={!showOldPassword}
+                                                    value={oldPassword}
+                                                    onChangeText={setOldPassword}
+                                                />
+                                                <Pressable
+                                                    onPress={() => setShowOldPassword((prev) => !prev)}
+                                                    style={styles.passwordIcon}
+                                                >
+                                                    <AntDesign name={showOldPassword ? "eye" : "eyeo"} size={18} color="#535665" />
+                                                </Pressable>
+                                            </View>
+                                            {oldPasswordError ? <Text style={styles.errorText}>{oldPasswordError}</Text> : null}
+                                        </View>
+
+                                        {/* Enter New Password */}
+                                        <View>
+                                            <Text style={styles.subCaption}>Enter New Password</Text>
+                                            <View style={styles.passwordInputContainer}>
+                                                <TextInput
+                                                    style={styles.input}
+                                                    placeholder="Enter New Password"
+                                                    secureTextEntry={!showNewPassword}
+                                                    value={newPassword}
+                                                    onChangeText={setNewPassword}
+                                                />
+                                                <Pressable
+                                                    onPress={() => setShowNewPassword((prev) => !prev)}
+                                                    style={styles.passwordIcon}
+                                                >
+                                                    <AntDesign name={showNewPassword ? "eye" : "eyeo"} size={18} color="#535665" />
+                                                </Pressable>
+                                            </View>
+                                            {newPasswordError ? <Text style={styles.errorText}>{newPasswordError}</Text> : null}
+                                        </View>
+
+                                        {/* Confirm New Password */}
+                                        <View>
+                                            <Text style={styles.subCaption}>Confirm New Password</Text>
+                                            <View style={styles.passwordInputContainer}>
+                                                <TextInput
+                                                    style={styles.input}
+                                                    placeholder="Confirm New Password"
+                                                    secureTextEntry={!showConfirmPassword}
+                                                    value={confirmPassword}
+                                                    onChangeText={setConfirmPassword}
+                                                />
+                                                <Pressable
+                                                    onPress={() => setShowConfirmPassword((prev) => !prev)}
+                                                    style={styles.passwordIcon}
+                                                >
+                                                    <AntDesign name={showConfirmPassword ? "eye" : "eyeo"} size={18} color="#535665" />
+                                                </Pressable>
+                                            </View>
+                                            {confirmPasswordError ? <Text style={styles.errorText}>{confirmPasswordError}</Text> : null}
+                                        </View>
+
+                                        {/* Save Button */}
+                                        {/* <Button title="Save" onPress={handleChangePassword} /> */}
+                                        <View style={styles.formContainer1}>
+                                            <TouchableOpacity
+                                                style={styles.btn}
+                                                onPress={handleChangePassword}>
+                                                <LinearGradient
+                                                    colors={["#BD1225", "#FF4050"]}
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 1 }}
+                                                    useAngle={true}
+                                                    angle={92.08}
+                                                    angleCenter={{ x: 0.5, y: 0.5 }}
+                                                    style={styles.linearGradient}>
+                                                    <View style={styles.loginContainer}>
+                                                        <Text style={styles.login}>Save</Text>
+                                                    </View>
+                                                </LinearGradient>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                </View>
+                            )}
+                            {/* Rasi Component */}
+                            {/* <Rasi /> */}
+                        </Animated.View>
+                    </View>
                 </View>
-            </View>
-        </ScrollView >
+            </ScrollView >
+            <BottomTabBarComponent />
+        </View>
     )
 }
 
@@ -913,6 +916,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#F4F4F4",
+        paddingBottom: 80,
         // alignItems: "center",
         // justifyContent: "flex-start",
     },

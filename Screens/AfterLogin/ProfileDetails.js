@@ -57,6 +57,7 @@ import { FeaturedProfiles } from "../../Components/HomeTab/FeaturedProfiles";
 import ProfileVysAssistPopup from "../../Components/HomeTab/ProfileDetails/ProfileVysAssistPopup";
 import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import Timeline from "react-native-timeline-flatlist";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
 const ProfileDetailsShimmer = () => {
@@ -157,6 +158,26 @@ export const ProfileDetails = () => {
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [profileIds, setProfileIds] = useState([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  const getSafeImage = (imageUrl) => {
+
+    // FEMALE profile ID starts with "VF"
+    const isFemaleProfile = basic_details?.profile_id?.startsWith("VF");
+
+    // Set default image based on profile gender prefix
+    const defaultImgUrl =
+      isFemaleProfile
+        ? "https://vysyamat.blob.core.windows.net/vysyamala/default_bride.png"
+        : "https://vysyamat.blob.core.windows.net/vysyamala/default_groom.png";
+
+    // Return default image if missing
+    if (!imageUrl || imageUrl.trim() === "") {
+      return defaultImgUrl;
+    }
+
+    return imageUrl;
+  };
+
 
   // Initialize profile IDs and current index
   useEffect(() => {
@@ -538,7 +559,7 @@ export const ProfileDetails = () => {
 
   useEffect(() => {
     const loadProfileData = async () => {
-        setIsInitialLoading(true);
+      setIsInitialLoading(true);
       try {
         const loginuser_profileId = await AsyncStorage.getItem("loginuser_profileId");
         const formattedMessage = `We have shared the horoscope to ${loginuser_profileId}`;
@@ -662,7 +683,7 @@ export const ProfileDetails = () => {
     loadProfileData();
   }, [viewedProfileId]);
 
-  
+
 
   useEffect(() => {
     const loadWishlistProfiles = async () => {
@@ -813,16 +834,19 @@ export const ProfileDetails = () => {
   };
 
   // Check if data is available
- if (isInitialLoading || !profileData) {
-  return <ProfileDetailsShimmer />;
-}
+  if (isInitialLoading || !profileData) {
+    return <ProfileDetailsShimmer />;
+  }
 
   const {
     basic_details,
     user_images,
   } = profileData;
 
-  const images = Object.values(user_images).map(url => ({ url }));
+  // const images = Object.values(user_images).map(url => ({ url }));
+  const images = (fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))
+    .map(url => ({ url: getSafeImage(url) }));
+
 
   const handlePasswordSubmit = async () => {
     try {
@@ -1138,7 +1162,8 @@ export const ProfileDetails = () => {
             style={styles.thumbnail}
           >
             <Image
-              source={{ uri: image }}
+              // source={{ uri: image }}
+              source={{ uri: getSafeImage(image) }}
               style={styles.thumbnailImage}
             />
           </TouchableOpacity>
@@ -1206,6 +1231,7 @@ export const ProfileDetails = () => {
     }
   };
 
+
   return (
     <View style={styles.mainContainer}>
       {/* Fixed Header */}
@@ -1229,7 +1255,8 @@ export const ProfileDetails = () => {
           <View style={styles.contentWrapper}>
             <TouchableOpacity onPress={() => handleSlidePress(0)}>
               <Image
-                source={{ uri: (fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0] }}
+                // source={{ uri: (fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0] }}
+                source={{ uri: getSafeImage((fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0]) }}
                 style={styles.mainImage}
                 resizeMode="cover"
               />
@@ -2292,7 +2319,7 @@ export const ProfileDetails = () => {
           </View>
         </View>
       </Animated.View>
-
+      <BottomTabBarComponent />
     </View>
   );
 };
@@ -2304,6 +2331,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    paddingBottom: 80,
   },
   headerContainer: {
     padding: 15,

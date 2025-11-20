@@ -21,6 +21,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ProfileNotFound } from "../ProfileNotFound";
 import { SuggestedProfiles } from "../HomeTab/SuggestedProfiles";
+import { TopAlignedImage } from "../ReuseImageAlign/TopAlignedImage";
+import { Dimensions } from "react-native";
 
 export const GalleryCard = () => {
   const [profiles, setProfiles] = useState([]);
@@ -33,6 +35,7 @@ export const GalleryCard = () => {
   const [totalRecords, setTotalRecords] = useState(0);
 
   const navigation = useNavigation();
+  const SCREEN_WIDTH = Dimensions.get("window").width;
 
   const loadProfiles = async (page = 1, isInitialLoad = false) => {
     console.log("Loading profiles:", { page, isInitialLoad });
@@ -252,11 +255,16 @@ export const GalleryCard = () => {
             style={styles.profileImage}
             resizeMode="cover"
           /> */}
-          <Image
+          {/* <Image
             source={getImageSource(item.img_url)}
             style={styles.profileImage}
             resizeMode="cover"
             imageStyle={{ alignSelf: 'flex-start' }} // This positions image from top
+          /> */}
+          <TopAlignedImage
+            uri={Array.isArray(item.img_url) ? item.img_url[0] : item.img_url}
+            width={SCREEN_WIDTH - 30}   // numeric value only
+            height={400}
           />
           {/* VIEW BUTTON OVERLAY (New Element) */}
           {/* <View style={styles.viewButtonOverlay}>
@@ -332,6 +340,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingTop: 80,
   },
   listContent: {
     width: "100%",
@@ -378,13 +387,19 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  // imageWrapper: {
+  //   width: "100%",
+  //   aspectRatio: 3 / 3,
+  //   borderRadius: 8,
+  //   overflow: "hidden",
+  //   position: 'relative',
+  //   justifyContent: 'flex-start',
+  // },
   imageWrapper: {
     width: "100%",
+    overflow: "hidden",
     aspectRatio: 3 / 3,
     borderRadius: 8,
-    overflow: "hidden",
-    position: 'relative',
-    justifyContent: 'flex-start',
   },
   profileImage: {
     width: "100%",

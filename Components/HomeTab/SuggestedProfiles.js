@@ -3,13 +3,14 @@ import {
     StyleSheet,
     Text,
     View,
-    ScrollView, 
+    ScrollView,
     TouchableOpacity
 } from "react-native";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { SuggestedProfileCard } from "./SuggestedProfiles/SuggestedProfileCard";
 import { fetchSuggestedProfiles } from "../../CommonApiCall/CommonApiCall";
 import { useNavigation } from "@react-navigation/native";
+//import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 
 
 export const SuggestedProfiles = () => {
@@ -39,6 +40,10 @@ export const SuggestedProfiles = () => {
         loadProfiles();
     }, []);
 
+    if (!profiles || profiles.length === 0) {
+        return null;
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.suggestedProfileDiv}>
@@ -54,9 +59,9 @@ export const SuggestedProfiles = () => {
                     </View>
 
                     <View style={styles.viewAllFlex}>
-                        <TouchableOpacity 
-                            style={styles.viewAllButton} 
-                            onPress={() => navigation.navigate('FeaturedOrSuggestProfiles',{type: 'suggested', profiles: profiles})}
+                        <TouchableOpacity
+                            style={styles.viewAllButton}
+                            onPress={() => navigation.navigate('FeaturedOrSuggestProfiles', { type: 'suggested', profiles: profiles })}
                         >
                             <Text style={styles.viewAllText}>View all</Text>
                             <FontAwesome6 name="chevron-right" size={12} color="#FF6666" />
@@ -77,6 +82,7 @@ export const SuggestedProfiles = () => {
                 )}
 
             </View>
+            {/* <BottomTabBarComponent /> */}
         </View>
     )
 }
@@ -85,6 +91,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#FFDE594D",
+        // paddingBottom: 80,
     },
     errorContainer: {
         padding: 20,
@@ -133,7 +140,7 @@ const styles = StyleSheet.create({
         color: "#FF6666",
         fontSize: 12,
         marginRight: 5,
-        fontWeight : "700",
+        fontWeight: "700",
         marginLeft: 140,
     },
     viewAllButton: {

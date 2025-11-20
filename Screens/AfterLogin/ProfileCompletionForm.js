@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { 
-  View, Text, TextInput, Button, ActivityIndicator, Alert, 
-  TouchableOpacity, Image, KeyboardAvoidingView, Platform, 
-  SafeAreaView, ScrollView, 
+import {
+  View, Text, TextInput, Button, ActivityIndicator, Alert,
+  TouchableOpacity, Image, KeyboardAvoidingView, Platform,
+  SafeAreaView, ScrollView,
   StyleSheet
 } from "react-native";
 import * as ImagePicker from "react-native-image-picker";
@@ -11,6 +11,8 @@ import { getMyProfilePersonal, ProfileCompletionFormAPI } from "../../CommonApiC
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
+
 export const ProfileCompletionForm = () => {
   const [formData, setFormData] = useState({
     photo_upload: null,
@@ -75,18 +77,18 @@ export const ProfileCompletionForm = () => {
     const profileId = await AsyncStorage.getItem("loginuser_profileId");
 
     // Check if at least one field is filled
-  const isAnyFieldFilled = Object.keys(formData).some((key) => {
-    const value = formData[key];
-    return (
-      (typeof value === "string" && value.trim() !== "") || // Check text inputs
-      (typeof value === "object" && value?.uri) // Check uploaded images
-    );
-  });
+    const isAnyFieldFilled = Object.keys(formData).some((key) => {
+      const value = formData[key];
+      return (
+        (typeof value === "string" && value.trim() !== "") || // Check text inputs
+        (typeof value === "object" && value?.uri) // Check uploaded images
+      );
+    });
 
-  if (!isAnyFieldFilled) {
-    Toast.show({ type: "error", text1: "Please fill at least one field before submitting.", position: "bottom", visibilityTime: 3000 });
-    return;
-  }
+    if (!isAnyFieldFilled) {
+      Toast.show({ type: "error", text1: "Please fill at least one field before submitting.", position: "bottom", visibilityTime: 3000 });
+      return;
+    }
 
     const formDataToSend = new FormData();
     formDataToSend.append("profile_id", profileId || "");
@@ -113,9 +115,9 @@ export const ProfileCompletionForm = () => {
 
     try {
       setFormSubmitting(true);
-      
+
       const response = await ProfileCompletionFormAPI(formDataToSend);
-      
+
       console.log("Success", "Form submitted successfully", JSON.stringify(response));
       Toast.show({ type: "success", text1: "Profile updated successfully", position: "bottom", visibilityTime: 3000 });
       navigation.navigate("Menu");
@@ -132,13 +134,13 @@ export const ProfileCompletionForm = () => {
   if (error) return <Text style={{ color: "red" }}>{error}</Text>;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", paddingBottom: 80 }}>
       <View style={styles.headerContainer}>
-                          <TouchableOpacity onPress={() => navigation.goBack()}>
-                              <Ionicons name="arrow-back" size={24} color="#ED1E24" />
-                          </TouchableOpacity>
-                          <Text style={styles.headerText}>{"Profile Completion Form"}</Text>
-                      </View>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#ED1E24" />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>{"Profile Completion Form"}</Text>
+      </View>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: 20 }}>
           {/* <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>
@@ -152,24 +154,24 @@ export const ProfileCompletionForm = () => {
                   {field === "image"
                     ? "Profile Images"
                     : field === "horoscope_file"
-                    ? "Upload Horoscope Image"
-                    : field === "Profile_idproof"
-                    ? "Profile ID Proof"
-                    : field === "property_worth"
-                    ? "Property Worth"
-                    : field === "about_self"
-                    ? "About Self"
-                    : field === "about_family"
-                    ? "About Family"
-                    : field === "career_plans"
-                    ? "Career Plans"
-                    : field === "anual_income"
-                    ? "Annual Income"
-                    : field === "Video_url"
-                    ? "Video URL"
-                    : field === "EmailId"
-                    ? "Email"
-                    : field.replace(/_/g, " ")}
+                      ? "Upload Horoscope Image"
+                      : field === "Profile_idproof"
+                        ? "Profile ID Proof"
+                        : field === "property_worth"
+                          ? "Property Worth"
+                          : field === "about_self"
+                            ? "About Self"
+                            : field === "about_family"
+                              ? "About Family"
+                              : field === "career_plans"
+                                ? "Career Plans"
+                                : field === "anual_income"
+                                  ? "Annual Income"
+                                  : field === "Video_url"
+                                    ? "Video URL"
+                                    : field === "EmailId"
+                                      ? "Email"
+                                      : field.replace(/_/g, " ")}
                 </Text>
 
                 {field === "image" || field === "horoscope_file" || field === "Profile_idproof" ? (
@@ -220,6 +222,7 @@ export const ProfileCompletionForm = () => {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      <BottomTabBarComponent />
     </SafeAreaView>
   );
 };
@@ -230,8 +233,8 @@ const styles = StyleSheet.create({
     borderBottomColor: "#E5E5E5",
     flexDirection: "row",
     alignItems: "center",
-    marginTop : 15,
-    marginLeft : 10,
+    marginTop: 15,
+    marginLeft: 10,
   },
   headerText: {
     color: "#000000",

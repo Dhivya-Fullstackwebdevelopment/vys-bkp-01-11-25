@@ -9,10 +9,11 @@ import {
 import { SearchCard } from "../../Components/DashBoardTab/Search/SearchCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 export const SearchResults = ({ route }) => {
   const navigation = useNavigation();
- const { results = [], totalCount = 0 } = route.params || {};
- // Provide a default value and handle missing params
+  const { results = [], totalCount = 0 } = route.params || {};
+  // Provide a default value and handle missing params
 
   return (
     <SafeAreaView style={styles.container}>
@@ -27,6 +28,7 @@ export const SearchResults = ({ route }) => {
       <View style={styles.searchResultsContainer}>
         <SearchCard />
       </View>
+      <BottomTabBarComponent />
     </SafeAreaView>
   );
 };
@@ -35,6 +37,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F4F4F4",
+    paddingBottom: 80,
     // alignItems: "center",
     // justifyContent: "center",
   },

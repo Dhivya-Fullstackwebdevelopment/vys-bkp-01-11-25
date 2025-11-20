@@ -15,13 +15,15 @@ import { DashBoardMutualInterestCard } from "../../Components/DashBoardTab/DashB
 import { fetchMutualInterestsCount } from "../../CommonApiCall/CommonApiCall"; // Update import path
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
+
 export const DashBoardMutualInterest = () => {
   const navigation = useNavigation();
   const [count, setCount] = useState(null);
   const [isEnabled, setIsEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const sortBy = isEnabled ? "profile_id" : "datetime";
-  console.log("mutualinterest sortBy", sortBy)
+  console.log("mutualinterest sortBy", sortBy);
 
   const toggleSwitch = async () => {
     setIsLoading(true);
@@ -96,6 +98,7 @@ export const DashBoardMutualInterest = () => {
       <View style={styles.cardContainer}>
         <DashBoardMutualInterestCard sortBy={sortBy} />
       </View>
+      <BottomTabBarComponent />
     </View>
     // </ScrollView>
   );
@@ -105,6 +108,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F4F4F4",
+    paddingBottom: 80,
     // alignItems: "center",
     // justifyContent: "center",
   },

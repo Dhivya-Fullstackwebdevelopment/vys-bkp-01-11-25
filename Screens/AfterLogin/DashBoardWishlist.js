@@ -15,6 +15,7 @@ import { WishlistCard } from "../../Components/DashBoardTab/DashBoardWishlist/Wi
 import { getWishlistProfilesCount } from "../../CommonApiCall/CommonApiCall"; // Update import path
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 
 export const DashBoardWishlist = () => {
   const navigation = useNavigation();
@@ -29,7 +30,7 @@ export const DashBoardWishlist = () => {
     try {
       // Simulate the time it takes to fetch/update data
       await new Promise(resolve => setTimeout(resolve, 1000));
-      setIsEnabled(previousState => !previousState);m
+      setIsEnabled(previousState => !previousState); m
     } catch (error) {
       console.error('Error toggling sort:', error);
     } finally {
@@ -116,6 +117,7 @@ export const DashBoardWishlist = () => {
       <View style={styles.cardContainer}>
         <WishlistCard sortBy={sortBy} />
       </View>
+      <BottomTabBarComponent />
     </View>
     // </ScrollView>
   );
@@ -125,6 +127,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F4F4F4",
+    paddingBottom: 80,
     // alignItems: "center",
     // justifyContent: "center",
   },

@@ -22,7 +22,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from "react-native-toast-message";
 import ProfileNotFound from "../../Components/ProfileNotFound"; // Adjust path if necessary
-
+import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImage";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 
 export const FilterScreen = () => {
     const navigation = useNavigation();
@@ -193,21 +194,28 @@ export const FilterScreen = () => {
                                 >
                                     <View style={styles.profileDiv}>
                                         <View style={styles.profileContainer}>
-                                            <Image
-                                                source={getImageSource(profile.profile_img)}
-                                                style={styles.profileImage}
-                                            />
-                                            <TouchableOpacity
-                                                onPress={() => handleSavePress(profile.profile_id)}
-                                                style={styles.saveIconContainer}
-                                            >
-                                                <MaterialIcons
-                                                    name={bookmarkedProfiles.has(profile.profile_id) ? 'bookmark' : 'bookmark-border'}
-                                                    size={20}
-                                                    color="red"
-                                                    style={styles.saveIcon}
+                                            <View style={styles.imageWrapper}>
+                                                {/* <Image
+                                                    source={getImageSource(profile.profile_img)}
+                                                    style={styles.profileImage}
+                                                /> */}
+                                                <TopAlignedImage
+                                                    uri={Array.isArray(profile.profile_img) ? profile.profile_img[0] : profile.profile_img}
+                                                    width={120}
+                                                    height={120}
                                                 />
-                                            </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    onPress={() => handleSavePress(profile.profile_id)}
+                                                    style={styles.saveIconContainer}
+                                                >
+                                                    <MaterialIcons
+                                                        name={bookmarkedProfiles.has(profile.profile_id) ? 'bookmark' : 'bookmark-border'}
+                                                        size={24}
+                                                        color="#ED1E24"
+                                                    />
+                                                </TouchableOpacity>
+                                            </View>
+
                                             <View style={styles.profileContent}>
                                                 <Text style={styles.profileName}>
                                                     {profile.profile_name}{" "}
@@ -232,6 +240,7 @@ export const FilterScreen = () => {
                     </View>
                 )}
             </ScrollView>
+            <BottomTabBarComponent />
         </SafeAreaView>
     );
 };
@@ -241,6 +250,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#F4F4F4",
+        paddingBottom: 80,
     },
     header: {
         flexDirection: 'row',
@@ -300,12 +310,12 @@ const styles = StyleSheet.create({
         height: 100,
         borderRadius: 10,
     },
-    saveIconContainer: {
-        position: 'absolute',
-        right: 15,
-        top: 15,
-        zIndex: 1,
-    },
+    // saveIconContainer: {
+    //     position: 'absolute',
+    //     right: 15,
+    //     top: 15,
+    //     zIndex: 1,
+    // },
     saveIcon: {},
     profileContent: {
         paddingLeft: 10,
@@ -336,4 +346,18 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#4F515D",
     },
+    imageWrapper: {
+        position: "relative",   // Important
+    },
+
+    saveIconContainer: {
+        position: "absolute",
+        top: 5,
+        right: 5,
+        //backgroundColor: "rgba(255,255,255,0.8)",
+        padding: 4,
+        borderRadius: 50,
+        zIndex: 10,
+    },
+
 });

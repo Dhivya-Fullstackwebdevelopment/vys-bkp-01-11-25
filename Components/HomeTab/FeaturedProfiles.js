@@ -4,6 +4,7 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import { FeaturedProfileCard } from './FeaturedProfiles/FeaturedProfileCard'; // Adjust path
 import { getFeaturedProfiles } from '../../CommonApiCall/CommonApiCall';
 import { useNavigation } from '@react-navigation/native';
+//import { BottomTabBarComponent } from '../../Navigation/ReuseTabNavigation';
 
 
 export const FeaturedProfiles = ({ }) => {
@@ -11,12 +12,6 @@ export const FeaturedProfiles = ({ }) => {
     const [profiles, setProfiles] = useState([]);
     const [error, setError] = useState(null);
     const navigation = useNavigation();
-
-    const handleScrollToTop = () => {
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollTo({ y: 0, animated: true });
-        }
-    };
 
     useEffect(() => {
         const fetchProfiles = async () => {
@@ -37,9 +32,14 @@ export const FeaturedProfiles = ({ }) => {
         fetchProfiles();
     }, []);
 
-    if (error) {
-        return <Text style={styles.errorText}>{error}</Text>;
+    // if (error) {
+    //     return <Text style={styles.errorText}>{error}</Text>;
+    // }
+
+    if (!profiles || profiles.length === 0) {
+        return null;   // Hide entire Featured Profiles block
     }
+
     return (
         <View style={styles.container}>
             <View style={styles.featuredProfileDiv}>
@@ -71,6 +71,7 @@ export const FeaturedProfiles = ({ }) => {
                     <Text style={styles.errorText}>No profiles found</Text>
                 )}
             </View>
+            {/* <BottomTabBarComponent /> */}
         </View>
     );
 };
@@ -81,6 +82,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#14181B',
         alignItems: 'flex-start',
         justifyContent: 'center',
+        // paddingBottom: 80,
     },
     headingFlex: {
         flexDirection: 'row',

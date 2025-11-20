@@ -14,6 +14,7 @@ import { MyVisitorsCard } from "../../Components/DashBoardTab/MyVisitors/MyVisit
 import { fetchVisitorProfilesCount } from "../../CommonApiCall/CommonApiCall"; // Update import path
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 
 export const MyVisitors = () => {
   const navigation = useNavigation();
@@ -96,6 +97,7 @@ export const MyVisitors = () => {
       <View style={styles.cardContainer}>
         <MyVisitorsCard sortBy={sortBy} />
       </View>
+      <BottomTabBarComponent />
     </View>
   );
 };
@@ -103,6 +105,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F4F4F4",
+    paddingBottom: 80,
     // alignItems: "center",
     // justifyContent: "center",
   },

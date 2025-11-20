@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import config from '../../API/Apiurl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { BottomTabBarComponent } from '../../Navigation/ReuseTabNavigation';
 
 export const NotificationsCard = () => {
   const navigation = useNavigation();
@@ -25,6 +26,46 @@ export const NotificationsCard = () => {
   const [hasMore, setHasMore] = useState(true);
 
   const onEndReachedCalledDuringMomentum = useRef(true);
+
+  const handleClearNotifications = async () => {
+    Alert.alert(
+      'Clear All Notifications',
+      'Are you sure you want to clear all notifications?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Clear All',
+          onPress: async () => {
+            setLoading(true);
+            const profileId = await AsyncStorage.getItem("loginuser_profileId");
+
+            try {
+              // **TODO: Implement your actual Clear All Notifications API call here**
+              // Example API call (replace endpoint as needed):
+              // await axios.post(`${config.apiUrl}/auth/Clear_all_notifications/`, { profile_id: profileId });
+
+              // On success, update state and refresh the list
+              setNotifications([]);
+              setTotalRecords(0);
+              setCurrentPage(1);
+              setHasMore(false);
+              Alert.alert('Success', 'All notifications cleared.');
+              // You might want to call getNotifications(1, true) here if you have a separate API for marking all as read/cleared
+            } catch (error) {
+              console.error('Clear Notifications Error:', error);
+              Alert.alert('Error', 'Failed to clear notifications.');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
 
   const handleMessage = async (fromProfileId) => {
     const profileId = await AsyncStorage.getItem("loginuser_profileId");
@@ -116,6 +157,52 @@ export const NotificationsCard = () => {
     getNotifications(1, true);
   }, []);
 
+  useEffect(() => {
+    // Custom component for the Clear All button
+    const ClearAllButton = () => (
+      <TouchableOpacity
+        // onPress={handleClearNotifications}
+        // Use inline styles to match the desired web button look:
+        // className="bg-main text-white text-xs font-semibold px-3 py-1 rounded-md shadow hover:opacity-90"
+        style={{
+          backgroundColor: '#E91E63', // Main color
+          paddingHorizontal: 12, // px-3 (adjusted for RN)
+          paddingVertical: 5,   // py-1 (adjusted for RN)
+          marginRight: 10,      // Right padding/margin in the header
+          borderRadius: 6,      // rounded-md
+          // Simulating shadow/elevation for cross-platform consistency
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.22,
+          shadowRadius: 2.22,
+          elevation: 3,
+          opacity: loading ? 0.6 : 1, // Simulate hover/disabled state
+        }}
+        disabled={loading} // Disable the button while API is processing
+      >
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 12, // text-xs
+            fontWeight: '600', // font-semibold
+          }}
+        >
+          Clear All
+        </Text>
+      </TouchableOpacity>
+    );
+
+    navigation.setOptions({
+      // Keep the dynamic title
+      headerTitle: `Notifications (${totalRecords})`,
+      // Add the button to the right side of the header
+      headerRight: () => (
+        // Only show the button if there are notifications to clear
+        totalRecords > 0 ? <ClearAllButton /> : null
+      ),
+    });
+  }, [totalRecords, navigation, loading]);
+
   const handleLoadMore = () => {
     if (!isLoadingMore && hasMore) {
       getNotifications(currentPage + 1, false);
@@ -131,6 +218,12 @@ export const NotificationsCard = () => {
   const handleUpdatePhoto = () => {
     navigation.navigate('MyProfile');
   };
+  useEffect(() => {
+    // Update the header title when totalRecords changes
+    navigation.setOptions({
+      headerTitle: `Notifications (${totalRecords})`,
+    });
+  }, [totalRecords, navigation]);
 
   const renderItem = ({ item }) => (
     <View
@@ -212,12 +305,12 @@ export const NotificationsCard = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f0f0f0' }}>
-      <View style={{ padding: 16 }}>
+    <View style={{ flex: 1, backgroundColor: '#f0f0f0', paddingBottom: 80 }}>
+      {/* <View style={{ padding: 16 }}>
         <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>
           Notifications ({totalRecords})
         </Text>
-      </View>
+      </View> */}
 
       <FlatList
         data={notifications}
@@ -244,6 +337,7 @@ export const NotificationsCard = () => {
           You have reached the end of notifications
         </Text>
       )}
+      <BottomTabBarComponent />
     </View>
   );
 };

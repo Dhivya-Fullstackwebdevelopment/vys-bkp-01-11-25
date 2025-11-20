@@ -14,6 +14,7 @@ import { InterestSentCard } from "../../Components/DashBoardTab/InterestSent/Int
 import { getInterestsListCount } from "../../CommonApiCall/CommonApiCall"; // Update import path
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 
 export const InterestSent = () => {
   const navigation = useNavigation();
@@ -96,6 +97,7 @@ export const InterestSent = () => {
       <View style={styles.cardContainer}>
         <InterestSentCard sortBy={sortBy} />
       </View>
+       <BottomTabBarComponent />
     </View>
   );
 };
@@ -104,6 +106,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F4F4F4",
+    paddingBottom: 80,
     // alignItems: "center",
     // justifyContent: "center",
   },
