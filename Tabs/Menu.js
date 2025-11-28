@@ -25,6 +25,7 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchDashboardData, getMyProfilePersonal, getMyEducationalDetails } from "../CommonApiCall/CommonApiCall";
 import Toast from "react-native-toast-message";
+import { TopAlignedImage } from "../Components/ReuseImageAlign/TopAlignedImage";
 
 // Get device dimensions
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -393,11 +394,15 @@ export const Menu = () => {
                 onPress={() => navigation.navigate("MyProfile")}
               >
                 <View style={styles.imgContentFlex}>
-                  <Image
-                    source={getImageSource(dashboardData?.image_data)}
+                  {/* <Image
+                    source={getImageSource(dashboardData?.profile_details?.profile_image)}
                     style={styles.profileImage}
+                  /> */}
+                  <TopAlignedImage
+                    uri={Array.isArray(dashboardData?.profile_details?.profile_image) ? dashboardData?.profile_details?.profile_image[0] : dashboardData?.profile_details?.profile_image}
+                    width={120}
+                    height={120}
                   />
-
                   {/* New Share Icon */}
                   <TouchableOpacity onPress={handleShare} style={{ padding: wp(2) }}>
                     <Ionicons name="share-social" size={wp(6)} color="#535665" />

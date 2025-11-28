@@ -58,7 +58,11 @@ const calculateAge = (birthDate) => {
 
 const formatDate = (date) => {
   if (!date) return "";
-  return new Date(date).toISOString().split("T")[0];
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 export const BasicDetails = () => {
@@ -171,25 +175,33 @@ export const BasicDetails = () => {
   //   }
   // };
 
-const currentDate = new Date(); // Current date
-const currentYear = currentDate.getFullYear(); // Current year
+  const currentDate = new Date(); // Current date
+  const currentYear = currentDate.getFullYear(); // Current year
 
-// Adjust minDate and maxDate to fit the requirement
-const minDate = new Date(1947, 0, 1); // January 1, 1947
-const maxDate = new Date(currentYear - 19, 11, 31); // December 31 of (currentYear - 18)
+  // Adjust minDate and maxDate to fit the requirement
+  const minDate = new Date(1947, 0, 1); // January 1, 1947
+  const maxDate = new Date(currentYear - 19, 11, 31); // December 31 of (currentYear - 18)
 
-const handleDateChange = (event, date) => {
-  if (event.type === "set") {
-    const selectedDate = date || currentDate;
-    const calculatedAge = calculateAge(selectedDate); // Ensure calculateAge works correctly
-    setShowDatepicker(false);
-    setSelectedDate(selectedDate);
-    setAge(calculatedAge);
-    setValue("selectedDate", selectedDate, { shouldValidate: true });
-  } else {
-    setShowDatepicker(false);
-  }
-};
+  const handleDateChange = (event, date) => {
+    if (event.type === "set") {
+      const selectedDate = date || currentDate;
+      const safeDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        12, // Set hours to 12 (noon)
+        0, 0
+      );
+
+      const calculatedAge = calculateAge(safeDate);
+      setShowDatepicker(false);
+      setSelectedDate(safeDate); // Store the safeDate
+      setAge(calculatedAge);
+      setValue("selectedDate", safeDate, { shouldValidate: true });
+    } else {
+      setShowDatepicker(false);
+    }
+  };
 
 
   const onSubmit = async (data) => {
@@ -369,7 +381,7 @@ const handleDateChange = (event, date) => {
           />
         </View>
 
-        <TouchableOpacity style={styles.btn} onPress={handleSubmit(onSubmit)}   disabled={submitting} // Disable button when submitting
+        <TouchableOpacity style={styles.btn} onPress={handleSubmit(onSubmit)} disabled={submitting} // Disable button when submitting
         >
           <LinearGradient
             colors={["#BD1225", "#FF4050"]}

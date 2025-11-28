@@ -31,6 +31,7 @@ import config from '../../API/Apiurl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from "react-native-toast-message";
 import { getMyEducationalDetails } from '../../CommonApiCall/CommonApiCall';
+import { TopAlignedImage } from '../../Components/ReuseImageAlign/TopAlignedImage';
 
 export const MyProfile = () => {
     const navigation = useNavigation();
@@ -393,11 +394,17 @@ export const MyProfile = () => {
     const renderItem = ({ item, index }) => (
         <View style={styles.itemContainer} key={item.id}>
             <TouchableOpacity style={styles.imageWrapper}>
-                <Image
+                <TopAlignedImage
+                    uri={item.url || 'https://via.placeholder.com/150'}
+                    width={width} // Use the width of the screen (or container width)
+                    height={400} // Use the height of your carousel slide
+                    style={styles.image} // Pass any container styling
+                />
+                {/* <Image
                     source={{ uri: item.url || 'https://via.placeholder.com/150' }}
                     style={styles.image}
                     onError={() => console.log(`Failed to load image at index with ID: ${item.id}`)}
-                />
+                /> */}
             </TouchableOpacity>
 
             {/* Container for both icons */}

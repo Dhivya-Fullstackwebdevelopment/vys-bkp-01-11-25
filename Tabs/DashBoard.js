@@ -23,6 +23,7 @@ import CircularProgress from "react-native-circular-progress-indicator";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Toast from "react-native-toast-message"; // Make sure this is imported
 import { fetchProfileInterests, fetchDashboardData, updateProfileInterest } from '../CommonApiCall/CommonApiCall';
+import { TopAlignedImage } from "../Components/ReuseImageAlign/TopAlignedImage";
 // import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 export const DashBoard = () => {
@@ -551,9 +552,14 @@ export const DashBoard = () => {
             <TouchableOpacity style={styles.imgIconFlex} onPress={() => {
               navigation.navigate("MyProfile");
             }}>
-              <Image
+              {/* <Image
                 source={{ uri: dashboardData?.profile_details?.profile_image }}
                 style={styles.profileImage}
+              /> */}
+              <TopAlignedImage
+                uri={Array.isArray(dashboardData?.profile_details?.profile_image) ? dashboardData?.profile_details?.profile_image[0] : dashboardData?.profile_details?.profile_image}
+                width={120}
+                height={120}
               />
               {/* <Ionicons
                 name="share-social-sharp"

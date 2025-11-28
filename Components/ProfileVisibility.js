@@ -689,7 +689,7 @@ const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store s
                                     style={styles.dropdown}
                                     data={[
                                         { label: "Unknown", value: "Unknown" },
-                                        { label: "Yes", value: "YES" },
+                                        { label: "Yes", value: "Yes" },
                                         { label: "No", value: "No" }
                                     ]}
                                     maxHeight={180}
@@ -721,7 +721,7 @@ const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store s
                                     style={styles.dropdown}
                                     data={[
                                         { label: "Unknown", value: "Unknown" },
-                                        { label: "Yes", value: "YES" },
+                                        { label: "Yes", value: "Yes" },
                                         { label: "No", value: "No" }
                                     ]}
                                     maxHeight={180}

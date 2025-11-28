@@ -12,7 +12,7 @@ import {
     fetchProfileDataCheck
 } from '../../../CommonApiCall/CommonApiCall';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { TopAlignedImage } from "../../ReuseImageAlign/TopAlignedImage";
 
 
 export const SearchCard = () => {
@@ -218,9 +218,14 @@ export const SearchCard = () => {
                             source={{ uri: item.profile_img }}
                             style={styles.profileImage}
                         /> */}
-                            <Image
+                            {/* <Image
                                 source={getImageSource(item.profile_img)}
                                 style={styles.profileImage}
+                            /> */}
+                            <TopAlignedImage
+                                uri={Array.isArray(item.profile_img) ? item.profile_img[0] : item.profile_img}
+                                width={120}
+                                height={120}
                             />
                             <TouchableOpacity onPress={() => handleSavePress(item.profile_id)}>
                                 <MaterialIcons

@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { getAdvanceSearchResults } from '../CommonApiCall/CommonApiCall'; // Adjust the import path as needed
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -25,8 +25,9 @@ import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import config from "../API/Apiurl";
 import RNPickerSelect from 'react-native-picker-select';
 
+
 const staticStates = [
-  { id: [2, 7], name: "TamilNadu and Pondhicherry" },
+  { id: [2, 7], name: "TamilNadu & Pondhicherry" },
   { id: 4, name: "Karnataka" },
   { id: 1, name: "Andhra Pradesh" },
   { id: 3, name: "Telangana" },
@@ -67,14 +68,15 @@ export const Search = () => {
   const [fieldOfStudyOptions, setFieldOfStudyOptions] = useState([]); // For the new dropdown
   const [checkFieldoStudy, setCheckFieldoStudy] = useState(new Set());
   const [selectedFieldofStudyIds, setSelectedFieldofStudyIds] = useState('');
-  const [chevvaiDhosam, setChevvaiDhosam] = useState(null);
-  const [rahuKetuDhosam, setRahuKetuDhosam] = useState(null);
+  const [chevvaiDhosam, setChevvaiDhosam] = useState('No');
+  const [rahuKetuDhosam, setRahuKetuDhosam] = useState('No');
   const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
   const [workLocation, setWorkLocation] = useState('');
-  const [selectedWorkLocationId, setSelectedWorkLocationId] = useState(''); // New state for selected Work Location ID
+  const [selectedWorkLocationId, setSelectedWorkLocationId] = useState(0); // New state for selected Work Location ID
   const [selectedIncomeMinLabel, setSelectedIncomeMinLabel] = useState('Select min Annual Income'); // ✨ NEW: For min income placeholder
   const [selectedIncomeMaxLabel, setSelectedIncomeMaxLabel] = useState('Select Max Annual Income'); // ✨ NEW: For max income placeholder
   const [btnLoading, setBtnLoading] = useState(false);
+  const loginuser_profileId = AsyncStorage.getItem("loginuser_profileId") || AsyncStorage.getItem("profile_id_new");;
 
   const handleSavePress = async (viewedProfileId) => {
     const newStatus = bookmarkedProfiles.has(viewedProfileId) ? "0" : "1";
@@ -363,8 +365,9 @@ export const Search = () => {
 
 
   const handleSubmit = async () => {
-    const peopleWithPhotoParam = ppChecked ? '1' : '0';
+    const peopleWithPhotoParam = ppChecked ? 1 : 0;
     const params = {
+      profile_id: loginuser_profileId,
       from_age: fromAge,
       to_age: toAge,
       from_height: fromHeight,
@@ -377,8 +380,8 @@ export const Search = () => {
       field_ofstudy: selectedFieldofStudyIds,
       search_star: selectedBirthStarIds.join(","),
       search_nativestate: selectedStateIds,
-      search_chevvai_dosham: chevvaiDhosam,
-      search_rahu_dosham: rahuKetuDhosam,
+      chevvai_dhosam: chevvaiDhosam,
+      ragukethu_dhosam: rahuKetuDhosam,
       people_withphoto: peopleWithPhotoParam,
       search_worklocation: selectedWorkLocationId,
       // from_reg_date: fromRegDate,
@@ -571,6 +574,14 @@ export const Search = () => {
   //   ppSetChecked(false);
   //   setBirthStars([]);
   // };// ... inside Search component
+  useFocusEffect(
+    React.useCallback(() => {
+      clearFields();
+      return () => {
+      };
+    }, [])
+  );
+
   const clearFields = () => {
     // 1. Reset all state variables (Existing logic)
     setFromAge(0);
@@ -590,8 +601,8 @@ export const Search = () => {
     setSelectedIncomeMinLabel('Select min Annual Income');
     setSelectedIncomeMaxLabel('Select Max Annual Income');
 
-    setRahuKetuDhosam(null);
-    setChevvaiDhosam(null);
+    setRahuKetuDhosam('No');
+    setChevvaiDhosam('No');
 
     setSelectedBirthStarIds([]);
     setWorkLocation('');
@@ -1441,7 +1452,7 @@ const styles = StyleSheet.create({
   checkContainer: {
     alignSelf: "flex-start",
     paddingHorizontal: 10,
-    width: "80%",
+    width: "100%",
   },
 
   // checkboxContainer: {
@@ -1455,10 +1466,11 @@ const styles = StyleSheet.create({
   // },
 
   checkboxDivFlex: {
-    flexDirection: "column",  // Stack checkboxes vertically
+    flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "flex-start",
     alignItems: "flex-start",
-    width: "100%", // Full width to accommodate label text
+    width: "100%",
   },
 
   checkBoxFlex: {
@@ -1469,12 +1481,12 @@ const styles = StyleSheet.create({
   },
 
   checkboxContainer: {
-    flexDirection: "row",  // Keeps checkbox and label side-by-side
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,  // Space between each checkbox
+    marginBottom: 15,
+    // Set a fixed width (e.g., 50%) or flex basis for a two-column layout
+    width: '50%',  // Space between each checkbox
   },
-
-
 
   singleCheckboxContainer: {
     flexDirection: "row",
@@ -1666,7 +1678,8 @@ const styles = StyleSheet.create({
   checkboxRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    // We don't want space-between here, as it can push single items too far
+    justifyContent: 'flex-start',
     width: '100%',
   },
   radioGroup: {

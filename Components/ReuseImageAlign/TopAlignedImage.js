@@ -45,7 +45,7 @@ export const TopAlignedImage = ({ uri, width = 100, height = 100, style }) => {
   }
 
   return (
-    <View style={{ width, height, overflow: "hidden" }}>
+    <View style={{ width, height, overflow: "hidden",borderRadius: style?.borderRadius || 10, }}>
       <Image
         source={{ uri }}
         style={{
