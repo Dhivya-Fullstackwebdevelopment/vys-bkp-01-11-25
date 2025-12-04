@@ -58,6 +58,7 @@ import ProfileVysAssistPopup from "../../Components/HomeTab/ProfileDetails/Profi
 import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import Timeline from "react-native-timeline-flatlist";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
+import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImage";
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
 const ProfileDetailsShimmer = () => {
@@ -906,7 +907,7 @@ export const ProfileDetails = () => {
     try {
       // Call the new API function
       const filePath = await downloadMatchingReportPdf(viewedProfileId);
-      console.log("downloadMatchingReportPdf", filepath)
+      console.log("downloadMatchingReportPdf", filePath)
       // if (filePath) {
       //   // Optional: Show a toast/alert for success if the internal function didn't already
       //   Toast.show({
@@ -1161,10 +1162,15 @@ export const ProfileDetails = () => {
             onPress={() => handleSlidePress(index + 1)}
             style={styles.thumbnail}
           >
-            <Image
+            {/* <Image
               // source={{ uri: image }}
               source={{ uri: getSafeImage(image) }}
               style={styles.thumbnailImage}
+            /> */}
+            <TopAlignedImage
+              uri={Array.isArray(image) ? image[0] : image}
+              width={100}
+              height={100}
             />
           </TouchableOpacity>
         ))}
