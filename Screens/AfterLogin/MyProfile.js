@@ -89,7 +89,7 @@ export const MyProfile = () => {
             navigation.navigate('MembershipPlan');
         } else {
             // If Plan ID is anything else, navigate to the direct payment screen
-            navigation.navigate('PayNow');
+           navigation.navigate('PayNow', { isAddOnOnly: true });
         }
     };
 

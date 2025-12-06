@@ -13,6 +13,7 @@ export const MembershipPlan = ({ navigation, route }) => {
   const [plans, setPlans] = useState({});
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState({ id: null, price: null, name: null });
+  console.log("selectedPlan", selectedPlan)
   const [isLoading, setIsLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(route.params?.fromLogin || false);
 
@@ -130,7 +131,8 @@ export const MembershipPlan = ({ navigation, route }) => {
             <View
               key={index}
               style={styles.cardWrapper}
-              onTouchStart={() => handleCardPress(index, plans[planName][0].plan_id, plans[planName][0].plan_price, planName)}
+              onPress={() => handleCardPress(index, plans[planName][0].plan_id, plans[planName][0].plan_price, planName)}
+              activeOpacity={0.8}
             >
               <LinearGradient
                 colors={
@@ -202,10 +204,11 @@ export const MembershipPlan = ({ navigation, route }) => {
                   <Text
                     style={styles.choosePlan}
                     onPress={() => {
+                      handleCardPress(index, plans[planName][0].plan_id, plans[planName][0].plan_price, planName);
                       navigation.navigate("PayNow", {
-                        planId: selectedPlan.id,
-                        planPrice: selectedPlan.price,
-                        planName: selectedPlan.name
+                        planId: plans[planName][0].plan_id,
+                        planPrice: plans[planName][0].plan_price,
+                        planName: planName
                       });
                     }}
                   >

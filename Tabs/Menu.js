@@ -175,7 +175,7 @@ export const Menu = () => {
 
   const handleUpgradeClick = () => {
     if (buttonText === "Add-On") {
-      navigation.navigate('PayNow');
+      navigation.navigate('PayNow', { isAddOnOnly: true });
     } else if (buttonText === "Renew") {
       navigation.navigate('MembershipPlan');
     } else {

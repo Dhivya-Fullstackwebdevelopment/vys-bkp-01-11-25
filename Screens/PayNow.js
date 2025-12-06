@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import config from "../API/Apiurl";
 import { createOrder, verifyPayment, savePlanPackage } from "../CommonApiCall/CommonApiCall";
 import RazorpayCheckout from "react-native-razorpay";
@@ -24,6 +24,10 @@ import Toast from "react-native-toast-message";
 
 export const PayNow = () => {
   const navigation = useNavigation();
+  const route = useRoute(); // Get the route object
+  const isAddOnOnly = route.params?.isAddOnOnly || false;
+  const isFromLogin = route.params?.isFromLogin || false; // NEW FLAG
+
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,6 +35,7 @@ export const PayNow = () => {
   const [selectedPlanPrice, setSelectedPlanPrice] = useState(0);
   const [selectedPlanId, setSelectedPlanId] = useState(null);
   const [selectedPlanName, setSelectedPlanName] = useState("");
+  console.log("selectedPlanName", selectedPlanName)
   const [submitting, setSubmitting] = useState(false);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [gpayModalVisible, setGpayModalVisible] = useState(false);
@@ -62,25 +67,61 @@ export const PayNow = () => {
     fetchPackages();
   }, []);
 
+  // useEffect(() => {
+  //   const getSelectedPlanDetails = async () => {
+  //     try {
+  //       const planId = await AsyncStorage.getItem("selectedPlanId");
+  //       const planPrice = await AsyncStorage.getItem("selectedPlanPrice");
+  //       const planName = await AsyncStorage.getItem("selectedPlanName");
+
+  //       if (planId !== null && planPrice !== null) {
+  //         setSelectedPlanId(planId);
+  //         setSelectedPlanPrice(parseFloat(planPrice));
+  //         setSelectedPlanName(planName);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error retrieving data from AsyncStorage", error);
+  //     }
+  //   };
+
+  //   getSelectedPlanDetails();
+  // }, []);
+
   useEffect(() => {
     const getSelectedPlanDetails = async () => {
       try {
-        const planId = await AsyncStorage.getItem("selectedPlanId");
-        const planPrice = await AsyncStorage.getItem("selectedPlanPrice");
-        // const planName = await AsyncStorage.getItem("selectedPlanName");
+        // First check if we have route params (these are most recent)
+        const { planId: routePlanId, planPrice: routePlanPrice, planName: routePlanName } = route.params || {};
 
-        if (planId !== null && planPrice !== null) {
-          setSelectedPlanId(planId);
-          setSelectedPlanPrice(parseFloat(planPrice));
-          // setSelectedPlanName(planName);
+        if (routePlanId && routePlanPrice && routePlanName) {
+          // Use route params if available
+          setSelectedPlanId(routePlanId.toString());
+          setSelectedPlanPrice(parseFloat(routePlanPrice));
+          setSelectedPlanName(routePlanName);
+
+          // Also update AsyncStorage for consistency
+          await AsyncStorage.setItem("selectedPlanId", routePlanId.toString());
+          await AsyncStorage.setItem("selectedPlanPrice", routePlanPrice.toString());
+          await AsyncStorage.setItem("selectedPlanName", routePlanName);
+        } else {
+          // Fall back to AsyncStorage
+          const planId = await AsyncStorage.getItem("selectedPlanId");
+          const planPrice = await AsyncStorage.getItem("selectedPlanPrice");
+          const planName = await AsyncStorage.getItem("selectedPlanName");
+
+          if (planId && planPrice && planName) {
+            setSelectedPlanId(planId);
+            setSelectedPlanPrice(parseFloat(planPrice));
+            setSelectedPlanName(planName);
+          }
         }
       } catch (error) {
-        console.error("Error retrieving data from AsyncStorage", error);
+        console.error("Error retrieving plan details", error);
       }
     };
 
     getSelectedPlanDetails();
-  }, []);
+  }, [route.params]);
 
   // Add this with the other useEffect hooks
   useEffect(() => {
@@ -111,6 +152,7 @@ export const PayNow = () => {
     });
   };
 
+
   const getTotalPrice = () => {
     return packages.reduce((total, pkg) => {
       if (checkedState[pkg.package_id]) {
@@ -120,10 +162,43 @@ export const PayNow = () => {
     }, 0);
   };
 
-  const totalPrice = getTotalPrice();
-  const totalPriceNew = totalPrice + selectedPlanPrice;
+  useEffect(() => {
+    const getSelectedPlanDetails = async () => {
+      try {
+        const planId = await AsyncStorage.getItem("selectedPlanId");
+        const planPrice = await AsyncStorage.getItem("selectedPlanPrice");
+        const planName = await AsyncStorage.getItem("selectedPlanName"); // 💡 Get the name
+
+        if (planId !== null && planPrice !== null && planName !== null) {
+          setSelectedPlanId(planId);
+          setSelectedPlanPrice(parseFloat(planPrice));
+          setSelectedPlanName(planName); // 💡 Set the name state
+        }
+      } catch (error) {
+        console.error("Error retrieving data from AsyncStorage", error);
+      }
+    };
+    getSelectedPlanDetails();
+  }, []);
+  const finalSelectedPlanPrice = isAddOnOnly ? 0 : selectedPlanPrice;
+
+  // const totalPrice = getTotalPrice();
+  // const totalPriceNew = totalPrice + selectedPlanPrice;
+  // const totalPriceNew = totalPrice + finalSelectedPlanPrice; // Use the conditional price
+  const totalPriceNew = getTotalPrice() + finalSelectedPlanPrice;
 
   const handlePayNow = async () => {
+    // if (totalPriceNew === 0) {
+    //   Toast.show({
+    //     type: "error",
+    //     text1: "Selection Required",
+    //     text2: "Please select at least one add-on package",
+    //     position: "bottom",
+    //     visibilityTime: 3000,
+    //   });
+    //   return;
+    // }
+
     try {
       setIsPaymentLoading(true);
       const profileId = await AsyncStorage.getItem("profile_id_new");
@@ -138,14 +213,14 @@ export const PayNow = () => {
         // amountInPaise,
         totalPriceNew,
         profileId,
-        selectedPlanId,
+        isAddOnOnly ? 0 : selectedPlanId,
         packageids
       );
       const orderResponse = await createOrder(
         // amountInPaise,
         totalPriceNew,
         profileId,
-        selectedPlanId,
+        isAddOnOnly ? 0 : selectedPlanId,
         packageids
       );
       console.log("order response ==>", JSON.stringify(orderResponse));
@@ -339,6 +414,7 @@ export const PayNow = () => {
   };
 
   const handleSavePlanPackage = async () => {
+
     try {
       setIsPaymentLoading(true);
       const profileId = await AsyncStorage.getItem("profile_id_new");
@@ -348,7 +424,7 @@ export const PayNow = () => {
 
       const result = await savePlanPackage(
         profileId,
-        selectedPlanId,
+        isAddOnOnly ? 0 : selectedPlanId,
         selectedAddons,
         totalPriceNew
       );
@@ -390,6 +466,15 @@ export const PayNow = () => {
 
   // Add this new function inside your PayNow component
   const handleGPaySave = async () => {
+    // if (totalPriceNew === 0) {
+    //   Toast.show({
+    //     type: "error",
+    //     text1: "Selection Required",
+    //     text2: "Please select at least one add-on package",
+    //     position: "bottom",
+    //     visibilityTime: 3000,
+    //   });
+    // }
     try {
       setIsPaymentLoading(true);
       const profileId = await AsyncStorage.getItem("profile_id_new");
@@ -408,7 +493,7 @@ export const PayNow = () => {
       // Pass gpay_online = 1 for GPay
       const result = await savePlanPackage(
         profileId,
-        selectedPlanId,
+        isAddOnOnly ? 0 : selectedPlanId,
         selectedAddons,
         totalPriceNew,
         1 // gpay_online parameter
@@ -477,6 +562,15 @@ export const PayNow = () => {
 
   // Replace your old handleGpaySubmit with this
   const handleGpaySubmit = () => {
+    // if (totalPriceNew === 0) {
+    //   Toast.show({
+    //     type: "error",
+    //     text1: "Selection Required",
+    //     text2: "Please select at least one add-on package",
+    //     position: "bottom",
+    //     visibilityTime: 3000,
+    //   });
+    // }
     setGpayModalVisible(false); // Close the modal
     handleGPaySave(); // Call the new save function
   };
@@ -489,16 +583,24 @@ export const PayNow = () => {
     <>
       <ScrollView>
         <SafeAreaView style={styles.container}>
+
           <Text style={styles.selectedPlan}>Selected Plan</Text>
 
           <View style={styles.planRateFlex}>
             <View>
-              <Text style={styles.plan}>{selectedPlanName}</Text>
-              <TouchableOpacity onPress={() =>  navigation.navigate('MembershipPlan')}>
+              {!isAddOnOnly && (
+                <>
+                  <Text style={styles.plan}>{selectedPlanName}</Text>
+                </>)}
+              <TouchableOpacity onPress={() => navigation.navigate('MembershipPlan')}>
                 <Text style={styles.changePlan}>Change Plan</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.rateRed}>₹{selectedPlanPrice.toFixed(2)}</Text>
+            {!isAddOnOnly && (
+              <>
+                <Text style={styles.rateRed}>₹{selectedPlanPrice.toFixed(2)}</Text>
+              </>
+            )}
           </View>
 
           <View style={styles.lineContainer}>
