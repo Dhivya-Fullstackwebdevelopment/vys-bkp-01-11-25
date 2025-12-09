@@ -1979,26 +1979,58 @@ export const ProfileDetails = () => {
             {showPersonalDetails && (
               <View style={styles.menuChanges}>
                 <View style={styles.editOptions}>
-                  <Text style={styles.titleNew}>Pesonal Details</Text>
+                  <Text style={styles.titleNew}>Personal Details</Text>
                   <View style={styles.line} />
-                  <Text style={styles.labelNew}>Name : <Text style={styles.valueNew}>{profileData.personal_details.profile_name}</Text></Text>
-                  <Text style={styles.labelNew}>Gender : <Text style={styles.valueNew}>{profileData.personal_details.gender}</Text></Text>
-                  <Text style={styles.labelNew}>Age : <Text style={styles.valueNew}>{profileData.personal_details.age} Years</Text></Text>
-                  <Text style={styles.labelNew}>DOB : <Text style={styles.valueNew}>{profileData.personal_details.dob}</Text></Text>
-                  <Text style={styles.labelNew}>Place of Birth : <Text style={styles.valueNew}>{profileData.personal_details.place_of_birth}</Text></Text>
-                  <Text style={styles.labelNew}>Time of Birth : <Text style={styles.valueNew}>{profileData.personal_details.time_of_birth}</Text></Text>
-                  <Text style={styles.labelNew}>Height : <Text style={styles.valueNew}>{profileData.personal_details.height}</Text></Text>
-                  <Text style={styles.labelNew}>Weight : <Text style={styles.valueNew}>{profileData.personal_details.weight}</Text></Text>
-                  <Text style={styles.labelNew}>Body Type : <Text style={styles.valueNew}>{profileData.personal_details.body_type}</Text></Text>
-                  <Text style={styles.labelNew}>Eye Wear : <Text style={styles.valueNew}>{profileData.personal_details.eye_wear}</Text></Text>
-                  <Text style={styles.labelNew}>Marital Status : <Text style={styles.valueNew}>{profileData.personal_details.marital_status}</Text></Text>
-                  <Text style={styles.labelNew}>Blood Group : <Text style={styles.valueNew}>{profileData.personal_details.blood_group}</Text></Text>
-                  <Text style={styles.labelNew}>About Myself : <Text style={styles.valueNew}>{profileData.personal_details.about_self}</Text></Text>
-                  <Text style={styles.labelNew}>Complexion : <Text style={styles.valueNew}>{profileData.personal_details.complexion}</Text></Text>
-                  <Text style={styles.labelNew}>Hobbies : <Text style={styles.valueNew}>{profileData.personal_details.hobbies}</Text></Text>
-                  <Text style={styles.labelNew}>Physical Status : <Text style={styles.valueNew}>{profileData.personal_details.physical_status}</Text></Text>
-                  <Text style={styles.labelNew}>Mobile no<Text style={styles.valueNew}>{profileData.personal_details.Mobile_no}</Text></Text>
-                  <Text style={styles.labelNew}>Profile Created By : <Text style={styles.valueNew}>{profileData.personal_details.profile_created_by}</Text></Text>
+                  {profileData.personal_details?.profile_name && profileData.personal_details.profile_name !== "" && profileData.personal_details.profile_name !== null && (
+                    <Text style={styles.labelNew}>Name : <Text style={styles.valueNew}>{profileData.personal_details.profile_name}</Text></Text>
+                  )}
+                  {profileData.personal_details?.gender && profileData.personal_details.gender !== "" && profileData.personal_details.gender !== null && (
+                    <Text style={styles.labelNew}>Gender : <Text style={styles.valueNew}>{profileData.personal_details.gender}</Text></Text>
+                  )}
+                  {profileData.personal_details?.age && profileData.personal_details.age !== "" && profileData.personal_details.age !== null && (
+                    <Text style={styles.labelNew}>Age : <Text style={styles.valueNew}>{profileData.personal_details.age} Years</Text></Text>
+                  )}
+                  {profileData.personal_details?.dob && profileData.personal_details.dob !== "" && profileData.personal_details.dob !== null && (
+                    <Text style={styles.labelNew}>DOB : <Text style={styles.valueNew}>{profileData.personal_details.dob}</Text></Text>
+                  )}
+                  {profileData.personal_details?.place_of_birth && profileData.personal_details.place_of_birth !== "" && profileData.personal_details.place_of_birth !== null && (
+                    <Text style={styles.labelNew}>Place of Birth : <Text style={styles.valueNew}>{profileData.personal_details.place_of_birth}</Text></Text>
+                  )}
+                  {profileData.personal_details?.time_of_birth && profileData.personal_details.time_of_birth !== "" && profileData.personal_details.time_of_birth !== null && (
+                    <Text style={styles.labelNew}>Time of Birth : <Text style={styles.valueNew}>{profileData.personal_details.time_of_birth}</Text></Text>
+                  )}
+                  {profileData.personal_details?.height && profileData.personal_details.height !== "" && profileData.personal_details.height !== null && (
+                    <Text style={styles.labelNew}>Height : <Text style={styles.valueNew}>{profileData.personal_details.height}</Text></Text>
+                  )}
+                  {profileData.personal_details?.weight && profileData.personal_details.weight !== "" && profileData.personal_details.weight !== null && profileData.personal_details.weight !== "0" && (
+                    <Text style={styles.labelNew}>Weight : <Text style={styles.valueNew}>{profileData.personal_details.weight}</Text></Text>
+                  )}
+                  {profileData.personal_details?.body_type && profileData.personal_details.body_type !== "" && profileData.personal_details.body_type !== null && profileData.personal_details.body_type !== "0" && (
+                    <Text style={styles.labelNew}>Body Type : <Text style={styles.valueNew}>{profileData.personal_details.body_type}</Text></Text>
+                  )}
+                  {profileData.personal_details?.eye_wear && profileData.personal_details.eye_wear !== "" && profileData.personal_details.eye_wear !== null && profileData.personal_details.eye_wear !== "0" && (
+                    <Text style={styles.labelNew}>Eye Wear : <Text style={styles.valueNew}>{profileData.personal_details.eye_wear}</Text></Text>
+                  )}
+                  {profileData.personal_details?.marital_status && profileData.personal_details.marital_status !== "" && profileData.personal_details.marital_status !== null && (
+                    <Text style={styles.labelNew}>Marital Status : <Text style={styles.valueNew}>{profileData.personal_details.marital_status}</Text></Text>
+                  )}
+                  {profileData.personal_details?.blood_group && profileData.personal_details.blood_group !== "" && profileData.personal_details.blood_group !== null && (
+                    <Text style={styles.labelNew}>Blood Group : <Text style={styles.valueNew}>{profileData.personal_details.blood_group}</Text></Text>
+                  )}
+                  {profileData.personal_details?.about_self && profileData.personal_details.about_self !== "" && profileData.personal_details.about_self !== null && (
+                    <Text style={styles.labelNew}>About Myself : <Text style={styles.valueNew}>{profileData.personal_details.about_self}</Text></Text>
+                  )}
+                  {profileData.personal_details?.complexion && profileData.personal_details.complexion !== "" && profileData.personal_details.complexion !== null && (
+                    <Text style={styles.labelNew}>Complexion : <Text style={styles.valueNew}>{profileData.personal_details.complexion}</Text></Text>
+                  )}
+                  {profileData.personal_details?.hobbies && profileData.personal_details.hobbies !== "" && profileData.personal_details.hobbies !== null && (
+                    <Text style={styles.labelNew}>Hobbies : <Text style={styles.valueNew}>{profileData.personal_details.hobbies}</Text></Text>
+                  )}
+                  {profileData.personal_details?.physical_status && profileData.personal_details.physical_status !== "" && profileData.personal_details.physical_status !== null && profileData.personal_details.physical_status !== "0" && (
+                    <Text style={styles.labelNew}>Physical Status : <Text style={styles.valueNew}>{profileData.personal_details.physical_status}</Text></Text>
+                  )}
+                  {/* <Text style={styles.labelNew}>Mobile no :<Text style={styles.valueNew}>{profileData.personal_details.Mobile_no}</Text></Text> */}
+                  {/* <Text style={styles.labelNew}>Profile Created By : <Text style={styles.valueNew}>{profileData.personal_details.profile_created_by}</Text></Text> */}
                 </View>
               </View>
             )}
@@ -2008,16 +2040,38 @@ export const ProfileDetails = () => {
                 <View style={styles.editOptions}>
                   <Text style={styles.titleNew}>Education & Profession Details</Text>
                   <View style={styles.line} />
-                  <Text style={styles.labelNew}>Education Level : <Text style={styles.valueNew}>{profileData.education_details.education_level}</Text></Text>
-                  <Text style={styles.labelNew}>Educational Details : <Text style={styles.valueNew}>{profileData.education_details.education_detail}</Text></Text>
-                  <Text style={styles.labelNew}>About Education : <Text style={styles.valueNew}>{profileData.education_details.about_education}</Text></Text>
+                  {profileData.education_details?.education_level && profileData.education_details.education_level !== "" && profileData.education_details.education_level !== null && (
+                    <Text style={styles.labelNew}>Education Level : <Text style={styles.valueNew}>{profileData.education_details.education_level}</Text></Text>
+                  )}
+                  {profileData.education_details?.degeree && profileData.education_details.degeree !== "" && profileData.education_details.degeree !== null && (
+                    <Text style={styles.labelNew}>Degree : <Text style={styles.valueNew}>{profileData.education_details.degeree}</Text></Text>
+                  )}
+                  {/* <Text style={styles.labelNew}>Educational Details : <Text style={styles.valueNew}>{profileData.education_details.education_detail}</Text></Text> */}
+                  {profileData.education_details?.about_education && profileData.education_details.about_education !== "" && profileData.education_details.about_education !== null && (
+                    <Text style={styles.labelNew}>About Education : <Text style={styles.valueNew}>{profileData.education_details.about_education}</Text></Text>
+                  )}
                   <Text style={styles.labelNew}>Profession : <Text style={styles.valueNew}>{profileData.education_details.profession}</Text></Text>
-                  <Text style={styles.labelNew}>Company Name : <Text style={styles.valueNew}>{profileData.education_details.company_name}</Text></Text>
-                  <Text style={styles.labelNew}>Business Name : <Text style={styles.valueNew}>{profileData.education_details.business_name}</Text></Text>
-                  <Text style={styles.labelNew}>Business Address : <Text style={styles.valueNew}>{profileData.education_details.business_address}</Text></Text>
-                  <Text style={styles.labelNew}>Annual Income : <Text style={styles.valueNew}>{profileData.education_details.annual_income}</Text></Text>
-                  <Text style={styles.labelNew}>Gross annual Income : <Text style={styles.valueNew}>{profileData.education_details.gross_annual_income}</Text></Text>
-                  <Text style={styles.labelNew}>Place of Stay : <Text style={styles.valueNew}>{profileData.education_details.place_of_stay}</Text></Text>
+                  {profileData.education_details?.company_name && profileData.education_details.company_name !== "" && profileData.education_details.company_name !== null && (
+                    <Text style={styles.labelNew}>Company Name : <Text style={styles.valueNew}>{profileData.education_details.company_name}</Text></Text>
+                  )}
+                  {profileData.education_details?.designation && profileData.education_details.designation !== "" && profileData.education_details.designation !== null && (
+                    <Text style={styles.labelNew}>Designation : <Text style={styles.valueNew}>{profileData.education_details.designation}</Text></Text>
+                  )}
+                  {profileData.education_details?.business_name && profileData.education_details.business_name !== "" && profileData.education_details.business_name !== null && (
+                    <Text style={styles.labelNew}>Business Name : <Text style={styles.valueNew}>{profileData.education_details.business_name}</Text></Text>
+                  )}
+                  {profileData.education_details?.business_address && profileData.education_details.business_address !== "" && profileData.education_details.business_address !== null && (
+                    <Text style={styles.labelNew}>Business Address : <Text style={styles.valueNew}>{profileData.education_details.business_address}</Text></Text>
+                  )}
+                  {profileData.education_details?.annual_income && profileData.education_details.annual_income !== "" && profileData.education_details.annual_income !== null && (
+                    <Text style={styles.labelNew}>Annual Income : <Text style={styles.valueNew}>{profileData.education_details.annual_income}</Text></Text>
+                  )}
+                  {profileData.education_details?.gross_annual_income && profileData.education_details.gross_annual_income !== "" && profileData.education_details.gross_annual_income !== null && (
+                    <Text style={styles.labelNew}>Gross annual Income : <Text style={styles.valueNew}>{profileData.education_details.gross_annual_income}</Text></Text>
+                  )}
+                  {profileData.education_details?.place_of_stay && profileData.education_details.place_of_stay !== "" && profileData.education_details.place_of_stay !== null && (
+                    <Text style={styles.labelNew}>Place of Stay : <Text style={styles.valueNew}>{profileData.education_details.place_of_stay}</Text></Text>
+                  )}
                 </View>
               </View>
             )}
@@ -2027,17 +2081,45 @@ export const ProfileDetails = () => {
                 <View style={styles.editOptions}>
                   <Text style={styles.titleNew}>Family Details</Text>
                   <View style={styles.line} />
-                  <Text style={styles.labelNew}>About Family : <Text style={styles.valueNew}>{profileData.family_details.about_family}</Text></Text>
-                  <Text style={styles.labelNew}>Father's Name : <Text style={styles.valueNew}>{profileData.family_details.father_name}</Text></Text>
-                  <Text style={styles.labelNew}>Father's occupation : <Text style={styles.valueNew}>{profileData.family_details.father_occupation}</Text></Text>
-                  <Text style={styles.labelNew}>Mother's Name : <Text style={styles.valueNew}>{profileData.family_details.mother_name}</Text></Text>
-                  <Text style={styles.labelNew}>Mother's occupation : <Text style={styles.valueNew}>{profileData.family_details.mother_occupation}</Text></Text>
-                  <Text style={styles.labelNew}>Family Status : <Text style={styles.valueNew}>{profileData.family_details.family_status}</Text></Text>
-                  <Text style={styles.labelNew}>No. of sisters : <Text style={styles.valueNew}>{profileData.family_details.no_of_sisters}</Text></Text>
-                  <Text style={styles.labelNew}>No. of Brothers : <Text style={styles.valueNew}>{profileData.family_details.no_of_brothers}</Text></Text>
-                  <Text style={styles.labelNew}>No. of sis Married : <Text style={styles.valueNew}>{profileData.family_details.no_of_sis_married}</Text></Text>
-                  <Text style={styles.labelNew}>No. of sis Married : <Text style={styles.valueNew}>{profileData.family_details.no_of_bro_married}</Text></Text>
-                  <Text style={styles.labelNew}>Property details : <Text style={styles.valueNew}>{profileData.family_details.property_details}</Text></Text>
+                  {profileData.family_details?.about_family && profileData.family_details.about_family !== "" && profileData.family_details.about_family !== null && (
+                    <Text style={styles.labelNew}>About Family : <Text style={styles.valueNew}>{profileData.family_details.about_family}</Text></Text>
+                  )}
+                  {profileData.family_details?.father_name && profileData.family_details.father_name !== "" && profileData.family_details.father_name !== null && (
+                    <Text style={styles.labelNew}>Father's Name : <Text style={styles.valueNew}>{profileData.family_details.father_name}</Text></Text>
+                  )}
+                  {profileData.family_details?.father_occupation && profileData.family_details.father_occupation !== "" && profileData.family_details.father_occupation !== null && (
+                    <Text style={styles.labelNew}>Father's occupation : <Text style={styles.valueNew}>{profileData.family_details.father_occupation}</Text></Text>
+                  )}
+                  {profileData.family_details?.mother_name && profileData.family_details.mother_name !== "" && profileData.family_details.mother_name !== null && (
+                    <Text style={styles.labelNew}>Mother's Name : <Text style={styles.valueNew}>{profileData.family_details.mother_name}</Text></Text>
+                  )}
+                  {profileData.family_details?.mother_occupation && profileData.family_details.mother_occupation !== "" && profileData.family_details.mother_occupation !== null && (
+                    <Text style={styles.labelNew}>Mother's occupation : <Text style={styles.valueNew}>{profileData.family_details.mother_occupation}</Text></Text>
+                  )}
+                  {profileData.family_details?.family_status && profileData.family_details.family_status !== "" && profileData.family_details.family_status !== null && (
+                    <Text style={styles.labelNew}>Family Status : <Text style={styles.valueNew}>{profileData.family_details.family_status}</Text></Text>
+                  )}
+                  {profileData.family_details?.no_of_sisters && profileData.family_details.no_of_sisters !== "" && profileData.family_details.no_of_sisters !== null && (
+                    <Text style={styles.labelNew}>Sisters : <Text style={styles.valueNew}>{profileData.family_details.no_of_sisters}</Text></Text>
+                  )}
+                  {profileData.family_details?.no_of_sis_married && profileData.family_details.no_of_sis_married !== "" && profileData.family_details.no_of_sis_married !== null && (
+                    <Text style={styles.labelNew}>Sisters Married : <Text style={styles.valueNew}>{profileData.family_details.no_of_sis_married}</Text></Text>
+                  )}
+                  {profileData.family_details?.no_of_brothers && profileData.family_details.no_of_brothers !== "" && profileData.family_details.no_of_brothers !== null && (
+                    <Text style={styles.labelNew}>Brothers : <Text style={styles.valueNew}>{profileData.family_details.no_of_brothers}</Text></Text>
+                  )}
+                  {profileData.family_details?.no_of_bro_married && profileData.family_details.no_of_bro_married !== "" && profileData.family_details.no_of_bro_married !== null && (
+                    <Text style={styles.labelNew}>Brothers Married : <Text style={styles.valueNew}>{profileData.family_details.no_of_bro_married}</Text></Text>
+                  )}
+                  {profileData.family_details?.property_details && profileData.family_details.property_details !== "" && profileData.family_details.property_details !== null && (
+                    <Text style={styles.labelNew}>Property details : <Text style={styles.valueNew}>{profileData.family_details.property_details}</Text></Text>
+                  )}
+                  {profileData.family_details?.property_details && profileData.family_details.property_details !== "" && profileData.family_details.property_details !== null && (
+                    <Text style={styles.labelNew}>Father Alive : <Text style={styles.valueNew}>{profileData.family_details.father_alive}</Text></Text>
+                  )}
+                  {profileData.family_details?.property_details && profileData.family_details.property_details !== "" && profileData.family_details.property_details !== null && (
+                    <Text style={styles.labelNew}>Mother Alive : <Text style={styles.valueNew}>{profileData.family_details.father_alive}</Text></Text>
+                  )}
                 </View>
               </View>
             )}
@@ -2047,16 +2129,39 @@ export const ProfileDetails = () => {
                 <View style={styles.editOptions}>
                   <Text style={styles.titleNew}>Horoscope Details</Text>
                   <View style={styles.line} />
-                  <Text style={styles.labelNew}>Rasi : <Text style={styles.valueNew}>{profileData.horoscope_details.rasi}</Text></Text>
-                  <Text style={styles.labelNew}>Star : <Text style={styles.valueNew}>{profileData.horoscope_details.star_name}</Text></Text>
-                  <Text style={styles.labelNew}>Lagnam : <Text style={styles.valueNew}>{profileData.horoscope_details.lagnam}</Text></Text>
-                  <Text style={styles.labelNew}>Nallikai : <Text style={styles.valueNew}>{profileData.horoscope_details.nallikai}</Text></Text>
-                  <Text style={styles.labelNew}>Didi : <Text style={styles.valueNew}>{profileData.horoscope_details.didi}</Text></Text>
-                  <Text style={styles.labelNew}>Surya Gothram : <Text style={styles.valueNew}>{profileData.horoscope_details.surya_gothram}</Text></Text>
-                  <Text style={styles.labelNew}>Dasa Name : <Text style={styles.valueNew}>{profileData.horoscope_details.dasa_name}</Text></Text>
-                  <Text style={styles.labelNew}>Dasa Balance : <Text style={styles.valueNew}>{profileData.horoscope_details.dasa_balance}</Text></Text>
-                  <Text style={styles.labelNew}>Chevvai Dosham : <Text style={styles.valueNew}>{profileData.horoscope_details.chevvai_dosham}</Text></Text>
-                  <Text style={styles.labelNew}>Sarpadosham : <Text style={styles.valueNew}>{profileData.horoscope_details.sarpadosham}</Text></Text>
+                  {profileData.horoscope_details?.rasi && profileData.horoscope_details.rasi !== "" && profileData.horoscope_details.rasi !== null && (
+                    <Text style={styles.labelNew}>Rasi : <Text style={styles.valueNew}>{profileData.horoscope_details.rasi}</Text></Text>
+                  )}
+                  {profileData.horoscope_details?.star_name && profileData.horoscope_details.star_name !== "" && profileData.horoscope_details.star_name !== null && (
+                    <Text style={styles.labelNew}>Star : <Text style={styles.valueNew}>{profileData.horoscope_details.star_name}</Text></Text>
+                  )}
+                  {profileData.horoscope_details?.lagnam && profileData.horoscope_details.lagnam !== "" && profileData.horoscope_details.lagnam !== null && (
+                    <Text style={styles.labelNew}>Lagnam : <Text style={styles.valueNew}>{profileData.horoscope_details.lagnam}</Text></Text>
+                  )}
+                  {profileData.horoscope_details?.nallikai && profileData.horoscope_details.nallikai !== "" && profileData.horoscope_details.nallikai !== null && (
+                    <Text style={styles.labelNew}>Nallikai : <Text style={styles.valueNew}>{profileData.horoscope_details.nallikai}</Text></Text>
+                  )}
+                  {profileData.horoscope_details?.didi && profileData.horoscope_details.didi !== "" && profileData.horoscope_details.didi !== null && (
+                    <Text style={styles.labelNew}>Didi : <Text style={styles.valueNew}>{profileData.horoscope_details.didi}</Text></Text>
+                  )}
+                  {profileData.horoscope_details?.surya_gothram && profileData.horoscope_details.surya_gothram !== "" && profileData.horoscope_details.surya_gothram !== null && (
+                    <Text style={styles.labelNew}>Surya Gothram : <Text style={styles.valueNew}>{profileData.horoscope_details.surya_gothram}</Text></Text>
+                  )}
+                  {profileData.horoscope_details?.madulamn && profileData.horoscope_details.madulamn !== "" && profileData.horoscope_details.madulamn !== null && (
+                    <Text style={styles.labelNew}>Madhulam : <Text style={styles.valueNew}>{profileData.horoscope_details.madulamn}</Text></Text>
+                  )}
+                  {profileData.horoscope_details?.dasa_name && profileData.horoscope_details.dasa_name !== "" && profileData.horoscope_details.dasa_name !== null && (
+                    <Text style={styles.labelNew}>Dasa Name : <Text style={styles.valueNew}>{profileData.horoscope_details.dasa_name}</Text></Text>
+                  )}
+                  {profileData.horoscope_details?.dasa_balance && profileData.horoscope_details.dasa_balance !== "" && profileData.horoscope_details.dasa_balance !== null && (
+                    <Text style={styles.labelNew}>Dasa Balance : <Text style={styles.valueNew}>{profileData.horoscope_details.dasa_balance}</Text></Text>
+                  )}
+                  {profileData.horoscope_details?.chevvai_dosham && profileData.horoscope_details.chevvai_dosham !== "" && profileData.horoscope_details.chevvai_dosham !== null && (
+                    <Text style={styles.labelNew}>Chevvai Dosham : <Text style={styles.valueNew}>{profileData.horoscope_details.chevvai_dosham}</Text></Text>
+                  )}
+                  {profileData.horoscope_details?.sarpadosham && profileData.horoscope_details.sarpadosham !== "" && profileData.horoscope_details.sarpadosham !== null && (
+                    <Text style={styles.labelNew}>Ragu/Kethu Dhosham: : <Text style={styles.valueNew}>{profileData.horoscope_details.sarpadosham}</Text></Text>
+                  )}
                 </View>
               </View>
             )}
@@ -2066,14 +2171,30 @@ export const ProfileDetails = () => {
                 <View style={styles.editOptions}>
                   <Text style={styles.titleNew}>Contact Details</Text>
                   <View style={styles.line} />
-                  <Text style={styles.labelNew}>Address : <Text style={styles.valueNew}>{profileData.contact_details.address}</Text></Text>
-                  <Text style={styles.labelNew}>City : <Text style={styles.valueNew}>{profileData.contact_details.city}</Text></Text>
-                  <Text style={styles.labelNew}>State : <Text style={styles.valueNew}>{profileData.contact_details.state}</Text></Text>
-                  <Text style={styles.labelNew}>Country : <Text style={styles.valueNew}>{profileData.contact_details.country}</Text></Text>
-                  <Text style={styles.labelNew}>Phone no : <Text style={styles.valueNew}>{profileData.contact_details.phone}</Text></Text>
-                  <Text style={styles.labelNew}>Mobile no : <Text style={styles.valueNew}>{profileData.contact_details.mobile}</Text></Text>
-                  <Text style={styles.labelNew}>Whatsapp : <Text style={styles.valueNew}>{profileData.contact_details.whatsapps}</Text></Text>
-                  <Text style={styles.labelNew}>Email : <Text style={styles.valueNew}>{profileData.contact_details.email}</Text></Text>
+                  {profileData.contact_details?.address && profileData.contact_details.address !== "" && profileData.contact_details.address !== null && (
+                    <Text style={styles.labelNew}>Address : <Text style={styles.valueNew}>{profileData.contact_details.address}</Text></Text>
+                  )}
+                  {profileData.contact_details?.city && profileData.contact_details.city !== "" && profileData.contact_details.city !== null && (
+                    <Text style={styles.labelNew}>City : <Text style={styles.valueNew}>{profileData.contact_details.city}</Text></Text>
+                  )}
+                  {profileData.contact_details?.state && profileData.contact_details.state !== "" && profileData.contact_details.state !== null && (
+                    <Text style={styles.labelNew}>State : <Text style={styles.valueNew}>{profileData.contact_details.state}</Text></Text>
+                  )}
+                  {profileData.contact_details?.country && profileData.contact_details.country !== "" && profileData.contact_details.country !== null && (
+                    <Text style={styles.labelNew}>Country : <Text style={styles.valueNew}>{profileData.contact_details.country}</Text></Text>
+                  )}
+                  {profileData.contact_details?.phone && profileData.contact_details.phone !== "" && profileData.contact_details.phone !== null && (
+                    <Text style={styles.labelNew}>Phone no : <Text style={styles.valueNew}>{profileData.contact_details.phone}</Text></Text>
+                  )}
+                  {profileData.contact_details?.mobile && profileData.contact_details.mobile !== "" && profileData.contact_details.mobile !== null && (
+                    <Text style={styles.labelNew}>Mobile no : <Text style={styles.valueNew}>{profileData.contact_details.mobile}</Text></Text>
+                  )}
+                  {profileData.contact_details?.whatsapp && profileData.contact_details.whatsapp !== "" && profileData.contact_details.whatsapp !== null && (
+                    <Text style={styles.labelNew}>Whatsapp : <Text style={styles.valueNew}>{profileData.contact_details.whatsapps}</Text></Text>
+                  )}
+                  {profileData.contact_details?.email && profileData.contact_details.email !== "" && profileData.contact_details.email !== null && (
+                    <Text style={styles.labelNew}>Email : <Text style={styles.valueNew}>{profileData.contact_details.email}</Text></Text>
+                  )}
                 </View>
               </View>
             )}

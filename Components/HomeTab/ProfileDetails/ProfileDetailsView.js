@@ -182,7 +182,7 @@ export const ProfileDetailsView = ({ viewedProfileId }) => {
             {showPersonalDetails && (
                 <View style={styles.menuChanges}>
                     <View style={styles.editOptions}>
-                        <Text style={styles.titleNew}>Pesonal Details</Text>
+                        <Text style={styles.titleNew}>Personal Details</Text>
                         <View style={styles.line} />
                         <Text style={styles.labelNew}>Name : <Text style={styles.valueNew}>{profileData.personal_details.profile_name}</Text></Text>
                         <Text style={styles.labelNew}>Gender : <Text style={styles.valueNew}>{profileData.personal_details.gender}</Text></Text>
