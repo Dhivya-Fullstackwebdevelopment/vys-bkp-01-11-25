@@ -205,12 +205,12 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
         const success = await logProfileVisit(viewedProfileId);
 
         if (success) {
-            Toast.show({
-                type: "success",
-                text1: "Profile Viewed",
-                text2: `You have viewed profile ${viewedProfileId}.`,
-                position: "bottom",
-            });
+            // Toast.show({
+            //     type: "success",
+            //     text1: "Profile Viewed",
+            //     text2: `You have viewed profile ${viewedProfileId}.`,
+            //     position: "bottom",
+            // });
             // navigation.navigate("ProfileDetails", { id });
             navigation.navigate("ProfileDetails", {
                 viewedProfileId,
@@ -262,7 +262,7 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
                     </Text>
                     <Text style={styles.zodiac}>{profile.visited_star || "N/A"}</Text>
                     <Text style={styles.employed}>{profile.visited_profession || "N/A"}</Text>
-                    <Text style={styles.lastVisit}>Last visit on {profile.visited_datetime || "N/A"}</Text>
+                    <Text style={styles.lastVisit}>Last viewed on {profile.visited_datetime || "N/A"}</Text>
                 </View>
             </View>
         </TouchableOpacity>

@@ -83,7 +83,7 @@ export const FilterScreen = () => {
         const success = await logProfileVisit(viewedProfileId);
 
         if (success) {
-            Toast.show({ type: "success", text1: "Profile Viewed", text2: `You have viewed profile ${viewedProfileId}.`, position: "bottom" });
+            //Toast.show({ type: "success", text1: "Profile Viewed", text2: `You have viewed profile ${viewedProfileId}.`, position: "bottom" });
             navigation.navigate("ProfileDetails", { viewedProfileId });
         } else {
             Toast.show({ type: "error", text1: "Error", text2: "Failed to log profile visit.", position: "bottom" });

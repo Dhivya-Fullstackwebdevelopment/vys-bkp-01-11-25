@@ -168,12 +168,12 @@ export const SearchCard = () => {
         const success = await logProfileVisit(viewedProfileId);
 
         if (success) {
-            Toast.show({
-                type: "success",
-                text1: "Profile Viewed",
-                text2: `You have viewed profile ${viewedProfileId}.`,
-                position: "bottom",
-            });
+            // Toast.show({
+            //     type: "success",
+            //     text1: "Profile Viewed",
+            //     text2: `You have viewed profile ${viewedProfileId}.`,
+            //     position: "bottom",
+            // });
             // navigation.navigate("ProfileDetails", { id });
             navigation.navigate("ProfileDetails", {
                 viewedProfileId,

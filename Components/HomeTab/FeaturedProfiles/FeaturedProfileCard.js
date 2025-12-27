@@ -75,12 +75,12 @@ export const FeaturedProfileCard = ({ profiles }) => {
             try {
                 
                 // Log successful visit with Toast
-                Toast.show({
-                    type: "success",
-                    text1: "Profile Viewed",
-                    text2: `You have viewed profile ${viewedProfileId}.`,
-                    position: "bottom",
-                });
+                // Toast.show({
+                //     type: "success",
+                //     text1: "Profile Viewed",
+                //     text2: `You have viewed profile ${viewedProfileId}.`,
+                //     position: "bottom",
+                // });
 
                 // 3. Navigate to the profile details page
                 // The navigation should happen immediately after the Toast is queued/shown

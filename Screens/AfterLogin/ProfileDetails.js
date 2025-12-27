@@ -1357,7 +1357,7 @@ export const ProfileDetails = () => {
       // { icon: 'share', text: 'Share', onPress: handleShare, type: 'MaterialIcons' },
       { icon: 'document-text', text: 'Personal Notes', onPress: toggleModal, type: 'Ionicons' },
       { icon: 'account-voice', text: 'Vys Assist', onPress: openPopup, type: 'MaterialCommunityIcons' },
-      { icon: 'print-outline', text: 'Download Pdf', onPress: handleDownloadPdf, type: 'Ionicons' },
+      { icon: 'print-outline', text: 'Download Profile', onPress: handleDownloadPdf, type: 'Ionicons' },
       { icon: 'star', text: 'Show Matching Report', onPress: handleDownloadMatchingReport, type: 'MaterialIcons' },
       // { icon: 'report-problem', text: 'Report Profile', onPress: () => { }, type: 'MaterialIcons' },
     ];
