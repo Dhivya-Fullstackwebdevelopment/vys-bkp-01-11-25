@@ -41,6 +41,8 @@ import Toast from "react-native-toast-message";
 import { LinearGradient } from 'expo-linear-gradient';
 import { BottomTabBarComponent } from '../../Navigation/ReuseTabNavigation';
 // import { PartnerSettings } from '../PartnerSettings';
+import axios from 'axios';
+
 
 export const OtherSettings = () => {
     const navigation = useNavigation();
@@ -56,6 +58,37 @@ export const OtherSettings = () => {
     const [showOldPassword, setShowOldPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const [horoscopeFile, setHoroscopeFile] = useState(null);
+    const [idProofFile, setIdProofFile] = useState(null);
+    const [divorceFile, setDivorceFile] = useState(null);
+    const [videoUrl, setVideoUrl] = useState('');
+    const [maritalStatus, setMaritalStatus] = useState('');
+    console.log("maritalStatus", maritalStatus)
+
+    const [uploadedHoroscope, setUploadedHoroscope] = useState("");
+    const [uploadedIDProof, setUploadedIDProof] = useState("");
+    const [uploadedDivorceProof, setUploadedDivorceProof] = useState("");
+
+    // Fetch marital status on mount (similar to your web logic)
+    useEffect(() => {
+        const checkStatus = async () => {
+            const status = await AsyncStorage.getItem("martial_status");
+            setMaritalStatus(status);
+        };
+        checkStatus();
+    }, []);
+
+    const pickImage = (type) => {
+        const options = { mediaType: 'photo', quality: 1 };
+        launchImageLibrary(options, (response) => {
+            if (response.didCancel) return;
+            const file = response.assets[0];
+            if (type === 'horoscope') setHoroscopeFile(file);
+            if (type === 'idproof') setIdProofFile(file);
+            if (type === 'divorce') setDivorceFile(file);
+        });
+    };
 
     const validatePasswords = () => {
         let isValid = true;
@@ -141,8 +174,115 @@ export const OtherSettings = () => {
         }
     };
 
+    useEffect(() => {
+        const fetchInitialSettings = async () => {
+            try {
+                const profileId = await AsyncStorage.getItem("loginuser_profileId") ||
+                    await AsyncStorage.getItem("profile_id_new");
 
+                if (!profileId) return;
 
+                const response = await axios.post("https://app.vysyamala.com/auth/Get_save_details/", {
+                    profile_id: profileId,
+                    page_id: "2", // Consistent with your web logic
+                });
+
+                if (response.data.Status === 1) {
+                    const data = response.data.data;
+
+                    // Set existing file URLs (to display to user)
+                    setUploadedHoroscope(data.horoscope_file || "");
+                    setUploadedIDProof(data.Profile_idproof || "");
+                    setUploadedDivorceProof(data.Profile_divorceproof || "");
+
+                    // Set Video URL
+                    setVideoUrl(data.Video_url || "");
+
+                    // Set Password Protection status
+                    const isProtected = data.Photo_protection === "1";
+                    setChecked(isProtected);
+
+                    if (isProtected && data.Photo_password) {
+                        setPassword(data.Photo_password);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching saved details:", error);
+            }
+        };
+
+        fetchInitialSettings();
+    }, []);
+
+    const handleSubmitPhotoSettings = async () => {
+        // Note: AsyncStorage.getItem is asynchronous, so we must await it
+        const profileId = await AsyncStorage.getItem("loginuser_profileId") ||
+            await AsyncStorage.getItem("profile_id_new");
+
+        if (!profileId) {
+            Toast.show({ type: 'error', text1: 'User Profile ID not found' });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("profile_id", profileId);
+        formData.append("photo_protection", checked ? "1" : "0");
+        formData.append("photo_password", checked ? password : "");
+        formData.append("Video_url", videoUrl);
+        console.log("Photo_ID_settiings formdata", formData)
+        // Helper to append files safely
+        const appendFile = (key, file) => {
+            if (file) {
+                formData.append(key, {
+                    uri: Platform.OS === 'android' ? file.uri : file.uri.replace('file://', ''),
+                    name: file.fileName || `${key}.jpg`,
+                    type: file.type || 'image/jpeg',
+                });
+            }
+        };
+
+        appendFile("horoscope_file", horoscopeFile);
+        appendFile("idproof_file", idProofFile);
+        appendFile("divorcepf_file", divorceFile);
+
+        try {
+            const response = await axios.post("https://app.vysyamala.com/auth/Photo_Id_Settings/", formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                // Optional: Track upload progress like your web version
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    console.log(`Upload Progress: ${percentCompleted}%`);
+                }
+            });
+
+            // Axios stores data in response.data
+            const result = response.data;
+
+            if (result.status === 'success' || result.Status === 1) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Photo Settings Updated Successfully',
+                    position: 'bottom'
+                });
+                // Clear temporary file states if needed
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: result.message || 'Photo Settings Update Failed',
+                    position: 'bottom'
+                });
+            }
+        } catch (error) {
+            console.error("Axios Error:", error);
+            Toast.show({
+                type: 'error',
+                text1: 'Network Error: Failed to upload settings',
+                position: 'bottom'
+            });
+        }
+    };
 
 
 
@@ -680,7 +820,7 @@ export const OtherSettings = () => {
 
                     {/* Education & Profession Details */}
                     <View>
-                        <TouchableWithoutFeedback onPress={() => toggleMenu(eduMenuOpen, setEduMenuOpen, animatedHeightEdu, rotationEdu, 600)}>
+                        <TouchableWithoutFeedback onPress={() => toggleMenu(eduMenuOpen, setEduMenuOpen, animatedHeightEdu, rotationEdu, 800)}>
                             <View style={styles.detailsMenu}>
                                 <View style={styles.iconMenuFlex}>
                                     <MaterialIcons name="image" size={18} color="#fff" style={styles.saveIcon} />
@@ -693,7 +833,7 @@ export const OtherSettings = () => {
                             </View>
                         </TouchableWithoutFeedback>
 
-                        {eduMenuOpen && (
+                        {/* {eduMenuOpen && (
                             <View style={styles.editOptions}>
                                 <View style={styles.formContainer}>
                                     <View style={styles.checkboxContainer}>
@@ -739,6 +879,89 @@ export const OtherSettings = () => {
                                         <Button title="Save" onPress={handleSavePassword} />
                                     )}
                                 </View>
+                            </View>
+                        )} */}
+                        {eduMenuOpen && (
+                            <View style={styles.editOptions}>
+                                {renderFilePreview = (label, currentFile, uploadedUrl, type) => (
+                                    <View style={{ marginBottom: 20 }}>
+                                        <Text style={styles.label}>{label}</Text>
+                                        <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage(type)}>
+                                            <Text style={styles.uploadText}>
+                                                {currentFile ? currentFile.fileName : `Select ${label}`}
+                                            </Text>
+                                        </TouchableOpacity>
+
+                                        {/* Show Uploaded File (Like your reference image) */}
+                                        {uploadedUrl && !currentFile && (
+                                            <View style={styles.fileItem}>
+                                                <Image source={{ uri: uploadedUrl }} style={styles.fileImage} />
+                                                <View style={styles.fileDetails}>
+                                                    <Text style={styles.checkboxLabel} numberOfLines={1}>
+                                                        {uploadedUrl.split('/').pop()}
+                                                    </Text>
+                                                    <Text style={styles.uploadedStatus}>Uploaded Files</Text>
+                                                </View>
+                                            </View>
+                                        )}
+                                    </View>
+                                )}
+
+                                {renderFilePreview("Horoscope Image", horoscopeFile, uploadedHoroscope, 'horoscope')}
+                                {renderFilePreview("ID Proof", idProofFile, uploadedIDProof, 'idproof')}
+
+                                {maritalStatus === "2" &&
+                                    renderFilePreview("Divorce Proof", divorceFile, uploadedDivorceProof, 'divorce')
+                                }
+
+
+                                {/* Password Protection */}
+                                <View style={styles.checkboxContainer}>
+                                    <Pressable style={[styles.checkboxBase, checked && styles.checkboxChecked]} onPress={() => setChecked(!checked)}>
+                                        {checked && <Ionicons name="checkmark" size={14} color="white" />}
+                                    </Pressable>
+                                    <Text style={styles.checkboxLabel}>Protect my images with password (only people you share the password with can view the images)</Text>
+                                </View>
+
+                                {checked && (
+                                    <View style={styles.passwordInputContainer}>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Enter Password"
+                                            // Use the showPassword state to toggle visibility
+                                            secureTextEntry={!showPassword}
+                                            value={password}
+                                            onChangeText={setPassword}
+                                        />
+                                        <Pressable
+                                            onPress={() => setShowPassword(!showPassword)}
+                                            style={styles.passwordIcon}
+                                        >
+                                            <AntDesign
+                                                name={showPassword ? "eye" : "eyeo"}
+                                                size={18}
+                                                color="#535665"
+                                            />
+                                        </Pressable>
+                                    </View>
+                                )}
+                                {/* Video URL */}
+                                <Text style={[styles.label, { marginTop: 15 }]}>Upload Video Link</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="URL"
+                                    value={videoUrl}
+                                    onChangeText={setVideoUrl}
+                                />
+                                <Text style={styles.checkboxLabel}>
+                                    Note: If video link is not available, you can share the videos to Vysyamala's admin WhatsApp No.9043085524.
+                                </Text>
+
+                                <TouchableOpacity style={styles.btn} onPress={handleSubmitPhotoSettings}>
+                                    <LinearGradient colors={["#BD1225", "#FF4050"]} style={styles.linearGradient}>
+                                        <Text style={styles.login}>Save</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
                             </View>
                         )}
                     </View>
@@ -1273,4 +1496,31 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         marginTop: 10,
     },
+    fileItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#fff",
+        padding: 10,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#E5E5E5",
+        marginTop: -10,
+        marginBottom: 10,
+    },
+    fileImage: {
+        width: 45,
+        height: 45,
+        borderRadius: 4,
+        marginRight: 12,
+    },
+    fileDetails: {
+        flex: 1,
+        justifyContent: 'center'
+    },
+    uploadedStatus: {
+        fontSize: 11,
+        color: "#2E7D32", // Green to indicate success
+        fontWeight: "600",
+        marginTop: 2
+    }
 });

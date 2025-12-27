@@ -9,7 +9,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { getWishlistProfiles, handleBookmark, logProfileVisit, fetchProfileDataCheck } from "../../../CommonApiCall/CommonApiCall";  // Import the function
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { ProfileNotFound } from "../../ProfileNotFound";
+import  WishlistNotFound  from "../../ProfileNotFound/WishlistNotFound";
 import { SuggestedProfiles } from "../../HomeTab/SuggestedProfiles";
 import Toast from "react-native-toast-message";
 import { TopAlignedImage } from "../../../Components/ReuseImageAlign/TopAlignedImage"
@@ -233,7 +233,7 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
                             <ActivityIndicator size="large" color="#0000ff" />
                         </View>
                     ) : (
-                        <ProfileNotFound />
+                        <WishlistNotFound />
                     )
                 }
                 renderItem={({ item }) => (

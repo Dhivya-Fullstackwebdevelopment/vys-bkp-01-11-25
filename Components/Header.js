@@ -19,6 +19,11 @@ export const Header = (props) => {
   const [notifyCount, setNotifyCount] = useState(0);
   const [buttonText, setButtonText] = useState("Upgrade");
 
+  const handleLogoClick = () => {
+    console.log("Logo Clicked"); // Check your terminal/console to see if this triggers
+    navigation.navigate("Home");
+  };
+
   useEffect(() => {
     const getNotificationCount = async () => {
       try {
@@ -100,13 +105,15 @@ export const Header = (props) => {
     }
   };
 
+
   return (
     <View style={styles.container}>
-      <Image
-        style={styles.logo}
-        source={require("../assets/img/VysyamalaLogo.png")}
-      />
-
+      <TouchableOpacity onPress={handleLogoClick} activeOpacity={0.7}>
+        <Image
+          style={styles.logo}
+          source={require("../assets/img/VysyamalaLogo.png")}
+        />
+      </TouchableOpacity>
       <TouchableOpacity
         onPress={handleNotificationClick}
         style={styles.notificationContainer}
