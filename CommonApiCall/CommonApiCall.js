@@ -2835,6 +2835,26 @@ export const getGalleryList = async (perPage, pageNumber) => {
     }
 };
 
+// export const callRequestDetails = async (formdata) => {
+//     try {
+//         const response = await axios.post(`${BASE_URL}/Click_call_request/`,
+//             formdata,
+//             {
+//                 headers: {
+//                     "Content-Type": "multipart/form-data",
+//                 },
+//             });
+//         if (response.data.Status === 1) {
+//             return response.data;
+//         } else {
+//             return response.data;
+//         }
+//     } catch (error) {
+//         console.error('Error fetching request details:', error);
+//         throw error;
+//     }
+// };
+
 export const callRequestDetails = async (formdata) => {
     try {
         const response = await axios.post(`${BASE_URL}/Click_call_request/`,
@@ -2842,16 +2862,14 @@ export const callRequestDetails = async (formdata) => {
             {
                 headers: {
                     "Content-Type": "multipart/form-data",
+                    // If your API requires auth tokens, add them here:
+                    // "Authorization": `Bearer ${token}` 
                 },
             });
-        if (response.data.Status === 1) {
-            return response.data;
-        } else {
-            return response.data;
-        }
+        return response.data; // Consistently return the data object
     } catch (error) {
-        console.error('Error fetching request details:', error);
-        throw error;
+        console.error('API Error in callRequestDetails:', error.message);
+        throw error; // Let the handlePhoneCall function catch the error
     }
 };
 

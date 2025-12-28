@@ -309,6 +309,9 @@ export const ProfileDetails = () => {
   const [isPickerVisible, setIsPickerVisible] = useState(true);
   const [expressInterestError, setExpressInterestError] = useState("");
   const [selectedCategory, setSelectedCategory] = useState('');
+  console.log("selectedCategory express interest", selectedCategory)
+  const custom_message = AsyncStorage.getItem('custom_message')
+  console.log("customMessage", custom_message)
   const [mobileNumber, setMobileNumber] = useState('');
   const [VysassistEnable, setVysassistEnable] = useState()
   const [vysassits, setVysassits] = useState()
@@ -1279,32 +1282,61 @@ export const ProfileDetails = () => {
 
 
   const handlePhoneCall = async () => {
-    // Linking.openURL(`tel:${mobileNumber}`)
-    // .catch(err => console.error('Error opening dialer:', err));
     try {
+      setLoading(true); // Start loading indicator
+
+      // 1. Await the values from AsyncStorage first
+      const storedLoginId = await AsyncStorage.getItem("loginuser_profileId");
+      const storedNewId = await AsyncStorage.getItem("profile_id_new");
+
+      // Use whichever ID is available
+      const myProfileId = storedLoginId || storedNewId;
+
+      if (!myProfileId) {
+        Alert.alert("Error", "User session expired. Please login again.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Create and append data properly
       const formdata = new FormData();
-      formdata.append("profile_id", viewedProfileId);
-      formdata.append("profile_to", await AsyncStorage.getItem("loginuser_profileId"));
-      // console.log("callRequestDetails==>", JSON.stringify(formdata));
+      formdata.append("profile_id", myProfileId);
+      formdata.append("profile_to", viewedProfileId);
+
+      console.log("Sending Call Request from:", myProfileId, "to:", viewedProfileId);
+
+      // 3. Call the API
       const response = await callRequestDetails(formdata);
-      console.log("response callRequestDetails==>", JSON.stringify(response));
-      if (response.Status === 1) {
+      console.log("API Response:", response);
+
+      if (response.Status === 1 && response.toprofile_mobile_no) {
         const phoneNumber = response.toprofile_mobile_no;
         Linking.openURL(`tel:${phoneNumber}`);
       } else {
-        bottomSheetRef.current.close();
+        // Handle logical errors (e.g., plan expired, limit reached)
         Toast.show({
           type: 'error',
-          text1: 'Error',
-          text2: response.message || 'Failed to retrieve phone number',
-          position: "center",
-          visibilityTime: 3000,
-          autoHide: true,
-          topOffset: 30
+          text1: 'Call Request Failed',
+          text2: response.message || 'Mobile number not available',
+          position: "bottom",
         });
+
+        // Auto-navigate to membership if the message suggests an upgrade
+        if (response.message?.toLowerCase().includes("upgrade")) {
+          navigation.navigate('MembershipPlan');
+        }
       }
     } catch (error) {
       console.error('Error opening dialer:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Network Error',
+        text2: 'Please check your internet connection',
+        position: "bottom",
+      });
+    } finally {
+      setLoading(false);
+      bottomSheetRef.current.close();
     }
   };
 
@@ -1828,7 +1860,7 @@ export const ProfileDetails = () => {
               1. User is on a premium plan (planId is in restrictedPlanIds)
               2. User has NOT selected a category from the picker
             */}
-                  {!selectedCategory && restrictedPlanIds.includes(planId) && (
+                  {!selectedCategory && custom_message !== "0" && restrictedPlanIds.includes(planId) && (
                     <TextInput
                       style={styles.messageInput}
                       multiline

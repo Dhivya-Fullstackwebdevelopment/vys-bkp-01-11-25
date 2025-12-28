@@ -308,59 +308,44 @@ export const NotificationsCard = () => {
         <Text style={{ fontSize: 14 }}>{item.from_profile_id} {item.to_message}</Text>
         <Text style={{ fontSize: 12, color: '#999', marginTop: 5 }}>{item.time_ago}</Text>
 
-        {item.notification_type === 'express_interests' || item.notification_type === 'express_interests_accept' ? (
+        {item.notification_type === "express_interests_accept" ? (
           <TouchableOpacity
             onPress={() => handleMessage(item.from_profile_id)}
-            style={{
-              marginTop: 8,
-              padding: 6,
-              borderWidth: 1,
-              borderColor: '#E91E63',
-              borderRadius: 5,
-            }}
+            style={buttonStyle}
           >
-            <Text style={{ color: '#E91E63', textAlign: 'center', fontSize: 14 }}>
-              Message
-            </Text>
+            <Text style={buttonText}>Message</Text>
           </TouchableOpacity>
-        ) : item.notification_type === 'Profile_update' ? (
+
+        ) : item.notification_type === "Profile_update" ||
+          item.notification_type === "express_interests" ? (
+
           <TouchableOpacity
-            // onPress={() => navigation.navigate('ProfileDetails', { viewedProfileId: item.from_profile_id })}
             onPress={async () => {
-              await markNotificationRead(item.id);   // 🔥 new line
-              navigation.navigate('ProfileDetails', {
-                viewedProfileId: item.from_profile_id
+              await markNotificationRead(item.id);
+              navigation.navigate("ProfileDetails", {
+                viewedProfileId: item.from_profile_id,
               });
             }}
-            style={{
-              marginTop: 8,
-              padding: 6,
-              borderWidth: 1,
-              borderColor: '#E91E63',
-              borderRadius: 5,
-            }}
+            style={buttonStyle}
           >
-            <Text style={{ color: '#E91E63', textAlign: 'center', fontSize: 14 }}>
-              View Profile
-            </Text>
+            <Text style={buttonText}>View Profile</Text>
           </TouchableOpacity>
-          // ) : item.notification_type === 'Call_request' ? (
-        ) : (item.notification_type === "Call_request" || item.notification_type === "Vys_assists") ? (
+
+        ) : item.notification_type === "Call_request" ||
+          item.notification_type === "Vys_assists" ? (
+
+          null   // ❌ NO BUTTON
+
+        ) : (
+
           <TouchableOpacity
-            onPress={() => navigation.navigate('MyProfile')}
-            style={{
-              marginTop: 8,
-              padding: 6,
-              borderWidth: 1,
-              borderColor: '#E91E63',
-              borderRadius: 5,
-            }}
+            onPress={() => navigation.navigate("MyProfile")}
+            style={buttonStyle}
           >
-            <Text style={{ color: '#E91E63', textAlign: 'center', fontSize: 14 }}>
-              Update Photo
-            </Text>
+            <Text style={buttonText}>Update Photo</Text>
           </TouchableOpacity>
-        ) : null}
+        )}
+
       </View>
     </View>
   );
@@ -421,4 +406,18 @@ export const NotificationsCard = () => {
       <BottomTabBarComponent />
     </View>
   );
+};
+
+const buttonStyle = {
+  marginTop: 8,
+  padding: 6,
+  borderWidth: 1,
+  borderColor: '#E91E63',
+  borderRadius: 5,
+};
+
+const buttonText = {
+  color: '#E91E63',
+  textAlign: 'center',
+  fontSize: 14,
 };

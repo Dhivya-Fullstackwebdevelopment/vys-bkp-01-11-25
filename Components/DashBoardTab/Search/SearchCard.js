@@ -240,7 +240,7 @@ export const SearchCard = () => {
                                     {item.profile_name} <Text style={styles.profileId}>({item.profile_id})</Text>
                                 </Text>
                                 <Text style={styles.profileAge}>
-                                    {item.profile_age} Yrs <Text style={styles.line}>|</Text> {item.profile_height} ft
+                                    {item.profile_age} Yrs <Text style={styles.line}>|</Text> {item.profile_height} Cms
                                 </Text>
                                 <Text style={styles.zodiac}>{item.degree}</Text>
                                 <Text style={styles.employed}>{item.profession}</Text>

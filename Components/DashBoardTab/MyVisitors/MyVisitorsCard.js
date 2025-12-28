@@ -248,7 +248,7 @@ export const MyVisitorsCard = ({ sortBy = "datetime" }) => {
           <Text style={styles.zodiac}>{profile.viwed_star || "N/A"}</Text>
           <Text style={styles.employed}>{profile.viwed_profession || "N/A"}</Text>
           <Text style={styles.lastVisit}>
-            Last visit on {profile.viwed_lastvisit || "N/A"}
+            Express Interest on {profile.viwed_lastvisit || "N/A"}
           </Text>
         </View>
       </View>

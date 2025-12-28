@@ -116,6 +116,7 @@ export const LoginPage = () => {
           gender,
           birth_star_id,
           birth_rasi_id,
+          custom_message,
         } = response.data;
 
         console.log("Login Success:");
@@ -139,6 +140,7 @@ export const LoginPage = () => {
         await AsyncStorage.setItem("gender", gender?.toString() || "");
         await AsyncStorage.setItem("birthStarValue", birth_star_id?.toString() || "");
         await AsyncStorage.setItem("birthStaridValue", birth_rasi_id?.toString() || "");
+        await AsyncStorage.setItem("custom_message", custom_message?.toString() || "");
 
         Toast.show({
           type: "success",
