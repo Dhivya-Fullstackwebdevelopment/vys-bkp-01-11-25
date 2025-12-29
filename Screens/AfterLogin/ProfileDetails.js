@@ -333,6 +333,8 @@ export const ProfileDetails = () => {
   const [showMatchingReportUpgrade, setShowMatchingReportUpgrade] = useState(false);
   const [matchingReportMessage, setMatchingReportMessage] = useState('');
   const restrictedPlanIds = ["1", "2", "3", "14", "15", "17"];
+  const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const togglePersonalDetails = () => {
     setShowEducationDetails(false)
@@ -616,6 +618,11 @@ export const ProfileDetails = () => {
         }
         // ✅ Continue with valid profile data
         setProfileData(data);
+        if (data.hasOwnProperty('photo_protection')) {
+          setPhotoProtection(data.photo_protection);
+        } else {
+          setPhotoProtection(0); // Default to unlocked if missing
+        }
         if (data?.basic_details?.personal_notes) {
           setNotes(data.basic_details.personal_notes);
         }
@@ -851,9 +858,12 @@ export const ProfileDetails = () => {
     user_images,
   } = profileData;
 
-  // const images = Object.values(user_images).map(url => ({ url }));
+  // Add this helper inside your ProfileDetails component
   const images = (fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))
-    .map(url => ({ url: getSafeImage(url) }));
+    .map(url => ({
+      url: getSafeImage(url),
+      // If locked and not yet bypassed by password, the UI will handle the overlay
+    }));
 
 
   const handlePasswordSubmit = async () => {
@@ -866,12 +876,19 @@ export const ProfileDetails = () => {
         // Store unlock status and images in AsyncStorage
         await AsyncStorage.setItem(`profileUnlocked_${profileData?.basic_details?.profile_id}`, 'true');
         await AsyncStorage.setItem(`fetchedUserImages_${profileData?.basic_details?.profile_id}`, JSON.stringify(photoData.user_images));
+        Toast.show({
+          type: "success",
+          text1: "Unlocked",
+          text2: "Profile photos unlocked successfully.",
+          position: "bottom",
+        });
       } else {
         console.log('Incorrect password or no data received');
         Toast.show({
           type: 'error',
           text1: 'Error',
           text2: 'Incorrect password, please try again.',
+          position: 'bottom',
         });
       }
     } catch (error) {
@@ -880,6 +897,7 @@ export const ProfileDetails = () => {
         type: 'error',
         text1: 'Error',
         text2: 'Failed to submit password.',
+        position: 'bottom',
       });
     }
   };
@@ -1342,40 +1360,88 @@ export const ProfileDetails = () => {
 
   // Add this new function to render thumbnails
   const renderThumbnails = () => {
-    const images = fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images);
-    const remainingCount = images.length - 4;
+    // Use fetched images if available (after password unlock), otherwise use default images
+    const imagesArray = fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images);
+
+    // Determine if we need to apply the blur/lock effect
+    // Logic: photoProtection is 1 (locked) AND it hasn't been bypassed by a password yet
+    const isBlurNeeded = !isProfileUnlocked && photoProtection === 1;
+
+    // Logic for the "+X" overlay
+    const remainingCount = imagesArray.length - 4;
 
     return (
       <View style={styles.thumbnailContainer}>
-        {images.slice(1, 4).map((image, index) => (
+        {/* Slice images to show positions 2, 3, and 4 in the row */}
+        {imagesArray.slice(1, 4).map((image, index) => (
           <TouchableOpacity
             key={index}
-            onPress={() => handleSlidePress(index + 1)}
+            // Prevent opening zoom viewer if locked
+            onPress={() => !isBlurNeeded && handleSlidePress(index + 1)}
             style={styles.thumbnail}
+            disabled={isBlurNeeded}
           >
             {/* <Image
-              // source={{ uri: image }}
-              source={{ uri: getSafeImage(image) }}
-              style={styles.thumbnailImage}
+              source={{ uri: getSafeImage(Array.isArray(image) ? image[0] : image) }}
+              style={[
+                styles.thumbnailImage,
+                // Apply blurRadius if locked. 10 is usually sufficient for thumbnails.
+                isBlurNeeded && { blurRadius: 10, opacity: 0.8 }
+              ]}
             /> */}
+
             <TopAlignedImage
-              uri={Array.isArray(image) ? image[0] : image}
+              uri={getSafeImage(Array.isArray(image) ? image[0] : image)}
               width={100}
               height={100}
+              style={{
+                borderRadius: 10,
+                ...(isBlurNeeded && { opacity: 0.8 })
+              }}
             />
+
+            {/* SMALL LOCK OVERLAY: Visual indicator that the image is protected */}
+            {isBlurNeeded && (
+              <View style={styles.lockOverlaySmall}>
+                <Ionicons name="lock-closed" size={16} color="#fff" />
+              </View>
+            )}
           </TouchableOpacity>
         ))}
+
+        {/* RENDER THE "+X MORE" THUMBNAIL */}
         {remainingCount > 0 && (
           <TouchableOpacity
             style={[styles.thumbnail, styles.lastThumbnail]}
-            onPress={() => handleSlidePress(4)}
+            onPress={() => !isBlurNeeded && handleSlidePress(4)}
+            disabled={isBlurNeeded}
           >
-            <Image
-              source={{ uri: images[4] }}
-              style={styles.thumbnailImage}
+            {/* <Image
+              source={{ uri: getSafeImage(imagesArray[4]) }}
+              style={[
+                styles.thumbnailImage,
+                isBlurNeeded && { blurRadius: 10 }
+              ]}
+            /> */}
+
+            <TopAlignedImage
+              uri={getSafeImage(imagesArray[4])}
+              width={100}
+              height={100}
+              style={{
+                borderRadius: 10,
+                ...(isBlurNeeded && { opacity: 0.8 })
+              }}
             />
-            <View style={styles.countOverlay}>
-              <Text style={styles.countText}>+{remainingCount}</Text>
+
+
+            {/* Overlay for count or lock */}
+            <View style={isBlurNeeded ? styles.lockOverlaySmall : styles.countOverlay}>
+              {isBlurNeeded ? (
+                <Ionicons name="lock-closed" size={16} color="#fff" />
+              ) : (
+                <Text style={styles.countText}>+{remainingCount}</Text>
+              )}
             </View>
           </TouchableOpacity>
         )}
@@ -1449,17 +1515,134 @@ export const ProfileDetails = () => {
           )}
           scrollEventThrottle={16}
         >
+
           <View style={styles.contentWrapper}>
-            <TouchableOpacity onPress={() => handleSlidePress(0)}>
-              <Image
-                // source={{ uri: (fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0] }}
+            {/* <TouchableOpacity
+              onPress={() => !(!isProfileUnlocked && photoProtection === 1) && handleSlidePress(0)}
+              disabled={!isProfileUnlocked && photoProtection === 1}
+            > */}
+            <TouchableOpacity
+              onPress={() => {
+                // Check if locked and NOT yet unlocked by password
+                if (!isProfileUnlocked && photoProtection === 1) {
+                  setPassword('');
+                  setIsPasswordModalVisible(true);
+                } else {
+                  handleSlidePress(0);
+                }
+              }}
+              // Keep disabled false so the click always registers to show the popup
+              disabled={false}
+            >
+              {/* <Image
                 source={{ uri: getSafeImage((fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0]) }}
-                style={styles.mainImage}
+                style={[
+                  styles.mainImage,
+                  (!isProfileUnlocked && photoProtection === 1) && { blurRadius: 15 } // Apply blur if locked
+                ]}
+                resizeMode="cover"
+              /> */}
+              <Image
+                source={{ uri: getSafeImage((fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0]) }}
+                style={[
+                  styles.mainImage,
+                  (!isProfileUnlocked && photoProtection === 1) && { blurRadius: 20 }
+                ]}
                 resizeMode="cover"
               />
+
+              {/* Overlay Lock Symbol */}
+              {!isProfileUnlocked && photoProtection === 1 && (
+                <View style={styles.lockOverlayLarge}>
+                  <MaterialCommunityIcons name="lock" size={60} color="#FF6666" />
+                  <Text style={styles.lockOverlayText}>
+                    Click here to request password to view profile photo
+                  </Text>
+                </View>
+              )}
+
+              {/* LOCK OVERLAY: Add this block */}
+              {/* {!isProfileUnlocked && photoProtection === 1 && (
+                <View style={styles.passwordContainer}>
+                  <Text style={styles.lockedMessage}>
+                    * Profile is locked, please enter the password to view the image
+                  </Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="Enter the password"
+                      secureTextEntry={!passwordVisible}
+                      value={password}
+                      onChangeText={setPassword}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setPasswordVisible(!passwordVisible)}
+                      style={styles.eyeIcon}
+                    >
+                      <MaterialIcons name={passwordVisible ? 'visibility' : 'visibility-off'} size={24} color="black" />
+                    </TouchableOpacity>
+                  </View>
+                  <TouchableOpacity onPress={handlePasswordSubmit} style={styles.submitButton}>
+                    <Text style={styles.submitButtonText}>Submit Password</Text>
+                  </TouchableOpacity>
+                </View>
+              )} */}
             </TouchableOpacity>
             {renderThumbnails()}
           </View>
+
+          <Modal
+            visible={isPasswordModalVisible}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setIsPasswordModalVisible(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.passwordCard}>
+                <View style={styles.cardHeader}>
+                  <MaterialIcons name="report-problem" size={24} color="#FF6666" />
+                  <Text style={styles.cardTitle}>Enter Password to View Photo</Text>
+                </View>
+
+                <View style={styles.passwordInputContainer}>
+                  <TextInput
+                    style={styles.cardInputTransparent}
+                    placeholder="Enter The Password"
+                    placeholderTextColor="#A9ABB0"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!isPasswordVisible}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                    style={styles.eyeIconContainer}
+                  >
+                    <MaterialCommunityIcons
+                      name={isPasswordVisible ? "eye" : "eye-off"}
+                      size={20}
+                      color="#4F515D"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.cardActions}>
+                  <TouchableOpacity onPress={() => setIsPasswordModalVisible(false)}>
+                    <Text style={styles.cancelTextBtn}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.submitBtnRed}
+                    onPress={() => {
+                      handlePasswordSubmit();
+                      setIsPasswordModalVisible(false); // Close after submit
+                    }}
+                  >
+                    <Text style={styles.submitBtnText}>Submit</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
 
           {isZoomVisible && (
             <Modal visible={isZoomVisible} transparent={true}>
@@ -1537,7 +1720,7 @@ export const ProfileDetails = () => {
             )}
           </View>
 
-          {!isProfileUnlocked && photoProtection === 1 && (
+          {/* {!isProfileUnlocked && photoProtection === 1 && (
             <View style={styles.passwordContainer}>
               <Text style={styles.lockedMessage}>
                 * Profile is locked, please enter the password to view the image
@@ -1561,7 +1744,7 @@ export const ProfileDetails = () => {
                 <Text style={styles.submitButtonText}>Submit</Text>
               </TouchableOpacity>
             </View>
-          )}
+          )} */}
 
           <View style={styles.contentContainer}>
             <View style={styles.nameIconFlex}>
@@ -3421,6 +3604,119 @@ const styles = StyleSheet.create({
   //   shadowRadius: 3.84,
   //   elevation: 5,
   // },
-
-
+  lockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  lockOverlayText: {
+    color: '#fff',
+    marginTop: 10,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  thumbnailImageBlurred: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 5,
+    opacity: 0.3, // Make thumbnails faint if locked
+  },
+  lockOverlaySmall: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 5,
+  },
+  mainImageWrapper: {
+    position: 'relative',
+    height: 400,
+    width: '100%',
+  },
+  lockOverlayLarge: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lockOverlayText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 15,
+    paddingHorizontal: 40,
+  },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E9EAEC',
+    borderRadius: 5,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  cardInputTransparent: {
+    flex: 1,
+    height: 45,
+    fontSize: 15,
+    color: '#282C3F',
+  },
+  eyeIconContainer: {
+    padding: 5,
+  },
+  passwordCard: {
+    backgroundColor: '#fff',
+    width: '85%',
+    borderRadius: 8,
+    padding: 20,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
+    color: '#282C3F',
+  },
+  cardInput: {
+    backgroundColor: '#E9EAEC',
+    borderRadius: 5,
+    paddingHorizontal: 15,
+    height: 45,
+    fontSize: 15,
+    marginBottom: 20,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  cancelTextBtn: {
+    color: '#FF6666',
+    fontWeight: '600',
+    fontSize: 16,
+    marginRight: 25,
+  },
+  submitBtnRed: {
+    backgroundColor: '#FF6666',
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderRadius: 6,
+  },
+  submitBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });

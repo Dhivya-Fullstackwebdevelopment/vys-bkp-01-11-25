@@ -680,7 +680,7 @@ export const getPhotoByPassword = async (userProfileId, password) => {
             return response.data.data; // Assuming the data you need is in `response.data.data`
         } else {
             // console.error('Failed to fetch photo:', response.data.message);
-            alert("Wrong password");
+            //alert("Wrong password");
             return null;
         }
     } catch (error) {

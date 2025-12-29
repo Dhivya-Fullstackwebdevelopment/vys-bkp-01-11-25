@@ -289,11 +289,25 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           source={getImageSource(item.profile_img)}
           style={styles.gridImage}
         /> */}
-        <TopAlignedImage
-          uri={Array.isArray(item.profile_img) ? item.profile_img[0] : item.profile_img}
-          width={SCREEN_WIDTH - 30}   // numeric value only
-          height={300}
-        />
+        <View style={styles.imageContainer}>
+          <TopAlignedImage
+            uri={Array.isArray(item.profile_img) ? item.profile_img[0] : item.profile_img}
+            width={SCREEN_WIDTH - 30}
+            height={300}
+            // Apply blurRadius only when protected
+            blurRadius={item.photo_protection === 1 ? 20 : 0}
+          />
+
+          {/* Render the lock overlay only if photo_protection is 1 */}
+          {item.photo_protection === 1 && (
+            <View style={styles.lockOverlayLarge}>
+              <MaterialIcons name="lock" size={60} color="#FF6666" />
+              <Text style={styles.lockOverlayText}>
+                Click here to request password to view profile photo
+              </Text>
+            </View>
+          )}
+        </View>
         <TouchableOpacity
           onPress={() => handleSavePress(item.profile_id)}
           style={styles.gridSaveIcon}
@@ -331,11 +345,19 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
             source={getImageSource(item.profile_img)}
             style={styles.profileImage}
           /> */}
-          <TopAlignedImage
-            uri={Array.isArray(item.profile_img) ? item.profile_imgg[0] : item.profile_img}
-            width={100}
-            height={100}
-          />
+          <View style={styles.listImageWrapper}>
+            <TopAlignedImage
+              uri={Array.isArray(item.profile_img) ? item.profile_img[0] : item.profile_img}
+              width={100}
+              height={100}
+              blurRadius={item.photo_protection === 1 ? 12 : 0}
+            />
+            {item.photo_protection === 1 && (
+              <View style={styles.listLockOverlay}>
+                <MaterialIcons name="lock" size={24} color="#FF6666" />
+              </View>
+            )}
+          </View>
           <TouchableOpacity
             onPress={() => handleSavePress(item.profile_id)}
           >
@@ -709,5 +731,53 @@ const styles = StyleSheet.create({
     color: '#4F515D',
     marginTop: 4,
     textAlign: 'left',
+  },
+  imageContainer: {
+    position: 'relative',
+    overflow: 'hidden',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  lockOverlayLarge: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent dark background
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  lockOverlayText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 20,
+  },
+  lockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Dark overlay like image
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  lockText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  listImageWrapper: {
+    position: 'relative',
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  listLockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
