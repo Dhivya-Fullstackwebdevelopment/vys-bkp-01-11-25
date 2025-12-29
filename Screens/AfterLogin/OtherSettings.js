@@ -174,48 +174,47 @@ export const OtherSettings = () => {
         }
     };
 
-    useEffect(() => {
-        const fetchInitialSettings = async () => {
-            try {
-                const profileId = await AsyncStorage.getItem("loginuser_profileId") ||
-                    await AsyncStorage.getItem("profile_id_new");
+    const fetchInitialSettings = async () => {
+        try {
+            const profileId = await AsyncStorage.getItem("loginuser_profileId") ||
+                await AsyncStorage.getItem("profile_id_new");
 
-                if (!profileId) return;
+            if (!profileId) return;
 
-                const response = await axios.post("https://app.vysyamala.com/auth/Get_save_details/", {
-                    profile_id: profileId,
-                    page_id: "2", // Consistent with your web logic
-                });
+            const response = await axios.post("https://app.vysyamala.com/auth/Get_save_details/", {
+                profile_id: profileId,
+                page_id: "2", // Consistent with your web logic
+            });
+            // console.log("response",response)
 
-                if (response.data.Status === 1) {
-                    const data = response.data.data;
+            if (response.data.Status === 1) {
+                const data = response.data.data;
 
-                    // Set existing file URLs (to display to user)
-                    setUploadedHoroscope(data.horoscope_file || "");
-                    setUploadedIDProof(data.Profile_idproof || "");
-                    setUploadedDivorceProof(data.Profile_divorceproof || "");
+                // Set existing file URLs (to display to user)
+                setUploadedHoroscope(data.horoscope_file || "");
+                setUploadedIDProof(data.Profile_idproof || "");
+                setUploadedDivorceProof(data.Profile_divorceproof || "");
 
-                    // Set Video URL
-                    setVideoUrl(data.Video_url || "");
+                // Set Video URL
+                setVideoUrl(data.Video_url || "");
 
-                    // Set Password Protection status
-                    const isProtected = data.Photo_protection === "1";
-                    setChecked(isProtected);
+                // Set Password Protection status
+                const isProtected = data.Photo_protection === "1";
+                setChecked(isProtected);
 
-                    if (isProtected && data.Photo_password) {
-                        setPassword(data.Photo_password);
-                    }
+                if (isProtected && data.Photo_password) {
+                    setPassword(data.Photo_password);
                 }
-            } catch (error) {
-                console.error("Error fetching saved details:", error);
             }
-        };
-
+        } catch (error) {
+            console.error("Error fetching saved details:", error);
+        }
+    };
+    useEffect(() => {
         fetchInitialSettings();
     }, []);
 
     const handleSubmitPhotoSettings = async () => {
-        // Note: AsyncStorage.getItem is asynchronous, so we must await it
         const profileId = await AsyncStorage.getItem("loginuser_profileId") ||
             await AsyncStorage.getItem("profile_id_new");
 
@@ -229,8 +228,7 @@ export const OtherSettings = () => {
         formData.append("photo_protection", checked ? "1" : "0");
         formData.append("photo_password", checked ? password : "");
         formData.append("Video_url", videoUrl);
-        console.log("Photo_ID_settiings formdata", formData)
-        // Helper to append files safely
+
         const appendFile = (key, file) => {
             if (file) {
                 formData.append(key, {
@@ -247,30 +245,40 @@ export const OtherSettings = () => {
 
         try {
             const response = await axios.post("https://app.vysyamala.com/auth/Photo_Id_Settings/", formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                // Optional: Track upload progress like your web version
+                headers: { 'Content-Type': 'multipart/form-data' },
                 onUploadProgress: (progressEvent) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                     console.log(`Upload Progress: ${percentCompleted}%`);
                 }
             });
 
-            // Axios stores data in response.data
             const result = response.data;
 
-            if (result.status === 'success' || result.Status === 1) {
+            // --- UPDATED LOGIC HERE ---
+            // Check for specific keys returned by your API instead of .status
+            if (result.horoscope_data || result.registration_data) {
                 Toast.show({
                     type: 'success',
-                    text1: 'Photo Settings Updated Successfully',
+                    text1: 'Success',
+                    text2: 'Photo Settings Updated Successfully',
                     position: 'bottom'
                 });
-                // Clear temporary file states if needed
+
+                // Optional: Update the UI with the new URLs returned by the API
+                if (result.horoscope_data?.horoscope_file) {
+                    setUploadedHoroscope(result.horoscope_data.horoscope_file);
+                    setHoroscopeFile(null); // Clear the picker state
+                }
+                if (result.registration_data?.Profile_idproof) {
+                    setUploadedIDProof(result.registration_data.Profile_idproof);
+                    setIdProofFile(null); // Clear the picker state
+                }
+                await fetchInitialSettings()
             } else {
                 Toast.show({
                     type: 'error',
-                    text1: result.message || 'Photo Settings Update Failed',
+                    text1: 'Update Failed',
+                    text2: result.message || 'Photo Settings Update Failed',
                     position: 'bottom'
                 });
             }
@@ -278,13 +286,12 @@ export const OtherSettings = () => {
             console.error("Axios Error:", error);
             Toast.show({
                 type: 'error',
-                text1: 'Network Error: Failed to upload settings',
+                text1: 'Network Error',
+                text2: 'Failed to upload settings',
                 position: 'bottom'
             });
         }
     };
-
-
 
     const [checked, setChecked] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
