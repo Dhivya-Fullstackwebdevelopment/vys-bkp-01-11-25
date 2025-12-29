@@ -222,11 +222,23 @@ export const SearchCard = () => {
                                 source={getImageSource(item.profile_img)}
                                 style={styles.profileImage}
                             /> */}
-                            <TopAlignedImage
-                                uri={Array.isArray(item.profile_img) ? item.profile_img[0] : item.profile_img}
-                                width={100}
-                                height={100}
-                            />
+                            <View style={styles.imageWrapper}>
+                                <TopAlignedImage
+                                    uri={Array.isArray(item.profile_img) ? item.profile_img[0] : item.profile_img}
+                                    width={100}
+                                    height={100}
+                                    // Apply blur effect if photo_protection is 1
+                                    blurRadius={item.photo_protection === 1 ? 15 : 0}
+                                />
+
+                                {/* Condition for Lock Symbol */}
+                                {item.photo_protection === 1 && (
+                                    <View style={styles.lockOverlay}>
+                                        <MaterialIcons name="lock" size={24} color="#ee3a3aff" />
+                                    </View>
+                                )}
+                            </View>
+
                             <TouchableOpacity onPress={() => handleSavePress(item.profile_id)}>
                                 <MaterialIcons
                                     name={bookmarkedProfiles.has(item.profile_id) ? 'bookmark' : 'bookmark-border'}
@@ -326,5 +338,18 @@ const styles = StyleSheet.create({
     employed: {
         fontSize: 14,
         color: "#4F515D",
+    },
+    imageWrapper: {
+        width: 100,
+        height: 100,
+        position: 'relative', // Necessary for absolute children
+        borderRadius: 10,
+        overflow: 'hidden',   // Ensures blur/overlay stays inside the corners
+    },
+    lockOverlay: {
+        ...StyleSheet.absoluteFillObject, // Covers the entire imageWrapper
+        backgroundColor: 'rgba(0, 0, 0, 0.4)', // Dark semi-transparent tint
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

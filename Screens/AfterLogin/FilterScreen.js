@@ -203,7 +203,13 @@ export const FilterScreen = () => {
                                                     uri={Array.isArray(profile.profile_img) ? profile.profile_img[0] : profile.profile_img}
                                                     width={100}
                                                     height={100}
+                                                    blurRadius={profile.photo_protection === 1 ? 15 : 0} Z
                                                 />
+                                                {profile.photo_protection === 1 && (
+                                                    <View style={styles.lockOverlay}>
+                                                        <MaterialIcons name="lock" size={24} color="#ee3a3aff" />
+                                                    </View>
+                                                )}
                                                 <TouchableOpacity
                                                     onPress={() => handleSavePress(profile.profile_id)}
                                                     style={styles.saveIconContainer}
@@ -347,7 +353,18 @@ const styles = StyleSheet.create({
         color: "#4F515D",
     },
     imageWrapper: {
-        position: "relative",   // Important
+        position: "relative",
+        width: 100,
+        height: 100,
+        borderRadius: 10,
+        overflow: 'hidden', // Ensures overlay stays within image bounds
+    },
+    lockOverlay: {
+        ...StyleSheet.absoluteFillObject, // Fills the parent imageWrapper
+        backgroundColor: 'rgba(0, 0, 0, 0.4)', // Semi-transparent dark background
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10,
     },
 
     saveIconContainer: {
