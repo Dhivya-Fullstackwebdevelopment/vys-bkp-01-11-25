@@ -59,7 +59,7 @@ export const Search = () => {
   const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store selected IDs as a string
   const [selectedIncomeMaxIds, setSelectedIncomeMaxIds] = useState('');
   const [birthStars, setBirthStars] = useState([]); // Store fetched birth stars
-  const [selectedBirthStarIds, setSelectedBirthStarIds] = useState([]); // Store selected IDs as a string
+  const [selectedBirthStarId, setSelectedBirthStarId] = useState('');
   const [states, setStates] = useState([]); // Store fetched states
   const [checkedStates, setCheckedStates] = useState(new Set()); // Track selected state IDs
   const [selectedStateIds, setSelectedStateIds] = useState(''); // Store selected IDs as a string
@@ -378,7 +378,7 @@ export const Search = () => {
       max_income: selectedIncomeMinIds,
       min_income: selectedIncomeMaxIds,
       field_ofstudy: selectedFieldofStudyIds,
-      search_star: selectedBirthStarIds.join(","),
+      search_star: selectedBirthStarId,
       search_nativestate: selectedStateIds,
       chevvai_dhosam: chevvaiDhosam,
       ragukethu_dhosam: rahuKetuDhosam,
@@ -604,7 +604,7 @@ export const Search = () => {
     setRahuKetuDhosam('No');
     setChevvaiDhosam('No');
 
-    setSelectedBirthStarIds([]);
+    setSelectedBirthStarId('');
     setWorkLocation('');
     ppSetChecked(false);
     setWorkLocation('');
@@ -1132,10 +1132,9 @@ export const Search = () => {
 
 
         <View style={styles.searchContainer}>
-          <Text style={styles.redText}>Birth Star</Text>
+          {/* <Text style={styles.redText}>Birth Star</Text>
           <View style={styles.formContainer}>
             <View style={styles.dropdownContainer}>
-              {/* The RNPickerSelect is the selection tool */}
               <RNPickerSelect
                 onValueChange={(value) => {
                   if (value && !selectedBirthStarIds.includes(value)) {
@@ -1147,7 +1146,6 @@ export const Search = () => {
                   value: star.birth_id.toString(),
                 }))}
                 useNativeAndroidPickerStyle={false}
-                // ... (Icon and placeholder remain the same)
                 placeholder={{ label: "Select Birth Stars", value: null }}
                 value={null}
                 style={pickerSelectStyles}
@@ -1156,10 +1154,10 @@ export const Search = () => {
                 }}
               />
             </View>
-          </View>
+          </View> */}
 
           {/* Selected Chips Display - This is the key part */}
-          {selectedBirthStarIds.length > 0 && (
+          {/* {selectedBirthStarIds.length > 0 && (
             <View style={styles.selectedChipsContainer}>
               {selectedBirthStarIds.map((starId) => {
                 const star = birthStars.find(s => s.birth_id.toString() === starId);
@@ -1179,7 +1177,30 @@ export const Search = () => {
                 );
               })}
             </View>
-          )}
+          )} */}
+          <View style={styles.searchContainer}>
+            <Text style={styles.redText}>Birth Star</Text>
+
+            <View style={styles.formContainer}>
+              <View style={styles.inputContainer}>
+                <Dropdown
+                  style={styles.dropdown}
+                  placeholderStyle={styles.placeholderStyle}
+                  selectedTextStyle={styles.selectedTextStyle}
+                  data={birthStars.map(star => ({
+                    label: star.birth_star,
+                    value: star.birth_id.toString(),
+                  }))}
+                  maxHeight={180}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="Select Birth Star"
+                  value={selectedBirthStarId}
+                  onChange={(item) => setSelectedBirthStarId(item.value)}
+                />
+              </View>
+            </View>
+          </View>
         </View>
 
         <View style={styles.checkContainer}>
