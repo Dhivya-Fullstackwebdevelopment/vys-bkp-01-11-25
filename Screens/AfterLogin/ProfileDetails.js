@@ -2739,7 +2739,7 @@ export const ProfileDetails = () => {
                     style={[styles.modalButton, styles.submitButtonpop]}
                     onPress={() => {
                       // closePopupnew();
-                      navigation.navigate("MembershipPlan");
+                      navigation.navigate("PayNow");
                     }}
                     activeOpacity={0.7}
                   >
