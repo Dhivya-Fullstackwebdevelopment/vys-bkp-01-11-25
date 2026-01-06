@@ -274,7 +274,7 @@ export const InterestSentCard = ({ sortBy = "datetime" }) => {
           <Text style={styles.zodiac}> {profile.myint_star || "N/A"}</Text>
           <Text style={styles.employed}> {profile.myint_profession || "N/A"}</Text>
           <Text style={styles.lastVisit}>
-            Last Express Int on {profile.myint_lastvisit || "N/A"}
+            Express Interest on {profile.myint_lastvisit || "N/A"}
           </Text>
         </View>
       </View>
@@ -435,5 +435,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#4F515D",
     marginTop: 5,
+    marginLeft: 2,
   },
 });

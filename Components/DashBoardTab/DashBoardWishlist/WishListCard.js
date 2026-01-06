@@ -9,7 +9,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { getWishlistProfiles, handleBookmark, logProfileVisit, fetchProfileDataCheck } from "../../../CommonApiCall/CommonApiCall";  // Import the function
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import  WishlistNotFound  from "../../ProfileNotFound/WishlistNotFound";
+import WishlistNotFound from "../../ProfileNotFound/WishlistNotFound";
 import { SuggestedProfiles } from "../../HomeTab/SuggestedProfiles";
 import Toast from "react-native-toast-message";
 import { TopAlignedImage } from "../../../Components/ReuseImageAlign/TopAlignedImage"
@@ -271,7 +271,7 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
                                 <Text style={styles.zodiac}>{item.wishlist_star || "N/A"}</Text>
                                 <Text style={styles.employed}>{item.wishlist_profession || "N/A"}</Text>
                                 <Text style={styles.lastVisit}>
-                                    Last Bookmarked on {item.wishlist_lastvisit || "N/A"}
+                                    Bookmarked on {item.wishlist_lastvisit || "N/A"}
                                 </Text>
                             </View>
                         </View>
