@@ -238,7 +238,13 @@ export const MyVisitorsCard = ({ sortBy = "datetime" }) => {
         </TouchableOpacity>
         <View style={styles.profileContent}>
           <Text style={styles.profileName}>
-            {profile.viwed_profile_name || "N/A"}
+            {/* {profile.viwed_profile_name || "N/A"} */}
+            {profile.viwed_profile_name
+              ? (profile.viwed_profile_name.length > 15
+                ? profile.viwed_profile_name.substring(0, 15) + "..."
+                : profile.viwed_profile_name)
+              : "N/A"
+            }
             <Text style={styles.profileId}>({profile.viwed_profileid || "N/A"})</Text>
           </Text>
           <Text style={styles.profileAge}>

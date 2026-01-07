@@ -253,7 +253,13 @@ export const DashBoardMutualInterestCard = ({ sortBy = "datetime" }) => {
 
         <View style={styles.profileContent}>
           <Text style={styles.profileName}>
-            {profile.mutint_profile_name || "N/A"}
+            {/* {profile.mutint_profile_name || "N/A"} */}
+            {profile.mutint_profile_name
+              ? (profile.mutint_profile_name.length > 15
+                ? profile.mutint_profile_name.substring(0, 15) + "..."
+                : profile.mutint_profile_name)
+              : "N/A"
+            }
             <Text style={styles.profileId}>({profile.mutint_profileid})</Text>
           </Text>
           <Text style={styles.profileAge}>

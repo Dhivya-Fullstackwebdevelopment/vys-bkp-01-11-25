@@ -224,7 +224,13 @@ export const FilterScreen = () => {
 
                                             <View style={styles.profileContent}>
                                                 <Text style={styles.profileName}>
-                                                    {profile.profile_name}{" "}
+                                                    {/* {profile.profile_name}{" "} */}
+                                                    {profile.profile_name
+                                                        ? (profile.profile_name.length > 15
+                                                            ? profile.profile_name.substring(0, 15) + "..."
+                                                            : profile.profile_name)
+                                                        : "N/A"
+                                                    }
                                                     <Text style={styles.profileId}>({profile.profile_id})</Text>
                                                 </Text>
                                                 <Text style={styles.profileAge}>

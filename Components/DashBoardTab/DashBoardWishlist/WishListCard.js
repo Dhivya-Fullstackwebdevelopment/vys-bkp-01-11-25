@@ -262,7 +262,14 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
                             </TouchableOpacity>
                             <View style={styles.profileContent}>
                                 <Text style={styles.profileName}>
-                                    {item.wishlist_profile_name || "N/A"} <Text style={styles.profileId}>({item.wishlist_profileid || "N/A"})</Text>
+                                    {/* {item.wishlist_profile_name || "N/A"}  */}
+                                    {item.wishlist_profile_name
+                                        ? (item.wishlist_profile_name.length > 15
+                                            ? item.wishlist_profile_name.substring(0, 15) + "..."
+                                            : item.wishlist_profile_name)
+                                        : "N/A"
+                                    }
+                                    <Text style={styles.profileId}>({item.wishlist_profileid || "N/A"})</Text>
                                 </Text>
                                 <Text style={styles.profileAge}>
                                     {item.wishlist_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>

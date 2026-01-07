@@ -241,7 +241,13 @@ export const PersonalNotesCard = ({ sortBy = "datetime" }) => {
           <View style={styles.profileContent}>
             <View>
               <Text style={styles.profileName}>
-                {profile.notes_profile_name || "N/A"}{" "}
+                {/* {profile.notes_profile_name || "N/A"}{" "} */}
+                {profile.notes_profile_name
+                  ? (profile.notes_profile_name.length > 15
+                    ? profile.notes_profile_name.substring(0, 15) + "..."
+                    : profile.notes_profile_name)
+                  : "N/A"
+                }
                 <Text style={styles.profileId}>
                   ({profile.notes_profileid || "N/A"})
                 </Text>

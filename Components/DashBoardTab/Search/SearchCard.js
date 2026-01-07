@@ -249,7 +249,14 @@ export const SearchCard = () => {
                             </TouchableOpacity>
                             <View style={styles.profileContent}>
                                 <Text style={styles.profileName}>
-                                    {item.profile_name} <Text style={styles.profileId}>({item.profile_id})</Text>
+                                    {/* {item.profile_name} */}
+                                    {item.profile_name
+                                        ? (item.profile_name.length > 15
+                                            ? item.profile_name.substring(0, 15) + "..."
+                                            : item.profile_name)
+                                        : "N/A"
+                                    }
+                                    <Text style={styles.profileId}>({item.profile_id})</Text>
                                 </Text>
                                 <Text style={styles.profileAge}>
                                     {item.profile_age} Yrs <Text style={styles.line}>|</Text> {item.profile_height} Cms

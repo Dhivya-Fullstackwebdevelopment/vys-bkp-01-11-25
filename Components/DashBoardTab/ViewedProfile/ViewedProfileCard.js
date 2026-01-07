@@ -255,7 +255,13 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
 
                 <View style={styles.profileContent}>
                     <Text style={styles.profileName}>
-                        {profile.visited_profile_name || "N/A"}
+                        {/* {profile.visited_profile_name || "N/A"} */}
+                        {profile.visited_profile_name
+                            ? (profile.visited_profile_name.length > 15
+                                ? profile.visited_profile_name.substring(0, 15) + "..."
+                                : profile.visited_profile_name)
+                            : "N/A"
+                        }
                         <Text style={styles.profileId}>({profile.visited_profileid || "N/A"})</Text>
                     </Text>
                     <Text style={styles.profileAge}>

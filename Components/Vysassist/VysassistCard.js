@@ -299,7 +299,13 @@ export const VysassistCard = ({ sortBy = "datetime" }) => {
             </TouchableOpacity>
             <View style={styles.profileContent}>
               <Text style={styles.profileName}>
-                {item.vys_profile_name || "N/A"}{" "}
+                {/* {item.vys_profile_name || "N/A"}{" "} */}
+                {item.vys_profile_name
+                  ? (item.vys_profile_name.length > 15
+                    ? item.vys_profile_name.substring(0, 15) + "..."
+                    : item.vys_profile_name)
+                  : "N/A"
+                }
                 <Text style={styles.profileId}>({item.vys_profileid || "N/A"})</Text>
               </Text>
               <Text style={styles.profileAge}>

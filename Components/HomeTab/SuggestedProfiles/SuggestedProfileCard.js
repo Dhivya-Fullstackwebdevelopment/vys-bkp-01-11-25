@@ -91,7 +91,7 @@ export const SuggestedProfileCard = ({ profiles }) => {
                 navigation.navigate("ProfileDetails", {
                     viewedProfileId,
                 });
-               
+
             } catch (error) {
                 // Catch any potential errors during navigation itself
                 console.error("Navigation Error:", error);
@@ -131,7 +131,13 @@ export const SuggestedProfileCard = ({ profiles }) => {
                     />
                     <View>
                         <Text style={styles.profileName}>
-                            {profile.profile_name}
+                            {/* {profile.profile_name} */}
+                            {profile.profile_name
+                                ? (profile.profile_name.length > 15
+                                    ? profile.profile_name.substring(0, 15) + "..."
+                                    : profile.profile_name)
+                                : "N/A"
+                            }
                             <Text style={styles.profileID}> ({profile.profile_id})</Text>
                         </Text>
                     </View>

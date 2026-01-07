@@ -374,7 +374,14 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           </TouchableOpacity>
           <View style={styles.profileContent}>
             <Text style={styles.profileName}>
-              {item.profile_name}{" "}
+              {/* {item.profile_name}{" "} */}
+              {item.profile_name
+                ? (item.profile_name.length > 15
+                  ? item.profile_name.substring(0, 15) + "..."
+                  : item.profile_name)
+                : "N/A"
+              }
+
               <Text style={styles.profileId}>({item.profile_id})</Text>
             </Text>
             <View style={styles.ageHeightContainer}>

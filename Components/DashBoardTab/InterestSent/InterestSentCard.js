@@ -264,7 +264,13 @@ export const InterestSentCard = ({ sortBy = "datetime" }) => {
         </TouchableOpacity>
         <View style={styles.profileContent}>
           <Text style={styles.profileName}>
-            {profile.myint_profile_name || "N/A"}
+            {/* {profile.myint_profile_name || "N/A"} */}
+            {profile.myint_profile_name
+              ? (profile.myint_profile_name.length > 15
+                ? profile.myint_profile_name.substring(0, 15) + "..."
+                : profile.myint_profile_name)
+              : "N/A"
+            }
             <Text style={styles.profileId}>({profile.myint_profileid || "N/A"})</Text>
           </Text>
           <Text style={styles.profileAge}>

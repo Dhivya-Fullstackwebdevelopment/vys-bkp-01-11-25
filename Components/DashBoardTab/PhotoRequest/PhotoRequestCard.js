@@ -328,7 +328,13 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
 
                             <View style={styles.profileContent}>
                                 <Text style={styles.profileName}>
-                                    {profile.req_profile_name || "N/A"}
+                                    {/* {profile.req_profile_name || "N/A"} */}
+                                    {profile.req_profile_name
+                                        ? (profile.req_profile_name.length > 15
+                                            ? profile.req_profile_name.substring(0, 15) + "..."
+                                            : profile.req_profile_name)
+                                        : "N/A"
+                                    }
                                     <Text style={styles.profileId}>
                                         ({profile.req_profileid || "N/A"})
                                     </Text>
