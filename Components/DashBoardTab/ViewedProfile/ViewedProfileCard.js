@@ -15,6 +15,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { ProfileNotFound } from "../../ProfileNotFound";
 import { SuggestedProfiles } from "../../HomeTab/SuggestedProfiles";
 import { TopAlignedImage } from "../../ReuseImageAlign/TopAlignedImage";
+import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
 
 export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
     const navigation = useNavigation();
@@ -26,6 +27,7 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [totalRecords, setTotalRecords] = useState(0);
     const [allProfileIds, setAllProfileIds] = useState({});
+    const [isPlatinumVisible, setIsPlatinumVisible] = useState(false); // 👈 ADD THIS
 
     // const loadProfiles = async (page = 1, isInitialLoad = false) => {
     //     if ((isLoading && isInitialLoad) || (isLoadingMore && !isInitialLoad)) return;
@@ -262,7 +264,15 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
                     </Text>
                     <Text style={styles.zodiac}>{profile.visited_star || "N/A"}</Text>
                     <Text style={styles.employed}>{profile.visited_profession || "N/A"}</Text>
-                    <Text style={styles.lastVisit}>Last viewed on {profile.visited_datetime || "N/A"}</Text>
+                    {/* <Text style={styles.lastVisit}>Last viewed on {profile.visited_datetime || "N/A"}</Text> */}
+                    <TouchableOpacity
+                        onPress={() => setIsPlatinumVisible(true)}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.lastVisit}>
+                            Last viewed on {profile.visited_datetime || "N/A"}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
             </View>
         </TouchableOpacity>
@@ -290,6 +300,10 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
 
     return (
         <View style={styles.profileScrollView}>
+            <PlatinumModalPopup
+                visible={isPlatinumVisible}
+                onClose={() => setIsPlatinumVisible(false)}
+            />
             <FlatList
                 data={profiles}
                 renderItem={renderItem}
