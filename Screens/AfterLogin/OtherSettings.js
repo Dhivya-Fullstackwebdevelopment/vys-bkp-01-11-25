@@ -997,7 +997,7 @@ export const OtherSettings = () => {
                         </Animated.View>
                     </View>
 
-                    {planId === "3" || planId === "17" && (
+                    {(planId === "3" || planId === "17") && (
                         <View style={{ flex: 1 }}>
                             <TouchableWithoutFeedback onPress={() => toggleMenu(pvMenuOpen, setPvMenuOpen, animatedHeightPv, rotationPv, 900)}>
                                 <View style={styles.detailsMenu}>

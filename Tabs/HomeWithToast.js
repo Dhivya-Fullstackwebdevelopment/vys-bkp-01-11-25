@@ -1820,7 +1820,14 @@ export const HomeWithToast = () => {
           />
           <View style={styles.profileContent}>
             <Text style={styles.nameStyle}>
-              {item.int_profile_name}({item.int_profileid})
+              {/* {item.int_profile_name} */}
+              {item.int_profile_name
+                ? (item.int_profile_name.length > 10
+                  ? item.int_profile_name.substring(0, 10) + "..."
+                  : item.int_profile_name)
+                : "N/A"
+              }
+              ({item.int_profileid})
             </Text>
             <Text style={styles.ageStyle}>{item.int_profile_age} yrs</Text>
           </View>
