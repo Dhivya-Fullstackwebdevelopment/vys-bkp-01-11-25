@@ -24,6 +24,7 @@ import Toast from "react-native-toast-message";
 import ProfileNotFound from "../../Components/ProfileNotFound"; // Adjust path if necessary
 import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImage";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
+import { PlatinumModalPopup } from "../../Components/ReusePopups/PlatinumModalPopup";
 
 export const FilterScreen = () => {
     const navigation = useNavigation();
@@ -34,6 +35,8 @@ export const FilterScreen = () => {
 
     // Check for the search term passed from the previous screen
     const { searchProfileId, isProfileIdSearch, profileCount } = route.params || {};
+    const [showPlatinumModal, setShowPlatinumModal] = useState(false);
+
 
     // --- Utility Functions (Copied from Search for consistency) ---
     const getImageSource = (image) => {
@@ -73,22 +76,81 @@ export const FilterScreen = () => {
         }
     };
 
+    // const handleProfileClick = async (viewedProfileId) => {
+    //     const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
+
+    //     if (profileCheckResponse?.status === "failure") {
+    //         Toast.show({ type: "error", text1: profileCheckResponse.message, position: "bottom" });
+    //         return;
+    //     }
+
+    //     const success = await logProfileVisit(viewedProfileId);
+
+    //     if (success) {
+    //         //Toast.show({ type: "success", text1: "Profile Viewed", text2: `You have viewed profile ${viewedProfileId}.`, position: "bottom" });
+    //         navigation.navigate("ProfileDetails", { viewedProfileId });
+    //     } else {
+    //         Toast.show({ type: "error", text1: "Error", text2: "Failed to log profile visit.", position: "bottom" });
+    //     }
+    // };
+
     const handleProfileClick = async (viewedProfileId) => {
-        const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
-        if (profileCheckResponse?.status === "failure") {
-            Toast.show({ type: "error", text1: profileCheckResponse.message, position: "bottom" });
-            return;
-        }
+        try {
+            const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
 
-        const success = await logProfileVisit(viewedProfileId);
+            // 🔒 Handle restricted profile (NORMAL RESPONSE)
+            if (
+                profileCheckResponse?.status === "failure" &&
+                profileCheckResponse?.message === "Profile visibility restricted"
+            ) {
+                setShowPlatinumModal(true);
+                return;
+            }
 
-        if (success) {
-            //Toast.show({ type: "success", text1: "Profile Viewed", text2: `You have viewed profile ${viewedProfileId}.`, position: "bottom" });
-            navigation.navigate("ProfileDetails", { viewedProfileId });
-        } else {
-            Toast.show({ type: "error", text1: "Error", text2: "Failed to log profile visit.", position: "bottom" });
+            // ❌ Other failures
+            if (profileCheckResponse?.status === "failure") {
+                Toast.show({
+                    type: "error",
+                    text1: profileCheckResponse.message || "Unable to view profile",
+                    position: "bottom",
+                });
+                return;
+            }
+
+            const success = await logProfileVisit(viewedProfileId);
+
+            if (success) {
+                navigation.navigate("ProfileDetails", { viewedProfileId });
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: "Failed to log profile visit.",
+                    position: "bottom",
+                });
+            }
+
+        } catch (error) {
+            // 🔥 Handle SAME API error in catch (Axios / network)
+            const serverMessage =
+                error?.response?.data?.message ||
+                error?.message ||
+                "";
+
+            if (serverMessage === "Profile visibility restricted") {
+                setShowPlatinumModal(true);
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: serverMessage || "Something went wrong.",
+                    position: "bottom",
+                });
+                console.error("Profile click error:", error);
+            }
         }
     };
+
 
     // --- Core Search Logic (Updated to handle both types) ---
     const executeSearch = async () => {
@@ -253,6 +315,10 @@ export const FilterScreen = () => {
                 )}
             </ScrollView>
             <BottomTabBarComponent />
+            <PlatinumModalPopup
+                visible={showPlatinumModal}
+                onClose={() => setShowPlatinumModal(false)}
+            />
         </SafeAreaView>
     );
 };

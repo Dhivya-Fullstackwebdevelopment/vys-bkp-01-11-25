@@ -15,7 +15,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { ProfileNotFound } from "../../ProfileNotFound";
 import { SuggestedProfiles } from "../../HomeTab/SuggestedProfiles";
 import { TopAlignedImage } from "../../ReuseImageAlign/TopAlignedImage";
-//import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
+import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
 
 export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
     const navigation = useNavigation();
@@ -27,6 +27,8 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [totalRecords, setTotalRecords] = useState(0);
     const [allProfileIds, setAllProfileIds] = useState({});
+    const [isPlatinumModalVisible, setIsPlatinumModalVisible] = useState(false); // New State
+
     //const [isPlatinumVisible, setIsPlatinumVisible] = useState(false); // 👈 ADD THIS
 
     // const loadProfiles = async (page = 1, isInitialLoad = false) => {
@@ -190,41 +192,69 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
     // }
 
     const handleProfileClick = async (viewedProfileId) => {
-        const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
-        console.log('profile view msg', profileCheckResponse)
+        try {
+            const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
+            console.log('profile view msg', profileCheckResponse)
 
-        // 2. Check if the API returned any failure
-        if (profileCheckResponse?.status === "failure") {
-            Toast.show({
-                type: "error",
-                // text1: "Profile Error", // You can keep this general
-                text1: profileCheckResponse.message, // <-- This displays the exact API message
-                position: "bottom",
-            });
-            return; // Stop the function
-        }
 
-        const success = await logProfileVisit(viewedProfileId);
+            if (profileCheckResponse?.status === "failure" &&
+                profileCheckResponse.message === "Profile visibility restricted") {
 
-        if (success) {
-            // Toast.show({
-            //     type: "success",
-            //     text1: "Profile Viewed",
-            //     text2: `You have viewed profile ${viewedProfileId}.`,
-            //     position: "bottom",
-            // });
-            // navigation.navigate("ProfileDetails", { id });
-            navigation.navigate("ProfileDetails", {
-                viewedProfileId,
-                allProfileIds,
-            });
-        } else {
-            Toast.show({
-                type: "error",
-                text1: "Error",
-                text2: "Failed to log profile visit.",
-                position: "bottom",
-            });
+                setIsPlatinumModalVisible(true); // Show Platinum Modal
+                return; // Exit function
+            }
+            // 2. Check if the API returned any failure
+            if (profileCheckResponse?.status === "failure") {
+                Toast.show({
+                    type: "error",
+                    // text1: "Profile Error", // You can keep this general
+                    text1: profileCheckResponse.message, // <-- This displays the exact API message
+                    position: "bottom",
+                });
+                return; // Stop the function
+            }
+
+            const success = await logProfileVisit(viewedProfileId);
+
+            if (success) {
+                // Toast.show({
+                //     type: "success",
+                //     text1: "Profile Viewed",
+                //     text2: `You have viewed profile ${viewedProfileId}.`,
+                //     position: "bottom",
+                // });
+                // navigation.navigate("ProfileDetails", { id });
+                navigation.navigate("ProfileDetails", {
+                    viewedProfileId,
+                    allProfileIds,
+                });
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: "Failed to log profile visit.",
+                    position: "bottom",
+                });
+            }
+        } catch (error) {
+            // 4. Handle errors inside the catch block (Network failures or thrown Errors)
+            console.error("Profile Click Error:", error);
+
+            const serverMessage =
+                error?.response?.data?.message ||
+                error?.message ||
+                "";
+            // Optional: Check if the error object itself contains the restricted message
+            if (serverMessage === "Profile visibility restricted") {
+                setIsPlatinumModalVisible(true);
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: "Unable to open profile. Please check your connection.",
+                    position: "bottom",
+                });
+            }
         }
     };
 
@@ -330,6 +360,10 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
                 initialNumToRender={10}
                 maxToRenderPerBatch={10}
                 windowSize={10}
+            />
+            <PlatinumModalPopup
+                visible={isPlatinumModalVisible}
+                onClose={() => setIsPlatinumModalVisible(false)}
             />
         </View>
     );

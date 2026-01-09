@@ -27,6 +27,7 @@ import { SuggestedProfiles } from "../SuggestedProfiles";
 import { FeaturedProfiles } from "../FeaturedProfiles";
 import { TopAlignedImage } from "../../ReuseImageAlign/TopAlignedImage";
 import { Dimensions } from "react-native";
+import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
 
 export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewMode = "list" }) => {
   const [profiles, setProfiles] = useState([]);
@@ -42,6 +43,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
   const numColumns = viewMode === 'grid' ? 1 : 1;
   const key = `flatlist-${viewMode}`;
   const SCREEN_WIDTH = Dimensions.get("window").width;
+  const [showPlatinumModal, setShowPlatinumModal] = useState(false);
 
   console.log("ProfileCard received searchProfiles:", searchProfiles?.length || 'null');
   console.log("ProfileCard received orderBy:", orderBy);
@@ -208,6 +210,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     try {
       const data = await fetchProfileDataCheck(viewedProfileId, "1");
       console.log("data 1 ==>", data);
+
       if (data?.status === "failure") {
         Toast.show({
           type: "error",
@@ -247,12 +250,22 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
       });
     } catch (error) {
       console.error("Error fetching profile data:", error);
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to fetch profile data.",
-        position: "bottom",
-      });
+      const serverMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "";
+
+      if (serverMessage === "Profile visibility restricted") {
+        setShowPlatinumModal(true);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: serverMessage || "Something went wrong.",
+          position: "bottom",
+        });
+        console.error("Profile click error:", error);
+      }
     }
   };
 
@@ -558,7 +571,12 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     );
   };
 
-  return <View style={styles.container}>{renderContent()}</View>;
+  return <View style={styles.container}>{renderContent()}
+    <PlatinumModalPopup
+      visible={showPlatinumModal}
+      onClose={() => setShowPlatinumModal(false)}
+    />
+  </View>;
 };
 
 

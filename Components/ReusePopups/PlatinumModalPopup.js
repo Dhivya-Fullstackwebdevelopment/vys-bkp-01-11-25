@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons, IoClose } from '@expo/vector-icons'; // Ensure you have vector-icons installed
+import { Linking } from 'react-native';
 
 export const PlatinumModalPopup = ({ visible, onClose }) => {
     return (
@@ -12,7 +13,7 @@ export const PlatinumModalPopup = ({ visible, onClose }) => {
         >
             <View style={modalStyles.overlay}>
                 <View style={modalStyles.modalContainer}>
-                    
+
                     {/* X Close Icon at Top Right */}
                     <TouchableOpacity style={modalStyles.closeX} onPress={onClose}>
                         <MaterialIcons name="close" size={24} color="white" />
@@ -30,15 +31,23 @@ export const PlatinumModalPopup = ({ visible, onClose }) => {
                     <View style={modalStyles.body}>
                         <Text style={modalStyles.description}>
                             This profile is secured under{" "}
-                            <Text style={modalStyles.boldText}>Platinum Private Membership</Text>. 
+                            <Text style={modalStyles.boldText}>Platinum Private Membership</Text>.
                             {"\n"}For access and assisted viewing, please contact our Customer Support.
                         </Text>
 
                         {/* Phone Number - Gray Theme (Non-clickable) */}
-                        <View style={modalStyles.numberContainer}>
+                        {/* <View style={modalStyles.numberContainer}>
                             <MaterialIcons name="phone" size={18} color="#85878C" />
                             <Text style={modalStyles.phoneNumber}>99448 51550</Text>
-                        </View>
+                        </View> */}
+                        <TouchableOpacity
+                            style={modalStyles.numberContainer}
+                            onPress={() => Linking.openURL('tel:9944851550')}
+                            activeOpacity={0.8}
+                        >
+                            <MaterialIcons name="phone" size={18} color="#FF6666" />
+                            <Text style={modalStyles.phoneNumber}>99448 51550</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </View>

@@ -13,7 +13,7 @@ import {
 } from '../../../CommonApiCall/CommonApiCall';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TopAlignedImage } from "../../ReuseImageAlign/TopAlignedImage";
-
+import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
 
 export const SearchCard = () => {
     const [profiles, setProfiles] = useState([]);
@@ -23,6 +23,7 @@ export const SearchCard = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [allProfileIds, setAllProfileIds] = useState({});
     const navigation = useNavigation();
+    const [isPlatinumModalVisible, setIsPlatinumModalVisible] = useState(false); // New State
 
     const handleEndReached = () => {
         if (currentPage < totalPages && !isLoading) {
@@ -150,45 +151,104 @@ export const SearchCard = () => {
     //     }
     // };
 
+    // const handleProfileClick = async (viewedProfileId) => {
+    //     const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
+    //     console.log('profile view msg', profileCheckResponse)
+
+    //     // 2. Check if the API returned any failure
+    //     if (profileCheckResponse?.status === "failure") {
+    //         Toast.show({
+    //             type: "error",
+    //             // text1: "Profile Error", // You can keep this general
+    //             text1: profileCheckResponse.message, // <-- This displays the exact API message
+    //             position: "bottom",
+    //         });
+    //         return; // Stop the function
+    //     }
+
+    //     const success = await logProfileVisit(viewedProfileId);
+
+    //     if (success) {
+    //         // Toast.show({
+    //         //     type: "success",
+    //         //     text1: "Profile Viewed",
+    //         //     text2: `You have viewed profile ${viewedProfileId}.`,
+    //         //     position: "bottom",
+    //         // });
+    //         // navigation.navigate("ProfileDetails", { id });
+    //         navigation.navigate("ProfileDetails", {
+    //             viewedProfileId,
+    //             allProfileIds,
+    //         });
+    //     } else {
+    //         Toast.show({
+    //             type: "error",
+    //             text1: "Error",
+    //             text2: "Failed to log profile visit.",
+    //             position: "bottom",
+    //         });
+    //     }
+    // };
+
+
     const handleProfileClick = async (viewedProfileId) => {
-        const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
-        console.log('profile view msg', profileCheckResponse)
+        // Prevent multiple clicks while checking
+        if (isLoading) return;
 
-        // 2. Check if the API returned any failure
-        if (profileCheckResponse?.status === "failure") {
-            Toast.show({
-                type: "error",
-                // text1: "Profile Error", // You can keep this general
-                text1: profileCheckResponse.message, // <-- This displays the exact API message
-                position: "bottom",
-            });
-            return; // Stop the function
-        }
+        try {
+            const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
 
-        const success = await logProfileVisit(viewedProfileId);
+            // Log for debugging
+            console.log("Profile Check Response:", profileCheckResponse);
 
-        if (success) {
-            // Toast.show({
-            //     type: "success",
-            //     text1: "Profile Viewed",
-            //     text2: `You have viewed profile ${viewedProfileId}.`,
-            //     position: "bottom",
-            // });
-            // navigation.navigate("ProfileDetails", { id });
-            navigation.navigate("ProfileDetails", {
-                viewedProfileId,
-                allProfileIds,
-            });
-        } else {
-            Toast.show({
-                type: "error",
-                text1: "Error",
-                text2: "Failed to log profile visit.",
-                position: "bottom",
-            });
+            // 1. Bind to the exact failure message from your response
+            if (profileCheckResponse?.status === "failure" &&
+                profileCheckResponse.message === "Profile visibility restricted") {
+
+                setIsPlatinumModalVisible(true); // Show Platinum Modal
+                return; // Exit function
+            }
+
+            // 2. Handle any other failure messages from the API
+            if (profileCheckResponse?.status === "failure") {
+                Toast.show({
+                    type: "error",
+                    text1: profileCheckResponse.message || "Access Denied",
+                    position: "bottom",
+                });
+                return;
+            }
+
+            // 3. If check passes, log the visit and navigate
+            const success = await logProfileVisit(viewedProfileId);
+
+            if (success) {
+                navigation.navigate("ProfileDetails", {
+                    viewedProfileId,
+                    allProfileIds,
+                });
+            } else {
+                // This triggers the catch block below
+                throw new Error("Failed to log profile visit.");
+            }
+
+        } catch (error) {
+            // 4. Handle errors inside the catch block (Network failures or thrown Errors)
+            console.error("Profile Click Error:", error);
+
+            // Optional: Check if the error object itself contains the restricted message
+            if (error?.message?.includes("Profile visibility restricted")) {
+                setIsPlatinumModalVisible(true);
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: "Unable to open profile. Please check your connection.",
+                    position: "bottom",
+                });
+            }
         }
     };
-
 
     const getImageSource = (image) => {
         if (!image) return { uri: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fstock.adobe.com%2Fsearch%2Fimages%3Fk%3Ddefault%2Bimage&psig=AOvVaw28Px6jC5wsx4TWxwOrHJT2&ust=1726388184602000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCMCfpqb_wYgDFQAAAAAdAAAAABAE' }; // Fallback image
@@ -279,6 +339,10 @@ export const SearchCard = () => {
                 initialNumToRender={6}
                 maxToRenderPerBatch={6}
                 windowSize={5}
+            />
+            <PlatinumModalPopup
+                visible={isPlatinumModalVisible}
+                onClose={() => setIsPlatinumModalVisible(false)}
             />
         </>
     );

@@ -61,55 +61,76 @@ export const SuggestedProfileCard = ({ profiles }) => {
     // };
     const handleProfileClick = async (viewedProfileId) => {
         // 1. Check profile data validity
-        const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
-        console.log('profile view msg', profileCheckResponse);
+        try {
+            const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
+            console.log('profile view msg', profileCheckResponse);
 
-        if (profileCheckResponse?.status === "failure") {
-            Toast.show({
-                type: "error",
-                text1: profileCheckResponse.message,
-                position: "bottom",
-            });
-            return; // Stop the function
-        }
-
-        // 2. Log profile visit and wait for success result
-        const success = await logProfileVisit(viewedProfileId);
-
-        if (success) {
-            try {
-                // Log successful visit with Toast
-                // Toast.show({
-                //     type: "success",
-                //     text1: "Profile Viewed",
-                //     text2: `You have viewed profile ${viewedProfileId}.`,
-                //     position: "bottom",
-                // });
-
-                // 3. Navigate to the profile details page
-                // The navigation should happen immediately after the Toast is queued/shown
-                navigation.navigate("ProfileDetails", {
-                    viewedProfileId,
-                });
-
-            } catch (error) {
-                // Catch any potential errors during navigation itself
-                console.error("Navigation Error:", error);
+            if (profileCheckResponse?.status === "failure") {
                 Toast.show({
                     type: "error",
-                    text1: "Navigation Failed",
-                    text2: "Could not open profile details screen.",
+                    text1: profileCheckResponse.message,
+                    position: "bottom",
+                });
+                return; // Stop the function
+            }
+
+            // 2. Log profile visit and wait for success result
+            const success = await logProfileVisit(viewedProfileId);
+
+            if (success) {
+                try {
+                    // Log successful visit with Toast
+                    // Toast.show({
+                    //     type: "success",
+                    //     text1: "Profile Viewed",
+                    //     text2: `You have viewed profile ${viewedProfileId}.`,
+                    //     position: "bottom",
+                    // });
+
+                    // 3. Navigate to the profile details page
+                    // The navigation should happen immediately after the Toast is queued/shown
+                    navigation.navigate("ProfileDetails", {
+                        viewedProfileId,
+                    });
+
+                } catch (error) {
+                    // Catch any potential errors during navigation itself
+                    console.error("Navigation Error:", error);
+                    Toast.show({
+                        type: "error",
+                        text1: "Navigation Failed",
+                        text2: "Could not open profile details screen.",
+                        position: "bottom",
+                    });
+                }
+            } else {
+                // Handle failure in logging the visit
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: "Failed to log profile visit.",
                     position: "bottom",
                 });
             }
-        } else {
-            // Handle failure in logging the visit
-            Toast.show({
-                type: "error",
-                text1: "Error",
-                text2: "Failed to log profile visit.",
-                position: "bottom",
-            });
+        } catch (error) {
+            // 4. Handle errors inside the catch block (Network failures or thrown Errors)
+            console.error("Profile Click Error:", error);
+
+            const serverMessage =
+                error?.response?.data?.message ||
+                error?.message ||
+                "";
+            // Optional: Check if the error object itself contains the restricted message
+            if (serverMessage === "Profile visibility restricted") {
+                setIsPlatinumModalVisible(true);
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: "Unable to open profile. Please check your connection.",
+                    position: "bottom",
+                });
+            }
         }
     };
 
