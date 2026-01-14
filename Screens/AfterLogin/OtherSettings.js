@@ -69,6 +69,17 @@ export const OtherSettings = () => {
     const [uploadedHoroscope, setUploadedHoroscope] = useState("");
     const [uploadedIDProof, setUploadedIDProof] = useState("");
     const [uploadedDivorceProof, setUploadedDivorceProof] = useState("");
+    const [allowVisit, setAllowVisit] = useState(null); // ❌ no default
+    //const currentPlanId = AsyncStorage.getItem("current_plan_id");
+    const [currentPlanId, setCurrentPlanId] = useState(null);
+
+    useEffect(() => {
+        const fetchCurrentPlan = async () => {
+            const plan = await AsyncStorage.getItem("current_plan_id");
+            setCurrentPlanId(plan); // plan will be "16"
+        };
+        fetchCurrentPlan();
+    }, []);
 
     // Fetch marital status on mount (similar to your web logic)
     useEffect(() => {
@@ -201,6 +212,9 @@ export const OtherSettings = () => {
                 // Set Password Protection status
                 const isProtected = data.Photo_protection === "1";
                 setChecked(isProtected);
+                if (data.allow_visit !== undefined && data.allow_visit !== null) {
+                    setAllowVisit(Number(data.allow_visit));
+                }
 
                 if (isProtected && data.Photo_password) {
                     setPassword(data.Photo_password);
@@ -228,6 +242,13 @@ export const OtherSettings = () => {
         formData.append("photo_protection", checked ? "1" : "0");
         formData.append("photo_password", checked ? password : "");
         formData.append("Video_url", videoUrl);
+        // if (allowVisit !== null) {
+        //     formData.append("allow_visit", allowVisit); // ✅ 0 or 1
+        // }
+        if (currentPlanId === "16" && allowVisit !== null) {
+            formData.append("allow_visit", allowVisit);
+        }
+
 
         const appendFile = (key, file) => {
             if (file) {
@@ -964,6 +985,34 @@ export const OtherSettings = () => {
                                     Note: If video link is not available, you can share the videos to Vysyamala's admin WhatsApp No.9043085524.
                                 </Text>
 
+                                {currentPlanId === "16" && (
+                                    <>
+                                        <Text style={[styles.label, { marginTop: 10 }]}>Delight Visibility Setting</Text>
+
+                                        <View style={styles.radioRow}>
+                                            <TouchableOpacity
+                                                style={styles.radioOption}
+                                                onPress={() => setAllowVisit(1)}
+                                            >
+                                                <View style={[styles.radioOuter, allowVisit === 1 && styles.radioOuterActive]}>
+                                                    {allowVisit === 1 && <View style={styles.radioInner} />}
+                                                </View>
+                                                <Text style={styles.radioText}>Yes</Text>
+                                            </TouchableOpacity>
+
+                                            <TouchableOpacity
+                                                style={styles.radioOption}
+                                                onPress={() => setAllowVisit(0)}
+                                            >
+                                                <View style={[styles.radioOuter, allowVisit === 0 && styles.radioOuterActive]}>
+                                                    {allowVisit === 0 && <View style={styles.radioInner} />}
+                                                </View>
+                                                <Text style={styles.radioText}>No</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </>
+                                )}
+
                                 <TouchableOpacity style={styles.btn} onPress={handleSubmitPhotoSettings}>
                                     <LinearGradient colors={["#BD1225", "#FF4050"]} style={styles.linearGradient}>
                                         <Text style={styles.login}>Save</Text>
@@ -1529,5 +1578,48 @@ const styles = StyleSheet.create({
         color: "#2E7D32", // Green to indicate success
         fontWeight: "600",
         marginTop: 2
-    }
+    },
+    radioRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        marginTop: 8,
+        marginBottom: 15,
+    },
+
+    radioOption: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginRight: 25,
+    },
+
+    radioOuter: {
+        width: 18,
+        height: 18,
+        borderRadius: 50,
+        borderWidth: 2,
+        borderColor: "#535665",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 8,
+    },
+
+    radioOuterActive: {
+        borderColor: "#ED1E24",
+    },
+
+    radioInner: {
+        width: 10,
+        height: 10,
+        borderRadius: 50,
+        backgroundColor: "#ED1E24",
+    },
+
+    radioText: {
+        fontSize: 14,
+        color: "#535665",
+        fontWeight: "600",
+        fontFamily: "inter",
+    },
+
 });
