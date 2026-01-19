@@ -780,6 +780,7 @@ export const HoroscopeDetails = () => {
                                 <Text style={styles.labelNew}>Horoscope Hints : <Text style={styles.valueNew}>{horoscopeDetails.personal_horoscope_hints || "N/A"}</Text></Text>
                                 {rasiGrid.length >= 4 && (
                                     <View style={styles.horoscopeSection}>
+                                        <Text style={styles.chartTitle}>Rasi & Amsam Grid</Text>
                                         <View style={styles.chartBorder}>
                                             {/* Top Row */}
                                             <View style={styles.chartRow}>
@@ -1127,7 +1128,13 @@ const styles = StyleSheet.create({
         color: '#008000',
         fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
     },
-
+    chartTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "#282C3F",
+        marginBottom: 6,
+        alignSelf: "flex-start",
+    },
 });
 
 const pickerSelectStyles = StyleSheet.create({

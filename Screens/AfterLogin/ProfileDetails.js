@@ -2440,6 +2440,7 @@ export const ProfileDetails = () => {
                   {/* RASI CHART - SOUTH INDIAN LAYOUT */}
                   {showHoroscopeDetails && rasiGrid.length >= 4 && (
                     <View style={styles.horoscopeSection}>
+                      <Text style={styles.chartTitle}>Rasi & Amsam Grid</Text>
                       <View style={styles.chartBorder}>
 
                         {/* --- TOP ROW (Pisces, Aries, Taurus, Gemini) --- */}
@@ -3964,4 +3965,12 @@ const styles = StyleSheet.create({
     color: '#008000', // Green
     fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
   },
+  chartTitle: {
+  fontSize: 20,
+  fontWeight: "bold",
+  color: "#282C3F",
+  marginBottom: 6,
+  alignSelf: "flex-start",
+},
+
 });
