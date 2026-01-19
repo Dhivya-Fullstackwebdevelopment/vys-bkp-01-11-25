@@ -17,7 +17,7 @@ import {
     Modal,
     TextInput,
     Button,
-
+    Platform
 } from "react-native";
 import {
     AntDesign,
@@ -28,12 +28,13 @@ import {
     FontAwesome6,
     MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { getMyHoroscopeDetails, updateProfileHoroscope } from '../../CommonApiCall/CommonApiCall'; // Import the API function
+import { getMyHoroscopeDetails, updateProfileHoroscope, fetchRasiImage, fetchAmsamImage } from '../../CommonApiCall/CommonApiCall'; // Import the API function
 import RNPickerSelect from 'react-native-picker-select';
 import config from "../../API/Apiurl";
 import axios from "axios";
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const HoroscopeDetails = () => {
 
@@ -48,7 +49,8 @@ export const HoroscopeDetails = () => {
     const [dayOptions, setDayOptions] = useState([]);
     const [monthOptions, setMonthOptions] = useState([]);
     const [yearOptions, setYearOptions] = useState([]);
-
+    const [rasiGrid, setRasiGrid] = useState([]);
+    const [amsaGrid, setAmsaGrid] = useState([]);
 
 
 
@@ -91,6 +93,61 @@ export const HoroscopeDetails = () => {
         { label: 'Yes', value: 'Yes' },
         { label: 'No', value: 'No' },
     ];
+
+    const extractGridData = (htmlString) => {
+        const rows = [];
+        const rowMatches = htmlString.match(/<tr[^>]*>([\s\S]*?)<\/tr>/g) || [];
+
+        rowMatches.forEach(rowHtml => {
+            const cells = [];
+            const cellMatches = rowHtml.match(/<td[^>]*>([\s\S]*?)<\/td>/g) || [];
+
+            cellMatches.forEach(cellHtml => {
+                // 1. Replace <br> with newline for React Native Text
+                let text = cellHtml.replace(/<br\s*\/?>/gi, '\n');
+                text = text.replace(/<\/p>/gi, '\n');
+                // 2. Remove tags
+                text = text.replace(/<[^>]+>/g, '').trim();
+                // 3. Decode entities
+                text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+                cells.push(text);
+            });
+
+            if (cells.length > 0) rows.push(cells);
+        });
+        return rows;
+    };
+
+    // --- FETCH CHARTS DATA ---
+    useEffect(() => {
+        const loadCharts = async () => {
+            try {
+                // Get logged in user ID
+                const profileId = await AsyncStorage.getItem("loginuser_profileId");
+
+                if (profileId) {
+                    // Fetch Rasi
+                    const rasiData = await fetchRasiImage(profileId);
+                    if (rasiData && rasiData.status === 1) {
+                        setRasiGrid(extractGridData(rasiData.html));
+                    } else {
+                        setRasiGrid([]);
+                    }
+
+                    // Fetch Amsam
+                    const amsaData = await fetchAmsamImage(profileId);
+                    if (amsaData && amsaData.status === 1) {
+                        setAmsaGrid(extractGridData(amsaData.html));
+                    } else {
+                        setAmsaGrid([]);
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading charts:", error);
+            }
+        };
+        loadCharts();
+    }, []);
 
     // Function to fetch profile data
     const fetchProfileData = async () => {
@@ -717,6 +774,94 @@ export const HoroscopeDetails = () => {
                                 <Text style={styles.labelNew}>Ragu Dosham : <Text style={styles.valueNew}>{horoscopeDetails.personal_ragu_dos || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Chevvai Dosham : <Text style={styles.valueNew}>{horoscopeDetails.personal_chevvai_dos || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Horoscope Hints : <Text style={styles.valueNew}>{horoscopeDetails.personal_horoscope_hints || "N/A"}</Text></Text>
+                                {rasiGrid.length >= 4 && (
+                                    <View style={styles.horoscopeSection}>
+                                        <View style={styles.chartBorder}>
+                                            {/* Top Row */}
+                                            <View style={styles.chartRow}>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][0]}</Text></View>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][1]}</Text></View>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][2]}</Text></View>
+                                                <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[0][3]}</Text></View>
+                                            </View>
+                                            {/* Middle Section */}
+                                            <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
+                                                <View style={styles.sideColumn}>
+                                                    <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                                                        <Text style={styles.chartText}>{rasiGrid[1][0]}</Text>
+                                                    </View>
+                                                    <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                                                        <Text style={styles.chartText}>{rasiGrid[2][0]}</Text>
+                                                    </View>
+                                                </View>
+                                                <View style={styles.centerBox}>
+                                                    <Text style={styles.centerLabel}>Rasi</Text>
+                                                    <Text style={styles.centerDomain}>vysyamala.com</Text>
+                                                </View>
+                                                <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
+                                                    <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                                                        <Text style={styles.chartText}>{rasiGrid[1][rasiGrid[1].length - 1]}</Text>
+                                                    </View>
+                                                    <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                                                        <Text style={styles.chartText}>{rasiGrid[2][rasiGrid[2].length - 1]}</Text>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                            {/* Bottom Row */}
+                                            <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][0]}</Text></View>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][1]}</Text></View>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][2]}</Text></View>
+                                                <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[3][3]}</Text></View>
+                                            </View>
+                                        </View>
+                                    </View>
+                                )}
+
+                                {/* --- AMSA CHART RENDER --- */}
+                                {amsaGrid.length >= 4 && (
+                                    <View style={styles.horoscopeSection}>
+                                        <View style={styles.chartBorder}>
+                                            {/* Top Row */}
+                                            <View style={styles.chartRow}>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][0]}</Text></View>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][1]}</Text></View>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][2]}</Text></View>
+                                                <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[0][3]}</Text></View>
+                                            </View>
+                                            {/* Middle Section */}
+                                            <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
+                                                <View style={styles.sideColumn}>
+                                                    <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                                                        <Text style={styles.chartText}>{amsaGrid[1][0]}</Text>
+                                                    </View>
+                                                    <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                                                        <Text style={styles.chartText}>{amsaGrid[2][0]}</Text>
+                                                    </View>
+                                                </View>
+                                                <View style={styles.centerBox}>
+                                                    <Text style={styles.centerLabel}>Amsam</Text>
+                                                    <Text style={styles.centerDomain}>vysyamala.com</Text>
+                                                </View>
+                                                <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
+                                                    <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                                                        <Text style={styles.chartText}>{amsaGrid[1][amsaGrid[1].length - 1]}</Text>
+                                                    </View>
+                                                    <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                                                        <Text style={styles.chartText}>{amsaGrid[2][amsaGrid[2].length - 1]}</Text>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                            {/* Bottom Row */}
+                                            <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][0]}</Text></View>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][1]}</Text></View>
+                                                <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][2]}</Text></View>
+                                                <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[3][3]}</Text></View>
+                                            </View>
+                                        </View>
+                                    </View>
+                                )}
                             </>
                         )}
                     </View>
@@ -913,6 +1058,70 @@ const styles = StyleSheet.create({
         width: "32.33%",
         fontFamily: "inter",
     },
+
+    horoscopeSection: {
+        padding: 10,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        width: '100%',
+    },
+    chartBorder: {
+        borderWidth: 1.5,
+        borderColor: '#000',
+        backgroundColor: '#FFFACD',
+        width: '100%',
+        maxWidth: 350,
+        aspectRatio: 1,
+        marginVertical: 10,
+    },
+    chartRow: {
+        flexDirection: 'row',
+        flex: 1,
+        borderBottomWidth: 1,
+        borderColor: '#000',
+    },
+    chartCell: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRightWidth: 1,
+        borderColor: '#000',
+        padding: 2,
+    },
+    sideColumn: {
+        flex: 1,
+        borderRightWidth: 1,
+        borderColor: '#000',
+    },
+    centerBox: {
+        flex: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRightWidth: 1,
+        borderColor: '#000',
+        backgroundColor: '#FFFACD',
+    },
+    chartText: {
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: '#008000',
+        textAlign: 'center',
+        fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
+    },
+    centerLabel: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#008000',
+        marginBottom: 5,
+        fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
+    },
+    centerDomain: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#008000',
+        fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
+    },
+
 });
 
 const pickerSelectStyles = StyleSheet.create({
