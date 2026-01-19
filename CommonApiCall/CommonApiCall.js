@@ -3091,6 +3091,24 @@ export const fetchRasiImage = async (profileId) => {
     }
 };
 
+export const fetchAmsamImage = async (profileId) => {
+    try {
+        if (!profileId) return { status: 0, message: "Profile ID missing" };
+
+        const timestamp = new Date().getTime();
+        const url = `https://app.vysyamala.com/auth/amsa-image/?profile_id=${profileId}&t=${timestamp}`;
+
+        const response = await fetch(url);
+        if (response.status === 200) {
+            const htmlString = await response.text();
+            return { status: 1, html: htmlString };
+        }
+        return { status: 0, message: "Chart not available" };
+    } catch (error) {
+        return { status: 0, message: "Network error" };
+    }
+};
+
 // export const downloadPdfPoruthamNew = async (idparam) => {
 
 //     const profileId = await retrieveProfileId(); // Implement this to retrieve the profile ID

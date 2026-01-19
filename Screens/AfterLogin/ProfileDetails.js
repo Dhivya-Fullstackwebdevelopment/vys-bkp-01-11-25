@@ -47,7 +47,8 @@ import {
   getProfileListMatch,
   downloadMatchingReportPdf,
   downloadPdfPoruthamNew,
-  fetchRasiImage
+  fetchRasiImage,
+  fetchAmsamImage
 } from '../../CommonApiCall/CommonApiCall';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Picker } from '@react-native-picker/picker';
@@ -162,6 +163,7 @@ export const ProfileDetails = () => {
   const [profileIds, setProfileIds] = useState([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [rasiGrid, setRasiGrid] = useState([]);
+  const [amsaGrid, setAmsaGrid] = useState([]);
   console.log("rasiGriddddd", rasiGrid)
 
   const getSafeImage = (imageUrl) => {
@@ -574,19 +576,28 @@ export const ProfileDetails = () => {
   // Add this helper function at the top of your file or inside the component
   const extractGridData = (htmlString) => {
     const rows = [];
-    // 1. Split by Table Rows (<tr>)
     const rowMatches = htmlString.match(/<tr[^>]*>([\s\S]*?)<\/tr>/g) || [];
 
     rowMatches.forEach(rowHtml => {
       const cells = [];
-      // 2. Split by Table Cells (<td>)
       const cellMatches = rowHtml.match(/<td[^>]*>([\s\S]*?)<\/td>/g) || [];
 
       cellMatches.forEach(cellHtml => {
-        // 3. Remove HTML tags to get clean text
-        let text = cellHtml.replace(/<[^>]+>/g, '').trim();
-        // Decode common HTML entities
+        // 1. FIRST: Replace <br>, <br/>, <br /> with newline characters (\n)
+        let text = cellHtml.replace(/<br\s*\/?>/gi, '\n');
+
+        // 2. Replace closing paragraph tags </p> with newlines (optional, depending on API)
+        text = text.replace(/<\/p>/gi, '\n');
+
+        // 3. THEN: Remove all remaining HTML tags
+        text = text.replace(/<[^>]+>/g, '').trim();
+
+        // 4. Decode common HTML entities
         text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+
+        // 5. Clean up extra whitespace (optional: remove double newlines if API sends too many)
+        // text = text.replace(/\n\s*\n/g, '\n'); 
+
         cells.push(text);
       });
 
@@ -594,7 +605,6 @@ export const ProfileDetails = () => {
     });
     return rows;
   };
-
   useEffect(() => {
     const loadProfileData = async () => {
       setIsInitialLoading(true);
@@ -626,6 +636,13 @@ export const ProfileDetails = () => {
           setRasiGrid(parsedGrid);
         } else {
           setRasiGrid([]);
+        }
+        const amsaData = await fetchAmsamImage(viewedProfileId);
+        if (amsaData && amsaData.status === 1) {
+          const parsedGrid = extractGridData(amsaData.html);
+          setAmsaGrid(parsedGrid);
+        } else {
+          setAmsaGrid([]);
         }
         const data = await fetchProfileData(viewedProfileId);
         console.log("Fetched profile data: 1 ", data);
@@ -2477,6 +2494,59 @@ export const ProfileDetails = () => {
                       </View>
                     </View>
                   )}
+                  {showHoroscopeDetails && amsaGrid.length >= 4 && (
+                    <View style={styles.horoscopeSection}>
+                      <View style={styles.chartBorder}>
+
+                        {/* --- TOP ROW (Pisces, Aries, Taurus, Gemini) --- */}
+                        <View style={styles.chartRow}>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][0]}</Text></View>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][1]}</Text></View>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][2]}</Text></View>
+                          <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[0][3]}</Text></View>
+                        </View>
+
+                        {/* --- MIDDLE SECTION (Aquarius/Cap & Cancer/Leo) --- */}
+                        <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
+
+                          {/* Left Column (Aquarius, Capricorn) */}
+                          <View style={styles.sideColumn}>
+                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                              <Text style={styles.chartText}>{amsaGrid[1][0]}</Text>
+                            </View>
+                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                              <Text style={styles.chartText}>{amsaGrid[2][0]}</Text>
+                            </View>
+                          </View>
+
+                          {/* Center Box (Empty / Title) */}
+                          <View style={styles.centerBox}>
+                            <Text style={styles.centerLabel}>Amsam</Text>
+                            <Text style={styles.centerDomain}>vysyamala.com</Text>
+                          </View>
+
+                          {/* Right Column (Cancer, Leo) - Note the Index [3] for the last cell */}
+                          <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
+                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                              <Text style={styles.chartText}>{amsaGrid[1][amsaGrid[1].length - 1]}</Text>
+                            </View>
+                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                              <Text style={styles.chartText}>{amsaGrid[2][amsaGrid[2].length - 1]}</Text>
+                            </View>
+                          </View>
+                        </View>
+
+                        {/* --- BOTTOM ROW (Sagittarius, Scorpio, Libra, Virgo) --- */}
+                        <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][0]}</Text></View>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][1]}</Text></View>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][2]}</Text></View>
+                          <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[3][3]}</Text></View>
+                        </View>
+
+                      </View>
+                    </View>
+                  )}
                   {/* </View> */}
                 </View>
               </View>
@@ -3855,8 +3925,8 @@ const styles = StyleSheet.create({
   },
   chartCell: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'center', // Vertically centers the stack of text
+    alignItems: 'center',     // Horizontally centers the stack
     borderRightWidth: 1,
     borderColor: '#000',
     padding: 2,
@@ -3876,11 +3946,11 @@ const styles = StyleSheet.create({
   },
   // --- TEXT STYLES TO MATCH IMAGE ---
   chartText: {
-    fontSize: 13, // Slightly smaller to fit content like "Kethu"
+    fontSize: 13,
     fontWeight: 'bold',
-    color: '#008000', // Dark Green
-    textAlign: 'center',
-    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif', // Serif font
+    color: '#008000',
+    textAlign: 'center', // Ensures multi-line text is centered
+    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
   },
   centerLabel: {
     fontSize: 18,
