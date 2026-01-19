@@ -3966,7 +3966,7 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
   },
   chartTitle: {
-  fontSize: 20,
+  fontSize: 17,
   fontWeight: "bold",
   color: "#282C3F",
   marginBottom: 6,
