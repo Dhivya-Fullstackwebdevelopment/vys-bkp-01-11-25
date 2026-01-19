@@ -95,6 +95,8 @@ export const HoroscopeDetails = () => {
     ];
 
     const extractGridData = (htmlString) => {
+        if (!htmlString) return [];
+
         const rows = [];
         const rowMatches = htmlString.match(/<tr[^>]*>([\s\S]*?)<\/tr>/g) || [];
 
@@ -103,13 +105,15 @@ export const HoroscopeDetails = () => {
             const cellMatches = rowHtml.match(/<td[^>]*>([\s\S]*?)<\/td>/g) || [];
 
             cellMatches.forEach(cellHtml => {
-                // 1. Replace <br> with newline for React Native Text
+                // Replace <br> with \n for vertical stacking
                 let text = cellHtml.replace(/<br\s*\/?>/gi, '\n');
                 text = text.replace(/<\/p>/gi, '\n');
-                // 2. Remove tags
                 text = text.replace(/<[^>]+>/g, '').trim();
-                // 3. Decode entities
                 text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+
+                // Remove extra empty newlines to save space
+                text = text.replace(/\n\s*\n/g, '\n').trim();
+
                 cells.push(text);
             });
 
@@ -1086,7 +1090,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRightWidth: 1,
         borderColor: '#000',
-        padding: 2,
+        padding: 1, // Reduced padding to maximize space
+        overflow: 'hidden', // Prevents content from spilling out
     },
     sideColumn: {
         flex: 1,
@@ -1102,10 +1107,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFACD',
     },
     chartText: {
-        fontSize: 13,
+        fontSize: 10, // Reduced font size to fit 6 items (was 13)
         fontWeight: 'bold',
         color: '#008000',
         textAlign: 'center',
+        lineHeight: 10, // Tighter line height for stacking
         fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
     },
     centerLabel: {

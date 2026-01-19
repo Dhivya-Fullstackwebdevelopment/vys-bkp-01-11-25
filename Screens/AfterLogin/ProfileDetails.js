@@ -575,6 +575,8 @@ export const ProfileDetails = () => {
   // Helper to clean HTML tags and get content
   // Add this helper function at the top of your file or inside the component
   const extractGridData = (htmlString) => {
+    if (!htmlString) return [];
+
     const rows = [];
     const rowMatches = htmlString.match(/<tr[^>]*>([\s\S]*?)<\/tr>/g) || [];
 
@@ -583,20 +585,14 @@ export const ProfileDetails = () => {
       const cellMatches = rowHtml.match(/<td[^>]*>([\s\S]*?)<\/td>/g) || [];
 
       cellMatches.forEach(cellHtml => {
-        // 1. FIRST: Replace <br>, <br/>, <br /> with newline characters (\n)
+        // Replace <br> with \n for vertical stacking
         let text = cellHtml.replace(/<br\s*\/?>/gi, '\n');
-
-        // 2. Replace closing paragraph tags </p> with newlines (optional, depending on API)
         text = text.replace(/<\/p>/gi, '\n');
-
-        // 3. THEN: Remove all remaining HTML tags
         text = text.replace(/<[^>]+>/g, '').trim();
-
-        // 4. Decode common HTML entities
         text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
 
-        // 5. Clean up extra whitespace (optional: remove double newlines if API sends too many)
-        // text = text.replace(/\n\s*\n/g, '\n'); 
+        // Remove extra empty newlines to save space
+        text = text.replace(/\n\s*\n/g, '\n').trim();
 
         cells.push(text);
       });
@@ -605,6 +601,7 @@ export const ProfileDetails = () => {
     });
     return rows;
   };
+
   useEffect(() => {
     const loadProfileData = async () => {
       setIsInitialLoading(true);
@@ -3925,11 +3922,12 @@ const styles = StyleSheet.create({
   },
   chartCell: {
     flex: 1,
-    justifyContent: 'center', // Vertically centers the stack of text
-    alignItems: 'center',     // Horizontally centers the stack
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRightWidth: 1,
     borderColor: '#000',
-    padding: 2,
+    padding: 1, // Reduced padding to maximize space
+    overflow: 'hidden', // Prevents content from spilling out
   },
   sideColumn: {
     flex: 1,
@@ -3946,10 +3944,11 @@ const styles = StyleSheet.create({
   },
   // --- TEXT STYLES TO MATCH IMAGE ---
   chartText: {
-    fontSize: 13,
+    fontSize: 10, // Reduced font size to fit 6 items (was 13)
     fontWeight: 'bold',
     color: '#008000',
-    textAlign: 'center', // Ensures multi-line text is centered
+    textAlign: 'center',
+    lineHeight: 12, // Tighter line height for stacking
     fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
   },
   centerLabel: {
