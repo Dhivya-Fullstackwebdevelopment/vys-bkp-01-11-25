@@ -46,7 +46,8 @@ import {
   logProfileVisit,
   getProfileListMatch,
   downloadMatchingReportPdf,
-  downloadPdfPoruthamNew
+  downloadPdfPoruthamNew,
+  fetchRasiImage
 } from '../../CommonApiCall/CommonApiCall';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Picker } from '@react-native-picker/picker';
@@ -160,6 +161,8 @@ export const ProfileDetails = () => {
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [profileIds, setProfileIds] = useState([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [rasiGrid, setRasiGrid] = useState([]);
+  console.log("rasiGriddddd", rasiGrid)
 
   const getSafeImage = (imageUrl) => {
 
@@ -567,6 +570,31 @@ export const ProfileDetails = () => {
     toggleModal(); // Close the modal after submission
   };
 
+  // Helper to clean HTML tags and get content
+  // Add this helper function at the top of your file or inside the component
+  const extractGridData = (htmlString) => {
+    const rows = [];
+    // 1. Split by Table Rows (<tr>)
+    const rowMatches = htmlString.match(/<tr[^>]*>([\s\S]*?)<\/tr>/g) || [];
+
+    rowMatches.forEach(rowHtml => {
+      const cells = [];
+      // 2. Split by Table Cells (<td>)
+      const cellMatches = rowHtml.match(/<td[^>]*>([\s\S]*?)<\/td>/g) || [];
+
+      cellMatches.forEach(cellHtml => {
+        // 3. Remove HTML tags to get clean text
+        let text = cellHtml.replace(/<[^>]+>/g, '').trim();
+        // Decode common HTML entities
+        text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+        cells.push(text);
+      });
+
+      if (cells.length > 0) rows.push(cells);
+    });
+    return rows;
+  };
+
   useEffect(() => {
     const loadProfileData = async () => {
       setIsInitialLoading(true);
@@ -582,6 +610,23 @@ export const ProfileDetails = () => {
           "No response from the opposite side",
         ];
         setOptions(options);
+        // const rasiData = await fetchRasiImage(viewedProfileId); // <--- Pass the ID here
+
+        // if (rasiData && rasiData.status === 1) {
+        //   console.log("Rasi Image Found:", rasiData.image);
+        //   setRasiImage(rasiData.image);
+        // } else {
+        //   console.log("Rasi Image Not Found");
+        //   setRasiImage(null);
+        // }
+
+        const rasiData = await fetchRasiImage(viewedProfileId);
+        if (rasiData && rasiData.status === 1) {
+          const parsedGrid = extractGridData(rasiData.html);
+          setRasiGrid(parsedGrid);
+        } else {
+          setRasiGrid([]);
+        }
         const data = await fetchProfileData(viewedProfileId);
         console.log("Fetched profile data: 1 ", data);
         const response = await logProfileVisit(viewedProfileId);
@@ -2377,6 +2422,58 @@ export const ProfileDetails = () => {
                   {profileData.horoscope_details?.sarpadosham && profileData.horoscope_details.sarpadosham !== "" && profileData.horoscope_details.sarpadosham !== null && (
                     <Text style={styles.labelNew}>Ragu/Kethu Dhosham: : <Text style={styles.valueNew}>{profileData.horoscope_details.sarpadosham}</Text></Text>
                   )}
+                  {/* <View style={styles.rasiContainer}> */}
+                  {/* RASI CHART - SOUTH INDIAN LAYOUT */}
+                  {showHoroscopeDetails && rasiGrid.length >= 4 && (
+                    <View style={styles.horoscopeSection}>
+                      {/* RASI CHART - SOUTH INDIAN LAYOUT */}
+                      <View style={styles.chartBorder}>
+
+                        {/* 1. TOP ROW (4 Items) */}
+                        <View style={styles.chartRow}>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][0]}</Text></View>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][1]}</Text></View>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][2]}</Text></View>
+                          <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[0][3]}</Text></View>
+                        </View>
+
+                        {/* 2. MIDDLE SECTION (Left Col, Center Box, Right Col) */}
+                        <View style={[styles.chartRow, { height: 160, borderBottomWidth: 1 }]}>
+
+                          {/* Left Column (2 Items stacked) */}
+                          <View style={styles.sideColumn}>
+                            <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[1][0]}</Text></View>
+                            <View style={[styles.chartCell, { borderBottomWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[2][0]}</Text></View>
+                          </View>
+
+                          {/* Center Big Box */}
+                          <View style={styles.centerBox}>
+                            <Text style={styles.centerText}>{rasiGrid[1][1]}</Text>
+                          </View>
+
+                          {/* Right Column (2 Items stacked) */}
+                          <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
+                            {/* Note: In standard HTML tables of this chart, Row 1 has 3 items (Left, Center, Right) 
+                          and Row 2 has 2 items (Left, Right). The indexing depends on the specific API response order.
+                          Usually: Grid[1][2] is Top Right, Grid[2][1] is Bottom Right. 
+                      */}
+                            <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[1][2]}</Text></View>
+                            <View style={[styles.chartCell, { borderBottomWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[2][1]}</Text></View>
+                          </View>
+
+                        </View>
+
+                        {/* 3. BOTTOM ROW (4 Items) */}
+                        <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][0]}</Text></View>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][1]}</Text></View>
+                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][2]}</Text></View>
+                          <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[3][3]}</Text></View>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                  {/* </View> */}
                 </View>
               </View>
             )}
@@ -3719,4 +3816,80 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+
+  rasiImage: {
+    width: '100%',
+    height: 300,
+    marginTop: 10,
+    backgroundColor: '#f9f9f9'
+  },
+  rasiContainer: {
+    padding: 10,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  horoscopeSection: {
+    padding: 10,
+    backgroundColor: '#fff', // White background for the section (removes dark color)
+  },
+  chartBorder: {
+    borderWidth: 1,
+    borderColor: '#333',
+    backgroundColor: '#FFFACD', // Light Yellow Color
+    width: '100%',
+    marginVertical: 10,
+  },
+  chartRow: {
+    flexDirection: 'row',
+    height: 80, // Height for Top and Bottom rows
+    borderBottomWidth: 1,
+    borderColor: '#333',
+  },
+  chartCell: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#333',
+    padding: 2,
+  },
+  chartText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#006400', // Dark Green Text
+    textAlign: 'center',
+  },
+  sideColumn: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderColor: '#333',
+  },
+  centerBox: {
+    flex: 2, // Spans 2 columns width
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderColor: '#333',
+  },
+  centerText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#006400',
+    textAlign: 'center',
+  },
+  textDetailsContainer: {
+    marginTop: 10,
+    paddingHorizontal: 5
+  },
+  detailText: {
+    fontSize: 15,
+    color: '#535665',
+    marginBottom: 5,
+    fontWeight: '600'
+  },
+  detailValue: {
+    fontWeight: '400',
+    color: '#333'
+  }
 });
