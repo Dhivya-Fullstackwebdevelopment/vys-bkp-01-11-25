@@ -2426,10 +2426,9 @@ export const ProfileDetails = () => {
                   {/* RASI CHART - SOUTH INDIAN LAYOUT */}
                   {showHoroscopeDetails && rasiGrid.length >= 4 && (
                     <View style={styles.horoscopeSection}>
-                      {/* RASI CHART - SOUTH INDIAN LAYOUT */}
                       <View style={styles.chartBorder}>
 
-                        {/* 1. TOP ROW (4 Items) */}
+                        {/* --- TOP ROW (Pisces, Aries, Taurus, Gemini) --- */}
                         <View style={styles.chartRow}>
                           <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][0]}</Text></View>
                           <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][1]}</Text></View>
@@ -2437,39 +2436,44 @@ export const ProfileDetails = () => {
                           <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[0][3]}</Text></View>
                         </View>
 
-                        {/* 2. MIDDLE SECTION (Left Col, Center Box, Right Col) */}
-                        <View style={[styles.chartRow, { height: 160, borderBottomWidth: 1 }]}>
+                        {/* --- MIDDLE SECTION (Aquarius/Cap & Cancer/Leo) --- */}
+                        <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
 
-                          {/* Left Column (2 Items stacked) */}
+                          {/* Left Column (Aquarius, Capricorn) */}
                           <View style={styles.sideColumn}>
-                            <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[1][0]}</Text></View>
-                            <View style={[styles.chartCell, { borderBottomWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[2][0]}</Text></View>
+                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                              <Text style={styles.chartText}>{rasiGrid[1][0]}</Text>
+                            </View>
+                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                              <Text style={styles.chartText}>{rasiGrid[2][0]}</Text>
+                            </View>
                           </View>
 
-                          {/* Center Big Box */}
+                          {/* Center Box (Empty / Title) */}
                           <View style={styles.centerBox}>
-                            <Text style={styles.centerText}>{rasiGrid[1][1]}</Text>
+                            <Text style={styles.centerLabel}>Rasi</Text>
+                            <Text style={styles.centerDomain}>vysyamala.com</Text>
                           </View>
 
-                          {/* Right Column (2 Items stacked) */}
+                          {/* Right Column (Cancer, Leo) - Note the Index [3] for the last cell */}
                           <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
-                            {/* Note: In standard HTML tables of this chart, Row 1 has 3 items (Left, Center, Right) 
-                          and Row 2 has 2 items (Left, Right). The indexing depends on the specific API response order.
-                          Usually: Grid[1][2] is Top Right, Grid[2][1] is Bottom Right. 
-                      */}
-                            <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[1][2]}</Text></View>
-                            <View style={[styles.chartCell, { borderBottomWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[2][1]}</Text></View>
+                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                              <Text style={styles.chartText}>{rasiGrid[1][rasiGrid[1].length - 1]}</Text>
+                            </View>
+                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                              <Text style={styles.chartText}>{rasiGrid[2][rasiGrid[2].length - 1]}</Text>
+                            </View>
                           </View>
-
                         </View>
 
-                        {/* 3. BOTTOM ROW (4 Items) */}
+                        {/* --- BOTTOM ROW (Sagittarius, Scorpio, Libra, Virgo) --- */}
                         <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
                           <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][0]}</Text></View>
                           <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][1]}</Text></View>
                           <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][2]}</Text></View>
                           <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[3][3]}</Text></View>
                         </View>
+
                       </View>
                     </View>
                   )}
@@ -3830,66 +3834,65 @@ const styles = StyleSheet.create({
   },
   horoscopeSection: {
     padding: 10,
-    backgroundColor: '#fff', // White background for the section (removes dark color)
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    width: '100%',
   },
   chartBorder: {
-    borderWidth: 1,
-    borderColor: '#333',
-    backgroundColor: '#FFFACD', // Light Yellow Color
+    borderWidth: 1.5,
+    borderColor: '#000',
+    backgroundColor: '#FFFACD', // Cream/LemonChiffon color match
     width: '100%',
+    maxWidth: 350,
+    aspectRatio: 1,
     marginVertical: 10,
   },
   chartRow: {
     flexDirection: 'row',
-    height: 80, // Height for Top and Bottom rows
+    flex: 1,
     borderBottomWidth: 1,
-    borderColor: '#333',
+    borderColor: '#000',
   },
   chartCell: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#333',
+    borderColor: '#000',
     padding: 2,
-  },
-  chartText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#006400', // Dark Green Text
-    textAlign: 'center',
   },
   sideColumn: {
     flex: 1,
     borderRightWidth: 1,
-    borderColor: '#333',
+    borderColor: '#000',
   },
   centerBox: {
-    flex: 2, // Spans 2 columns width
+    flex: 2,
     justifyContent: 'center',
     alignItems: 'center',
     borderRightWidth: 1,
-    borderColor: '#333',
+    borderColor: '#000',
+    backgroundColor: '#FFFACD',
   },
-  centerText: {
-    fontSize: 16,
+  // --- TEXT STYLES TO MATCH IMAGE ---
+  chartText: {
+    fontSize: 13, // Slightly smaller to fit content like "Kethu"
     fontWeight: 'bold',
-    color: '#006400',
+    color: '#008000', // Dark Green
     textAlign: 'center',
+    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif', // Serif font
   },
-  textDetailsContainer: {
-    marginTop: 10,
-    paddingHorizontal: 5
-  },
-  detailText: {
-    fontSize: 15,
-    color: '#535665',
+  centerLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#008000', // Green
     marginBottom: 5,
-    fontWeight: '600'
+    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
   },
-  detailValue: {
-    fontWeight: '400',
-    color: '#333'
-  }
+  centerDomain: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#008000', // Green
+    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
+  },
 });
