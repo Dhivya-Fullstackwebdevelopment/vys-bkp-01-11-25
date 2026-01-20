@@ -165,6 +165,18 @@ export const ProfileDetails = () => {
   const [rasiGrid, setRasiGrid] = useState([]);
   const [amsaGrid, setAmsaGrid] = useState([]);
   console.log("rasiGriddddd", rasiGrid)
+  const [storedPlanId, setStoredPlanId] = useState(null);
+
+  useEffect(() => {
+    const fetchPlan = async () => {
+      const id = await AsyncStorage.getItem("current_plan_id");
+      setStoredPlanId(id);
+    };
+    fetchPlan();
+  }, []);
+
+  const isPlan16 = storedPlanId === "16";
+
 
   const getSafeImage = (imageUrl) => {
 
@@ -1513,7 +1525,10 @@ export const ProfileDetails = () => {
       { icon: 'phone', text: 'Call', onPress: handlePhoneCall, type: 'MaterialCommunityIcons' },
       // { icon: 'share', text: 'Share', onPress: handleShare, type: 'MaterialIcons' },
       { icon: 'document-text', text: 'Personal Notes', onPress: toggleModal, type: 'Ionicons' },
-      { icon: 'account-voice', text: 'Vys Assist', onPress: openPopup, type: 'MaterialCommunityIcons' },
+      // { icon: 'account-voice', text: 'Vys Assist', onPress: openPopup, type: 'MaterialCommunityIcons' },
+      ...(!isPlan16
+        ? [{ icon: "account-voice", text: "Vys Assist", onPress: openPopup, type: "MaterialCommunityIcons" }]
+        : []),
       { icon: 'print-outline', text: 'Download Profile', onPress: handleDownloadPdf, type: 'Ionicons' },
       { icon: 'star', text: 'Show Matching Report', onPress: handleDownloadMatchingReport, type: 'MaterialIcons' },
       // { icon: 'report-problem', text: 'Report Profile', onPress: () => { }, type: 'MaterialIcons' },
@@ -1821,7 +1836,7 @@ export const ProfileDetails = () => {
                     style={styles.saveIcon}
                   />
                 </TouchableOpacity>
-                {photoRequest === 1 && (
+                {!isPlan16 && photoRequest === 1 && (
                   <MaterialIcons
                     name="insert-photo"
                     size={24}
@@ -1923,7 +1938,7 @@ export const ProfileDetails = () => {
             </View>
 
             <View style={styles.buttonContainerExpress}>
-              {interestParam !== 1 && status !== 2 && status !== 3 && (
+              {!isPlan16 && interestParam !== 1 && status !== 2 && status !== 3 && (
                 <TouchableOpacity
                   style={styles.btn}
                   onPress={() => { expressInt ? handleExpressInterestPress1() : setShowInterestModal(true) }}
@@ -3966,11 +3981,11 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
   },
   chartTitle: {
-  fontSize: 17,
-  fontWeight: "bold",
-  color: "#282C3F",
-  marginBottom: 6,
-  alignSelf: "flex-start",
-},
+    fontSize: 17,
+    fontWeight: "bold",
+    color: "#282C3F",
+    marginBottom: 6,
+    alignSelf: "flex-start",
+  },
 
 });
