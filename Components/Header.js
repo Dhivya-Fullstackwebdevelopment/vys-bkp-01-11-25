@@ -18,6 +18,7 @@ export const Header = (props) => {
   const navigation = useNavigation();
   const [notifyCount, setNotifyCount] = useState(0);
   const [buttonText, setButtonText] = useState("Upgrade");
+  const [hidePlanButton, setHidePlanButton] = useState(false);
 
   const handleLogoClick = () => {
     console.log("Logo Clicked"); // Check your terminal/console to see if this triggers
@@ -53,6 +54,13 @@ export const Header = (props) => {
         const planId = parseInt(currentPlanId || "0");
 
         let buttonType = "Upgrade";
+
+        if (planId === 16) {
+          setHidePlanButton(true);
+          return;
+        } else {
+          setHidePlanButton(false);
+        }
 
         if (allowedPremiumIds.includes(planId)) {
           if (validityDate) {
@@ -116,7 +124,10 @@ export const Header = (props) => {
       </TouchableOpacity>
       <TouchableOpacity
         onPress={handleNotificationClick}
-        style={styles.notificationContainer}
+        style={[
+          styles.notificationContainer,
+          hidePlanButton && { left: 0 }   // ✅ if plan hidden, remove left
+        ]}
       >
         <MaterialIcons name="notifications" size={24} color="#535665" />
         {notifyCount > 0 && (
@@ -125,29 +136,41 @@ export const Header = (props) => {
           </View>
         )}
       </TouchableOpacity>
-      <TouchableOpacity onPress={handleUpgradeClick}>
-        <LinearGradient
-          colors={['#BD1225', '#FF4050']} // Gradient colors
-          style={styles.button}
-        >
-          <Text style={styles.textUpgrade}>{buttonText}</Text>
-          {/* <MaterialCommunityIcons name="arrow-up-circle" size={28} color="#fff" style={{ left: 5 }} /> */}
-        </LinearGradient>
-      </TouchableOpacity>
+      {!hidePlanButton && (
+        <TouchableOpacity onPress={handleUpgradeClick}>
+          <LinearGradient
+            colors={['#BD1225', '#FF4050']} // Gradient colors
+            style={styles.button}
+          >
+            <Text style={styles.textUpgrade}>{buttonText}</Text>
+            {/* <MaterialCommunityIcons name="arrow-up-circle" size={28} color="#fff" style={{ left: 5 }} /> */}
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
 
 
 const styles = StyleSheet.create({
+  // container: {
+  //   flex: 1,
+  //   flexDirection: "row",
+  //   backgroundColor: "#fff",
+  //   alignItems: "center",
+  //   justifyContent: "space-between",
+  //   width: "100%",
+  // },
   container: {
     flex: 1,
     flexDirection: "row",
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "space-between",
+    // paddingHorizontal: 10,
     width: "100%",
   },
+
   button: {
     borderRadius: 6,
     paddingVertical: 7,

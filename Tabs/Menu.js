@@ -58,6 +58,7 @@ export const Menu = () => {
   // const activePlanId = AsyncStorage.getItem("current_plan_id");
   const [activePlanId, setActivePlanId] = useState(null);
   const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
+  const isPlan16 = activePlanId === 16;
 
   useEffect(() => {
     const determineButtonType = async () => {
@@ -678,15 +679,16 @@ export const Menu = () => {
                 <Text style={styles.textUpgrade}>Upgrade</Text>
               </LinearGradient>
             </TouchableOpacity> */}
-
-            <TouchableOpacity onPress={handleUpgradeClick}>
-              <LinearGradient
-                colors={['#BD1225', '#FF4050']}
-                style={styles.button}
-              >
-                <Text style={styles.textUpgrade}>{buttonText}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+            {!isPlan16 && (
+              <TouchableOpacity onPress={handleUpgradeClick}>
+                <LinearGradient
+                  colors={['#BD1225', '#FF4050']}
+                  style={styles.button}
+                >
+                  <Text style={styles.textUpgrade}>{buttonText}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
 
             {/* hrLine */}
             <View style={styles.hrLine} />
