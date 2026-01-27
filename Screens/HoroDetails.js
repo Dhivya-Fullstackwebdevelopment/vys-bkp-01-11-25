@@ -964,6 +964,7 @@ const schema = z.object({
     selectedTime: z.string().optional(),
     plValue: z.string().min(1, "Place of Birth is required"),
     stValue: z.string().min(1, "Birth Star is required"),
+    padham: z.string().optional(),
     raValue: z.string().min(1, "Rasi is required"),
     laValue: z.string().optional(),
     didi: z.string().optional(),
@@ -987,6 +988,7 @@ export const HoroDetails = () => {
             selectedTime: "",
             plValue: "",
             stValue: "",
+            padham: "",
             raValue: "",
             laValue: "",
             didi: "",
@@ -1212,6 +1214,7 @@ export const HoroDetails = () => {
                 place_of_birth: data.plValue,
                 time_of_birth: data.selectedTime, // This is now in HH:MM PM/AM format
                 birthstar_name: data.stValue,
+                padham: data.padham ? Number(data.padham) : null,
                 birth_rasi_name: data.raValue,
                 lagnam_didi: data.laValue || "",
                 chevvai_dosaham: data.chdoshamValue || "",
@@ -1338,6 +1341,38 @@ export const HoroDetails = () => {
                             defaultValue="" // Set default value if needed
                         />
                         {errors.stValue && <Text style={styles.error}>{errors.stValue.message}</Text>}
+                    </View>
+
+                    {/* Padham Dropdown */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>
+                            Padham
+                        </Text>
+                        <Controller
+                            control={control}
+                            name="padham"
+                            render={({ field: { onChange, value } }) => (
+                                <Dropdown
+                                    style={styles.dropdown}
+                                    placeholder="Select Padham"
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    iconStyle={styles.iconStyle}
+                                    data={[
+                                        { label: '1', value: '1' },
+                                        { label: '2', value: '2' },
+                                        { label: '3', value: '3' },
+                                        { label: '4', value: '4' },
+                                    ]}
+                                    maxHeight={180}
+                                    labelField="label"
+                                    valueField="value"
+                                    value={value}
+                                    onChange={(item) => onChange(item.value)}
+                                />
+                            )}
+                        />
+                        {errors.padham && <Text style={styles.error}>{errors.padham.message}</Text>}
                     </View>
 
                     {/* Rasi */}

@@ -2421,6 +2421,9 @@ export const ProfileDetails = () => {
                   {profileData.horoscope_details?.rasi && profileData.horoscope_details.rasi !== "" && profileData.horoscope_details.rasi !== null && (
                     <Text style={styles.labelNew}>Rasi : <Text style={styles.valueNew}>{profileData.horoscope_details.rasi}</Text></Text>
                   )}
+                  {profileData.horoscope_details?.padham && profileData.horoscope_details.padham !== "" && profileData.horoscope_details.padham !== null && (
+                    <Text style={styles.labelNew}>Padham : <Text style={styles.valueNew}>{profileData.horoscope_details.padham}</Text></Text>
+                  )}
                   {profileData.horoscope_details?.star_name && profileData.horoscope_details.star_name !== "" && profileData.horoscope_details.star_name !== null && (
                     <Text style={styles.labelNew}>Star : <Text style={styles.valueNew}>{profileData.horoscope_details.star_name}</Text></Text>
                   )}

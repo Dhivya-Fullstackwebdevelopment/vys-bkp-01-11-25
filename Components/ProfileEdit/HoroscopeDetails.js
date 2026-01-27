@@ -64,6 +64,7 @@ export const HoroscopeDetails = () => {
 
     const [formValues, setFormValues] = useState({
         personal_bthstar_name: '',
+        personal_padham: null,
         personal_bth_rasi_name: '',
         personal_lagnam_didi_name: '',
         personal_didi: '',
@@ -164,7 +165,12 @@ export const HoroscopeDetails = () => {
         }
     };
 
-
+    const padhamOptions = [
+        { label: '1', value: 1 },
+        { label: '2', value: 2 },
+        { label: '3', value: 3 },
+        { label: '4', value: 4 },
+    ];
 
     useEffect(() => {
         fetchProfileData(); // Call the function when component mounts
@@ -289,6 +295,9 @@ export const HoroscopeDetails = () => {
 
             setFormValues({
                 personal_bthstar_name: horoscopeDetails.personal_bthstar_name || '',
+                personal_padham: horoscopeDetails.personal_padham
+                    ? Number(horoscopeDetails.personal_padham)
+                    : null,
                 personal_bth_rasi_name: horoscopeDetails.personal_bth_rasi_name || '',
                 personal_lagnam_didi_name: horoscopeDetails.personal_lagnam_didi_name || '',
                 personal_didi: horoscopeDetails.personal_didi || '',
@@ -398,6 +407,9 @@ export const HoroscopeDetails = () => {
                 // Convert IDs to strings and ensure no null values
                 const profileData = {
                     birthstar_name: formValues.personal_bthstar_id ? String(formValues.personal_bthstar_id) : '',
+                    padham: formValues.personal_padham
+                        ? Number(formValues.personal_padham)
+                        : null,
                     birth_rasi_name: formValues.personal_bth_rasi_id ? String(formValues.personal_bth_rasi_id) : '',
                     lagnam_didi: formValues.personal_lagnam_didi_id ? String(formValues.personal_lagnam_didi_id) : '',
                     chevvai_dosaham: formValues.personal_chevvai_dos || '',
@@ -412,6 +424,7 @@ export const HoroscopeDetails = () => {
                     amsa_kattam: "{Grid 1: empty, Grid 2: empty, Grid 3: empty, Grid 4: empty, Grid 5: empty, Grid 6: empty, Grid 7: empty, Grid 8: empty, Grid 9: empty, Grid 10: empty, Grid 11: empty, Grid 12: empty}",
                     rasi_kattam: "{Grid 1: empty, Grid 2: empty, Grid 3: empty, Grid 4: empty, Grid 5: empty, Grid 6: empty, Grid 7: empty, Grid 8: empty, Grid 9: empty, Grid 10: empty, Grid 11: empty, Grid 12: empty}"
                 };
+                console.log("profileData",profileData)
 
                 // Validate that required fields are not empty strings
                 const requiredFields = ['birthstar_name', 'birth_rasi_name', 'lagnam_didi'];
@@ -487,6 +500,30 @@ export const HoroscopeDetails = () => {
                             />
                             {validationErrors.personal_bthstar_id && (
                                 <Text style={styles.error}>{validationErrors.personal_bthstar_id}</Text>
+                            )}
+                        </View>
+
+                        {/* Padham */}
+                        <View style={styles.formGroup}>
+                            <Text style={styles.labelNew}>Padham</Text>
+                            <RNPickerSelect
+                                onValueChange={(value) => handleChange('personal_padham', value)}
+                                items={padhamOptions}
+                                value={formValues.personal_padham}
+                                useNativeAndroidPickerStyle={false}
+                                Icon={() => (
+                                    <Ionicons
+                                        name="chevron-down"
+                                        size={24}
+                                        color="gray"
+                                        style={{ marginTop: 10 }}
+                                    />
+                                )}
+                                placeholder={{ label: "Select Padham", value: null }}
+                                style={pickerSelectStyles}
+                            />
+                            {validationErrors.personal_padham && (
+                                <Text style={styles.error}>{validationErrors.personal_padham}</Text>
                             )}
                         </View>
 
@@ -767,6 +804,7 @@ export const HoroscopeDetails = () => {
                         {horoscopeDetails && (
                             <>
                                 <Text style={styles.labelNew}>Birth Star : <Text style={styles.valueNew}>{horoscopeDetails.personal_bthstar_name || "N/A"}</Text></Text>
+                                <Text style={styles.labelNew}>Padham : <Text style={styles.valueNew}>{horoscopeDetails.personal_padham || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Rasi : <Text style={styles.valueNew}>{horoscopeDetails.personal_bth_rasi_name || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Lagnam : <Text style={styles.valueNew}>{horoscopeDetails.personal_lagnam_didi_name || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Dasa Name : <Text style={styles.valueNew}>{horoscopeDetails.personal_dasa || "N/A"}</Text></Text>
