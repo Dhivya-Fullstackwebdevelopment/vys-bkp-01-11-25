@@ -360,10 +360,7 @@ export const Search = () => {
       return updatedCheckedStates;
     });
   };
-
-
-
-
+  
   const handleSubmit = async () => {
     const peopleWithPhotoParam = ppChecked ? 1 : 0;
     const params = {
@@ -422,8 +419,6 @@ export const Search = () => {
 
   };
 
-
-
   const DEBOUNCE_DELAY = 500;
 
   const handleSearchPress = async (profileId) => {
@@ -472,64 +467,72 @@ export const Search = () => {
   const MIN_SEARCH_LENGTH = 3;
 
   const handleFilterPress = async () => {
-    if (btnLoading) return;     // ⛔ avoid double click
+    if (btnLoading) return;
     setBtnLoading(true);
+
     const searchId = (searchProfileId || '').trim();
-    console.log("searchId", searchId)
 
-    if (searchId.length >= MIN_SEARCH_LENGTH) {
-      try {
-        // 2. Call API to search by Profile ID or Name
-        const response = await Search_By_profileId(searchId); // Now receives { status: "success", data: [...] }
-        console.log('Search_By_profileId', response)
-
-        // 3. The check for SUCCESS STATUS and non-empty DATA ARRAY now works correctly:
-        if (response && response.status === "success" && Array.isArray(response.data) && response.data.length > 0) {
-
-          // SUCCESS: Navigate to FilterScreen
-          const profileCount = response.data.length;
-          console.log(profileCount, "profileCount")
-          // SUCCESS: Navigate to FilterScreen with count
-
-          navigation.navigate('FilterScreen', {
-            searchProfileId: searchId,
-            isProfileIdSearch: true,
-            profileCount: profileCount, // Pass the count
-          });
-        } else {
-          // Handle cases where:
-          // a) status is 'success' but data is empty (no matches found)
-          // b) status is 'failure' (API error message)
-
-          // Use the message from the API response if it exists, otherwise use a default "No profiles found"
-          const errorMessage = response?.data?.message || "No profiles found matching your search term.";
-
-          Toast.show({
-            type: "info",
-            text1: "No Matches",
-            text2: errorMessage,
-            position: "bottom",
-          });
-        }
-      } catch (error) {
-        console.error("Error during profile search:", error);
-        Toast.show({
-          type: "error",
-          text1: "Search Error",
-          text2: "Failed to fetch profile data.",
-          position: "bottom",
-        });
-      }
-    } else {
-      // Input Error (MIN_SEARCH_LENGTH)
+    if (searchId.length < MIN_SEARCH_LENGTH) {
       Toast.show({
         type: "error",
         text1: "Input Error",
         text2: `Please enter at least ${MIN_SEARCH_LENGTH} characters to search.`,
         position: "bottom",
       });
+      setBtnLoading(false);
+      return;
     }
-    setBtnLoading(false);
+
+    try {
+      const currentUserGender = await AsyncStorage.getItem("gender");
+      const normalizedGender = currentUserGender?.toLowerCase();
+      const inputUpper = searchId.toUpperCase();
+
+      let isInvalid = false;
+
+      if (normalizedGender === "male" && inputUpper.startsWith("VM")) {
+        isInvalid = true;
+      }
+
+      if (normalizedGender === "female" && inputUpper.startsWith("VF")) {
+        isInvalid = true;
+      }
+
+      if (isInvalid) {
+        Toast.show({
+          type: "error",
+          text1: "Validation Error",
+          text2: "This profile does not match your gender preference.",
+          position: "bottom",
+        });
+        setBtnLoading(false);
+        return;
+      }
+
+      const response = await Search_By_profileId(searchId);
+
+      if (response && response.status === "success" && Array.isArray(response.data) && response.data.length > 0) {
+        const profileCount = response.data.length;
+        navigation.navigate('FilterScreen', {
+          searchProfileId: searchId,
+          isProfileIdSearch: true,
+          profileCount: profileCount,
+        });
+      } else {
+        const errorMessage = response?.data?.message || "No profiles found matching your search term.";
+        Toast.show({
+          type: "info",
+          text1: "No Matches",
+          text2: errorMessage,
+          position: "bottom",
+        });
+      }
+    } catch (error) {
+      console.error("Error during profile search:", error);
+      Toast.show({ type: "error", text1: "Search Error", text2: "Failed to fetch profile data.", position: "bottom" });
+    } finally {
+      setBtnLoading(false);
+    }
   };
   // Profile Photo
   const [ppChecked, ppSetChecked] = useState(false);
