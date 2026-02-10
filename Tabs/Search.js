@@ -360,63 +360,93 @@ export const Search = () => {
       return updatedCheckedStates;
     });
   };
-  
+
   const handleSubmit = async () => {
-    const peopleWithPhotoParam = ppChecked ? 1 : 0;
-    const params = {
-      // profile_id: loginuser_profileId,
-      from_age: fromAge,
-      to_age: toAge,
-      from_height: fromHeight,
-      to_height: toHeight,
-      search_marital_status: selectedIds,
-      search_profession: selectedProfessionIds,
-      search_education: selectedEducationId,
-      max_income: selectedIncomeMinIds,
-      min_income: selectedIncomeMaxIds,
-      field_ofstudy: selectedFieldofStudyIds,
-      search_star: selectedBirthStarId,
-      search_nativestate: selectedStateIds,
-      chevvai_dhosam: chevvaiDhosam,
-      ragukethu_dhosam: rahuKetuDhosam,
-      people_withphoto: peopleWithPhotoParam,
-      search_worklocation: selectedWorkLocationId,
-      // from_reg_date: fromRegDate,
-      // to_reg_date: toRegDate,
-    };
-
     try {
-      // Save parameters to AsyncStorage
-      console.log("search params ==>", params)
+
+      const myGender = await AsyncStorage.getItem("gender");
+      const myAgeValue = await AsyncStorage.getItem("age");
+
+      console.log("Logged-in Gender:", myGender);
+      console.log("Logged-in Age (from Storage):", myAgeValue);
+
+      const myAge = parseInt(myAgeValue || "0", 10);
+      console.log("myAge",myAge)
+      const normalizedGender = myGender?.toLowerCase();
+      console.log("genderr", normalizedGender)
+      
+      const fromAgeNum = parseInt(fromAge.toString(), 10);
+      const toAgeNum = parseInt(toAge.toString(), 10);
+
+      console.log("Search From Age:", fromAgeNum);
+      console.log("Search To Age:", toAgeNum);
+
+      if (fromAgeNum > 0 && toAgeNum > 0 && fromAgeNum > toAgeNum) {
+        Toast.show({
+          type: "error",
+          text1: "Input Error",
+          text2: "From Age cannot be greater than To Age",
+          position: "bottom",
+        });
+        return;
+      }
+
+      if (normalizedGender === "male") {
+        if (toAgeNum > (myAge + 1)) {
+          Toast.show({
+            type: "error",
+            text1: "Validation Error",
+            text2: "Your age preference does not match this profile.",
+            position: "bottom",
+          });
+          return;
+        }
+      }
+
+      if (normalizedGender === "female") {
+        if (fromAgeNum < (myAge - 1)) {
+          Toast.show({
+            type: "error",
+            text1: "Validation Error",
+            text2: "Your age preference does not match this profile.",
+            position: "bottom",
+          });
+          return;
+        }
+      }
+
+      const peopleWithPhotoParam = ppChecked ? 1 : 0;
+      const params = {
+        from_age: fromAge,
+        to_age: toAge,
+        from_height: fromHeight,
+        to_height: toHeight,
+        search_marital_status: selectedIds,
+        search_profession: selectedProfessionIds,
+        search_education: selectedEducationId,
+        max_income: selectedIncomeMinIds,
+        min_income: selectedIncomeMaxIds,
+        field_ofstudy: selectedFieldofStudyIds,
+        search_star: selectedBirthStarId,
+        search_nativestate: selectedStateIds,
+        chevvai_dhosam: chevvaiDhosam,
+        ragukethu_dhosam: rahuKetuDhosam,
+        people_withphoto: peopleWithPhotoParam,
+        search_worklocation: selectedWorkLocationId,
+      };
+
       await AsyncStorage.setItem('searchParams', JSON.stringify(params));
+      const searchResults = await getAdvanceSearchResults(1, 1);
 
-      // Fetch search results
-      const searchResults = await getAdvanceSearchResults(per_page = 1, page_number = 1);
-      console.log('Search Results:', searchResults);
-
-      if (searchResults && searchResults && searchResults.status === "success") {
-        // Access total_count from the correct part of the response
-        const totalCount = searchResults.total_count;  // Adjust based on actual structure
-
-        const count = totalCount.toString();
-        await AsyncStorage.setItem('totalcount', count.toString());
-
-
-        navigation.navigate('SearchResults', { results: searchResults.data, totalCount: searchResults.total_count });
-      } else {
-        console.error('Failed to fetch search results:', searchResults.data.message || 'Unknown error');
+      if (searchResults && searchResults.status === "success") {
+        navigation.navigate('SearchResults', {
+          results: searchResults.data,
+          totalCount: searchResults.total_count
+        });
       }
     } catch (error) {
-      console.error('Error during search:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'No Results Found',
-        text2: 'Your search did not return any results. Please try different criteria.',
-        position: 'bottom'
-      });
+      console.error('Search error:', error);
     }
-
-
   };
 
   const DEBOUNCE_DELAY = 500;
