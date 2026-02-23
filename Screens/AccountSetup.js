@@ -56,7 +56,8 @@ const schema = zod.object({
       /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,}$/,
       "Password must be at least 8 characters with an uppercase letter and special character"
     ),
-
+  Profile_country: zod.string().optional(),
+  stateValue: zod.string().optional(),
 });
 
 function ListHeaderComponent({ countries, lang, onPress }) {
@@ -123,9 +124,13 @@ export const AccountSetup = () => {
   const [otpMessage, setOtpMessage] = useState("OTP will be sent to this number");
   const [passwordInfo, setPasswordInfo] = useState('');
   const [disabledGender, setDisabledGender] = useState(null);
-  const [submitting, setSubmitting] = useState(false); // Add state to track submission
-
-
+  const [submitting, setSubmitting] = useState(false);
+  const [countriesList] = useState([
+    { label: "India", value: "1" },
+    { label: "NRI", value: "" },
+  ]);
+  const [statesList, setStatesList] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState("1");
 
   const handleOpenLink = (url) => {
     console.log("hiiii");
@@ -165,6 +170,31 @@ export const AccountSetup = () => {
     setChecked(!checked);
   };
 
+  const fetchStates = async (countryId) => {
+    try {
+      const response = await axios.post(
+        `${config.apiUrl}/auth/Get_State/`,
+        { country_id: countryId }
+      );
+
+      const statesArray = Object.values(response.data).map((state) => ({
+        label: state.state_name,
+        value: state.state_id.toString(),
+      }));
+
+      setStatesList(statesArray);
+    } catch (error) {
+      console.error("Error fetching states:", error);
+      setStatesList([]);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCountry === "1") {
+      fetchStates("1");
+    }
+  }, []);
+
   const onSubmit = async (data) => {
     if (!checked) {
       Alert.alert("Error", "Please agree to the Terms and Conditions and Privacy Policy.");
@@ -191,7 +221,9 @@ export const AccountSetup = () => {
         Mobile_no: fullNumber,
         EmailId: data.email,
         Password: data.password,
-        mobile_country: cleanedCountryCode
+        mobile_country: cleanedCountryCode,
+        Profile_country: selectedCountry,
+        Profile_state: data.stateValue || "",
       };
       await AsyncStorage.setItem('gender', data.genderValue);
       await AsyncStorage.setItem('password', data.password);
@@ -448,6 +480,50 @@ export const AccountSetup = () => {
             ) : null}
           </View>
 
+          <View style={styles.inputContainer}>
+            <Dropdown
+              style={styles.dropdown}
+              data={countriesList}
+              maxHeight={180}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Country"
+              value={selectedCountry}
+              onChange={(item) => {
+                setSelectedCountry(item.value);
+                if (item.value === "1") {
+                  fetchStates("1");
+                } else {
+                  setStatesList([]);
+                  setValue("stateValue", "");
+                }
+              }}
+            />
+          </View>
+
+          {selectedCountry === "1" && (
+            <View style={styles.inputContainer}>
+              <Controller
+                name="stateValue"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Dropdown
+                    style={styles.dropdown}
+                    data={statesList}
+                    maxHeight={300}
+                    labelField="label"
+                    valueField="value"
+                    placeholder="Select State"
+                    value={value}
+                    onChange={(item) => {
+                      onChange(item.value);
+                    }}
+                  />
+                )}
+              />
+              {errors.stateValue && <Text style={styles.error}>{errors.stateValue.message}</Text>}
+            </View>
+          )}
 
           <View style={styles.textContainer}>
             <View style={styles.checkboxContainer}>
@@ -496,7 +572,7 @@ export const AccountSetup = () => {
             disabled={submitting} // Disable button when submitting
           >
             <LinearGradient
-              colors={submitting ?  ["#BD1225", "#FF4050"] : ["#BD1225", "#FF4050"]}
+              colors={submitting ? ["#BD1225", "#FF4050"] : ["#BD1225", "#FF4050"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               angle={92.08}
