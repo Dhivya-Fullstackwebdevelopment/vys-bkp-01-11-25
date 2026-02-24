@@ -182,7 +182,7 @@ export const BasicDetails = () => {
   const minDate = new Date(1947, 0, 1); // January 1, 1947
   const maxDate = new Date(currentYear - 19, 11, 31); // December 31 of (currentYear - 18)
 
-  const handleDateChange = (event, date) => {
+  const handleDateChange = async (event, date) => {
     if (event.type === "set") {
       const selectedDate = date || currentDate;
       const safeDate = new Date(
@@ -198,6 +198,13 @@ export const BasicDetails = () => {
       setSelectedDate(safeDate); // Store the safeDate
       setAge(calculatedAge);
       setValue("selectedDate", safeDate, { shouldValidate: true });
+      try {
+        await AsyncStorage.setItem("userAge", calculatedAge.toString());
+        await AsyncStorage.setItem("age", calculatedAge.toString());
+        console.log("Age stored successfully:", calculatedAge);
+      } catch (error) {
+        console.error("Error saving age to storage:", error);
+      }
     } else {
       setShowDatepicker(false);
     }

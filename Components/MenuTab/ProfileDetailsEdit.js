@@ -36,6 +36,7 @@ import { ContactDetails } from '../ProfileEdit/ContactDetails';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const ProfileDetailsEdit = () => {
 
@@ -472,6 +473,9 @@ export const ProfileDetailsEdit = () => {
                 setIsEditMode(false);
                 // Fetch the updated profile data again
                 fetchProfileData();
+                await AsyncStorage.setItem("age", formValues.personal_age.toString());
+                await AsyncStorage.setItem("height", formValues.personal_profile_height.toString());
+    
             } catch (error) {
                 console.error('Failed to update profile:', error);
                 Toast.show({

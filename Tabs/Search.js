@@ -366,17 +366,21 @@ export const Search = () => {
 
       const myGender = await AsyncStorage.getItem("gender");
       const myAgeValue = await AsyncStorage.getItem("age");
+      const myHeightValue = await AsyncStorage.getItem("height");
 
       console.log("Logged-in Gender:", myGender);
       console.log("Logged-in Age (from Storage):", myAgeValue);
 
       const myAge = parseInt(myAgeValue || "0", 10);
-      console.log("myAge",myAge)
+      const myHeight = parseInt(myHeightValue || "0", 10);
+      console.log("myAge", myAge)
       const normalizedGender = myGender?.toLowerCase();
       console.log("genderr", normalizedGender)
-      
+
       const fromAgeNum = parseInt(fromAge.toString(), 10);
       const toAgeNum = parseInt(toAge.toString(), 10);
+      const fromHeightNum = parseInt(fromHeight.toString(), 10);
+      const toHeightNum = parseInt(toHeight.toString(), 10);
 
       console.log("Search From Age:", fromAgeNum);
       console.log("Search To Age:", toAgeNum);
@@ -391,29 +395,47 @@ export const Search = () => {
         return;
       }
 
+      if (fromHeightNum > 0 && toHeightNum > 0 && fromHeightNum > toHeightNum) {
+        return Toast.show({
+          type: "error",
+          text1: "Height Range Error",
+          text2: " 'From Height' cannot be greater than 'To Height' ",
+          position: "bottom",
+        });
+      }
+
       if (normalizedGender === "male") {
-        if (toAgeNum > (myAge + 1)) {
-          Toast.show({
-            type: "error",
-            text1: "Validation Error",
-            text2: "Your age preference does not match this profile.",
-            position: "bottom",
-          });
-          return;
+        // Age Check
+        if (toAgeNum > 0 && toAgeNum > (myAge + 1)) {
+          return Toast.show({ type: "error", text1: "Validation Error", text2: "Your age preference does not match this profile.", position: "bottom" });
+        }
+        // Height Check
+        if (toHeightNum > 0 && toHeightNum > (myHeight + 2)) {
+          return Toast.show({ type: "error", text1: "Validation Error", text2: "Your height preference does not match this profile.", position: "bottom" });
         }
       }
 
       if (normalizedGender === "female") {
-        if (fromAgeNum < (myAge - 1)) {
-          Toast.show({
+        if (fromAgeNum > 0 && fromAgeNum < (myAge - 1)) {
+          return Toast.show({
             type: "error",
             text1: "Validation Error",
             text2: "Your age preference does not match this profile.",
             position: "bottom",
           });
-          return;
+        }
+
+        if (fromHeightNum > 0 && fromHeightNum < (myHeight - 2)) {
+          return Toast.show({
+            type: "error",
+            text1: "Validation Error",
+            text2: "Your height preference does not match this profile.",
+            position: "bottom",
+          });
         }
       }
+
+
 
       const peopleWithPhotoParam = ppChecked ? 1 : 0;
       const params = {

@@ -118,6 +118,7 @@ export const LoginPage = () => {
           birth_rasi_id,
           custom_message,
           age,
+          height,
         } = response.data;
 
         console.log("Login Success:");
@@ -130,6 +131,7 @@ export const LoginPage = () => {
         console.log("login gender", gender);
         console.log("login birth star id", birth_star_id);
         console.log("login birth star id", birth_rasi_id);
+        console.log("height", height);
 
         await AsyncStorage.setItem("loginuser_profileId", profile_id);
         await AsyncStorage.setItem("profile_id_new", profile_id);
@@ -143,6 +145,7 @@ export const LoginPage = () => {
         await AsyncStorage.setItem("birthStaridValue", birth_rasi_id?.toString() || "");
         await AsyncStorage.setItem("custom_message", custom_message?.toString() || "");
         await AsyncStorage.setItem("age", age?.toString() || "");
+        await AsyncStorage.setItem("height", height?.toString() || "");
 
         Toast.show({
           type: "success",
