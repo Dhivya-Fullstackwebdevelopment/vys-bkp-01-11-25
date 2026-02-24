@@ -42,6 +42,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BottomTabBarComponent } from '../../Navigation/ReuseTabNavigation';
 // import { PartnerSettings } from '../PartnerSettings';
 import axios from 'axios';
+import config from '../../API/Apiurl';
 
 
 export const OtherSettings = () => {
@@ -192,7 +193,7 @@ export const OtherSettings = () => {
 
             if (!profileId) return;
 
-            const response = await axios.post("https://app.vysyamala.com/auth/Get_save_details/", {
+            const response = await axios.post(`${config.apiUrl}/auth/Get_save_details/`, {
                 profile_id: profileId,
                 page_id: "2", // Consistent with your web logic
             });
@@ -265,7 +266,7 @@ export const OtherSettings = () => {
         appendFile("divorcepf_file", divorceFile);
 
         try {
-            const response = await axios.post("https://app.vysyamala.com/auth/Photo_Id_Settings/", formData, {
+            const response = await axios.post(`${config.apiUrl}/auth/Photo_Id_Settings/`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 onUploadProgress: (progressEvent) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);

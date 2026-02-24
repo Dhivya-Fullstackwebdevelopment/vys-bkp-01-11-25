@@ -26,6 +26,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchDashboardData, getMyProfilePersonal, getMyEducationalDetails } from "../CommonApiCall/CommonApiCall";
 import Toast from "react-native-toast-message";
 import { TopAlignedImage } from "../Components/ReuseImageAlign/TopAlignedImage";
+import config from "../API/Apiurl"; // Import API URL from config
 
 // Get device dimensions
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -248,7 +249,7 @@ export const Menu = () => {
 
       // Construct the share URL with proper encoding
       // const shareUrl = `${baseUrl}/auth/profile/${encodeURIComponent(profileId)}/`;
-      const shareUrl = `https://app.vysyamala.com/auth/profile/${profileId}/`;
+      const shareUrl = `${config.apiUrl}/auth/profile/${profileId}/`;
       const title = 'Check out this profile!';
 
       const message =
@@ -329,7 +330,7 @@ export const Menu = () => {
       }
 
       // Construct the share URL with proper encoding
-      const shareUrlWithoutImage = `https://app.vysyamala.com/auth/profile_view/${profileId}/`
+      const shareUrlWithoutImage = `${config.apiUrl}/auth/profile_view/${profileId}/`
       const title = 'Check out this profile!';
 
       const message =

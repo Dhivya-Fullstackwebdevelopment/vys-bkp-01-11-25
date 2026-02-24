@@ -7,6 +7,7 @@ import { Alert, Platform } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
+import config from '../API/Apiurl';
 
 
 
@@ -15,7 +16,7 @@ import * as Notifications from 'expo-notifications';
 // const BASE_URL = "https://matrimonyapi.rainyseasun.com/auth";
 // const BASE_URL ="https://vysyamaladev-afcbe2fdb9c7ckdv.westus2-01.azurewebsites.net/auth";
 // const BASE_URL = "https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net/auth";
-const BASE_URL = "https://app.vysyamala.com/auth";
+const BASE_URL = `${config.apiUrl}/auth`;
 
 // Retrieve Profile ID from session storage
 const retrieveProfileId = async () => {
@@ -1690,7 +1691,7 @@ export const downloadPdf = async (idparam) => {
     // const url = `https://vysyamaladev-afcbe2fdb9c7ckdv.westus2-01.azurewebsites.net/auth/generate-pdf/${profileId}/${idparam}`;
     // const url = `https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net/auth/New_horoscope_color/${idparam}/${profileId}/`;
     // const url = `https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net/auth/New_horoscope_color/${idparam}/${profileId}/`;
-    const url = `https://app.vysyamala.com/auth/New_horoscope_color/${idparam}/${profileId}/`;
+    const url = `${config.apiUrl}/auth/New_horoscope_color/${idparam}/${profileId}/`;
     const fileName = `pdf_${idparam}.pdf`;
 
     // Request storage permission
@@ -1816,7 +1817,7 @@ export const downloadMatchingReportPdf = async (viewedProfileId) => {
     }
 
     // Construct the URL using the required format: /auth/generate-porutham-pdf-mobile/{currentProfileId}/{viewedProfileId}/
-    const url = `https://app.vysyamala.com/auth/generate-porutham-pdf-mobile/${currentProfileId}/${viewedProfileId}/`;
+    const url = `${config.apiUrl}/auth/generate-porutham-pdf-mobile/${currentProfileId}/${viewedProfileId}/`;
 
     // Set the file name
     const fileName = `matching_report_${viewedProfileId}.pdf`;
@@ -3079,7 +3080,7 @@ export const fetchRasiImage = async (profileId) => {
         if (!profileId) return { status: 0, message: "Profile ID missing" };
 
         const timestamp = new Date().getTime();
-        const url = `https://app.vysyamala.com/auth/rasi-image/?profile_id=${profileId}&t=${timestamp}`;
+        const url = `${config.apiUrl}/auth/rasi-image/?profile_id=${profileId}&t=${timestamp}`;
 
         const response = await fetch(url);
         if (response.status === 200) {
@@ -3097,7 +3098,7 @@ export const fetchAmsamImage = async (profileId) => {
         if (!profileId) return { status: 0, message: "Profile ID missing" };
 
         const timestamp = new Date().getTime();
-        const url = `https://app.vysyamala.com/auth/amsa-image/?profile_id=${profileId}&t=${timestamp}`;
+        const url = `${config.apiUrl}/auth/amsa-image/?profile_id=${profileId}&t=${timestamp}`;
 
         const response = await fetch(url);
         if (response.status === 200) {

@@ -507,8 +507,8 @@ export const MyProfile = () => {
         }
         // Choose URL based on whether to include image or not
         const shareUrl = withImage
-            ? `https://app.vysyamala.com/auth/profile/${profileId}/`
-            : `https://app.vysyamala.com/auth/profile_view/${profileId}/`;
+            ? `${config.apiUrl}/auth/profile/${profileId}/`
+            : `${config.apiUrl}/auth/profile_view/${profileId}/`;
 
         const message =
             `Check out this profile!\n\n` +
