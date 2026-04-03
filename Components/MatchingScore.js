@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import Svg, { Path, Circle } from "react-native-svg";
 import { downloadPdfPoruthamNew } from "../CommonApiCall/CommonApiCall";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function MatchingScore({ scorePercentage, viewedProfileId, onScorePress, onUpgradeRequired }) {
   const [loading, setLoading] = useState(false);
@@ -11,6 +12,8 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
   const strokeWidth = 20;
   const center = radius + strokeWidth;
   const progress = Math.min((scorePercentage / 100) * Math.PI, Math.PI);
+  const encryptedId = AsyncStorage.getItem('encryptedId');
+  const myId = AsyncStorage.getItem('myId');
 
   const getEmoji = () => {
     if (scorePercentage >= 75) return "😊"
@@ -24,7 +27,7 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
       setLoading(true);
       // This function MUST return either the file path on success, 
       // OR the JSON failure object {status: "failure", message: "..."}
-      const result = await downloadPdfPoruthamNew(viewedProfileId);
+      const result = await downloadPdfPoruthamNew(encryptedId, myId);
 
       // 1. Check for failure object returned by the utility
       if (result && result.status === "failure") {

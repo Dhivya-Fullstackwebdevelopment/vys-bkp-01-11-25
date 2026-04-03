@@ -1993,8 +1993,13 @@ export const uploadImageToServer = async (formData) => {
         );
         return response.data; // Return the API response data
     } catch (error) {
-        console.error("Error uploading image:", error);
-        throw new Error("Image upload failed. Please try again.");
+        if (error.response && error.response.data) {
+            const serverMessage = error.response.data.message || error.response.data.detail;
+            if (serverMessage) {
+                throw new Error(serverMessage); // Use server's actual message
+            }
+        }
+        throw new Error("__SILENT__");
     }
 };
 
@@ -2540,7 +2545,7 @@ export const ProfileCompletionFormAPI = async (formData) => {
     }
 };
 
-export const downloadPdfmyprofile = async (idparam) => {
+export const downloadPdfmyprofile = async (encryptedId,selectedLanguage) => {
     // const profileId = await retrieveProfileId(); // Implement this to retrieve the profile ID
     // if (!profileId) {
     //     console.warn('Profile ID is empty, skipping API call.');
@@ -2549,8 +2554,11 @@ export const downloadPdfmyprofile = async (idparam) => {
 
     // const url = `http://apiupg.rainyseasun.com/auth/My_horoscope_pdf_color/${idparam}`;
     // const url = `https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net/auth/My_horoscope_pdf_color/${idparam}`;
-    const url = `${BASE_URL}/My_horoscope_pdf_color/${idparam}`;
-    const fileName = `pdf_${idparam}.pdf`;
+    // const url = `${BASE_URL}/My_horoscope_pdf_color/${idparam}`;
+    // const fileName = `pdf_${idparam}.pdf`;
+
+    const url = `${BASE_URL}/My_horoscope_pdf_color/${encryptedId}/?lang=${selectedLanguage}`;
+    const fileName = `My_Horoscope.pdf`;
 
     // Request storage permission
     const hasPermission = await requestStoragePermission();
@@ -2886,15 +2894,16 @@ export const callRequestDetails = async (formdata) => {
     }
 };
 
-export const downloadPdfPoruthamNew = async (idparam) => {
+export const downloadPdfPoruthamNew = async (encryptedId, myId) => {
     const profileId = await retrieveProfileId();
     if (!profileId) {
         console.warn('Profile ID is empty, skipping API call.');
         return null;
     }
 
-    const url = `${BASE_URL}/generate-porutham-pdf-mobile/${profileId}/${idparam}`;
-    const fileName = `pdf_${idparam}.pdf`;
+    // const url = `${BASE_URL}/generate-porutham-pdf-mobile/${profileId}/${idparam}`;
+    const url = `${BASE_URL}/generate-porutham-pdf-mobile/${encryptedId}/${myId}`;
+    const fileName = `Matching_Report.pdf`;
 
     // Request storage permission
     const hasPermission = await requestStoragePermission();
@@ -2914,7 +2923,156 @@ export const downloadPdfPoruthamNew = async (idparam) => {
         content: {
             title: 'Download Started',
             body: `Downloading ${fileName}...`,
-            data: { idparam },
+            data: { encryptedId },
+        },
+        trigger: null,
+    });
+
+    try {
+        // First, make a fetch request to check the response type
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/pdf, application/json',
+            },
+        });
+
+        const contentType = response.headers.get('content-type');
+
+        // Check if response is JSON (error response)
+        if (contentType && contentType.includes('application/json')) {
+            const jsonData = await response.json();
+
+            // Cancel the notification for error case
+            await Notifications.dismissNotificationAsync(notificationId);
+
+            // Return the error response
+            return jsonData;
+        }
+
+        // If it's a PDF, proceed with download
+        if (response.ok && contentType && contentType.includes('application/pdf')) {
+            let fileUri;
+            let progress = 0;
+
+            // Use Storage Access Framework (SAF) for Android 10+
+            if (Platform.OS === 'android' && Platform.Version >= 29) {
+                const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+                if (!permissions.granted) {
+                    console.warn('Permission to access the Documents folder was denied.');
+                    await Notifications.dismissNotificationAsync(notificationId);
+                    return null;
+                }
+
+                // Create the file in the user-selected directory
+                fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
+                    permissions.directoryUri,
+                    fileName,
+                    'application/pdf'
+                );
+
+                // Download the file with progress tracking
+                const downloadResumable = FileSystem.createDownloadResumable(
+                    url,
+                    FileSystem.documentDirectory + fileName,
+                    {},
+                    (downloadProgress) => {
+                        progress = Math.round(
+                            (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100
+                        );
+                        updateDownloadNotification(notificationId, progress);
+                    }
+                );
+
+                const { uri } = await downloadResumable.downloadAsync();
+                const pdfData = await FileSystem.readAsStringAsync(uri, {
+                    encoding: FileSystem.EncodingType.Base64
+                });
+
+                // Write the PDF to the selected folder via SAF
+                await FileSystem.StorageAccessFramework.writeAsStringAsync(fileUri, pdfData, {
+                    encoding: FileSystem.EncodingType.Base64,
+                });
+
+            } else {
+                const downloadResumable = FileSystem.createDownloadResumable(
+                    url,
+                    FileSystem.documentDirectory + fileName,
+                    {},
+                    (downloadProgress) => {
+                        progress = Math.round(
+                            (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100
+                        );
+                        updateDownloadNotification(notificationId, progress);
+                    }
+                );
+
+                const { uri } = await downloadResumable.downloadAsync();
+                fileUri = uri;
+            }
+
+            // Complete notification
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: 'Download Complete',
+                    body: `File saved to: ${fileUri}`,
+                },
+                trigger: null,
+            });
+
+            console.log('PDF downloaded successfully:', fileUri);
+
+            // Automatically open the downloaded PDF
+            openPdf(fileUri);
+
+            return fileUri;
+        }
+
+        throw new Error('Unexpected response format');
+
+    } catch (error) {
+        console.log('Error downloading PDF:', error.message);
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: 'Download Error',
+                body: `Failed to download: ${error.message}`,
+            },
+            trigger: null,
+        });
+        return null;
+    }
+};
+
+export const Printhoroscopepdf = async (encryptedId, myId, selectedPdfLanguage) => {
+    const profileId = await retrieveProfileId();
+    if (!profileId) {
+        console.warn('Profile ID is empty, skipping API call.');
+        return null;
+    }
+    const langParam = selectedPdfLanguage === "english" ? "english" : "tamil";
+    // const url = `${BASE_URL}/generate-porutham-pdf-mobile/${profileId}/${idparam}`;
+    const url = `${BASE_URL}/New_horoscope_color/${encryptedId}/${myId}/?${langParam}`;
+    const fileName = `Horoscope_Report.pdf`;
+
+    // Request storage permission
+    const hasPermission = await requestStoragePermission();
+    if (!hasPermission) {
+        Alert.alert('Permission Denied', 'Storage permission is required to download the file.');
+        return null;
+    }
+
+    // Request notification permission
+    const notificationPermission = await Notifications.requestPermissionsAsync();
+    if (!notificationPermission.granted) {
+        console.warn('Notification permission not granted');
+    }
+
+    // Show initial download notification
+    let notificationId = await Notifications.scheduleNotificationAsync({
+        content: {
+            title: 'Download Started',
+            body: `Downloading ${fileName}...`,
+            data: { encryptedId },
         },
         trigger: null,
     });

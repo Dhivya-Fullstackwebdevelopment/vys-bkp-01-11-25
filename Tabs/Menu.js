@@ -220,6 +220,7 @@ export const Menu = () => {
     try {
       const profileName = dashboardData?.profile_details?.profile_name || 'Not available';
       const profileId = dashboardData?.profile_details?.profile_id || 'Not available';
+      const EncrytedprofileId = dashboardData?.profile_details?.encrypted_profile_id || 'Not available';
       const age = dashboardData?.profile_details?.age || 'Not available';
       const starName = dashboardData?.profile_details?.star_name || 'Not available';
       // const baseUrl = 'https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net';
@@ -249,7 +250,7 @@ export const Menu = () => {
 
       // Construct the share URL with proper encoding
       // const shareUrl = `${baseUrl}/auth/profile/${encodeURIComponent(profileId)}/`;
-      const shareUrl = `${config.apiUrl}/auth/profile/${profileId}/`;
+      const shareUrl = `${config.apiUrl}/auth/profile/${EncrytedprofileId}/`;
       const title = 'Check out this profile!';
 
       const message =

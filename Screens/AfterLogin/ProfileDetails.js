@@ -48,6 +48,7 @@ import {
   getProfileListMatch,
   downloadMatchingReportPdf,
   downloadPdfPoruthamNew,
+  Printhoroscopepdf,
   fetchRasiImage,
   fetchAmsamImage
 } from '../../CommonApiCall/CommonApiCall';
@@ -313,6 +314,8 @@ export const ProfileDetails = () => {
   const [notes, setNotes] = useState('');
   const [notesData, setNotesData] = useState(null);
   const [profileData, setProfileData] = useState(null);
+  console.log("profileData", profileData)
+
   const [photoProtection, setPhotoProtection] = useState(null);
   const [photoRequest, setPhotoRequest] = useState(null);
   const [expressInt, setExpressInt] = useState(false);
@@ -357,6 +360,8 @@ export const ProfileDetails = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [showVysassistErrorModal, setShowVysassistErrorModal] = useState(false);
   const [vysassistErrorMsg, setVysassistErrorMsg] = useState('');
+  const [selectedPdfLanguage, setSelectedPdfLanguage] = useState("english");
+  const [showLanguagePopup, setShowLanguagePopup] = useState(false);
 
   const togglePersonalDetails = () => {
     setShowEducationDetails(false)
@@ -660,6 +665,11 @@ export const ProfileDetails = () => {
         }
         const data = await fetchProfileData(viewedProfileId);
         console.log("Fetched profile data: 1 ", data);
+        if (data && data.encrypted_profile_id) {
+          setProfileData(data);
+          await AsyncStorage.setItem('encryptedId', data.encrypted_profile_id);
+          await AsyncStorage.setItem('myId', data.My_profile_id);
+        }
         const response = await logProfileVisit(viewedProfileId);
         console.log("Profile Details fully 2 ==>", data, response)
 
@@ -988,9 +998,17 @@ export const ProfileDetails = () => {
     setLoading(true)
     // Proceed with the download if permission is granted
     try {
-      const filePath = await downloadPdf(viewedProfileId);
-      console.log("handleDownloadPdf", filePath)
-      setLoading(false)
+      // const filePath = await downloadPdf(viewedProfileId);
+      // console.log("handleDownloadPdf", filePath)
+      // setLoading(false)
+      const encryptedId = profileData?.encrypted_profile_id;
+      const myId = profileData?.My_profile_id;
+      const langParam = selectedPdfLanguage === "english" ? "english" : "tamil";
+      const result = await Printhoroscopepdf(encryptedId, myId, langParam);
+
+      if (result && result.status === 'success') {
+        Toast.show({ type: 'success', text1: 'Success', text2: 'Report downloaded!' });
+      }
       // Alert.alert("Download Complete", `File saved to: ${filePath}`);
     } catch (error) {
       Alert.alert("Error", "Failed to download the file.");
@@ -1132,7 +1150,11 @@ export const ProfileDetails = () => {
 
     try {
       // Call the API function from CommonApiCall
-      const result = await downloadPdfPoruthamNew(viewedProfileId);
+      // const result = await downloadPdfPoruthamNew(viewedProfileId);
+
+      const encryptedId = profileData.encrypted_profile_id;
+      const myId = profileData.My_profile_id;
+      const result = await downloadPdfPoruthamNew(encryptedId, myId);
       console.log("matching pdf result", result);
 
       // Check if result is null or undefined (permission denied or other error)
@@ -1543,8 +1565,19 @@ export const ProfileDetails = () => {
       ...(!isPlan16
         ? [{ icon: "account-voice", text: "Vys Assist", onPress: openPopup, type: "MaterialCommunityIcons" }]
         : []),
-      { icon: 'print-outline', text: 'Download Profile', onPress: handleDownloadPdf, type: 'Ionicons' },
-      { icon: 'star', text: 'Show Matching Report', onPress: handleDownloadMatchingReport, type: 'MaterialIcons' },
+      {
+        icon: 'print-outline', text: 'Download Profile',
+        onPress: () => {
+          bottomSheetRef.current.close();
+          setShowLanguagePopup(true);
+        },
+        type: 'Ionicons'
+      },
+      {
+        icon: 'star', text: 'Show Matching Report',
+        onPress: handleDownloadMatchingReport,
+        type: 'MaterialIcons'
+      },
       // { icon: 'report-problem', text: 'Report Profile', onPress: () => { }, type: 'MaterialIcons' },
     ];
 
@@ -3142,6 +3175,61 @@ export const ProfileDetails = () => {
           </View>
         </View>
       </Modal>
+      {/* Language Selection Modal */}
+      <Modal
+        visible={showLanguagePopup}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLanguagePopup(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.passwordCard}>
+            <TouchableOpacity
+              style={{ alignSelf: 'flex-end' }}
+              onPress={() => setShowLanguagePopup(false)}
+            >
+              <Ionicons name="close" size={24} color="#535665" />
+            </TouchableOpacity>
+
+            <Text style={[styles.title, { textAlign: 'center' }]}>Select Language</Text>
+
+            <View style={{ marginVertical: 20 }}>
+              {/* English Option */}
+              <TouchableOpacity
+                style={styles.checkboxContainerNew2}
+                onPress={() => setSelectedPdfLanguage("english")}
+              >
+                <MaterialIcons
+                  name={selectedPdfLanguage === "english" ? "radio-button-checked" : "radio-button-unchecked"}
+                  size={24}
+                  color="#BD1225"
+                />
+                <Text style={{ fontSize: 16, marginLeft: 10 }}>English</Text>
+              </TouchableOpacity>
+
+              {/* Tamil Option */}
+              <TouchableOpacity
+                style={styles.checkboxContainerNew2}
+                onPress={() => setSelectedPdfLanguage("tamil")}
+              >
+                <MaterialIcons
+                  name={selectedPdfLanguage === "tamil" ? "radio-button-checked" : "radio-button-unchecked"}
+                  size={24}
+                  color="#BD1225"
+                />
+                <Text style={{ fontSize: 16, marginLeft: 10 }}>Tamil</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.submitButtonpop, { borderRadius: 8, padding: 12 }]}
+              onPress={handleDownloadPdf}
+            >
+              <Text style={styles.buttonText}>Submit</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <BottomTabBarComponent />
     </View>
   );
@@ -3273,7 +3361,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     position: "relative",
-
   },
   detailsMeterFlex1: {
     flexDirection: "row",

@@ -56,7 +56,9 @@ export const MyProfile = () => {
     const [educationalDetails, setEducationalDetails] = useState(null);
     // const currentPlanId = AsyncStorage.getItem("current_plan_id");
     const [currentPlanId, setCurrentPlanId] = useState(null);
-    const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
+    const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];// Inside MyProfile component
+    const [selectedPdfLanguage, setSelectedPdfLanguage] = useState("english");
+    const [showLanguagePopup, setShowLanguagePopup] = useState(false);
     // Fetch images from API
     // useEffect(() => {
     //     const fetchAndSetImages = async () => {
@@ -85,11 +87,11 @@ export const MyProfile = () => {
 
     // Add this new function inside your MyProfile component:
     const handleAddOnPackagePress = () => {
-       if (profileDetails.package_name === "Free") {
+        if (profileDetails.package_name === "Free") {
             navigation.navigate('MembershipPlan');
         } else {
             // If Plan ID is anything else, navigate to the direct payment screen
-           navigation.navigate('PayNow', { isAddOnOnly: true });
+            navigation.navigate('PayNow', { isAddOnOnly: true });
         }
     };
 
@@ -281,12 +283,14 @@ export const MyProfile = () => {
                     await fetchAndSetImages();
                 } catch (error) {
                     console.error("Upload error:", error);
-                    Toast.show({
-                        type: "error",
-                        text1: "Upload Error",
-                        text2: error.message || "Failed to upload image",
-                        position: "bottom",
-                    });
+                    if (error.message && error.message !== '__SILENT__') {
+                        Toast.show({
+                            type: "error",
+                            text1: "Upload Error",
+                            text2: error.message || "Failed to upload image",
+                            position: "bottom",
+                        });
+                    }
                 } finally {
                     setLoading(false);
                 }
@@ -447,18 +451,37 @@ export const MyProfile = () => {
         uploadImage(null); // Pass null to indicate it's a new image
     };
 
+    const handleDownloadPdf = () => {
+        if (!profileDetails || !profileDetails.encrypted_profile_id) {
+            Alert.alert("Error", "Profile data is still loading...");
+            return;
+        }
+        setShowLanguagePopup(true);
+    };
 
-    const handleDownloadPdf = async () => {
-        // Proceed with the download if permission is granted
-        const profileId = await AsyncStorage.getItem("loginuser_profileId");
+    const handlePdfSubmit = async () => {
+        setShowLanguagePopup(false);
+        setLoading(true);
+
         try {
-            setLoading(true)
-            const filePath = await downloadPdfmyprofile(profileId);
-            // Alert.alert("Download Complete", `File saved to: ${filePath}`);
+            const encryptedId = profileDetails.encrypted_profile_id;
+
+            const result = await downloadPdfmyprofile(encryptedId, selectedPdfLanguage);
+
+            if (result && result.status === 'failure') {
+                Alert.alert("Error", result.message || "Failed to generate PDF");
+            } else if (result) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Horoscope downloaded successfully',
+                    position: "bottom",
+                });
+            }
         } catch (error) {
             Alert.alert("Error", "Failed to download the file.");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     };
 
@@ -481,6 +504,7 @@ export const MyProfile = () => {
     const handleWhatsAppShare = async (withImage = false) => {
         const profileName = profileDetails?.personal_profile_name;
         const profileId = profileDetails?.profile_id;
+        const encryptedProfileId = profileDetails?.encrypted_profile_id;
         const age = profileDetails?.personal_age;
         const starName = profileDetails?.star;
         const registrationLink = 'vysyamala.com';
@@ -507,8 +531,8 @@ export const MyProfile = () => {
         }
         // Choose URL based on whether to include image or not
         const shareUrl = withImage
-            ? `${config.apiUrl}/auth/profile/${profileId}/`
-            : `${config.apiUrl}/auth/profile_view/${profileId}/`;
+            ? `${config.apiUrl}/auth/profile/${encryptedProfileId}/`
+            : `${config.apiUrl}/auth/profile_view/${encryptedProfileId}/`;
 
         const message =
             `Check out this profile!\n\n` +
@@ -906,6 +930,59 @@ export const MyProfile = () => {
                     </View>
                 )}
             </SafeAreaView>
+            {/* Language Selection Modal */}
+            <Modal
+                visible={showLanguagePopup}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowLanguagePopup(false)}
+            >
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <View style={{ backgroundColor: 'white', width: '85%', borderRadius: 10, padding: 20 }}>
+                        <TouchableOpacity
+                            style={{ alignSelf: 'flex-end' }}
+                            onPress={() => setShowLanguagePopup(false)}
+                        >
+                            <Ionicons name="close" size={24} color="black" />
+                        </TouchableOpacity>
+
+                        <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 20 }}>Select Language</Text>
+
+                        <View style={{ marginBottom: 20 }}>
+                            {/* English */}
+                            <TouchableOpacity
+                                style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}
+                                onPress={() => setSelectedPdfLanguage("english")}
+                            >
+                                <MaterialIcons
+                                    name={selectedPdfLanguage === "english" ? "radio-button-checked" : "radio-button-unchecked"}
+                                    size={24} color="#BD1225"
+                                />
+                                <Text style={{ fontSize: 16, marginLeft: 10 }}>English</Text>
+                            </TouchableOpacity>
+
+                            {/* Tamil */}
+                            <TouchableOpacity
+                                style={{ flexDirection: 'row', alignItems: 'center' }}
+                                onPress={() => setSelectedPdfLanguage("tamil")}
+                            >
+                                <MaterialIcons
+                                    name={selectedPdfLanguage === "tamil" ? "radio-button-checked" : "radio-button-unchecked"}
+                                    size={24} color="#BD1225"
+                                />
+                                <Text style={{ fontSize: 16, marginLeft: 10 }}>Tamil</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <TouchableOpacity
+                            style={{ backgroundColor: '#BD1225', padding: 12, borderRadius: 8 }}
+                            onPress={handlePdfSubmit}
+                        >
+                            <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>Submit</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     )
 }
