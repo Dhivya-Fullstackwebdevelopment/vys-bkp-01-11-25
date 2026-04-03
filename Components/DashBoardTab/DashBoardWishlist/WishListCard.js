@@ -268,54 +268,75 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
                         <WishlistNotFound />
                     )
                 }
-                renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.profileDiv}
-                        onPress={() => handleProfileClick(item.wishlist_profileid)}>
-                        <View style={styles.profileContainer}>
-                            {/* <Image
+                renderItem={({ item }) => {
+                    const isMarried = item.wishlist_marriage_check;
+                    return (
+                        <TouchableOpacity
+                            style={styles.profileDiv}
+                            onPress={() => !isMarried && handleProfileClick(item.wishlist_profileid)}
+                            activeOpacity={isMarried ? 1 : 0.7}
+                        >
+                            <View style={styles.profileContainer}>
+                                {/* <Image
                                 source={getImageSource(item.wishlist_Profile_img)}
                                 style={styles.profileImage}
                             /> */}
-                            <TopAlignedImage
-                                uri={Array.isArray(item.wishlist_Profile_img) ? item.wishlist_Profile_img[0] : item.wishlist_Profile_img}
-                                width={120}
-                                height={120}
-                            />
-                            <TouchableOpacity
-                                onPress={() => handleSavePress(item.wishlist_profileid)}
-                                style={styles.saveIconContainer}
-                            >
-                                <MaterialIcons
-                                    name={bookmarkedProfiles.has(item.wishlist_profileid) ? "bookmark" : "bookmark-border"}
-                                    size={20}
-                                    color="red"
-                                    style={styles.saveIcon}
+                            <View style={styles.imageWrapper}>
+                                <TopAlignedImage
+                                    uri={Array.isArray(item.wishlist_Profile_img) ? item.wishlist_Profile_img[0] : item.wishlist_Profile_img}
+                                    width={120}
+                                    height={120}
                                 />
-                            </TouchableOpacity>
-                            <View style={styles.profileContent}>
-                                <Text style={styles.profileName}>
-                                    {/* {item.wishlist_profile_name || "N/A"}  */}
-                                    {item.wishlist_profile_name
-                                        ? (item.wishlist_profile_name.length > 15
-                                            ? item.wishlist_profile_name.substring(0, 15) + "..."
-                                            : item.wishlist_profile_name)
-                                        : "N/A"
-                                    }
-                                    <Text style={styles.profileId}>({item.wishlist_profileid || "N/A"})</Text>
-                                </Text>
-                                <Text style={styles.profileAge}>
-                                    {item.wishlist_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>
-                                    {item.wishlist_height || "N/A"} Cms
-                                </Text>
-                                <Text style={styles.zodiac}>{item.wishlist_star || "N/A"}</Text>
-                                <Text style={styles.employed}>{item.wishlist_profession || "N/A"}</Text>
-                                <Text style={styles.lastVisit}>
-                                    Bookmarked on {item.wishlist_lastvisit || "N/A"}
-                                </Text>
+                                {isMarried && (
+                                    <View style={styles.badgeOverlay}>
+                                        <Image
+                                            source={{ uri: item.wishlist_marriage_badge }}
+                                            style={styles.marriageBadge}
+                                            resizeMode="contain"
+                                        />
+                                    </View>
+                                )}
+
+                                {!isMarried && (
+                                    <TouchableOpacity
+                                        onPress={() => handleSavePress(item.wishlist_profileid)}
+                                        style={styles.saveIconContainer}
+                                    >
+                                        <MaterialIcons
+                                            name={bookmarkedProfiles.has(item.wishlist_profileid) ? "bookmark" : "bookmark-border"}
+                                            size={20}
+                                            color="red"
+                                            style={styles.saveIcon}
+                                        />
+                                    </TouchableOpacity>
+                                )}
+                                </View>
+                                <View style={styles.profileContent}>
+                                    <Text style={styles.profileName}>
+                                        {/* {item.wishlist_profile_name || "N/A"}  */}
+                                        {item.wishlist_profile_name
+                                            ? (item.wishlist_profile_name.length > 15
+                                                ? item.wishlist_profile_name.substring(0, 15) + "..."
+                                                : item.wishlist_profile_name)
+                                            : "N/A"
+                                        }
+                                        <Text style={styles.profileId}>({item.wishlist_profileid || "N/A"})</Text>
+                                    </Text>
+                                    <Text style={styles.profileAge}>
+                                        {item.wishlist_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>
+                                        {item.wishlist_height || "N/A"} Cms
+                                    </Text>
+                                    <Text style={styles.zodiac}>{item.wishlist_star || "N/A"}</Text>
+                                    <Text style={styles.employed}>{item.wishlist_profession || "N/A"}</Text>
+                                    <Text style={styles.lastVisit}>
+                                        Bookmarked on {item.wishlist_lastvisit || "N/A"}
+                                    </Text>
+                                </View>
                             </View>
-                        </View>
-                    </TouchableOpacity>
-                )}
+                        </TouchableOpacity>
+                    )
+                }
+                }
             />
             <PlatinumModalPopup
                 visible={isPlatinumModalVisible}
@@ -358,9 +379,6 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start"
     },
 
-    profileContent: {
-        paddingLeft: 10,
-    },
 
     profileName: {
         fontSize: 16,
@@ -427,5 +445,39 @@ const styles = StyleSheet.create({
         height: 120,
         overflow: "hidden",
     },
-
+imageWrapper: {
+        width: 120,
+        height: 120,
+        borderRadius: 8,
+        overflow: "hidden", // CRITICAL: Keeps the dark overlay inside rounded corners
+        position: 'relative', // CRITICAL: Sets the coordinate system for the overlay
+    },
+    badgeOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)', // The dark tint only on the image
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    marriageBadge: {
+        width: 60,
+        height: 60,
+        backgroundColor: '#F8EFE0',
+        borderRadius: 30, // Makes the badge background a circle
+        padding: 5,
+    },
+    saveIconContainer: {
+        position: "absolute",
+        top: 5,
+        right: 5,
+        zIndex: 10,
+    },
+    profileContent: {
+        flex: 1, 
+        paddingLeft: 10,
+    },
+   
 });

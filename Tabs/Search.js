@@ -42,8 +42,9 @@ export const Search = () => {
   // State variables for input fields
   const [fromAge, setFromAge] = useState(0);
   const [toAge, setToAge] = useState(0);
-  const [fromHeight, setFromHeight] = useState(0);
-  const [toHeight, setToHeight] = useState(0);
+  const [heightOptions, setHeightOptions] = useState([]);
+  const [fromHeight, setFromHeight] = useState("");
+  const [toHeight, setToHeight] = useState("");
   const [fromRegDate, setFromRegDate] = useState('');
   const [toRegDate, setToRegDate] = useState('');
   const [maritalStatuses, setMaritalStatuses] = useState([]);
@@ -179,18 +180,6 @@ export const Search = () => {
     }
   };
 
-  // const fetchIncomeOptions = async () => {
-  //   try {
-  //     const response = await axios.post(
-  //       "https://matrimonyapi.rainyseasun.com/auth/Get_Annual_Income/"
-  //     );
-  //     const incomeList = Object.values(response.data); // Convert object to array
-  //     setIncomeOptions(incomeList); // Store the income options in state
-  //   } catch (error) {
-  //     console.error("Error fetching income options", error);
-  //   }
-  // };
-
   const fetchIncomeOptions = async () => {
     try {
       const response = await axios.post(`${config.apiUrl}/auth/Get_Annual_Income/`);
@@ -323,24 +312,23 @@ export const Search = () => {
     });
   };
 
-  // const handleIncomeToggle = (incomeId) => {
-  //   setCheckedIncomes((prevCheckedIncomes) => {
-  //     const updatedCheckedIncomes = new Set(prevCheckedIncomes);
+  //Height dropdown
+  const fetchHeightOptions = async () => {
+    try {
+      const response = await axios.post(`${config.apiUrl}/auth/Get_Height/`);
+      const heightArray = Object.keys(response.data).map(key => ({
+        label: response.data[key].height_description,
+        value: response.data[key].height_id.toString(),
+      }));
+      setHeightOptions(heightArray);
+    } catch (error) {
+      console.error("Error fetching height options:", error);
+    }
+  };
 
-  //     if (updatedCheckedIncomes.has(incomeId)) {
-  //       updatedCheckedIncomes.delete(incomeId); // Uncheck if already checked
-  //     } else {
-  //       updatedCheckedIncomes.add(incomeId); // Check if not already checked
-  //     }
-
-  //     // Update the selectedIncomeIds state
-  //     const selectedIdsString = Array.from(updatedCheckedIncomes).join(',');
-  //     setSelectedIncomeIds(selectedIdsString); // Set the selected IDs string in state
-  //     console.log("Selected Income IDs:", selectedIdsString);
-
-  //     return updatedCheckedIncomes;
-  //   });
-  // };
+  useEffect(() => {
+    fetchHeightOptions();
+  }, []);
 
   const handleStateToggle = (stateId) => {
     setCheckedStates((prevCheckedStates) => {
@@ -504,18 +492,8 @@ export const Search = () => {
 
     // Clean up the timer on every new keystroke or component unmount
     return () => clearTimeout(timer);
-  }, [searchProfileId]); // Trigger when the user types something
+  }, [searchProfileId]);
 
-
-
-
-
-
-  // Function to handle filter icon press
-  // Replace the current handleFilterPress function
-  // const handleFilterPress = () => {
-  //   navigation.navigate('FilterScreen');
-  // };
   const MIN_SEARCH_LENGTH = 3;
 
   const handleFilterPress = async () => {
@@ -593,42 +571,6 @@ export const Search = () => {
     ppSetChecked(!ppChecked);
   };
 
-  // const clearFields = () => {
-  //   // Reset range inputs (Age, Height)
-  //   setFromAge(0);
-  //   setToAge(0);
-  //   setFromHeight(0);
-  //   setToHeight(0);
-
-  //   // Reset checkbox/multi-select Sets
-  //   setCheckedStatuses(new Set());
-  //   setCheckedProfessions(new Set());
-  //   setCheckFieldoStudy(new Set());
-  //   setCheckedStates(new Set());
-
-  //   // Reset single-select/dropdown values
-  //   setSelectedEducationId('');
-
-  //   // 👇 ADDED: Clear Income dropdown values and their display placeholders
-  //   setSelectedIncomeMinIds('');
-  //   setSelectedIncomeMaxIds('');
-  //   setSelectedIncomeMinLabel('Select min Annual Income'); // Reset placeholder text
-  //   setSelectedIncomeMaxLabel('Select Max Annual Income'); // Reset placeholder text
-
-  //   // Reset Dosham radio buttons
-  //   setRahuKetuDhosam(null);
-  //   setChevvaiDhosam(null);
-
-  //   // Reset Birth Star (multi-select chips)
-  //   setSelectedBirthStarIds([]);
-
-  //   // 👇 ADDED: Clear Work Location input
-  //   setWorkLocation('');
-
-  //   // Clear Profile Photo Checkbox
-  //   ppSetChecked(false);
-  //   setBirthStars([]);
-  // };// ... inside Search component
   useFocusEffect(
     React.useCallback(() => {
       clearFields();
@@ -682,7 +624,6 @@ export const Search = () => {
     const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
     console.log('profile view msg', profileCheckResponse)
 
-    // 2. Check if the API returned any failure
     if (profileCheckResponse?.status === "failure") {
       Toast.show({
         type: "error",
@@ -794,64 +735,8 @@ export const Search = () => {
             </Text>
           )}
         </TouchableOpacity>
-
-
-        {/* Search Button */}
-        {/* <TouchableOpacity style={styles.searchButton} onPress={handleSearchPress}>
-          <Text style={styles.searchButtonText}>Search</Text>
-        </TouchableOpacity> */}
       </View>
 
-      {/* {searchProfileId ? (
-        <View style={styles.profileScrollView}>
-          {profiles.length > 0 ? (
-            profiles.map((profile) => (
-              <TouchableOpacity
-                key={profile.profileid}
-                onPress={() => handleProfileClick(profile.profile_id)} // Trigger the click handler
-                activeOpacity={0.8} // Adjust opacity effect on click
-              >
-                <View style={styles.profileDiv}>
-                  <View style={styles.profileContainer}>
-                    <Image
-                      source={getImageSource(profile.profile_img)}
-                      style={styles.profileImage}
-                    />
-                    <TouchableOpacity
-                      onPress={() => handleSavePress(profile.profile_id)}
-                      style={styles.saveIconContainer}
-                    >
-                      <MaterialIcons
-                        name={bookmarkedProfiles.has(profile.profile_id) ? 'bookmark' : 'bookmark-border'}
-                        size={20}
-                        color="red"
-                        style={styles.saveIcon}
-                      />
-                    </TouchableOpacity>
-                    <View style={styles.profileContent}>
-                      <Text style={styles.profileName}>
-                        {profile.profile_name}{" "}
-                        <Text style={styles.profileId}>({profile.profile_id})</Text>
-                      </Text>
-                      <Text style={styles.profileAge}>
-                        {profile.profile_age} Yrs{" "}
-                        <Text style={styles.line}>|</Text> {profile.profile_height}{" "}
-                      </Text>
-                      <Text style={styles.zodiac}>{profile.star}</Text>
-                      <Text style={styles.employed}>{profile.profession}</Text>
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <View style={styles.centerContainer}>
-              <ProfileNotFound />
-            </View>
-          )}
-        </View>
-      ) : (
-        <> */}
       <View style={{ flexDirection: 'row' }}>
         <Text style={styles.searchAdvanced}>Advanced Search</Text>
         <TouchableOpacity onPress={clearFields}>
@@ -887,20 +772,35 @@ export const Search = () => {
           <Text style={styles.redText}>Height</Text>
           <View style={styles.formContainer}>
             <View style={styles.inputFlexContainer}>
+              {/* From Height Dropdown */}
               <View style={styles.inputFlexFirst}>
-                <TextInput
+                <Dropdown
+                  style={{ height: 20 }}
+                  placeholderStyle={styles.placeholderStyle}
+                  selectedTextStyle={styles.selectedTextStyle}
+                  data={heightOptions}
+                  maxHeight={300}
+                  labelField="label"
+                  valueField="value"
                   placeholder="From"
-                  keyboardType="numeric"
                   value={fromHeight}
-                  onChangeText={setFromHeight}
+                  onChange={(item) => setFromHeight(item.value)}
                 />
               </View>
+
+              {/* To Height Dropdown */}
               <View style={styles.inputFlex}>
-                <TextInput
+                <Dropdown
+                  style={{ height: 20 }}
+                  placeholderStyle={styles.placeholderStyle}
+                  selectedTextStyle={styles.selectedTextStyle}
+                  data={heightOptions}
+                  maxHeight={300}
+                  labelField="label"
+                  valueField="value"
                   placeholder="To"
-                  keyboardType="numeric"
                   value={toHeight}
-                  onChangeText={setToHeight}
+                  onChange={(item) => setToHeight(item.value)}
                 />
               </View>
             </View>

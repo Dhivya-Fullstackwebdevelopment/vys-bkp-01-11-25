@@ -221,60 +221,80 @@ export const DashBoardMutualInterestCard = ({ sortBy = "datetime" }) => {
     }
   };
 
-  const renderItem = ({ item: profile }) => (
-    <TouchableOpacity
-      style={styles.profileDiv}
-      onPress={() => handleProfileClick(profile.mutint_profileid)}
-    >
-      <View style={styles.profileContainer}>
-        {/* <Image
+  const renderItem = ({ item: profile }) => {
+    const isMarried = profile.visited_marriage_check;
+    return (
+      <TouchableOpacity
+        style={styles.profileDiv}
+        onPress={() => !isMarried && handleProfileClick(profile.mutint_profileid)}
+        activeOpacity={isMarried ? 1 : 0.7}
+      >
+        <View style={styles.profileContainer}>
+          {/* <Image
           source={getImageSource(profile.mutint_Profile_img)}
           style={styles.profileImage}
         /> */}
-        <TopAlignedImage
-          uri={Array.isArray(profile.mutint_Profile_img) ? profile.mutint_Profile_img[0] : profile.mutint_Profile_img}
-          width={120}
-          height={120}
-        />
-        <TouchableOpacity
-          onPress={() => handleSavePress(profile.mutint_profileid)}
-        >
-          <MaterialIcons
-            name={
-              bookmarkedProfiles.has(profile.mutint_profileid)
-                ? "bookmark"
-                : "bookmark-border"
-            }
-            size={20}
-            color="red"
-            style={styles.saveIcon}
-          />
-        </TouchableOpacity>
+          {/* --- Image Container Start --- */}
+          <View style={styles.imageWrapper}>
+            <TopAlignedImage
+              uri={Array.isArray(profile.mutint_Profile_img) ? profile.mutint_Profile_img[0] : profile.mutint_Profile_img}
+              width={120}
+              height={120}
+            />
 
-        <View style={styles.profileContent}>
-          <Text style={styles.profileName}>
-            {/* {profile.mutint_profile_name || "N/A"} */}
-            {profile.mutint_profile_name
-              ? (profile.mutint_profile_name.length > 15
-                ? profile.mutint_profile_name.substring(0, 15) + "..."
-                : profile.mutint_profile_name)
-              : "N/A"
-            }
-            <Text style={styles.profileId}>({profile.mutint_profileid})</Text>
-          </Text>
-          <Text style={styles.profileAge}>
-            {profile.mutint_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>
-            {profile.mutint_height || "N/A"} Cms
-          </Text>
-          <Text style={styles.zodiac}>{profile.mutint_star || "N/A"}</Text>
-          <Text style={styles.employed}>{profile.mutint_profession || "N/A"}</Text>
-          <Text style={styles.lastVisit}>
-            Last visit on {profile.mutint_lastvisit || "N/A"}
-          </Text>
+            {/* Marriage Badge Overlay - Only on the image */}
+            {isMarried && (
+              <View style={styles.badgeOverlay}>
+                <Image
+                  source={{ uri: profile.visited_marriage_badge }}
+                  style={styles.marriageBadge}
+                  resizeMode="contain"
+                />
+              </View>
+            )}
+          </View>
+          {!isMarried && (
+            <TouchableOpacity
+              onPress={() => handleSavePress(profile.mutint_profileid)}
+            >
+              <MaterialIcons
+                name={
+                  bookmarkedProfiles.has(profile.mutint_profileid)
+                    ? "bookmark"
+                    : "bookmark-border"
+                }
+                size={20}
+                color="red"
+                style={styles.saveIcon}
+              />
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.profileContent}>
+            <Text style={styles.profileName}>
+              {/* {profile.mutint_profile_name || "N/A"} */}
+              {profile.mutint_profile_name
+                ? (profile.mutint_profile_name.length > 15
+                  ? profile.mutint_profile_name.substring(0, 15) + "..."
+                  : profile.mutint_profile_name)
+                : "N/A"
+              }
+              <Text style={styles.profileId}>({profile.mutint_profileid})</Text>
+            </Text>
+            <Text style={styles.profileAge}>
+              {profile.mutint_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>
+              {profile.mutint_height || "N/A"} Cms
+            </Text>
+            <Text style={styles.zodiac}>{profile.mutint_star || "N/A"}</Text>
+            <Text style={styles.employed}>{profile.mutint_profession || "N/A"}</Text>
+            <Text style={styles.lastVisit}>
+              Last visit on {profile.mutint_lastvisit || "N/A"}
+            </Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const EmptyListComponent = () =>
     isLoading ? (
@@ -438,5 +458,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#4F515D",
     marginTop: 5,
+  },
+  imageWrapper: {
+    width: 120,
+    height: 120,
+    borderRadius: 10,
+    overflow: 'hidden', // Ensures the overlay doesn't spill outside rounded corners
+    position: 'relative',
+  },
+  badgeOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Dark blur effect
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  marriageBadge: {
+    width: 60,
+    height: 60,
+    backgroundColor: '#F8EFE0',
+    borderRadius: 30, // Makes the badge background circular
+    padding: 5,
+  },
+  saveIconWrapper: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    zIndex: 10,
+  },
+  profileContent: {
+    flex: 1, // Allows text to take remaining space
+    paddingLeft: 10,
   },
 });

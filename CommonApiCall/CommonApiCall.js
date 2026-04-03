@@ -254,10 +254,21 @@ export const fetchProfileInterests = async () => {
     }
 };
 
+//vysassist api
+export const fetchVysassistRequests = async () => {
+    try {
+        const profileId = await retrieveProfileId();
+        if (!profileId) return [];
+        const response = await axios.get(`${BASE_URL}/get_vysassist_requests/${profileId}/`);
+        if (response.data.Status === 1) {
+            return response.data.data || [];
+        }
+        return [];
+    } catch (error) {
+        throw new Error('Error fetching vysassist requests.');
+    }
+};
 
-
-
-// Update profile interests API call
 
 
 // Fetch dashboard data API call

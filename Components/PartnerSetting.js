@@ -23,8 +23,6 @@ import { updatePartnerPreferences, fetchPartnerProfilenew } from '../CommonApiCa
 import Toast from 'react-native-toast-message';
 import MatchingStars from '../Components/MatchingStars/MatchingStars';
 
-
-// Zod Schema (no change needed here)
 const schema = z.object({
     ageDifference: z.string().min(1, "Age Difference is required"),
     heightFrom: z.string().min(1, "Height From is required"),
@@ -94,8 +92,7 @@ export const PartnerSettings = () => {
     const [matchingStarsData, setMatchingStarsData] = useState([]);
     const [allStarOptions, setAllStarOptions] = useState([]);
     const [selectedStarIds, setSelectedStarIds] = useState([]);
-
-    // --- API Fetch Functions ---
+    const [heightOptions, setHeightOptions] = useState([]);
 
     const handleCheckboxChange = useCallback((updatedIds) => {
         setSelectedStarIds(updatedIds);
@@ -209,14 +206,27 @@ export const PartnerSettings = () => {
         return [];
     };
 
-    // --- 1. Initial Options Fetch (runs once) ---
+    const fetchHeightOptions = async () => {
+        try {
+            const response = await axios.post(`${config.apiUrl}/auth/Get_Height/`);
+            const heightArray = Object.keys(response.data).map(key => ({
+                label: response.data[key].height_description,
+                value: response.data[key].height_id.toString(),
+            }));
+            setHeightOptions(heightArray);
+        } catch (error) {
+            console.error("Error fetching height options:", error);
+        }
+    };
+
     useEffect(() => {
         fetchMaritalStatus();
         fetchProfessionOptions();
         fetchHighestEdu();
         fetchAnnualIncome();
         fetchFieldOfStudy();
-        fetchMatchingStars(); // Start loading stars immediately
+        fetchMatchingStars();
+        fetchHeightOptions();
     }, []);
 
     // --- 2. Consolidated Form Data Initialization ---
@@ -422,48 +432,59 @@ export const PartnerSettings = () => {
                 </View>
 
                 {/* Height */}
+                {/* Height Section */}
                 <View style={styles.searchContainer}>
                     <Text style={styles.redText}>Height</Text>
                     <View style={styles.formContainer}>
                         <View style={styles.inputFlexContainer}>
-                            {/* Height From */}
-                            <Controller
-                                control={control}
-                                name="heightFrom"
-                                rules={{ required: 'Height from is required' }}
-                                render={({ field: { onChange, value } }) => (
-                                    <View style={styles.inputFlexFirst}>
-                                        <TextInput
+                            {/* Height From Dropdown */}
+                            <View style={[styles.inputFlexFirst, { padding: 0 }]}>
+                                <Controller
+                                    control={control}
+                                    name="heightFrom"
+                                    render={({ field: { onChange, value } }) => (
+                                        <Dropdown
+                                            style={styles.dropdown}
+                                            placeholderStyle={styles.placeholderStyle}
+                                            selectedTextStyle={styles.selectedTextStyle}
+                                            data={heightOptions}
+                                            maxHeight={250}
+                                            labelField="label"
+                                            valueField="value"
                                             placeholder="From"
-                                            keyboardType="numeric"
                                             value={value}
-                                            onChangeText={onChange}
+                                            onChange={(item) => onChange(item.value)}
                                         />
-                                    </View>
-                                )}
-                            />
-                            {/* Height To */}
-                            <Controller
-                                control={control}
-                                name="heightTo"
-                                rules={{ required: 'Height to is required' }}
-                                render={({ field: { onChange, value } }) => (
-                                    <View style={styles.inputFlex}>
-                                        <TextInput
+                                    )}
+                                />
+                            </View>
+
+                            {/* Height To Dropdown */}
+                            <View style={[styles.inputFlex, { padding: 0 }]}>
+                                <Controller
+                                    control={control}
+                                    name="heightTo"
+                                    render={({ field: { onChange, value } }) => (
+                                        <Dropdown
+                                            style={styles.dropdown}
+                                            placeholderStyle={styles.placeholderStyle}
+                                            selectedTextStyle={styles.selectedTextStyle}
+                                            data={heightOptions}
+                                            maxHeight={250}
+                                            labelField="label"
+                                            valueField="value"
                                             placeholder="To"
-                                            keyboardType="numeric"
                                             value={value}
-                                            onChangeText={onChange}
+                                            onChange={(item) => onChange(item.value)}
                                         />
-                                    </View>
-                                )}
-                            />
+                                    )}
+                                />
+                            </View>
                         </View>
                         {errors.heightFrom && (<Text style={styles.errorText}>{errors.heightFrom.message}</Text>)}
                         {errors.heightTo && (<Text style={styles.errorText}>{errors.heightTo.message}</Text>)}
                     </View>
                 </View>
-
                 {/* Marital Status */}
                 <View style={styles.checkContainer}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>

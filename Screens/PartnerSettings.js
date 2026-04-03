@@ -123,7 +123,7 @@ export const PartnerSettings = () => {
     const [fieldOfStudyOptions, setFieldOfStudyOptions] = useState([]); // For the new dropdown
     const [fieldError, setFieldError] = useState(null); // For error handling
     const [submitting, setSubmitting] = useState(false); // Add state to track submission
-
+    const [heightOptions, setHeightOptions] = useState([]);
 
     const maritalStatusSelected = watch("maritalStatus") || [];
     const fieldOfStudySelected = watch("fieldOfStudy") || [];
@@ -150,12 +150,26 @@ export const PartnerSettings = () => {
         }
     };
 
+    const fetchHeightOptions = async () => {
+        try {
+            const response = await axios.post(`${config.apiUrl}/auth/Get_Height/`);
+            const heightArray = Object.keys(response.data).map(key => ({
+                label: response.data[key].height_description,
+                value: response.data[key].height_id.toString(),
+            }));
+            setHeightOptions(heightArray);
+        } catch (error) {
+            console.error("Error fetching height options:", error);
+        }
+    };
+
     useEffect(() => {
         fetchMaritalStatus();
         retrieveDataFromSession();
         fetchHighestEdu();
         fetchAnnualIncome();
         fetchFieldOfStudy();
+        fetchHeightOptions();
         // fetchMatchList();
         //fetchMatchStars();
     }, []);
@@ -423,44 +437,48 @@ export const PartnerSettings = () => {
                     <View style={styles.formContainer}>
                         <View style={styles.inputFlexContainer}>
                             {/* Height From */}
-                            <Controller
-                                control={control}
-                                name="heightFrom"
-                                rules={{ required: 'Height from is required' }}
-                                render={({ field: { onChange, value } }) => (
-                                    <View style={styles.inputFlexFirst}>
-                                        <TextInput
+                            <View style={{ flex: 1, marginRight: 10 }}>
+                                <Controller
+                                    control={control}
+                                    name="heightFrom"
+                                    render={({ field: { onChange, value } }) => (
+                                        <Dropdown
+                                            style={styles.dropdown}
+                                            placeholderStyle={styles.placeholderStyle}
+                                            selectedTextStyle={styles.selectedTextStyle}
+                                            data={heightOptions}
+                                            maxHeight={300}
+                                            labelField="label"
+                                            valueField="value"
                                             placeholder="From"
-                                            keyboardType="numeric"
                                             value={value}
-                                            onChangeText={onChange}
+                                            onChange={(item) => onChange(item.value)}
                                         />
-                                        {/* {errors.heightFrom && (
-                                            <Text style={styles.errorText}>{errors.heightFrom.message}</Text>
-                                        )} */}
-                                    </View>
-                                )}
-                            />
+                                    )}
+                                />
+                            </View>
 
-                            {/* Height To */}
-                            <Controller
-                                control={control}
-                                name="heightTo"
-                                rules={{ required: 'Height to is required' }}
-                                render={({ field: { onChange, value } }) => (
-                                    <View style={styles.inputFlex}>
-                                        <TextInput
+                            {/* Height To Dropdown */}
+                            <View style={{ flex: 1 }}>
+                                <Controller
+                                    control={control}
+                                    name="heightTo"
+                                    render={({ field: { onChange, value } }) => (
+                                        <Dropdown
+                                            style={styles.dropdown}
+                                            placeholderStyle={styles.placeholderStyle}
+                                            selectedTextStyle={styles.selectedTextStyle}
+                                            data={heightOptions}
+                                            maxHeight={300}
+                                            labelField="label"
+                                            valueField="value"
                                             placeholder="To"
-                                            keyboardType="numeric"
                                             value={value}
-                                            onChangeText={onChange}
+                                            onChange={(item) => onChange(item.value)}
                                         />
-                                        {/* {errors.heightTo && (
-                                            <Text style={styles.errorText}>{errors.heightTo.message}</Text>
-                                        )} */}
-                                    </View>
-                                )}
-                            />
+                                    )}
+                                />
+                            </View>
                         </View>
                     </View>
                 </View>

@@ -16,14 +16,11 @@ import { useNavigation } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios"; // Import axios
+import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../API/Apiurl";
-import { updateProfileVisibility, fetchProfileVisibility, } from '../CommonApiCall/CommonApiCall'; // Adjust the path as needed
-import Toast from 'react-native-toast-message'; // Import the toast library
-
-
-
+import { updateProfileVisibility, fetchProfileVisibility, } from '../CommonApiCall/CommonApiCall';
+import Toast from 'react-native-toast-message';
 
 const schema = z.object({
     ageDifference: z.string().min(1, "Age difference is required"),
@@ -51,15 +48,12 @@ const age = [
     { label: '8', value: '8' },
     { label: '9', value: '9' },
     { label: '10', value: '10' }
-
-    // Add more options as needed
 ];
 
 const foreignInterest = [
     { label: 'Yes', value: 'Yes' },
     { label: 'No', value: 'No' },
     { label: 'both', value: 'both' },
-    // Add more options as needed
 ];
 
 export const ProfileVisibility = () => {
@@ -87,12 +81,29 @@ export const ProfileVisibility = () => {
     const [maritalStatusOptions, setMaritalStatusOptions] = useState([]);
     const [highestEduOptions, setHighestEduOptions] = useState([]);
     const [annualIncomeOptions, setAnnualIncomeOptions] = useState([]);
-const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store selected IDs as a string
-  const [selectedIncomeMaxIds, setSelectedIncomeMaxIds] = useState('');
+    const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState('');
+    const [selectedIncomeMaxIds, setSelectedIncomeMaxIds] = useState('');
+    const [heightOptions, setHeightOptions] = useState([]);
+
+    //Height dropdown
+    const fetchHeightOptions = async () => {
+        try {
+            const response = await axios.post(`${config.apiUrl}/auth/Get_Height/`);
+            const heightArray = Object.keys(response.data).map(key => ({
+                label: response.data[key].height_description,
+                value: response.data[key].height_id.toString(),
+            }));
+            setHeightOptions(heightArray);
+        } catch (error) {
+            console.error("Error fetching height options:", error);
+        }
+    };
+
     useEffect(() => {
         fetchMaritalStatus();
         fetchHighestEdu();
         fetchAnnualIncome();
+        fetchHeightOptions();
         // fetchMatchList();
         //fetchMatchStars();
     }, []);
@@ -146,7 +157,6 @@ const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store s
 
     const onSubmit = async (data) => {
         try {
-            // Get profession values from selected options
             const professionValues = data.profession.map(p => {
                 const profOpt = professionOptions.find(opt => opt.value === p);
                 return profOpt ? profOpt.value : p;
@@ -163,7 +173,7 @@ const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store s
                 visibility_ragukethu: data.chevvai,
                 visibility_chevvai: data.rehu,
                 visibility_foreign_interest: data.foreignInterest,
-                status:1
+                status: 1
             };
 
             console.log("Post Data:", formattedData);
@@ -196,8 +206,6 @@ const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store s
             });
         }
     };
-
-
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -297,125 +305,89 @@ const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store s
                 <Text style={styles.redText}>Height</Text>
                 <View style={styles.formContainer}>
                     <View style={styles.inputFlexContainer}>
-                        {/* Height From */}
-                        <Controller
-                            control={control}
-                            name="heightFrom"
-                            rules={{ required: 'Height from is required' }}
-                            render={({ field: { onChange, value } }) => (
-                                <View style={styles.inputFlexFirst}>
-                                    <TextInput
+                        {/* Height From Dropdown */}
+                        <View style={[styles.inputFlexFirst, { padding: 0 }]}>
+                            <Controller
+                                control={control}
+                                name="heightFrom"
+                                render={({ field: { onChange, value } }) => (
+                                    <Dropdown
+                                        style={styles.dropdown}
+                                        placeholderStyle={styles.placeholderStyle}
+                                        selectedTextStyle={styles.selectedTextStyle}
+                                        data={heightOptions}
+                                        maxHeight={300}
+                                        labelField="label"
+                                        valueField="value"
                                         placeholder="From"
-                                        keyboardType="numeric"
                                         value={value}
-                                        onChangeText={onChange}
+                                        onChange={(item) => onChange(item.value)}
                                     />
-                                    {errors.heightFrom && (
-                                        <Text style={styles.errorText}>{errors.heightFrom.message}</Text>
-                                    )}
-                                </View>
-                            )}
-                        />
+                                )}
+                            />
+                        </View>
 
-                        {/* Height To */}
-                        <Controller
-                            control={control}
-                            name="heightTo"
-                            rules={{ required: 'Height to is required' }}
-                            render={({ field: { onChange, value } }) => (
-                                <View style={styles.inputFlex}>
-                                    <TextInput
+                        {/* Height To Dropdown */}
+                        <View style={[styles.inputFlex, { padding: 0 }]}>
+                            <Controller
+                                control={control}
+                                name="heightTo"
+                                render={({ field: { onChange, value } }) => (
+                                    <Dropdown
+                                        style={styles.dropdown}
+                                        placeholderStyle={styles.placeholderStyle}
+                                        selectedTextStyle={styles.selectedTextStyle}
+                                        data={heightOptions}
+                                        maxHeight={300}
+                                        labelField="label"
+                                        valueField="value"
                                         placeholder="To"
-                                        keyboardType="numeric"
                                         value={value}
-                                        onChangeText={onChange}
+                                        onChange={(item) => onChange(item.value)}
                                     />
-                                    {errors.heightTo && (
-                                        <Text style={styles.errorText}>{errors.heightTo.message}</Text>
-                                    )}
-                                </View>
-                            )}
-                        />
+                                )}
+                            />
+                        </View>
                     </View>
+                    {errors.heightFrom && <Text style={styles.errorText}>{errors.heightFrom.message}</Text>}
+                    {errors.heightTo && <Text style={styles.errorText}>{errors.heightTo.message}</Text>}
                 </View>
             </View>
-
-            {/* Marital Status */}
-            {/* <View style={styles.checkContainer}>
-                <Text style={styles.checkRedText}>Marital Status</Text>
-                <Controller
-                    control={control}
-                    name="maritalStatus"
-                    render={({ field: { onChange, value } }) => (
-                        <View style={styles.checkboxDivColFlex}>
-                            {maritalStatusOptions.map((status) => (
-                                <View key={status.value} style={styles.checkboxContainer}>
-                                    <Pressable
-                                        style={[
-                                            styles.checkboxBase,
-                                            value.includes(status.value) && styles.checkboxChecked,
-                                        ]}
-                                        onPress={() => {
-                                            const newValue = value.includes(status.value)
-                                                ? value.filter((item) => item !== status.value)
-                                                : [...value, status.value];
-                                            onChange(newValue);
-                                        }}
-                                    >
-                                        {value.includes(status.value) && (
-                                            <Ionicons name="checkmark" size={14} color="white" />
-                                        )}
-                                    </Pressable>
-                                    <Pressable onPress={() => {
-                                        const newValue = value.includes(status.value)
-                                            ? value.filter((item) => item !== status.value)
-                                            : [...value, status.value];
-                                        onChange(newValue);
-                                    }}>
-                                        <Text style={styles.checkboxLabel}>{status.label}</Text>
-                                    </Pressable>
-                                </View>
-                            ))}
-                        </View>
-                    )}
-                />
-                {errors.maritalStatus && <Text style={styles.errorTextCheckBox}>{errors.maritalStatus.message}</Text>}
-            </View> */}
 
             {/* Education */}
             <View style={styles.checkContainer}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                                                        <Pressable
-                                                            style={[
-                                                                styles.checkboxBase,
-                                                                (watch("education")?.length === highestEduOptions.length && highestEduOptions.length > 0) && styles.checkboxChecked,
-                                                            ]}
-                                                            onPress={() => {
-                                                                const allValues = highestEduOptions.map(opt => opt.value);
-                                                                if (watch("education")?.length === highestEduOptions.length) {
-                                                                    setValue("education", []);
-                                                                } else {
-                                                                    setValue("education", allValues);
-                                                                }
-                                                            }}
-                                                        >
-                                                            {(watch("education")?.length === highestEduOptions.length && highestEduOptions.length > 0) && (
-                                                                <Ionicons name="checkmark" size={14} color="white" />
-                                                            )}
-                                                        </Pressable>
-                                                        <Pressable
-                                                            onPress={() => {
-                                                                const allValues = highestEduOptions.map(opt => opt.value);
-                                                                if (watch("education")?.length === highestEduOptions.length) {
-                                                                    setValue("education", []);
-                                                                } else {
-                                                                    setValue("education", allValues);
-                                                                }
-                                                            }}
-                                                        >
-                                                            <Text style={styles.checkRedText}>Education</Text>
-                                                        </Pressable>
-                                                    </View>
+                    <Pressable
+                        style={[
+                            styles.checkboxBase,
+                            (watch("education")?.length === highestEduOptions.length && highestEduOptions.length > 0) && styles.checkboxChecked,
+                        ]}
+                        onPress={() => {
+                            const allValues = highestEduOptions.map(opt => opt.value);
+                            if (watch("education")?.length === highestEduOptions.length) {
+                                setValue("education", []);
+                            } else {
+                                setValue("education", allValues);
+                            }
+                        }}
+                    >
+                        {(watch("education")?.length === highestEduOptions.length && highestEduOptions.length > 0) && (
+                            <Ionicons name="checkmark" size={14} color="white" />
+                        )}
+                    </Pressable>
+                    <Pressable
+                        onPress={() => {
+                            const allValues = highestEduOptions.map(opt => opt.value);
+                            if (watch("education")?.length === highestEduOptions.length) {
+                                setValue("education", []);
+                            } else {
+                                setValue("education", allValues);
+                            }
+                        }}
+                    >
+                        <Text style={styles.checkRedText}>Education</Text>
+                    </Pressable>
+                </View>
                 <Controller
                     control={control}
                     name="education"
@@ -457,76 +429,76 @@ const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store s
 
             {/* Profession */}
             <View style={styles.checkContainer}>
-    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-        <Pressable
-            style={[
-                styles.checkboxBase,
-                (watch("profession")?.length === professionOptions.length && professionOptions.length > 0) && styles.checkboxChecked,
-            ]}
-            onPress={() => {
-                const allValues = professionOptions.map(opt => opt.value);
-                if (watch("profession")?.length === professionOptions.length) {
-                    setValue("profession", []);
-                } else {
-                    setValue("profession", allValues);
-                }
-            }}
-        >
-            {(watch("profession")?.length === professionOptions.length && professionOptions.length > 0) && (
-                <Ionicons name="checkmark" size={14} color="white" />
-            )}
-        </Pressable>
-        <Pressable
-            onPress={() => {
-                const allValues = professionOptions.map(opt => opt.value);
-                if (watch("profession")?.length === professionOptions.length) {
-                    setValue("profession", []);
-                } else {
-                    setValue("profession", allValues);
-                }
-            }}
-        >
-            <Text style={styles.checkRedText}>Profession</Text>
-        </Pressable>
-    </View>
-    <Controller
-        control={control}
-        name="profession"
-        render={({ field: { onChange, value } }) => (
-            <View style={styles.checkboxDivFlex}>
-                {professionOptions.map((profession) => (
-                    <View key={profession.value} style={styles.checkboxContainer}>
-                        <Pressable
-                            style={[
-                                styles.checkboxBase,
-                                value.includes(profession.value) && styles.checkboxChecked,
-                            ]}
-                            onPress={() => {
-                                const newValue = value.includes(profession.value)
-                                    ? value.filter((item) => item !== profession.value)
-                                    : [...value, profession.value];
-                                onChange(newValue);
-                            }}
-                        >
-                            {value.includes(profession.value) && (
-                                <Ionicons name="checkmark" size={14} color="white" />
-                            )}
-                        </Pressable>
-                        <Pressable onPress={() => {
-                            const newValue = value.includes(profession.value)
-                                ? value.filter((item) => item !== profession.value)
-                                : [...value, profession.value];
-                            onChange(newValue);
-                        }}>
-                            <Text style={styles.checkboxLabel}>{profession.label}</Text>
-                        </Pressable>
-                    </View>
-                ))}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                    <Pressable
+                        style={[
+                            styles.checkboxBase,
+                            (watch("profession")?.length === professionOptions.length && professionOptions.length > 0) && styles.checkboxChecked,
+                        ]}
+                        onPress={() => {
+                            const allValues = professionOptions.map(opt => opt.value);
+                            if (watch("profession")?.length === professionOptions.length) {
+                                setValue("profession", []);
+                            } else {
+                                setValue("profession", allValues);
+                            }
+                        }}
+                    >
+                        {(watch("profession")?.length === professionOptions.length && professionOptions.length > 0) && (
+                            <Ionicons name="checkmark" size={14} color="white" />
+                        )}
+                    </Pressable>
+                    <Pressable
+                        onPress={() => {
+                            const allValues = professionOptions.map(opt => opt.value);
+                            if (watch("profession")?.length === professionOptions.length) {
+                                setValue("profession", []);
+                            } else {
+                                setValue("profession", allValues);
+                            }
+                        }}
+                    >
+                        <Text style={styles.checkRedText}>Profession</Text>
+                    </Pressable>
+                </View>
+                <Controller
+                    control={control}
+                    name="profession"
+                    render={({ field: { onChange, value } }) => (
+                        <View style={styles.checkboxDivFlex}>
+                            {professionOptions.map((profession) => (
+                                <View key={profession.value} style={styles.checkboxContainer}>
+                                    <Pressable
+                                        style={[
+                                            styles.checkboxBase,
+                                            value.includes(profession.value) && styles.checkboxChecked,
+                                        ]}
+                                        onPress={() => {
+                                            const newValue = value.includes(profession.value)
+                                                ? value.filter((item) => item !== profession.value)
+                                                : [...value, profession.value];
+                                            onChange(newValue);
+                                        }}
+                                    >
+                                        {value.includes(profession.value) && (
+                                            <Ionicons name="checkmark" size={14} color="white" />
+                                        )}
+                                    </Pressable>
+                                    <Pressable onPress={() => {
+                                        const newValue = value.includes(profession.value)
+                                            ? value.filter((item) => item !== profession.value)
+                                            : [...value, profession.value];
+                                        onChange(newValue);
+                                    }}>
+                                        <Text style={styles.checkboxLabel}>{profession.label}</Text>
+                                    </Pressable>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+                />
+                {errors.profession && <Text style={styles.errorTextCheckBox}>{errors.profession.message}</Text>}
             </View>
-        )}
-    />
-    {errors.profession && <Text style={styles.errorTextCheckBox}>{errors.profession.message}</Text>}
-</View>
 
             {/* Annual Income */}
             {/* <View style={styles.checkContainer}>
@@ -570,36 +542,36 @@ const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store s
                 {errors.annualIncome && <Text style={styles.errorTextCheckBox}>{errors.annualIncome.message}</Text>}
             </View> */}
 
-{/* Annual Income */}
+            {/* Annual Income */}
             <View style={styles.searchContainer}>
                 <Text style={styles.redText}>Annual Income Min</Text>
                 <View style={styles.formContainer}>
-                <View style={styles.inputContainer}>
-                <Controller
-                                                control={control}
-                                                name="annualIncomeMin"
-                                                render={({ field: { onChange, value } }) => (
-                                                    <Dropdown
-                                                        style={styles.dropdown}
-                                                        placeholderStyle={styles.placeholderStyle}
-                                                        selectedTextStyle={styles.selectedTextStyle}
-                                                        data={annualIncomeOptions} // Use the incomeOptions array
-                                                        maxHeight={180}
-                                                        labelField="label"
-                                                        valueField="value"
-                                                        placeholder="Select min Annual Income"
-                                                        value={value}
-                                                        onChange={(item) => {
-                                                            onChange(item.value);
-                                                            setSelectedIncomeMinIds(item.value); // Update selectedIncomeIds state
-                                                        }}
-                                                    />
-                                                )}
-                                            />
+                    <View style={styles.inputContainer}>
+                        <Controller
+                            control={control}
+                            name="annualIncomeMin"
+                            render={({ field: { onChange, value } }) => (
+                                <Dropdown
+                                    style={styles.dropdown}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    data={annualIncomeOptions} // Use the incomeOptions array
+                                    maxHeight={180}
+                                    labelField="label"
+                                    valueField="value"
+                                    placeholder="Select min Annual Income"
+                                    value={value}
+                                    onChange={(item) => {
+                                        onChange(item.value);
+                                        setSelectedIncomeMinIds(item.value); // Update selectedIncomeIds state
+                                    }}
+                                />
+                            )}
+                        />
+                    </View>
                 </View>
-                </View>
-                
-                
+
+
                 {/* <Controller
                     control={control}
                     name="annualIncome"
@@ -643,29 +615,29 @@ const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState(''); // Store s
             <View style={styles.searchContainer}>
                 <Text style={styles.redText}>Annual Income Max</Text>
                 <View style={styles.formContainer}>
-                <View style={styles.inputContainer}>
-                <Controller
-                                                control={control}
-                                                name="annualIncomeMax"
-                                                render={({ field: { onChange, value } }) => (
-                                                    <Dropdown
-                                                        style={styles.dropdown}
-                                                        placeholderStyle={styles.placeholderStyle}
-                                                        selectedTextStyle={styles.selectedTextStyle}
-                                                        data={annualIncomeOptions} // Use the incomeOptions array
-                                                        maxHeight={180}
-                                                        labelField="label"
-                                                        valueField="value"
-                                                        placeholder="Select max Annual Income"
-                                                        value={value}
-                                                        onChange={(item) => {
-                                                            onChange(item.value);
-                                                            setSelectedIncomeMinIds(item.value); // Update selectedIncomeIds state
-                                                        }}
-                                                    />
-                                                )}
-                                            />
-                </View>
+                    <View style={styles.inputContainer}>
+                        <Controller
+                            control={control}
+                            name="annualIncomeMax"
+                            render={({ field: { onChange, value } }) => (
+                                <Dropdown
+                                    style={styles.dropdown}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    data={annualIncomeOptions} // Use the incomeOptions array
+                                    maxHeight={180}
+                                    labelField="label"
+                                    valueField="value"
+                                    placeholder="Select max Annual Income"
+                                    value={value}
+                                    onChange={(item) => {
+                                        onChange(item.value);
+                                        setSelectedIncomeMinIds(item.value); // Update selectedIncomeIds state
+                                    }}
+                                />
+                            )}
+                        />
+                    </View>
                 </View>
                 {/* {errors.annualIncome && <Text style={styles.errorTextCheckBox}>{errors.annualIncome.message}</Text>} */}
             </View>
@@ -936,7 +908,7 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
         // paddingHorizontal: 10,
         marginBottom: 10,
-        marginTop : 7,
+        marginTop: 7,
     },
 
     checkboxDivFlex: {

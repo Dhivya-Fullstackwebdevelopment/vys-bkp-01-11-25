@@ -639,14 +639,15 @@ export const Menu = () => {
               onPress={() =>
                 navigation.navigate("WebViewPage", {
                   // url: "http://matrimonyapp.rainyseasun.com/HappyStoriesMobile",
+                  //url: "https://vysyamala.com/HappyStoriesMobile",
                   url: "https://vysyamala.com/HappyStoriesMobile",
-                  title: "Success Stories",
+                  title: "Santhosha Pendlilu",
                 })
               }
             >
               <View style={styles.menuFlex}>
                 <FontAwesome6 name="star" size={wp(6)} color="#535665" />
-                <Text style={styles.menuText}>Success Stories</Text>
+                <Text style={styles.menuText}>Santhosha Pendlilu</Text>
               </View>
             </TouchableOpacity>
             <View style={styles.hrLine1} />

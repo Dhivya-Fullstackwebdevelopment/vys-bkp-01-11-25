@@ -304,11 +304,13 @@ export const PayNow = () => {
     try {
       const options = {
         description: "Purchase Credits",
-        image: 'https://vysyamaladev2025.blob.core.windows.net/vysyamala/VysyamalaLogo-i_e8O9Ou.png',
+        // image: 'https://vysyamaladev2025.blob.core.windows.net/vysyamala/VysyamalaLogo-i_e8O9Ou.png',
+        image: 'https://vysyamat.blob.core.windows.net/vysyamala/VysyamalaLogo-i_e8O9Ou.png',
         currency: "INR",
         //key: "rzp_test_bR07kHwjYrmOHm", 
-        key: "rzp_live_HYCeDsho3jhHRt", // Make sure this is your correct key
-        amount: Math.round(totalPriceNew * 100), // Amount in paise
+        key: "rzp_live_HYCeDsho3jhHRt",
+        //key: "rzp_test_SEjGDBXnicHcim",
+        amount: Math.round(totalPriceNew * 100),
         order_id: order_id,
         name: "Vysyamala",
         prefill: {
