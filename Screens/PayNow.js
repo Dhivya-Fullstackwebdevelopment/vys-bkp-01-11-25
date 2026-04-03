@@ -54,8 +54,15 @@ export const PayNow = () => {
             },
           }
         );
-
         setPackages(response.data.data);
+
+        const autoCheckId = route.params?.autoCheckId;
+        if (autoCheckId) {
+          setCheckedState(prevState => ({
+            ...prevState,
+            [autoCheckId]: true
+          }));
+        }
       } catch (error) {
         console.error("Error fetching packages:", error);
         setError(error.message);
@@ -65,7 +72,7 @@ export const PayNow = () => {
     };
 
     fetchPackages();
-  }, []);
+  }, [route.params?.autoCheckId]);
 
   // useEffect(() => {
   //   const getSelectedPlanDetails = async () => {

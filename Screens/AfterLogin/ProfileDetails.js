@@ -27,6 +27,7 @@ import * as FileSystem from 'expo-file-system'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ProfileDetailsView } from "../../Components/HomeTab/ProfileDetails/ProfileDetailsView";
 import Toast from "react-native-toast-message";
+
 // import {  } from "react-native";
 import {
   fetchProfileData,
@@ -352,6 +353,10 @@ export const ProfileDetails = () => {
   const restrictedPlanIds = ["1", "2", "3", "14", "15", "17"];
   const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [remainCount, setRemainCount] = useState(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [showVysassistErrorModal, setShowVysassistErrorModal] = useState(false);
+  const [vysassistErrorMsg, setVysassistErrorMsg] = useState('');
 
   const togglePersonalDetails = () => {
     setShowEducationDetails(false)
@@ -1149,7 +1154,6 @@ export const ProfileDetails = () => {
         return;
       }
 
-      // If result is a file path (success case)
       if (typeof result === 'string' && result.length > 0) {
         console.log('Matching report downloaded successfully:', result);
         Toast.show({
@@ -1266,7 +1270,7 @@ export const ProfileDetails = () => {
       const message = selectedOptions.join(", ");
       const response = await sendVysassistRequest(viewedProfileId, message);
       console.log("response sendVysassistRequest==>", JSON.stringify(response));
-      if (response.Status === 0) {
+      if (response.Status === 1) {
         Toast.show({
           type: 'success',
           text1: 'Success',
@@ -1277,9 +1281,11 @@ export const ProfileDetails = () => {
           topOffset: 30
         });
         setExpressInterestError("");
-        setShowVysassist(false);
+        //setShowVysassist(false);
         setSelectedOptions([]);
-        bottomSheetRef.current.close();
+        // bottomSheetRef.current.close();
+        setRemainCount(response.vys_assist_count);
+        setIsSuccess(true);
 
         // Reload profile data
         try {
@@ -1290,7 +1296,7 @@ export const ProfileDetails = () => {
 
           setProfileData(data);
           setVysassistEnable(data.basic_details.vysy_assist_enable);
-          setVysassits(data.basic_details.vys_assits);
+          // setVysassits(data.basic_details.vys_assits);
 
           if (data.basic_details.vys_list !== null) {
             const formatDate = (dateString) => {
@@ -1311,6 +1317,13 @@ export const ProfileDetails = () => {
         } catch (error) {
           console.error("Error reloading profile data:", error);
         }
+      } else if (response.Status === 0) {
+        setVysassistErrorMsg(response.message || 'No access to Vysassist request');
+        setShowVysassistErrorModal(true);
+        setShowVysassist(false);
+        setSelectedOptions([]);
+        setExpressInterestError("");
+
       } else {
         Toast.show({
           type: 'success',
@@ -1354,7 +1367,8 @@ export const ProfileDetails = () => {
           console.error("Error reloading profile data:", error);
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error submitting vysassist request:', error);
       Toast.show({
         type: 'error',
@@ -1568,6 +1582,32 @@ export const ProfileDetails = () => {
     }
   };
 
+  const renderSuccessView = () => (
+    <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+      <Ionicons name="checkmark-circle" size={80} color="#2ecc71" />
+      <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#4F515D', marginTop: 10 }}>
+        Vysassist sent successfully
+      </Text>
+      <Text style={{ fontSize: 16, color: '#4F515D', marginVertical: 10 }}>
+        Remaining VysAssist Count:
+        <Text style={{ color: 'red', fontWeight: 'bold' }}> {remainCount}</Text>
+      </Text>
+      <TouchableOpacity
+        style={[styles.submitButtonpop, { width: '40%', marginTop: 20, borderRadius: 8, padding: 10 }]}
+        onPress={async () => {
+          setIsSuccess(false);      // Reset for next time
+          setShowVysassist(false);  // NOW you close the modal
+          setSelectedOptions([]);
+          const refreshed = await fetchProfileData(viewedProfileId);
+          setProfileData(refreshed);
+          setVysassistEnable(refreshed.basic_details.vysy_assist_enable);
+          setVysassits(refreshed.basic_details.vys_assits);
+        }}
+      >
+        <Text style={styles.buttonText}>OK</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.mainContainer}>
@@ -2694,66 +2734,73 @@ export const ProfileDetails = () => {
             >
               <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View style={styles.popupContainer}>
-                  <View style={styles.header}>
-                    <Text style={styles.title}>Vysassist Notes</Text>
-                    <MaterialCommunityIcons
-                      name="close"
-                      size={24}
-                      color="#4F515D"
-                      onPress={closePopupnew}
-                    />
-                  </View>
-                  <ScrollView>
-                    <View style={styles.modalBody}>
-                      <Text style={styles.subTitle}>
-                        Apply for Vysya Assist: ({selectedOptions.length}/{options.length})
-                      </Text>
-                      <View style={styles.checkboxContainerNew1}>
-                        {options.map((option, index) => (
-                          <Pressable
-                            key={index}
-                            style={[styles.checkboxContainerNew2]}
-                            onPress={() => handleCheckboxChange(option)}
-                          >
-                            <MaterialIcons
-                              name={selectedOptions.includes(option) ? "check-box" : "check-box-outline-blank"}
-                              size={22}
-                              color={selectedOptions.includes(option) ? '#007AFF' : '#333'}
-                            />
-                            <Text style={{ fontSize: 16, marginLeft: 1 }}>
-                              {option}
-                            </Text>
-                          </Pressable>
-                        ))}
-                      </View>
-                      <Text style={styles.label}>Add Your Notes/Instructions</Text>
-                      <TextInput
-                        style={styles.textInputnew}
-                        value={selectedOptions.join(", ")}
-                        placeholder="Selected options will appear here"
-                      />
-                    </View>
-                  </ScrollView>
-                  {expressInterestError ? (
-                    <Text style={styles.errorText}>{expressInterestError}</Text>
-                  ) : null}
-                  <View style={styles.modalButtons}>
-                    <TouchableOpacity
-                      style={[styles.modalButton, styles.submitButtonpop]}
-                      onPress={handleSubmitVysassistPopup}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.buttonText}>Submit</Text>
-                    </TouchableOpacity>
+                  {isSuccess ? (
+                    renderSuccessView()
+                  ) : (
+                    <>
 
-                    <TouchableOpacity
-                      style={[styles.modalButton, styles.closeButton]}
-                      onPress={closePopupnew}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.buttonText}>Close</Text>
-                    </TouchableOpacity>
-                  </View>
+                      <View style={styles.header}>
+                        <Text style={styles.title}>Vysassist Notes </Text>
+                        <MaterialCommunityIcons
+                          name="close"
+                          size={24}
+                          color="#4F515D"
+                          onPress={closePopupnew}
+                        />
+                      </View>
+                      <ScrollView>
+                        <View style={styles.modalBody}>
+                          <Text style={styles.subTitle}>
+                            Apply for Vysya Assist: ({selectedOptions.length}/{options.length})
+                          </Text>
+                          <View style={styles.checkboxContainerNew1}>
+                            {options.map((option, index) => (
+                              <Pressable
+                                key={index}
+                                style={[styles.checkboxContainerNew2]}
+                                onPress={() => handleCheckboxChange(option)}
+                              >
+                                <MaterialIcons
+                                  name={selectedOptions.includes(option) ? "check-box" : "check-box-outline-blank"}
+                                  size={22}
+                                  color={selectedOptions.includes(option) ? '#007AFF' : '#333'}
+                                />
+                                <Text style={{ fontSize: 16, marginLeft: 1 }}>
+                                  {option}
+                                </Text>
+                              </Pressable>
+                            ))}
+                          </View>
+                          <Text style={styles.label}>Add Your Notes/Instructions</Text>
+                          <TextInput
+                            style={styles.textInputnew}
+                            value={selectedOptions.join(", ")}
+                            placeholder="Selected options will appear here"
+                          />
+                        </View>
+                      </ScrollView>
+                      {expressInterestError ? (
+                        <Text style={styles.errorText}>{expressInterestError}</Text>
+                      ) : null}
+                      <View style={styles.modalButtons}>
+                        <TouchableOpacity
+                          style={[styles.modalButton, styles.submitButtonpop]}
+                          onPress={handleSubmitVysassistPopup}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.buttonText}>Submit</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={[styles.modalButton, styles.closeButton]}
+                          onPress={closePopupnew}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.buttonText}>Close</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
+                  )}
                 </View>
               </TouchableWithoutFeedback>
             </KeyboardAvoidingView>
@@ -2899,7 +2946,7 @@ export const ProfileDetails = () => {
                 </View>
                 {/* Description */}
                 <Text style={styles.description}>
-                  You have not activated VysAssist for your plan. You can opt for 3
+                  You have not activated VysAssist for your plan. You can opt for 5
                   matching profiles for Rs.900/-
                 </Text>
 
@@ -2926,7 +2973,7 @@ export const ProfileDetails = () => {
                     style={[styles.modalButton, styles.submitButtonpop]}
                     onPress={() => {
                       // closePopupnew();
-                      navigation.navigate("PayNow");
+                      navigation.navigate("PayNow", { autoCheckId: "1" });
                     }}
                     activeOpacity={0.7}
                   >
@@ -3029,6 +3076,72 @@ export const ProfileDetails = () => {
           </View>
         </View>
       </Animated.View>
+      {/* Vysassist Error Modal */}
+      <Modal
+        visible={showVysassistErrorModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowVysassistErrorModal(false)}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0,0,0,0.5)'
+        }}>
+          <View style={{
+            backgroundColor: 'white',
+            borderRadius: 12,
+            padding: 24,
+            width: '80%',
+            alignItems: 'center',
+            elevation: 10,
+          }}>
+            {/* ✅ Close X button */}
+            <TouchableOpacity
+              onPress={() => setShowVysassistErrorModal(false)}
+              style={{ position: 'absolute', top: 12, right: 12 }}
+            >
+              <MaterialIcons name="warning" size={32} color="white" />
+            </TouchableOpacity>
+
+            {/* ✅ Info triangle icon like the image */}
+            <View style={{
+              backgroundColor: '#ED1E24',
+              borderRadius: 50,
+              padding: 14,
+              marginBottom: 16,
+              marginTop: 10,
+            }}>
+              <MaterialIcons name="info" size={32} color="white" />
+            </View>
+
+            {/* ✅ Message */}
+            <Text style={{
+              fontSize: 16,
+              fontWeight: 'bold',
+              color: '#282C3F',
+              textAlign: 'center',
+              marginBottom: 20,
+            }}>
+              {vysassistErrorMsg}
+            </Text>
+
+            {/* ✅ OK Button */}
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#ED1E24',
+                borderRadius: 8,
+                paddingVertical: 12,
+                paddingHorizontal: 40,
+              }}
+              onPress={() => setShowVysassistErrorModal(false)}
+            >
+              <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <BottomTabBarComponent />
     </View>
   );

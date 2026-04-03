@@ -97,7 +97,7 @@ const ProfileVysAssistPopup = ({ viewedProfileId, closePopup }) => {
           <View style={styles.modalContainer}>
             {/* Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Vysassist Notes</Text>
+              <Text style={styles.modalTitle}>Vysassist Notes </Text>
               <TouchableOpacity onPress={closePopup}>
                 <Ionicons name="close" size={22} color="#007AFF" />
               </TouchableOpacity>
@@ -153,7 +153,7 @@ const ProfileVysAssistPopup = ({ viewedProfileId, closePopup }) => {
         <View style={styles.modalContainer1}>
           {/* Header Section */}
           <View style={styles.header}>
-            <Text style={styles.title}>Apply for VysAssist</Text>
+            <Text style={styles.title}>Apply for VysAssist 12</Text>
             <TouchableOpacity onPress={closePopup}>
               <Ionicons name="close" size={22} color="#007bff" />
             </TouchableOpacity>
@@ -161,7 +161,7 @@ const ProfileVysAssistPopup = ({ viewedProfileId, closePopup }) => {
 
           {/* Description */}
           <Text style={styles.description}>
-            You have not activated VysAssist for your plan. You can opt for 3
+            You have not activated VysAssist for your plan. You can opt for 5
             matching profiles for Rs.900/-
           </Text>
 
