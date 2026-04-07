@@ -2545,7 +2545,7 @@ export const ProfileCompletionFormAPI = async (formData) => {
     }
 };
 
-export const downloadPdfmyprofile = async (encryptedId,selectedLanguage) => {
+export const downloadPdfmyprofile = async (encryptedId, selectedLanguage) => {
     // const profileId = await retrieveProfileId(); // Implement this to retrieve the profile ID
     // if (!profileId) {
     //     console.warn('Profile ID is empty, skipping API call.');
@@ -2558,7 +2558,9 @@ export const downloadPdfmyprofile = async (encryptedId,selectedLanguage) => {
     // const fileName = `pdf_${idparam}.pdf`;
 
     const url = `${BASE_URL}/My_horoscope_pdf_color/${encryptedId}/?lang=${selectedLanguage}`;
-    const fileName = `My_Horoscope.pdf`;
+    const date = new Date();
+    const formattedDate = date.toISOString().split('T')[0];
+    const fileName = `My_Horoscope_${formattedDate}.pdf`;
 
     // Request storage permission
     const hasPermission = await requestStoragePermission();
@@ -2579,7 +2581,7 @@ export const downloadPdfmyprofile = async (encryptedId,selectedLanguage) => {
         content: {
             title: 'Download Started',
             body: `Downloading ${fileName}...`,
-            data: { idparam },
+            data: { encryptedId },
         },
         trigger: null,
     });
@@ -2903,16 +2905,16 @@ export const downloadPdfPoruthamNew = async (encryptedId, myId) => {
 
     // const url = `${BASE_URL}/generate-porutham-pdf-mobile/${profileId}/${idparam}`;
     const url = `${BASE_URL}/generate-porutham-pdf-mobile/${encryptedId}/${myId}`;
-    const fileName = `Matching_Report.pdf`;
+    const date = new Date();
+    const formattedDate = date.toISOString().split('T')[0];
+    const fileName = `Matching_Report_${formattedDate}.pdf`;
 
-    // Request storage permission
     const hasPermission = await requestStoragePermission();
     if (!hasPermission) {
         Alert.alert('Permission Denied', 'Storage permission is required to download the file.');
         return null;
     }
 
-    // Request notification permission
     const notificationPermission = await Notifications.requestPermissionsAsync();
     if (!notificationPermission.granted) {
         console.warn('Notification permission not granted');
@@ -3049,10 +3051,12 @@ export const Printhoroscopepdf = async (encryptedId, myId, selectedPdfLanguage) 
         console.warn('Profile ID is empty, skipping API call.');
         return null;
     }
-    const langParam = selectedPdfLanguage === "english" ? "english" : "tamil";
+    const langParam = selectedPdfLanguage;
     // const url = `${BASE_URL}/generate-porutham-pdf-mobile/${profileId}/${idparam}`;
-    const url = `${BASE_URL}/New_horoscope_color/${encryptedId}/${myId}/?${langParam}`;
-    const fileName = `Horoscope_Report.pdf`;
+    const url = `${BASE_URL}/New_horoscope_color/${encryptedId}/${myId}/?lang=${langParam}`;
+    const date = new Date();
+    const formattedDate = date.toISOString().split('T')[0];
+    const fileName = `Horoscope_${selectedPdfLanguage}_${formattedDate}.pdf`;
 
     // Request storage permission
     const hasPermission = await requestStoragePermission();

@@ -467,7 +467,7 @@ export const MyProfile = () => {
             const encryptedId = profileDetails.encrypted_profile_id;
 
             const result = await downloadPdfmyprofile(encryptedId, selectedPdfLanguage);
-
+            console.log("PDF download result:", result);
             if (result && result.status === 'failure') {
                 Alert.alert("Error", result.message || "Failed to generate PDF");
             } else if (result) {

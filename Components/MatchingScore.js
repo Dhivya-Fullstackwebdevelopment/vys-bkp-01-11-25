@@ -22,27 +22,56 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
     return "😞"
   }
 
+  // const handleDownloadPdf = async () => {
+  //   try {
+  //     setLoading(true);
+  //     // This function MUST return either the file path on success, 
+  //     // OR the JSON failure object {status: "failure", message: "..."}
+  //     const result = await downloadPdfPoruthamNew(encryptedId, myId);
+
+  //     // 1. Check for failure object returned by the utility
+  //     if (result && result.status === "failure") {
+  //       if (onUpgradeRequired) {
+  //         // Call the parent handler with the error message
+  //         onUpgradeRequired(result.message || "No access to see the compatibility report");
+  //       }
+  //       return; // Stop execution
+  //     }
+
+  //     // 2. Success case: Download/open handled by the utility.
+
+  //   } catch (error) {
+  //     console.error("Error downloading PDF:", error);
+  //     Alert.alert("Error", "Failed to download the file.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleDownloadPdf = async () => {
     try {
       setLoading(true);
-      // This function MUST return either the file path on success, 
-      // OR the JSON failure object {status: "failure", message: "..."}
-      const result = await downloadPdfPoruthamNew(encryptedId, myId);
 
-      // 1. Check for failure object returned by the utility
-      if (result && result.status === "failure") {
-        if (onUpgradeRequired) {
-          // Call the parent handler with the error message
-          onUpgradeRequired(result.message || "No access to see the compatibility report");
-        }
-        return; // Stop execution
+      const encryptedId = await AsyncStorage.getItem('encryptedId');
+      const myId = await AsyncStorage.getItem('myId');
+
+      if (!encryptedId || !myId) {
+        Alert.alert("Error", "Session data missing. Please try again.");
+        return;
       }
 
-      // 2. Success case: Download/open handled by the utility.
+      const result = await downloadPdfPoruthamNew(encryptedId, myId);
+
+      if (result && (result.status === "failure" || result.Status === 0)) {
+        if (onUpgradeRequired) {
+          onUpgradeRequired(result.message || "Upgrade required to view report");
+        }
+        return;
+      }
 
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      Alert.alert("Error", "Failed to download the file.");
+      Alert.alert("Error", "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }

@@ -995,6 +995,7 @@ export const ProfileDetails = () => {
   const handleDownloadPdf = async () => {
     console.log("handleDownloadPdf ==>", viewedProfileId)
     bottomSheetRef.current.close();
+    setShowLanguagePopup(false);
     setLoading(true)
     // Proceed with the download if permission is granted
     try {
@@ -1003,12 +1004,13 @@ export const ProfileDetails = () => {
       // setLoading(false)
       const encryptedId = profileData?.encrypted_profile_id;
       const myId = profileData?.My_profile_id;
-      const langParam = selectedPdfLanguage === "english" ? "english" : "tamil";
+      const langParam = selectedPdfLanguage;
       const result = await Printhoroscopepdf(encryptedId, myId, langParam);
 
       if (result && result.status === 'success') {
         Toast.show({ type: 'success', text1: 'Success', text2: 'Report downloaded!' });
       }
+      selectedPdfLanguage("english")
       // Alert.alert("Download Complete", `File saved to: ${filePath}`);
     } catch (error) {
       Alert.alert("Error", "Failed to download the file.");
@@ -1160,7 +1162,7 @@ export const ProfileDetails = () => {
       // Check if result is null or undefined (permission denied or other error)
       // if (!result) {
       //   Toast.show({
-      //     type: 'error',
+      //     type: 'error',s
       //     text1: 'Error',
       //     text2: 'Failed to download matching report',
       //     position: "bottom",
@@ -1957,14 +1959,19 @@ export const ProfileDetails = () => {
                   //     onUpgradeRequired={handleMatchingScoreUpgrade}
                   //   />
                   // </View>
-                  <View style={{ position: 'absolute', top: 0, right: 10 }}>
-                    <MatchingScore
-                      scorePercentage={parseInt(basic_details.matching_score)}
-                      viewedProfileId={viewedProfileId}
-                      onUpgradeRequired={handleMatchingScoreUpgrade} // Correctly wired up
-                    />
-                  </View>
-
+                  <TouchableOpacity
+                    style={{ position: 'absolute', top: 0, right: 10 }}
+                    onPress={handleDownloadMatchingReport} 
+                    activeOpacity={0.7}
+                  >
+                    <View style={{ position: 'absolute', top: 0, right: 10 }}>
+                      <MatchingScore
+                        scorePercentage={parseInt(basic_details.matching_score)}
+                        viewedProfileId={viewedProfileId}
+                        onUpgradeRequired={handleMatchingScoreUpgrade} // Correctly wired up
+                      />
+                    </View>
+</TouchableOpacity>
                   // <TouchableOpacity
                   //   onPress={handleDownloadMatchingReport}
                   //   style={{ position: 'absolute', top: 0, right: 10 }}
