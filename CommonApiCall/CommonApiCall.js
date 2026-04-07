@@ -1324,7 +1324,6 @@ export const getProfileDetailsMatch = async () => {
     }
 };
 
-
 export const getMyProfilePersonal = async () => {
     const profileId = await retrieveProfileId();
     if (!profileId) {
