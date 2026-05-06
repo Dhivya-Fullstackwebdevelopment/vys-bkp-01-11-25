@@ -16,7 +16,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.VysyamalaApp",
+      "bundleIdentifier": "com.vysmala.app",
       "runtimeVersion": {
         "policy": "appVersion"
       }
@@ -27,7 +27,8 @@
         "backgroundColor": "#ffffff"
       },
       "usesCleartextTraffic": true,
-      "package": "com.VysyamalaApp",
+      "package": "com.vysmala.app",
+      "versionCode": 24,
       "runtimeVersion": "1.0.0"
     },
     "web": {
@@ -35,15 +36,22 @@
     },
     "extra": {
       "eas": {
-        "projectId": "ec179e54-62e0-4044-ae3b-11e485cc4d43"
+        "projectId": "9e50b747-58d9-462e-80eb-907e076c7484"
       }
     },
     "updates": {
       "url": "https://u.expo.dev/524bae3e-64b1-46a5-bbbc-6a0d84357d8e"
     },
     "plugins": [
-      "expo-build-properties"
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "targetSdkVersion": 35
+          }
+        }
+      ]
     ],
-    "owner": "dhivya_p98"
+    "owner": "dhivyap12"
   }
 }
