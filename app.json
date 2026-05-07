@@ -28,7 +28,7 @@
       },
       "usesCleartextTraffic": true,
       "package": "com.vysmala.app",
-      "versionCode": 25,
+      "versionCode": 24,
       "runtimeVersion": "1.0.0"
     },
     "web": {
