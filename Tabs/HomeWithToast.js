@@ -581,7 +581,6 @@ export const HomeWithToast = () => {
         </View>
       )}
 
-      {/* Offer Modal */}
       <Modal
         animationType="slide"
         transparent={true}
