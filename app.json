@@ -28,8 +28,8 @@
       },
       "usesCleartextTraffic": true,
       "package": "com.vysmala.app",
-      "versionCode": 24,
-      "runtimeVersion": "1.0.0"
+      "versionCode": 25,
+      "runtimeVersion": "1.0.1"
     },
     "web": {
       "favicon": "./assets/favicon.png"
