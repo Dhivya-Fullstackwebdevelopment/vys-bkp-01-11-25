@@ -275,7 +275,7 @@ export const InterestSentCard = ({ sortBy = "datetime" }) => {
           </Text>
           <Text style={styles.profileAge}>
             {profile.myint_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
-            {profile.myint_height || "N/A"} Cms
+            {profile.myint_height?.height_desc || "N/A"}
           </Text>
           <Text style={styles.zodiac}> {profile.myint_star || "N/A"}</Text>
           <Text style={styles.employed}> {profile.myint_profession || "N/A"}</Text>

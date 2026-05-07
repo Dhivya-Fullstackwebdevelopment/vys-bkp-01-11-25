@@ -25,16 +25,16 @@ import Toast from 'react-native-toast-message';
 const schema = z.object({
     ageDifference: z.string().min(1, "Age difference is required"),
     toage: z.string().min(1, "To Age is required"),
-    heightFrom: z.string().min(1, "Height from is required"),
-    heightTo: z.string().min(1, "Height to is required"),
-    chevvai: z.string().min(1, "Chevvai is required"),
-    rehu: z.string().min(1, "Rehu is required"),
+    heightFrom: z.string().optional().default(''),
+    heightTo: z.string().optional().default(''),
+    chevvai: z.string().optional().default(''),
+    rehu: z.string().optional().default(''),
     // maritalStatus: z.array(z.string()).min(1, "At least one marital status is required"),
-    education: z.array(z.string()).min(1, "At least one education option is required"),
-    profession: z.array(z.string()).min(1, "At least one profession option is required"),
-    annualIncomeMin: z.string().min(1, "Minimum annual income is required"),
-    annualIncomeMax: z.string().min(1, "Maximum annual income is required"),
-    foreignInterest: z.string().min(1, "Foreign interest is required"),
+    education: z.array(z.string()).optional().default([]),
+    profession: z.array(z.string()).optional().default([]),
+    annualIncomeMin: z.string().optional().default(''),
+    annualIncomeMax: z.string().optional().default(''),
+    foreignInterest: z.string().optional().default(''),
 });
 
 const age = [
@@ -215,15 +215,28 @@ export const ProfileVisibility = () => {
                 // Set the form values using the data returned from the API
                 setValue('ageDifference', partnerProfileData.fromAge);
                 setValue('toage', partnerProfileData.toage);
-                setValue('heightFrom', partnerProfileData.fromHeight);
-                setValue('heightTo', partnerProfileData.toHeight);
+                setValue('heightFrom', partnerProfileData.fromHeight?.height_value || '');
+                setValue('heightTo', partnerProfileData.toHeight?.height_value || '');
                 setValue('education', partnerProfileData.education);
                 setValue('maritalStatus', partnerProfileData.maritalStatus);
                 // Split the income status into min and max
-                if (partnerProfileData.incomeStatus) {
-                    const incomeValues = partnerProfileData.incomeStatus.split(',');
+                // if (partnerProfileData.incomeStatus) {
+                //     const incomeValues = partnerProfileData.incomeStatus.split(',');
+                //     setValue('annualIncomeMin', incomeValues[0] || '');
+                //     setValue('annualIncomeMax', incomeValues[incomeValues.length - 1] || '');
+                // }
+                const incomeRaw = partnerProfileData.incomeStatus
+                    || partnerProfileData.income
+                    || partnerProfileData.partner_ann_inc
+                    || '';
+
+                if (incomeRaw) {
+                    const incomeValues = incomeRaw.toString().split(',');
                     setValue('annualIncomeMin', incomeValues[0] || '');
                     setValue('annualIncomeMax', incomeValues[incomeValues.length - 1] || '');
+                } else {
+                    setValue('annualIncomeMin', '');
+                    setValue('annualIncomeMax', '');
                 }
                 setValue('profession', partnerProfileData.profession);
                 setValue('rehu', partnerProfileData.rahuKetuDhosam);
@@ -632,7 +645,7 @@ export const ProfileVisibility = () => {
                                     value={value}
                                     onChange={(item) => {
                                         onChange(item.value);
-                                        setSelectedIncomeMinIds(item.value); // Update selectedIncomeIds state
+                                        setSelectedIncomeMaxIds(item.value); // Update selectedIncomeIds state
                                     }}
                                 />
                             )}
@@ -759,7 +772,14 @@ export const ProfileVisibility = () => {
             <View style={styles.formContainer}>
                 <TouchableOpacity
                     style={styles.btn}
-                    onPress={handleSubmit(onSubmit)}
+                    onPress={handleSubmit(onSubmit, (errors) => {
+                        console.log("Validation errors:", errors);
+                        Toast.show({
+                            type: 'error',
+                            position: 'bottom',
+                            text1: 'Please fill all required fields',
+                        });
+                    })}
                 >
                     <LinearGradient
                         colors={["#BD1225", "#FF4050"]}

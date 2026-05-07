@@ -146,7 +146,7 @@ export const FeaturedProfileCard = ({ profiles }) => {
                         </Text>
                         <View style={styles.profileInfoFlex}>
                             <Text style={styles.profileAge}>{profile.profile_age} years</Text>
-                            <Text style={styles.profileHeight}>{profile.profile_height} cm</Text>
+                            <Text style={styles.profileHeight}>{profile.profile_height?.height_desc || "N/A"}</Text>
                         </View>
                     </View>
                 </View>

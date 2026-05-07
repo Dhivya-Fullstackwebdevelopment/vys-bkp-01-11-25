@@ -341,7 +341,7 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
                                 </Text>
                                 <Text style={styles.profileAge}>
                                     {profile.req_profile_age || "N/A"} Yrs
-                                    <Text style={styles.line}>|</Text> {profile.req_height || "N/A"} Cms
+                                    <Text style={styles.line}>|</Text> {profile.req_height?.height_desc || "N/A"} 
                                 </Text>
                                 <Text style={styles.zodiac}>{profile.req_star || "N/A"}</Text>
                                 <Text style={styles.employed}>{profile.req_profession || "N/A"}</Text>
@@ -349,11 +349,9 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
                                     Last visit on {profile.req_lastvisit || "N/A"}
                                 </Text>
                                 {/* Buttons */}
-                                <View style={styles.buttonContainer}>
-                                    {/* Conditionally render Accept and Reject buttons if req_status is not 2 or 3 */}
+                                {/* <View style={styles.buttonContainer}>
                                     {profile.req_status !== 2 && profile.req_status !== 3 && (
                                         <>
-                                            {/* Accept Button */}
                                             <TouchableOpacity style={styles.btn} onPress={() => handleAcceptClick(profile.req_profileid)}>
                                                 <LinearGradient
                                                     colors={["#BD1225", "#FF4050"]}
@@ -370,7 +368,6 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
                                                 </LinearGradient>
                                             </TouchableOpacity>
 
-                                            {/* Reject Button */}
                                             <TouchableOpacity style={styles.btn} onPress={handleRejectPress}>
                                                 <LinearGradient
                                                     colors={["#BD1225", "#FF4050"]}
@@ -388,8 +385,7 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
 
                                             </TouchableOpacity>
 
-                                            {/* Modal for Pop-Up */}
-                                            <Modal
+]                                            <Modal
                                                 animationType="slide"
                                                 transparent={true}
                                                 visible={isModalVisible}
@@ -408,7 +404,6 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
                                                         <View style={styles.modalButtons}>
                                                             <TouchableOpacity
                                                                 style={[styles.modalButton, styles.submitButton]}
-                                                                // onPress={handleSubmitReason}
                                                                 onPress={() => handleSubmitReason(profile.req_profileid)}                                                        >
                                                                 <Text style={styles.buttonText}>Submit</Text>
                                                             </TouchableOpacity>
@@ -425,7 +420,6 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
                                         </>
                                     )}
 
-                                    {/* Conditionally render Message button if req_status is 2 */}
                                     {profile.req_status === 2 && (
                                         <>
 
@@ -444,11 +438,7 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
                                             </Text>
                                         </View>
                                     )}
-
-
-                                </View>
-
-
+                                </View> */}
                             </View>
                         </View>
                     </TouchableOpacity>

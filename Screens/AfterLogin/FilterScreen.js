@@ -297,7 +297,7 @@ export const FilterScreen = () => {
                                                 </Text>
                                                 <Text style={styles.profileAge}>
                                                     {profile.profile_age} Yrs{" "}
-                                                    <Text style={styles.line}>|</Text> {profile.profile_height} cms{" "}
+                                                    <Text style={styles.line}>|</Text> {profile.profile_height?.height_desc || "N/A"} 
                                                 </Text>
                                                 <Text style={styles.zodiac}>{profile.star}</Text>
                                                 <Text style={styles.employed}>{profile.profession}</Text>

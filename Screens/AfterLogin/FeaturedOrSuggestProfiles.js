@@ -129,8 +129,8 @@ export const FeaturedOrSuggestProfiles = ({ route }) => {
             </Text>
             <Text style={styles.profileAge}>
               {item.profile_age} Yrs{" "}
-              <Text style={styles.line}>|</Text>
-              {item.profile_height}{" "}
+              <Text style={styles.line}>|</Text>{" "}
+              {item.profile_height?.height_desc || "N/A"}{" "}
             </Text>
             <Text style={styles.zodiac}>{item.star}</Text>
             <Text style={styles.employed}>

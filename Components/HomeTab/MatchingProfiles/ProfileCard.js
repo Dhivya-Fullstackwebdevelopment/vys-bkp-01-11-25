@@ -61,7 +61,6 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
       const perPage = 10;
       console.log(`Loading profiles - Page: ${page}, Order: ${sortOrder}`);
 
-      // Pass the orderBy parameter to fetchProfiles
       const response = await fetchProfiles(perPage, page, sortOrder);
 
       console.log("Profiles response:", response);
@@ -79,11 +78,9 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
 
         if (isInitialLoad) {
           setProfiles(newProfiles);
-          // Reset profile IDs on initial load
           setAllProfileIds(response.all_profile_ids || {});
         } else {
           setProfiles((prevProfiles) => [...prevProfiles, ...(newProfiles || [])]);
-          // Merge profile IDs for pagination
           setAllProfileIds((prevIds) => ({
             ...prevIds,
             ...(response.all_profile_ids || {})
@@ -340,7 +337,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
             {item.profile_name} <Text style={styles.gridProfileId}>({item.profile_id})</Text>
           </Text>
           <Text style={styles.gridProfileAge}>
-            {item.profile_age} Yrs | {item.height} Cms
+            {item.profile_age} Yrs | {item.height?.height_desc || item.profile_height?.height_desc || "N/A"}
           </Text>
         </View>
       </View>
@@ -400,7 +397,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
             <View style={styles.ageHeightContainer}>
               <Text style={styles.profileAge}>{item.profile_age} Yrs</Text>
               <Text style={styles.separator}>|</Text>
-              <Text style={styles.profileAge}>{item.height} Cms</Text>
+              <Text style={styles.profileAge}>{item.height?.height_desc || item.profile_height?.height_desc || "N/A" }</Text>
             </View>
             <Text style={styles.zodiac}>{item.star}</Text>
             <Text style={styles.employed}>{item.profession}</Text>
@@ -410,112 +407,6 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     </TouchableOpacity>
   );
 
-
-  // return (
-  //   <View style={styles.container}>
-  //     {isLoadingNew ? (
-  //       <View style={styles.loadingContainer}>
-  //         <ActivityIndicator size="large" color="#BD1225" />
-  //         <Text style={styles.loadingText}>Searching profiles...</Text>
-  //       </View>
-  //     ) : profiles === null ? (
-  //       <View style={styles.noResultsContainer}>
-  //         <ProfileNotFound />
-  //       </View>
-  //     ) : Array.isArray(profiles) && profiles.length > 0 ? (
-  //       Array.isArray(searchProfiles) && searchProfiles.length > 0 ? (
-  //         <View style={styles.profileScrollView}>
-  //           <FlatList
-  //             data={searchProfiles}
-  //             renderItem={renderSearchItem}
-  //             keyExtractor={(item) => item.profile_id.toString()}
-  //             contentContainerStyle={styles.flatListContent}
-  //             showsVerticalScrollIndicator={true}
-  //             ListFooterComponent={() => (
-  //               <>
-  //                 <View style={styles.suggestedWrapper}>
-  //                   <SuggestedProfiles />
-  //                   <FeaturedProfiles />
-  //                 </View>
-  //               </>
-  //             )}
-  //           />
-  //         </View>
-  //       ) : searchProfiles === null ? (
-  //         <View style={styles.contentWrapper}>
-  //           <View style={styles.flatListContainer}>
-  //             <FlatList
-  //               {...flatListProps}
-  //               data={profiles}
-  //               keyExtractor={(item, index) => `${item.profile_id}-${orderBy}-${index}`}
-  //               extraData={orderBy}
-  //               renderItem={({ item }) => (
-  //                 <TouchableOpacity
-  //                   onPress={() => handleProfileClick(item.profile_id)}
-  //                 >
-  //                   <View style={styles.profileDiv}>
-  //                     <View style={styles.profileContainer}>
-  //                       <Image
-  //                         source={getImageSource(item.profile_img)}
-  //                         style={styles.profileImage}
-  //                       />
-  //                       <TouchableOpacity
-  //                         onPress={() => handleSavePress(item.profile_id)}
-  //                       >
-  //                         <MaterialIcons
-  //                           name={
-  //                             bookmarkedProfiles.has(item.profile_id)
-  //                               ? "bookmark"
-  //                               : "bookmark-border"
-  //                           }
-  //                           size={20}
-  //                           color="red"
-  //                           style={styles.saveIcon}
-  //                         />
-  //                       </TouchableOpacity>
-  //                       <View style={styles.profileContent}>
-  //                         <Text style={styles.profileName}>
-  //                           {item.profile_name}{" "}
-  //                           <Text style={styles.profileId}>
-  //                             ({item.profile_id})
-  //                           </Text>
-  //                         </Text>
-  //                         <View style={styles.ageHeightContainer}>
-  //                           <Text style={styles.profileAge}>
-  //                             {item.profile_age} Yrs
-  //                           </Text>
-  //                           <Text style={styles.separator}>|</Text>
-  //                           <Text style={styles.profileAge}>{item.height} Cms</Text>
-  //                         </View>
-  //                         <Text style={styles.zodiac}>{item.star}</Text>
-  //                         <Text style={styles.employed}>{item.profession}</Text>
-  //                       </View>
-  //                     </View>
-  //                   </View>
-  //                 </TouchableOpacity>
-  //               )}
-  //               contentContainerStyle={styles.flatListContent}
-  //               showsVerticalScrollIndicator={true}
-  //               ListEmptyComponent={
-  //                 isLoading && (
-  //                   <View style={styles.emptyContainer}>
-  //                     <ActivityIndicator size="large" color="#0000ff" />
-  //                   </View>
-  //                 )
-  //               }
-  //             />
-  //           </View>
-  //         </View>
-  //       ) : (
-  //         <View style={styles.noResultsContainer}>
-  //           <ProfileNotFound />
-  //         </View>
-  //       )
-  //     ) : (
-  //       <></>
-  //     )}
-  //   </View>
-  // );
   const renderContent = () => {
     if (isLoadingNew) {
       return (

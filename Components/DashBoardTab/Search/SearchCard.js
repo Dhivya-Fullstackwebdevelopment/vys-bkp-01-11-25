@@ -319,7 +319,7 @@ export const SearchCard = () => {
                                     <Text style={styles.profileId}>({item.profile_id})</Text>
                                 </Text>
                                 <Text style={styles.profileAge}>
-                                    {item.profile_age} Yrs <Text style={styles.line}>|</Text> {item.profile_height} Cms
+                                    {item.profile_age} Yrs <Text style={styles.line}>|</Text> {item.profile_height?.height_desc || "N/A"}
                                 </Text>
                                 <Text style={styles.zodiac}>{item.degree}</Text>
                                 <Text style={styles.employed}>{item.profession}</Text>

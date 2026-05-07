@@ -310,7 +310,7 @@ export const VysassistCard = ({ sortBy = "datetime" }) => {
               </Text>
               <Text style={styles.profileAge}>
                 {item.vys_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
-                {item.vys_height || "N/A"} Cms
+                {item.vys_height?.height_desc || "N/A"}
               </Text>
               <Text style={styles.zodiac}>{item.vys_degree || "N/A"}</Text>
               <Text style={styles.employed}>{item.vys_profession || "N/A"}</Text>

@@ -254,7 +254,7 @@ export const PersonalNotesCard = ({ sortBy = "datetime" }) => {
               </Text>
               <Text style={styles.profileAge}>
                 {profile.notes_profile_age || "N/A"} Yrs{" "}
-                <Text style={styles.line}>|</Text> {profile.notes_height || "N/A"} Cms
+                <Text style={styles.line}>|</Text> {profile.notes_height?.height_desc || "N/A"}
               </Text>
               <Text style={styles.zodiac}>{profile.notes_star || "N/A"}</Text>
               <Text style={styles.employed}>{profile.notes_profession || "N/A"}</Text>

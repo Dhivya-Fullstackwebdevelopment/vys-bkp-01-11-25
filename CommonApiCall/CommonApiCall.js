@@ -28,38 +28,6 @@ const retrieveProfileId = async () => {
     return profileId;
 };
 
-// Fetch profiles API call
-// export const fetchProfiles = async (perPage, pageNumber,) => {
-//     try {
-//         const profileId = await retrieveProfileId();
-//         if (!profileId) {
-//             console.warn('Profile ID is empty, skipping API call.');
-//             return [];
-//         }
-//         const requestData = {
-//             profile_id: profileId,
-//             per_page: perPage,
-//             page_number: pageNumber,
-//             order_by : "2"
-//             // serach_age : 3,
-//             // search_location : 2
-//         };
-
-//         const response = await axios.post(`${BASE_URL}/Get_prof_list_match/`, requestData);
-
-//         console.log('API Response of data ===>', response.data);
-
-//         if (response.data.Status === 1) {
-//             return response.data;
-//         } else {
-//             return response.data;
-//         }
-//     } catch (error) {
-//         console.error('Error fetching profiles:', error.response?.data || error.message);
-//         return [];
-//     }
-// };
-
 export const fetchProfiles = async (perPage, pageNumber, orderBy = "1") => {
     try {
         const profileId = await retrieveProfileId();
@@ -89,56 +57,6 @@ export const fetchProfiles = async (perPage, pageNumber, orderBy = "1") => {
         return [];
     }
 };
-
-
-
-// export const fetchProfiles = async (perPage, pageNumber) => {
-//     try {
-//         const profileId = await retrieveProfileId();
-//         if (!profileId) {
-//             console.warn('Profile ID is empty, skipping API call.');
-//             return [];
-//         }
-
-//         const requestData = {
-//             profile_id: profileId,
-//             per_page: perPage,
-//             page_number: pageNumber,
-//         };
-
-//         console.log('Sending API Request with:', requestData);
-
-//         const response = await axios.post(`${BASE_URL}/Get_prof_list_match/`, requestData);
-
-//         console.log('Full API Response:', response);
-//         console.log('API Response Data:', response.data);
-
-//         if (response.data?.Status === 1) {
-//             const profiles = response.data.profiles || [];
-
-//             console.log(`Successfully fetched ${profiles.length} profiles.`);
-//             return profiles;
-//         } else {
-//             console.warn('API returned non-success status:', response.data?.Status, response.data?.message);
-//             return [];
-//         }
-//     } catch (error) {
-//         console.error('Full Error:', error);
-//         if (error.response) {
-//             console.error('Error Response Data:', error.response.data);
-//             console.error('Error Response Status:', error.response.status);
-//             console.error('Error Response Headers:', error.response.headers);
-//         } else if (error.request) {
-//             console.error('No response received:', error.request);
-//         } else {
-//             console.error('Request Setup Error:', error.message);
-//         }
-//         return [];
-//     }
-// };
-
-
-
 
 // Handle bookmark API call
 export const handleBookmark = async (viewedProfileId, status) => {

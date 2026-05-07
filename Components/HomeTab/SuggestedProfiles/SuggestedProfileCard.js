@@ -164,7 +164,7 @@ export const SuggestedProfileCard = ({ profiles }) => {
                     </View>
                     <View style={styles.profileInfoFlex}>
                         <Text style={styles.profileAge}>{profile.profile_age} Yrs</Text>
-                        <Text style={styles.profileHeight}>{profile.profile_height} cm</Text>
+                        <Text style={styles.profileHeight}>{profile.profile_height?.height_desc || "N/A"}</Text>
                     </View>
                 </View>
             </View>

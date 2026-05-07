@@ -281,7 +281,7 @@ export const MyVisitorsCard = ({ sortBy = "datetime" }) => {
           </Text>
           <Text style={styles.profileAge}>
             {profile.viwed_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
-            {profile.viwed_height || "N/A"} Cms
+            {profile.viwed_height?.height_desc || "N/A"}
           </Text>
           <Text style={styles.zodiac}>{profile.viwed_star || "N/A"}</Text>
           <Text style={styles.employed}>{profile.viwed_profession || "N/A"}</Text>

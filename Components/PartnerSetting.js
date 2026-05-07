@@ -245,8 +245,8 @@ export const PartnerSettings = () => {
 
                 // 2. Set standard dropdown/checkbox values
                 setValue('ageDifference', partnerProfileData.fromAge || '');
-                setValue('heightFrom', partnerProfileData.fromHeight || '');
-                setValue('heightTo', partnerProfileData.toHeight || '');
+                setValue('heightFrom', partnerProfileData.fromHeight?.height_value || '');
+                setValue('heightTo', partnerProfileData.toHeight?.height_value || '');
                 // Ensure array types for multi-selects
                 // setValue('education', Array.isArray(partnerProfileData.education) ? partnerProfileData.education : (partnerProfileData.education ? partnerProfileData.education.split(',') : []));
                 // setValue('fieldOfStudy', Array.isArray(partnerProfileData.fieldofstudy) ? partnerProfileData.fieldofstudy : (partnerProfileData.fieldofstudy ? partnerProfileData.fieldofstudy.split(',') : []));

@@ -323,8 +323,8 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
                                         <Text style={styles.profileId}>({item.wishlist_profileid || "N/A"})</Text>
                                     </Text>
                                     <Text style={styles.profileAge}>
-                                        {item.wishlist_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>
-                                        {item.wishlist_height || "N/A"} Cms
+                                        {item.wishlist_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
+                                        {item.wishlist_height?.height_desc || "N/A"}
                                     </Text>
                                     <Text style={styles.zodiac}>{item.wishlist_star || "N/A"}</Text>
                                     <Text style={styles.employed}>{item.wishlist_profession || "N/A"}</Text>

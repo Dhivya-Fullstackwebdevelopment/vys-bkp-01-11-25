@@ -184,7 +184,7 @@ export const ProfileDetailsEdit = () => {
                 personal_place_of_birth: personalDetails.personal_place_of_birth || '',
                 personal_time_of_birth: personalDetails.personal_time_of_birth || '',
                 personal_weight: personalDetails.personal_weight || '',
-                personal_profile_height: personalDetails.personal_profile_height || '',
+                personal_profile_height: personalDetails.personal_profile_height?.height_value || '',
                 personal_profile_marital_status_id: personalDetails.personal_profile_marital_status_id || null,
                 personal_profile_complexion_id: personalDetails.personal_profile_complexion_id || null,
                 personal_profile_for_id: personalDetails.personal_profile_for_id || null,
@@ -1041,7 +1041,7 @@ export const ProfileDetailsEdit = () => {
                                         <Text style={styles.labelNew}>DOB : <Text style={styles.valueNew}>{personalDetails.personal_profile_dob}</Text></Text>
                                         <Text style={styles.labelNew}>Place of Birth : <Text style={styles.valueNew}>{personalDetails.personal_place_of_birth || "N/A"}</Text></Text>
                                         <Text style={styles.labelNew}>Time of Birth : <Text style={styles.valueNew}>{personalDetails.personal_time_of_birth || "N/A"}</Text></Text>
-                                        <Text style={styles.labelNew}>Height : <Text style={styles.valueNew}>{personalDetails.personal_profile_height || "N/A"}</Text></Text>
+                                        <Text style={styles.labelNew}>Height : <Text style={styles.valueNew}>{personalDetails.personal_profile_height?.height_desc || "N/A"}</Text></Text>
                                         <Text style={styles.labelNew}>Weight : <Text style={styles.valueNew}>{personalDetails.personal_weight || "N/A"}</Text></Text>
                                         <Text style={styles.labelNew}>Body Type : <Text style={styles.valueNew}>{personalDetails.personal_body_type || "N/A"}</Text></Text>
                                         <Text style={styles.labelNew}>Eye Wear : <Text style={styles.valueNew}>{personalDetails.personal_eye_wear || "N/A"}</Text></Text>

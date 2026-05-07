@@ -1935,7 +1935,7 @@ export const ProfileDetails = () => {
 
               <View style={{ flex: 1, marginRight: 150 }}>
                 <Text style={styles.label}>Age: <Text style={styles.value}>{basic_details.age}</Text></Text>
-                <Text style={styles.label}>Height: <Text style={styles.value}>{basic_details.height} cms</Text></Text>
+                <Text style={styles.label}>Height: <Text style={styles.value}>{basic_details.height?.height_desc} </Text></Text>
                 {basic_details.weight !== 0 || basic_details.weight !== null && (
                   <Text style={styles.label}>
                     Weight: <Text style={styles.value}>{basic_details.weight} kg</Text>
@@ -2369,7 +2369,7 @@ export const ProfileDetails = () => {
                     <Text style={styles.labelNew}>Time of Birth : <Text style={styles.valueNew}>{profileData.personal_details.time_of_birth}</Text></Text>
                   )}
                   {profileData.personal_details?.height && profileData.personal_details.height !== "" && profileData.personal_details.height !== null && (
-                    <Text style={styles.labelNew}>Height : <Text style={styles.valueNew}>{profileData.personal_details.height}</Text></Text>
+                    <Text style={styles.labelNew}>Height : <Text style={styles.valueNew}>{profileData.personal_details.height?.height_desc}</Text></Text>
                   )}
                   {profileData.personal_details?.weight && profileData.personal_details.weight !== "" && profileData.personal_details.weight !== null && profileData.personal_details.weight !== "0" && (
                     <Text style={styles.labelNew}>Weight : <Text style={styles.valueNew}>{profileData.personal_details.weight}</Text></Text>

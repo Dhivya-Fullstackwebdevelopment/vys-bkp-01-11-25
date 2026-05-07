@@ -863,7 +863,7 @@ export const MyProfile = () => {
                             {/* Age */}
                             <View>
                                 <Text style={styles.label}>Age : <Text style={styles.value}>{profileDetails.personal_age}</Text></Text>
-                                <Text style={styles.label}>Height : <Text style={styles.value}>{profileDetails.personal_profile_height}</Text></Text>
+                                <Text style={styles.label}>Height : <Text style={styles.value}>{profileDetails.personal_profile_height?.height_desc}</Text></Text>
                                 <Text style={styles.label}>Star : <Text style={styles.value}>{profileDetails.star}</Text></Text>
                                 <Text style={styles.label}>Profession : <Text style={styles.value}>{profileDetails.prosession}</Text></Text>
                                 <Text style={styles.label}>Education : <Text style={styles.value}>{profileDetails.heightest_education}</Text></Text>

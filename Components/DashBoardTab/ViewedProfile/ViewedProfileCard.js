@@ -295,8 +295,8 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
                         <Text style={styles.profileId}>({profile.visited_profileid || "N/A"})</Text>
                     </Text>
                     <Text style={styles.profileAge}>
-                        {profile.visited_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>
-                        {profile.visited_height || "N/A"} Cms
+                        {profile.visited_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
+                        {profile.visited_height?.height_desc || "N/A"} 
                     </Text>
                     <Text style={styles.zodiac}>{profile.visited_star || "N/A"}</Text>
                     <Text style={styles.employed}>{profile.visited_profession || "N/A"}</Text>

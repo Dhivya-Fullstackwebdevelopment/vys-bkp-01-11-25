@@ -282,8 +282,8 @@ export const DashBoardMutualInterestCard = ({ sortBy = "datetime" }) => {
               <Text style={styles.profileId}>({profile.mutint_profileid})</Text>
             </Text>
             <Text style={styles.profileAge}>
-              {profile.mutint_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>
-              {profile.mutint_height || "N/A"} Cms
+              {profile.mutint_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
+              {profile.mutint_height?.height_desc || "N/A"}
             </Text>
             <Text style={styles.zodiac}>{profile.mutint_star || "N/A"}</Text>
             <Text style={styles.employed}>{profile.mutint_profession || "N/A"}</Text>
