@@ -298,7 +298,13 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
                 </View>
             ) : (
                 profiles.map((profile) => (
-                    <TouchableOpacity key={profile.req_profileid} style={styles.profileDiv} onPress={() => handleProfileClick(profile.req_profileid)}>
+                    <TouchableOpacity key={profile.req_profileid} style={styles.profileDiv}
+                        onPress={() =>
+                            !profile.visited_marriage_check &&
+                            handleProfileClick(profile.req_profileid)
+                        }
+                        activeOpacity={profile.visited_marriage_check ? 1 : 0.7}
+                    >
                         <View style={styles.profileContainer}>
                             {/* <Image
                                 source={
@@ -312,19 +318,44 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
                                 source={getImageSource(profile.req_Profile_img)}
                                 style={styles.profileImage}
                             /> */}
-                            <TopAlignedImage
-                                uri={Array.isArray(profile.req_Profile_img) ? profile.req_Profile_img[0] : profile.req_Profile_img}
-                                width={120}
-                                height={120}
-                            />
-                            <TouchableOpacity onPress={() => handleSavePress(profile.req_profileid)}>
-                                <MaterialIcons
-                                    name={bookmarkedProfiles.has(profile.req_profileid) ? "bookmark" : "bookmark-border"}
-                                    size={20}
-                                    color="red"
-                                    style={styles.saveIcon}
+                            <View style={styles.imageWrapper}>
+                                <TopAlignedImage
+                                    uri={
+                                        Array.isArray(profile.req_Profile_img)
+                                            ? profile.req_Profile_img[0]
+                                            : profile.req_Profile_img
+                                    }
+                                    width={120}
+                                    height={120}
                                 />
-                            </TouchableOpacity>
+
+                                {profile.visited_marriage_check && (
+                                    <View style={styles.badgeOverlay}>
+                                        <Image
+                                            source={{ uri: profile.visited_marriage_badge }}
+                                            style={styles.marriageBadge}
+                                            resizeMode="contain"
+                                        />
+                                    </View>
+                                )}
+
+                                {!profile.visited_marriage_check && (
+                                    <TouchableOpacity
+                                        onPress={() => handleSavePress(profile.req_profileid)}
+                                        style={styles.saveIconContainer}
+                                    >
+                                        <MaterialIcons
+                                            name={
+                                                bookmarkedProfiles.has(profile.req_profileid)
+                                                    ? "bookmark"
+                                                    : "bookmark-border"
+                                            }
+                                            size={20}
+                                            color="red"
+                                        />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
 
                             <View style={styles.profileContent}>
                                 <Text style={styles.profileName}>
@@ -341,7 +372,7 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
                                 </Text>
                                 <Text style={styles.profileAge}>
                                     {profile.req_profile_age || "N/A"} Yrs
-                                    <Text style={styles.line}>|</Text> {profile.req_height?.height_desc || "N/A"} 
+                                    <Text style={styles.line}>|</Text> {profile.req_height?.height_desc || "N/A"}
                                 </Text>
                                 <Text style={styles.zodiac}>{profile.req_star || "N/A"}</Text>
                                 <Text style={styles.employed}>{profile.req_profession || "N/A"}</Text>
@@ -719,5 +750,38 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingVertical: 50, // Give it some vertical height
+    },
+    imageWrapper: {
+        width: 120,
+        height: 120,
+        borderRadius: 8,
+        overflow: "hidden",
+        position: "relative",
+    },
+
+    badgeOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0,0,0,0.4)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    marriageBadge: {
+        width: 60,
+        height: 60,
+        backgroundColor: "#F8EFE0",
+        borderRadius: 30,
+        padding: 5,
+    },
+
+    saveIconContainer: {
+        position: "absolute",
+        top: 5,
+        right: 5,
+        zIndex: 10,
     },
 });

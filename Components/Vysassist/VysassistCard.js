@@ -270,7 +270,11 @@ export const VysassistCard = ({ sortBy = "datetime" }) => {
       renderItem={({ item }) => (
         <TouchableOpacity
           key={item.vys_profileid}
-          onPress={() => handleProfileClick(item.vys_profileid)}
+          onPress={() =>
+            !item.visited_marriage_check &&
+            handleProfileClick(item.vys_profileid)
+          }
+          activeOpacity={item.visited_marriage_check ? 1 : 0.7}
           style={styles.profileDiv}
         >
           <View style={styles.profileContainer}>
@@ -278,25 +282,44 @@ export const VysassistCard = ({ sortBy = "datetime" }) => {
               source={getImageSource(item.vys_Profile_img)}
               style={styles.profileImage}
             /> */}
-            <TopAlignedImage
-              uri={Array.isArray(item.viwed_Profile_img) ? item.viwed_Profile_img[0] : item.viwed_Profile_img}
-              width={120}
-              height={120}
-            />
-            <TouchableOpacity
-              onPress={() => handleSavePress(item.vys_profileid)}
-            >
-              <MaterialIcons
-                name={
-                  bookmarkedProfiles.has(item.vys_profileid)
-                    ? "bookmark"
-                    : "bookmark-border"
+            <View style={styles.imageWrapper}>
+              <TopAlignedImage
+                uri={
+                  Array.isArray(item.vys_Profile_img)
+                    ? item.vys_Profile_img[0]
+                    : item.vys_Profile_img
                 }
-                size={20}
-                color="red"
-                style={styles.saveIcon}
+                width={120}
+                height={120}
               />
-            </TouchableOpacity>
+
+              {item.visited_marriage_check && (
+                <View style={styles.badgeOverlay}>
+                  <Image
+                    source={{ uri: item.visited_marriage_badge }}
+                    style={styles.marriageBadge}
+                    resizeMode="contain"
+                  />
+                </View>
+              )}
+
+              {!item.visited_marriage_check && (
+                <TouchableOpacity
+                  onPress={() => handleSavePress(item.vys_profileid)}
+                  style={styles.saveIconContainer}
+                >
+                  <MaterialIcons
+                    name={
+                      bookmarkedProfiles.has(item.vys_profileid)
+                        ? "bookmark"
+                        : "bookmark-border"
+                    }
+                    size={20}
+                    color="red"
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
             <View style={styles.profileContent}>
               <Text style={styles.profileName}>
                 {/* {item.vys_profile_name || "N/A"}{" "} */}
@@ -451,5 +474,38 @@ const styles = StyleSheet.create({
     color: "#000000",
     textAlign: "center",
     fontweight: "bold",
+  },
+  imageWrapper: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+    overflow: "hidden",
+    position: "relative",
+  },
+
+  badgeOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  marriageBadge: {
+    width: 60,
+    height: 60,
+    backgroundColor: "#F8EFE0",
+    borderRadius: 30,
+    padding: 5,
+  },
+
+  saveIconContainer: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    zIndex: 10,
   },
 });

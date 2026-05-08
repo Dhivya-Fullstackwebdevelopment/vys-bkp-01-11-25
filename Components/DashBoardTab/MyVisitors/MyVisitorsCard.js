@@ -242,32 +242,55 @@ export const MyVisitorsCard = ({ sortBy = "datetime" }) => {
   const renderItem = ({ item: profile }) => (
     <TouchableOpacity
       style={styles.profileDiv}
-      onPress={() => handleProfileClick(profile.viwed_profileid)}
+      onPress={() =>
+        !profile.visited_marriage_check &&
+        handleProfileClick(profile.viwed_profileid)
+      }
+      activeOpacity={profile.visited_marriage_check ? 1 : 0.7}
     >
       <View style={styles.profileContainer}>
         {/* <Image
           source={getImageSource(profile.viwed_Profile_img)}
           style={styles.profileImage}
         /> */}
-        <TopAlignedImage
-          uri={Array.isArray(profile.viwed_Profile_img) ? profile.viwed_Profile_img[0] : profile.viwed_Profile_img}
-          width={120}
-          height={120}
-        />
-        <TouchableOpacity
-          onPress={() => handleSavePress(profile.viwed_profileid)}
-        >
-          <MaterialIcons
-            name={
-              bookmarkedProfiles.has(profile.viwed_profileid)
-                ? "bookmark"
-                : "bookmark-border"
+        <View style={styles.imageWrapper}>
+          <TopAlignedImage
+            uri={
+              Array.isArray(profile.viwed_Profile_img)
+                ? profile.viwed_Profile_img[0]
+                : profile.viwed_Profile_img
             }
-            size={20}
-            color="red"
-            style={styles.saveIcon}
+            width={120}
+            height={120}
           />
-        </TouchableOpacity>
+
+          {profile.visited_marriage_check && (
+            <View style={styles.badgeOverlay}>
+              <Image
+                source={{ uri: profile.visited_marriage_badge }}
+                style={styles.marriageBadge}
+                resizeMode="contain"
+              />
+            </View>
+          )}
+
+          {!profile.visited_marriage_check && (
+            <TouchableOpacity
+              onPress={() => handleSavePress(profile.viwed_profileid)}
+              style={styles.saveIconContainer}
+            >
+              <MaterialIcons
+                name={
+                  bookmarkedProfiles.has(profile.viwed_profileid)
+                    ? "bookmark"
+                    : "bookmark-border"
+                }
+                size={20}
+                color="red"
+              />
+            </TouchableOpacity>
+          )}
+        </View>
         <View style={styles.profileContent}>
           <Text style={styles.profileName}>
             {/* {profile.viwed_profile_name || "N/A"} */}
@@ -478,5 +501,38 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     width: "100%",
+  },
+  imageWrapper: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+    overflow: "hidden",
+    position: "relative",
+  },
+
+  badgeOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  marriageBadge: {
+    width: 60,
+    height: 60,
+    backgroundColor: "#F8EFE0",
+    borderRadius: 30,
+    padding: 5,
+  },
+
+  saveIconContainer: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    zIndex: 10,
   },
 });

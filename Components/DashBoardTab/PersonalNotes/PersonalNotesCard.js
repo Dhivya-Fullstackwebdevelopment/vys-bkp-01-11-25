@@ -208,7 +208,11 @@ export const PersonalNotesCard = ({ sortBy = "datetime" }) => {
   const renderItem = ({ item: profile }) => (
     <TouchableOpacity
       style={styles.profileDiv}
-      onPress={() => handleProfileClick(profile.notes_profileid)}
+      onPress={() =>
+        !profile.visited_marriage_check &&
+        handleProfileClick(profile.notes_profileid)
+      }
+      activeOpacity={profile.visited_marriage_check ? 1 : 0.7}
     >
       <View style={styles.cardContainer}>
         <View style={styles.profileContainer}>
@@ -217,25 +221,44 @@ export const PersonalNotesCard = ({ sortBy = "datetime" }) => {
               source={getImageSource(profile.notes_Profile_img)}
               style={styles.profileImage}
             /> */}
-            <TopAlignedImage
-              uri={Array.isArray(profile.notes_Profile_img) ? profile.notes_Profile_img[0] : profile.notes_Profile_img}
-              width={120}
-              height={130}
-            />
-            <TouchableOpacity
-              style={styles.saveIcon} // This style will be updated below
-              onPress={() => handleSavePress(profile.notes_profileid)}
-            >
-              <MaterialIcons
-                name={
-                  bookmarkedProfiles.has(profile.notes_profileid)
-                    ? "bookmark"         // Correct: Filled icon when bookmarked
-                    : "bookmark-border"  // Correct: Outline icon when not
+           <View style={styles.imageWrapper}>
+              <TopAlignedImage
+                uri={
+                  Array.isArray(profile.notes_Profile_img)
+                    ? profile.notes_Profile_img[0]
+                    : profile.notes_Profile_img
                 }
-                size={24} // Increased size slightly
-                color="red"
+                width={120}
+                height={130}
               />
-            </TouchableOpacity>
+
+              {profile.visited_marriage_check && (
+                <View style={styles.badgeOverlay}>
+                  <Image
+                    source={{ uri: profile.visited_marriage_badge }}
+                    style={styles.marriageBadge}
+                    resizeMode="contain"
+                  />
+                </View>
+              )}
+
+              {!profile.visited_marriage_check && (
+                <TouchableOpacity
+                  style={styles.saveIconContainer}
+                  onPress={() => handleSavePress(profile.notes_profileid)}
+                >
+                  <MaterialIcons
+                    name={
+                      bookmarkedProfiles.has(profile.notes_profileid)
+                        ? "bookmark"
+                        : "bookmark-border"
+                    }
+                    size={24}
+                    color="red"
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
           <View style={styles.profileContent}>
@@ -474,5 +497,38 @@ const styles = StyleSheet.create({
   profileContent: {
     paddingLeft: 10,
     flex: 1, // Add flex: 1 to allow content to fill remaining space
+  },
+  imageWrapper: {
+    width: 120,
+    height: 130,
+    borderRadius: 8,
+    overflow: "hidden",
+    position: "relative",
+  },
+
+  badgeOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  marriageBadge: {
+    width: 60,
+    height: 60,
+    backgroundColor: "#F8EFE0",
+    borderRadius: 30,
+    padding: 5,
+  },
+
+  saveIconContainer: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    zIndex: 10,
   },
 });
