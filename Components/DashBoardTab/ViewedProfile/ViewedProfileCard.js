@@ -313,16 +313,19 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
                 </View>
 
                 <View style={styles.profileContent}>
-                    <Text style={styles.profileName}>
-                        {/* {profile.visited_profile_name || "N/A"} */}
-                        {profile.visited_profile_name
-                            ? (profile.visited_profile_name.length > 15
-                                ? profile.visited_profile_name.substring(0, 15) + "..."
-                                : profile.visited_profile_name)
-                            : "N/A"
-                        }
-                        <Text style={styles.profileId}>({profile.visited_profileid || "N/A"})</Text>
-                    </Text>
+                    <View style={styles.nameContainer}>
+                        <Text
+                            style={[styles.profileName, { flexShrink: 1 }]}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                        >
+                            {profile.visited_profile_name || "N/A"}
+                        </Text>
+
+                        <Text style={styles.profileId}>
+                            ({profile.visited_profileid || "N/A"})
+                        </Text>
+                    </View>
                     <Text style={styles.profileAge}>
                         {profile.visited_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
                         {profile.visited_height?.height_desc || "N/A"}
@@ -447,6 +450,7 @@ const styles = StyleSheet.create({
 
     profileContent: {
         paddingLeft: 10,
+        flex: 1,
     },
 
     profileName: {
@@ -455,11 +459,15 @@ const styles = StyleSheet.create({
         color: "#FF6666",
         fontFamily: "inter",
         marginBottom: 5,
+        flexShrink: 1,
     },
 
     profileId: {
         fontSize: 14,
         color: "#85878C",
+        fontWeight: "700",
+        marginBottom: 5,
+        marginLeft: 0,
     },
 
     profileAge: {
@@ -541,5 +549,10 @@ const styles = StyleSheet.create({
         top: 5,
         right: 5,
         zIndex: 10,
+    },
+    nameContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
     },
 });

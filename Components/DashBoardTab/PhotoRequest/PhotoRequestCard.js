@@ -358,18 +358,19 @@ export const PhotoRequestCard = ({ sortBy = "datetime" }) => {
                             </View>
 
                             <View style={styles.profileContent}>
-                                <Text style={styles.profileName}>
-                                    {/* {profile.req_profile_name || "N/A"} */}
-                                    {profile.req_profile_name
-                                        ? (profile.req_profile_name.length > 15
-                                            ? profile.req_profile_name.substring(0, 15) + "..."
-                                            : profile.req_profile_name)
-                                        : "N/A"
-                                    }
+                                <View style={styles.nameContainer}>
+                                    <Text
+                                        style={[styles.profileName, { flexShrink: 1 }]}
+                                        numberOfLines={1}
+                                        ellipsizeMode="tail"
+                                    >
+                                        {profile.req_profile_name || "N/A"}
+                                    </Text>
+
                                     <Text style={styles.profileId}>
                                         ({profile.req_profileid || "N/A"})
                                     </Text>
-                                </Text>
+                                </View>
                                 <Text style={styles.profileAge}>
                                     {profile.req_profile_age || "N/A"} Yrs
                                     <Text style={styles.line}>|</Text> {profile.req_height?.height_desc || "N/A"}
@@ -518,14 +519,15 @@ const styles = StyleSheet.create({
         top: 5,
     },
 
-    profileImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 0,
+    nameContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
     },
 
     profileContent: {
         paddingLeft: 10,
+        flex: 1,
     },
 
     profileName: {
@@ -534,11 +536,15 @@ const styles = StyleSheet.create({
         color: "#FF6666",
         fontFamily: "inter",
         marginBottom: 10,
+        flexShrink: 1,
     },
 
     profileId: {
         fontSize: 14,
         color: "#85878C",
+        fontWeight: "700",
+        marginBottom: 10,
+        marginLeft: 0,
     },
 
     profileAge: {

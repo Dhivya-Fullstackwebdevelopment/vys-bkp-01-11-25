@@ -308,16 +308,19 @@ export const SearchCard = () => {
                                 />
                             </TouchableOpacity>
                             <View style={styles.profileContent}>
-                                <Text style={styles.profileName}>
-                                    {/* {item.profile_name} */}
-                                    {item.profile_name
-                                        ? (item.profile_name.length > 15
-                                            ? item.profile_name.substring(0, 15) + "..."
-                                            : item.profile_name)
-                                        : "N/A"
-                                    }
-                                    <Text style={styles.profileId}>({item.profile_id})</Text>
-                                </Text>
+                                <View style={styles.nameContainer}>
+                                    <Text
+                                        style={[styles.profileName, { flexShrink: 1 }]}
+                                        numberOfLines={1}
+                                        ellipsizeMode="tail"
+                                    >
+                                        {item.profile_name || "N/A"}
+                                    </Text>
+
+                                    <Text style={styles.profileId}>
+                                        ({item.profile_id})
+                                    </Text>
+                                </View>
                                 <Text style={styles.profileAge}>
                                     {item.profile_age} Yrs <Text style={styles.line}>|</Text> {item.profile_height?.height_desc || "N/A"}
                                 </Text>
@@ -386,14 +389,24 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         flex: 1,
     },
+    nameContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
+    },
+
     profileName: {
         fontSize: 16,
         fontWeight: "700",
         color: "#FF6666",
+        flexShrink: 1,
     },
+
     profileId: {
         fontSize: 14,
         color: "#85878C",
+        fontWeight: "700",
+        marginLeft: 0,
     },
     profileAge: {
         fontSize: 14,

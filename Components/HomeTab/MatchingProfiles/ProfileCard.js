@@ -333,9 +333,19 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           />
         </TouchableOpacity>
         <View style={styles.gridContent}>
-          <Text style={styles.gridProfileName} numberOfLines={1}>
-            {item.profile_name} <Text style={styles.gridProfileId}>({item.profile_id})</Text>
-          </Text>
+          <View style={styles.gridNameContainer}>
+            <Text
+              style={[styles.gridProfileName, { flexShrink: 1 }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {item.profile_name || "N/A"}
+            </Text>
+
+            <Text style={styles.gridProfileId}>
+              ({item.profile_id})
+            </Text>
+          </View>
           <Text style={styles.gridProfileAge}>
             {item.profile_age} Yrs | {item.height?.height_desc || item.profile_height?.height_desc || "N/A"}
           </Text>
@@ -383,21 +393,23 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
             />
           </TouchableOpacity>
           <View style={styles.profileContent}>
-            <Text style={styles.profileName}>
-              {/* {item.profile_name}{" "} */}
-              {item.profile_name
-                ? (item.profile_name.length > 15
-                  ? item.profile_name.substring(0, 15) + "..."
-                  : item.profile_name)
-                : "N/A"
-              }
+            <View style={styles.nameContainer}>
+              <Text
+                style={[styles.profileName, { flexShrink: 1 }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.profile_name || "N/A"}
+              </Text>
 
-              <Text style={styles.profileId}>({item.profile_id})</Text>
-            </Text>
+              <Text style={styles.profileId}>
+                ({item.profile_id})
+              </Text>
+            </View>
             <View style={styles.ageHeightContainer}>
               <Text style={styles.profileAge}>{item.profile_age} Yrs</Text>
               <Text style={styles.separator}>|</Text>
-              <Text style={styles.profileAge}>{item.height?.height_desc || item.profile_height?.height_desc || "N/A" }</Text>
+              <Text style={styles.profileAge}>{item.height?.height_desc || item.profile_height?.height_desc || "N/A"}</Text>
             </View>
             <Text style={styles.zodiac}>{item.star}</Text>
             <Text style={styles.employed}>{item.profession}</Text>
@@ -507,15 +519,6 @@ const styles = StyleSheet.create({
   profileContent: {
     paddingLeft: 10,
     flex: 1,
-  },
-  profileName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#FF6666",
-  },
-  profileId: {
-    fontSize: 14,
-    color: "#85878C",
   },
   ageHeightContainer: {
     flexDirection: "row",
@@ -629,19 +632,6 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'flex-start', // Align content to the left
   },
-  gridProfileName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FF6666',
-    textAlign: 'left',
-    width: '100%',
-  },
-  gridProfileId: {
-    fontSize: 13,
-    color: "#85878C",
-    marginTop: 2,
-    textAlign: 'left',
-  },
   gridProfileAge: {
     fontSize: 14,
     color: '#4F515D',
@@ -695,5 +685,44 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  nameContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+
+  gridNameContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+
+  profileName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FF6666",
+    flexShrink: 1,
+  },
+
+  profileId: {
+    fontSize: 14,
+    color: "#85878C",
+    fontWeight: "700",
+    marginLeft: 0,
+  },
+
+  gridProfileName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FF6666",
+    flexShrink: 1,
+  },
+
+  gridProfileId: {
+    fontSize: 13,
+    color: "#85878C",
+    fontWeight: "700",
+    marginLeft: 0,
   },
 });

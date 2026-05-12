@@ -321,16 +321,19 @@ export const VysassistCard = ({ sortBy = "datetime" }) => {
               )}
             </View>
             <View style={styles.profileContent}>
-              <Text style={styles.profileName}>
-                {/* {item.vys_profile_name || "N/A"}{" "} */}
-                {item.vys_profile_name
-                  ? (item.vys_profile_name.length > 15
-                    ? item.vys_profile_name.substring(0, 15) + "..."
-                    : item.vys_profile_name)
-                  : "N/A"
-                }
-                <Text style={styles.profileId}>({item.vys_profileid || "N/A"})</Text>
-              </Text>
+              <View style={styles.nameContainer}>
+                <Text
+                  style={[styles.profileName, { flexShrink: 1 }]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {item.vys_profile_name || "N/A"}
+                </Text>
+
+                <Text style={styles.profileId}>
+                  ({item.vys_profileid || "N/A"})
+                </Text>
+              </View>
               <Text style={styles.profileAge}>
                 {item.vys_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
                 {item.vys_height?.height_desc || "N/A"}
@@ -416,14 +419,24 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     flex: 1,
   },
+  nameContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+
   profileName: {
     fontSize: 16,
     fontWeight: "700",
     color: "#FF6666",
+    flexShrink: 1,
   },
+
   profileId: {
     fontSize: 14,
     color: "#85878C",
+    fontWeight: "700",
+    marginLeft: 0,
   },
   profileAge: {
     fontSize: 14,

@@ -285,19 +285,22 @@ export const FilterScreen = () => {
                                             </View>
 
                                             <View style={styles.profileContent}>
-                                                <Text style={styles.profileName}>
-                                                    {/* {profile.profile_name}{" "} */}
-                                                    {profile.profile_name
-                                                        ? (profile.profile_name.length > 15
-                                                            ? profile.profile_name.substring(0, 15) + "..."
-                                                            : profile.profile_name)
-                                                        : "N/A"
-                                                    }
-                                                    <Text style={styles.profileId}>({profile.profile_id})</Text>
-                                                </Text>
+                                                <View style={styles.nameContainer}>
+                                                    <Text
+                                                        style={[styles.profileName, { flexShrink: 1 }]}
+                                                        numberOfLines={1}
+                                                        ellipsizeMode="tail"
+                                                    >
+                                                        {profile.profile_name || "N/A"}
+                                                    </Text>
+
+                                                    <Text style={styles.profileId}>
+                                                        ({profile.profile_id})
+                                                    </Text>
+                                                </View>
                                                 <Text style={styles.profileAge}>
                                                     {profile.profile_age} Yrs{" "}
-                                                    <Text style={styles.line}>|</Text> {profile.profile_height?.height_desc || "N/A"} 
+                                                    <Text style={styles.line}>|</Text> {profile.profile_height?.height_desc || "N/A"}
                                                 </Text>
                                                 <Text style={styles.zodiac}>{profile.star}</Text>
                                                 <Text style={styles.employed}>{profile.profession}</Text>
@@ -395,19 +398,32 @@ const styles = StyleSheet.create({
     //     zIndex: 1,
     // },
     saveIcon: {},
+    nameContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
+    },
+
     profileContent: {
         paddingLeft: 10,
+        flex: 1,
     },
+
     profileName: {
         fontSize: 16,
         fontWeight: "700",
         color: "#FF6666",
         fontFamily: "inter",
         marginBottom: 10,
+        flexShrink: 1,
     },
+
     profileId: {
         fontSize: 14,
         color: "#85878C",
+        fontWeight: "700",
+        marginBottom: 10,
+        marginLeft: 0,
     },
     profileAge: {
         fontSize: 14,

@@ -292,16 +292,19 @@ export const MyVisitorsCard = ({ sortBy = "datetime" }) => {
           )}
         </View>
         <View style={styles.profileContent}>
-          <Text style={styles.profileName}>
-            {/* {profile.viwed_profile_name || "N/A"} */}
-            {profile.viwed_profile_name
-              ? (profile.viwed_profile_name.length > 15
-                ? profile.viwed_profile_name.substring(0, 15) + "..."
-                : profile.viwed_profile_name)
-              : "N/A"
-            }
-            <Text style={styles.profileId}>({profile.viwed_profileid || "N/A"})</Text>
-          </Text>
+          <View style={styles.nameContainer}>
+            <Text
+              style={[styles.profileName, { flexShrink: 1 }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {profile.viwed_profile_name || "N/A"}
+            </Text>
+
+            <Text style={styles.profileId}>
+              ({profile.viwed_profileid || "N/A"})
+            </Text>
+          </View>
           <Text style={styles.profileAge}>
             {profile.viwed_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
             {profile.viwed_height?.height_desc || "N/A"}
@@ -418,8 +421,15 @@ const styles = StyleSheet.create({
     top: 5,
   },
 
+  nameContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+
   profileContent: {
     paddingLeft: 10,
+    flex: 1,
   },
 
   profileName: {
@@ -428,11 +438,15 @@ const styles = StyleSheet.create({
     color: "#FF6666",
     fontFamily: "inter",
     marginBottom: 10,
+    flexShrink: 1,
   },
 
   profileId: {
     fontSize: 14,
     color: "#85878C",
+    fontWeight: "700",
+    marginBottom: 10,
+    marginLeft: 0,
   },
 
   profileAge: {

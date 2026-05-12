@@ -281,47 +281,50 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
                                 source={getImageSource(item.wishlist_Profile_img)}
                                 style={styles.profileImage}
                             /> */}
-                            <View style={styles.imageWrapper}>
-                                <TopAlignedImage
-                                    uri={Array.isArray(item.wishlist_Profile_img) ? item.wishlist_Profile_img[0] : item.wishlist_Profile_img}
-                                    width={120}
-                                    height={120}
-                                />
-                                {isMarried && (
-                                    <View style={styles.badgeOverlay}>
-                                        <Image
-                                            source={{ uri: item.wishlist_marriage_badge }}
-                                            style={styles.marriageBadge}
-                                            resizeMode="contain"
-                                        />
-                                    </View>
-                                )}
+                                <View style={styles.imageWrapper}>
+                                    <TopAlignedImage
+                                        uri={Array.isArray(item.wishlist_Profile_img) ? item.wishlist_Profile_img[0] : item.wishlist_Profile_img}
+                                        width={120}
+                                        height={120}
+                                    />
+                                    {isMarried && (
+                                        <View style={styles.badgeOverlay}>
+                                            <Image
+                                                source={{ uri: item.wishlist_marriage_badge }}
+                                                style={styles.marriageBadge}
+                                                resizeMode="contain"
+                                            />
+                                        </View>
+                                    )}
 
-                                {!isMarried && (
-                                    <TouchableOpacity
-                                        onPress={() => handleSavePress(item.wishlist_profileid)}
-                                        style={styles.saveIconContainer}
-                                    >
-                                        <MaterialIcons
-                                            name={bookmarkedProfiles.has(item.wishlist_profileid) ? "bookmark" : "bookmark-border"}
-                                            size={20}
-                                            color="red"
-                                            style={styles.saveIcon}
-                                        />
-                                    </TouchableOpacity>
-                                )}
+                                    {!isMarried && (
+                                        <TouchableOpacity
+                                            onPress={() => handleSavePress(item.wishlist_profileid)}
+                                            style={styles.saveIconContainer}
+                                        >
+                                            <MaterialIcons
+                                                name={bookmarkedProfiles.has(item.wishlist_profileid) ? "bookmark" : "bookmark-border"}
+                                                size={20}
+                                                color="red"
+                                                style={styles.saveIcon}
+                                            />
+                                        </TouchableOpacity>
+                                    )}
                                 </View>
                                 <View style={styles.profileContent}>
-                                    <Text style={styles.profileName}>
-                                        {/* {item.wishlist_profile_name || "N/A"}  */}
-                                        {item.wishlist_profile_name
-                                            ? (item.wishlist_profile_name.length > 15
-                                                ? item.wishlist_profile_name.substring(0, 15) + "..."
-                                                : item.wishlist_profile_name)
-                                            : "N/A"
-                                        }
-                                        <Text style={styles.profileId}>({item.wishlist_profileid || "N/A"})</Text>
-                                    </Text>
+                                    <View style={styles.nameContainer}>
+                                        <Text
+                                            style={[styles.profileName, { flexShrink: 1 }]}
+                                            numberOfLines={1}
+                                            ellipsizeMode="tail"
+                                        >
+                                            {item?.wishlist_profile_name || profile?.mutint_profile_name || "N/A"}
+                                        </Text>
+
+                                        <Text style={styles.profileId}>
+                                            ({item?.wishlist_profileid || profile?.mutint_profileid || "N/A"})
+                                        </Text>
+                                    </View>
                                     <Text style={styles.profileAge}>
                                         {item.wishlist_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
                                         {item.wishlist_height?.height_desc || "N/A"}
@@ -385,12 +388,22 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#FF6666",
         fontFamily: "inter",
-        marginBottom: 10,
+        marginBottom: 5,
+        flexShrink: 1,
     },
 
     profileId: {
         fontSize: 14,
         color: "#85878C",
+        fontWeight: "700",
+        marginBottom: 5,
+        marginLeft: 0,
+    },
+
+    nameContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
     },
 
     profileAge: {
@@ -445,7 +458,7 @@ const styles = StyleSheet.create({
         height: 120,
         overflow: "hidden",
     },
-imageWrapper: {
+    imageWrapper: {
         width: 120,
         height: 120,
         borderRadius: 8,
@@ -476,8 +489,7 @@ imageWrapper: {
         zIndex: 10,
     },
     profileContent: {
-        flex: 1, 
         paddingLeft: 10,
+        flex: 1,
     },
-   
 });

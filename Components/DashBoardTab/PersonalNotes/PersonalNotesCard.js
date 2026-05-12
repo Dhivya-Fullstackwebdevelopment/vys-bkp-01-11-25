@@ -221,7 +221,7 @@ export const PersonalNotesCard = ({ sortBy = "datetime" }) => {
               source={getImageSource(profile.notes_Profile_img)}
               style={styles.profileImage}
             /> */}
-           <View style={styles.imageWrapper}>
+            <View style={styles.imageWrapper}>
               <TopAlignedImage
                 uri={
                   Array.isArray(profile.notes_Profile_img)
@@ -263,18 +263,19 @@ export const PersonalNotesCard = ({ sortBy = "datetime" }) => {
 
           <View style={styles.profileContent}>
             <View>
-              <Text style={styles.profileName}>
-                {/* {profile.notes_profile_name || "N/A"}{" "} */}
-                {profile.notes_profile_name
-                  ? (profile.notes_profile_name.length > 15
-                    ? profile.notes_profile_name.substring(0, 15) + "..."
-                    : profile.notes_profile_name)
-                  : "N/A"
-                }
+              <View style={styles.nameContainer}>
+                <Text
+                  style={[styles.profileName, { flexShrink: 1 }]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {profile.notes_profile_name || "N/A"}
+                </Text>
+
                 <Text style={styles.profileId}>
                   ({profile.notes_profileid || "N/A"})
                 </Text>
-              </Text>
+              </View>
               <Text style={styles.profileAge}>
                 {profile.notes_profile_age || "N/A"} Yrs{" "}
                 <Text style={styles.line}>|</Text> {profile.notes_height?.height_desc || "N/A"}
@@ -397,17 +398,27 @@ const styles = StyleSheet.create({
   //   paddingLeft: 10,
   // },
 
+  nameContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+
   profileName: {
     fontSize: 16,
     fontWeight: "700",
     color: "#FF6666",
     fontFamily: "inter",
     marginBottom: 10,
+    flexShrink: 1,
   },
 
   profileId: {
     fontSize: 14,
     color: "#85878C",
+    fontWeight: "700",
+    marginBottom: 10,
+    marginLeft: 0,
   },
 
   profileAge: {
