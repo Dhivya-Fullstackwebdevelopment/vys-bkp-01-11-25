@@ -2,7 +2,10 @@
   "expo": {
     "name": "VysyamalaApp",
     "slug": "vysyamala",
-    "version": "1.0.0",
+    "version": "1.0.1",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/fixed-icon-vysyamala.png",
     "userInterfaceStyle": "light",
@@ -16,10 +19,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.vysmala.app",
-      "runtimeVersion": {
-        "policy": "appVersion"
-      }
+      "bundleIdentifier": "com.vysmala.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,15 +28,14 @@
       },
       "usesCleartextTraffic": true,
       "package": "com.vysmala.app",
-      "versionCode": 32,
-      "runtimeVersion": "1.0.1"
+      "versionCode": 39
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "9e50b747-58d9-462e-80eb-907e076c7484"
+        "projectId": "ec179e54-62e0-4044-ae3b-11e485cc4d43"
       }
     },
     "updates": {
@@ -52,6 +51,6 @@
         }
       ]
     ],
-    "owner": "dhivyap12"
+    "owner": "dhivya_p98"
   }
 }
