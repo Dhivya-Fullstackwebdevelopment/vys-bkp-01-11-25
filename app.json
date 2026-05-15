@@ -27,8 +27,7 @@
         "backgroundColor": "#ffffff"
       },
       "usesCleartextTraffic": true,
-      "package": "com.vysmala.app",
-      "versionCode": 39
+      "package": "com.vysmala.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
