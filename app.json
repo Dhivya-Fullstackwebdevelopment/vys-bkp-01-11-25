@@ -27,7 +27,8 @@
         "backgroundColor": "#ffffff"
       },
       "usesCleartextTraffic": true,
-      "package": "com.vysmala.app"
+      "package": "com.vysmala.app",
+      "versionCode": 44
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -45,10 +46,19 @@
         "expo-build-properties",
         {
           "android": {
-            "targetSdkVersion": 35
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24,
+            "ndkVersion": "27.1.12297006",
+            "packagingOptions": {
+              "jniLibs": {
+                "useLegacyPackaging": false
+              }
+            }
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "owner": "dhivya_p98"
   }
