@@ -538,14 +538,14 @@ export const AccountSetup = () => {
                   By clicking register free, I agree to the{" "}
                   <Text
                     style={styles.link}
-                    onPress={() => handleOpenLink('http://matrimonyapp.rainyseasun.com/TermsandConditions')}
+                    onPress={() => handleOpenLink('https://www.vysyamala.com/TermsandConditions')}
                   >
                     T&C
                   </Text>{" "}
                   and{" "}
                   <Text
                     style={styles.link}
-                    onPress={() => handleOpenLink('http://matrimonyapp.rainyseasun.com/TermsandConditions')}
+                    onPress={() => handleOpenLink('https://www.vysyamala.com/PrivacyPolicy')}
                   >
                     Privacy Policy
                   </Text>.
