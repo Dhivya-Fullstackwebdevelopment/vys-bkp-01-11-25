@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
@@ -20,6 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axios from "axios";
 import config from "../API/Apiurl";
+import ForgetPassword from "./ForgetPassword";
 
 // Define Zod schema
 const schema = z.object({
@@ -271,6 +273,16 @@ export const LoginPage = () => {
           <ForgetPassword />
         )}
 
+        <TouchableOpacity
+          onPress={() =>
+            Linking.openURL("mailto:support@vysyamala.com")
+          }
+        >
+          <Text style={styles.helpSupportText}>
+            Need Help? Contact Support
+          </Text>
+        </TouchableOpacity>
+
         <Text style={styles.orText}>or</Text>
 
         {/* Phone Login Button */}
@@ -354,6 +366,15 @@ const styles = StyleSheet.create({
     color: "#FF0000",
     fontSize: 12,
     fontFamily: "inter",
+  },
+  helpSupportText: {
+    textAlign: "center",
+    color: "#777",
+    fontSize: 14,
+    marginTop: 15,
+    marginBottom: 20,
+    fontFamily: "inter",
+    textDecorationLine: "underline",
   },
   btn: {
     width: "100%",

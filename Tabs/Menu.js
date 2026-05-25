@@ -217,14 +217,123 @@ export const Menu = () => {
   };
 
   const handleWhatsAppShareWithImage = async (withImage = false) => {
-    
+
+    const profileName = dashboardData?.profile_details?.profile_name || 'Not available';
+    const profileId = dashboardData?.profile_details?.profile_id || 'Not available';
+    const EncrytedprofileId = profileDetails?.encrypted_profile_id || 'Not available';
+    const age = dashboardData?.profile_details?.age || 'Not available';
+    const starName = dashboardData?.profile_details?.star_name || 'Not available';
+    // const baseUrl = 'https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net';
+    // const baseUrl = 'https://app.vysyamala.com';
+    const vysyamalaUrl = 'vysyamala.com';
+    const profession = profileDetails?.prosession;
+    const annualIncome = educationalDetails?.personal_ann_inc_name;
+    const placeOfStay = educationalDetails?.personal_work_district || educationalDetails?.personal_work_city_name
+    const education = educationalDetails?.persoanl_degree_name;
+    const companyName = educationalDetails?.personal_company_name;
+    const businessName = educationalDetails?.personal_business_name;
+    let professionLine = '💼 *Profession:* Not available\n';
+
+    if (profession) {
+      if (profession.toLowerCase() === 'employed' && companyName) {
+        professionLine = `💼 *Profession:* Employed at ${companyName}\n`;
+      } else if (profession.toLowerCase() === 'business' && businessName) {
+        professionLine = `💼 *Profession:* Business at ${businessName}\n`;
+      } else if (profession.toLowerCase() === 'employed/business' && businessName) {
+        professionLine = `💼 *Profession:* ${profession}-Employed at ${companyName}, Business at ${businessName}\n`;
+      } else if (profession.toLowerCase() === 'goverment/ psu' && companyName) {
+        professionLine = `💼 *Profession:* Government/ PSU at ${companyName}\n`;
+      } else {
+        professionLine = `💼 *Profession:* ${profession}\n`;
+      }
+    }
+
+    // Construct the share URL with proper encoding
+    // const shareUrl = `${baseUrl}/auth/profile/${encodeURIComponent(profileId)}/`;
+    // const shareUrl = `${config.apiUrl}/auth/profile/${EncrytedprofileId}/`;
+    const shareUrl = withImage
+      ? `${config.apiUrl}/auth/profile/${EncrytedprofileId}/`
+      : `${config.apiUrl}/auth/profile_view/${EncrytedprofileId}/`;
+    const title = 'Check out this profile!';
+
+    const message =
+      // `*Vysyamala Matrimony Profile*\n\n` +
+      // `🌟 *Profile Link:* ${shareUrl}\n` +
+      `${title}\n\n` +
+      `🆔 *Profile ID:* ${profileId}\n` +
+      `👤 *Profile Name:* ${profileName}\n` +
+      `🎂 *Age:* ${age} years\n` +
+      `✨ *Star Name:* ${starName}\n` +
+      `💰 *Annual Income:* ${annualIncome || 'Not available'}\n` +
+      `🎓 *Education:* ${education || 'Not available'}\n` +
+      // `💼 *Profession:* ${profession || 'Not available'}${companyName || businessName ? ` at ${companyName || businessName}` : ''}\n` +4
+      professionLine +
+      `📍 *Place of Stay:* ${placeOfStay || 'Not available'}\n\n` +
+      `🌟 *For More Details:* ${shareUrl}\n` +
+      `-------------------------------------------\n` +
+      `Click here to register your profile on Vysyamala:\n` +
+      `${vysyamalaUrl}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `whatsapp://send?text=${encodedMessage}`;
+
+    //     const supported = await Linking.canOpenURL(whatsappUrl);
+    //     if (!supported) {
+    //       Toast.show({
+    //         type: 'error',
+    //         text1: 'Error',
+    //         text2: 'WhatsApp is not installed on your device',
+    //         position: 'bottom',
+    //       });
+    //       return;
+    //     }
+
+    //     await Linking.openURL(whatsappUrl);
+    //   } catch (error) {
+    //     console.error('WhatsApp sharing error:', error);
+    //     Toast.show({
+    //       type: 'error',
+    //       text1: 'Error',
+    //       text2: 'Failed to share on WhatsApp. Please try again.',
+    //       position: 'bottom',
+    //     });
+    //   } finally {
+    //     setShareModalVisible(false);
+    //   }
+    // };
+
+    try {
+      const supported = await Linking.canOpenURL(whatsappUrl);
+      if (!supported) {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'WhatsApp is not installed',
+          position: 'bottom',
+        });
+        return;
+      }
+      await Linking.openURL(whatsappUrl);
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to share on WhatsApp',
+        position: 'bottom',
+      });
+    } finally {
+      setShareModalVisible(false);
+    }
+  };
+
+  const handleWhatsAppShareWithoutImage = async () => {
+    try {
       const profileName = dashboardData?.profile_details?.profile_name || 'Not available';
       const profileId = dashboardData?.profile_details?.profile_id || 'Not available';
-      const EncrytedprofileId = profileDetails?.encrypted_profile_id || 'Not available';
       const age = dashboardData?.profile_details?.age || 'Not available';
       const starName = dashboardData?.profile_details?.star_name || 'Not available';
       // const baseUrl = 'https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net';
-      // const baseUrl = 'https://app.vysyamala.com';
+      //const baseUrl = 'https://app.vysyamala.com';
       const vysyamalaUrl = 'vysyamala.com';
       const profession = profileDetails?.prosession;
       const annualIncome = educationalDetails?.personal_ann_inc_name;
@@ -249,11 +358,7 @@ export const Menu = () => {
       }
 
       // Construct the share URL with proper encoding
-      // const shareUrl = `${baseUrl}/auth/profile/${encodeURIComponent(profileId)}/`;
-      // const shareUrl = `${config.apiUrl}/auth/profile/${EncrytedprofileId}/`;
-      const shareUrl = withImage
-        ? `${config.apiUrl}/auth/profile/${EncrytedprofileId}/`
-        : `${config.apiUrl}/auth/profile_view/${EncrytedprofileId}/`;
+      const shareUrlWithoutImage = `${config.apiUrl}/auth/profile_view/${profileId}/`
       const title = 'Check out this profile!';
 
       const message =
@@ -269,7 +374,7 @@ export const Menu = () => {
         // `💼 *Profession:* ${profession || 'Not available'}${companyName || businessName ? ` at ${companyName || businessName}` : ''}\n` +4
         professionLine +
         `📍 *Place of Stay:* ${placeOfStay || 'Not available'}\n\n` +
-        `🌟 *For More Details:* ${shareUrl}\n` +
+        `🌟 *For More Details:* ${shareUrlWithoutImage}\n` +
         `-------------------------------------------\n` +
         `Click here to register your profile on Vysyamala:\n` +
         `${vysyamalaUrl}`;
@@ -277,177 +382,72 @@ export const Menu = () => {
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `whatsapp://send?text=${encodedMessage}`;
 
-      //     const supported = await Linking.canOpenURL(whatsappUrl);
-      //     if (!supported) {
-      //       Toast.show({
-      //         type: 'error',
-      //         text1: 'Error',
-      //         text2: 'WhatsApp is not installed on your device',
-      //         position: 'bottom',
-      //       });
-      //       return;
-      //     }
-
-      //     await Linking.openURL(whatsappUrl);
-      //   } catch (error) {
-      //     console.error('WhatsApp sharing error:', error);
-      //     Toast.show({
-      //       type: 'error',
-      //       text1: 'Error',
-      //       text2: 'Failed to share on WhatsApp. Please try again.',
-      //       position: 'bottom',
-      //     });
-      //   } finally {
-      //     setShareModalVisible(false);
-      //   }
-      // };
-
-      try {
-        const supported = await Linking.canOpenURL(whatsappUrl);
-        if (!supported) {
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: 'WhatsApp is not installed',
-            position: 'bottom',
-          });
-          return;
-        }
-        await Linking.openURL(whatsappUrl);
-      } catch (error) {
+      const supported = await Linking.canOpenURL(whatsappUrl);
+      if (!supported) {
         Toast.show({
           type: 'error',
           text1: 'Error',
-          text2: 'Failed to share on WhatsApp',
+          text2: 'WhatsApp is not installed on your device',
           position: 'bottom',
         });
-      } finally {
-        setShareModalVisible(false);
+        return;
       }
-    };
 
-    const handleWhatsAppShareWithoutImage = async () => {
-      try {
-        const profileName = dashboardData?.profile_details?.profile_name || 'Not available';
-        const profileId = dashboardData?.profile_details?.profile_id || 'Not available';
-        const age = dashboardData?.profile_details?.age || 'Not available';
-        const starName = dashboardData?.profile_details?.star_name || 'Not available';
-        // const baseUrl = 'https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net';
-        //const baseUrl = 'https://app.vysyamala.com';
-        const vysyamalaUrl = 'vysyamala.com';
-        const profession = profileDetails?.prosession;
-        const annualIncome = educationalDetails?.personal_ann_inc_name;
-        const placeOfStay = educationalDetails?.personal_work_district || educationalDetails?.personal_work_city_name
-        const education = educationalDetails?.persoanl_degree_name;
-        const companyName = educationalDetails?.personal_company_name;
-        const businessName = educationalDetails?.personal_business_name;
-        let professionLine = '💼 *Profession:* Not available\n';
+      await Linking.openURL(whatsappUrl);
+    } catch (error) {
+      console.error('WhatsApp sharing error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to share on WhatsApp. Please try again.',
+        position: 'bottom',
+      });
+    } finally {
+      setShareModalVisible(false);
+    }
+  };
 
-        if (profession) {
-          if (profession.toLowerCase() === 'employed' && companyName) {
-            professionLine = `💼 *Profession:* Employed at ${companyName}\n`;
-          } else if (profession.toLowerCase() === 'business' && businessName) {
-            professionLine = `💼 *Profession:* Business at ${businessName}\n`;
-          } else if (profession.toLowerCase() === 'employed/business' && businessName) {
-            professionLine = `💼 *Profession:* ${profession}-Employed at ${companyName}, Business at ${businessName}\n`;
-          } else if (profession.toLowerCase() === 'goverment/ psu' && companyName) {
-            professionLine = `💼 *Profession:* Government/ PSU at ${companyName}\n`;
-          } else {
-            professionLine = `💼 *Profession:* ${profession}\n`;
-          }
-        }
-
-        // Construct the share URL with proper encoding
-        const shareUrlWithoutImage = `${config.apiUrl}/auth/profile_view/${profileId}/`
-        const title = 'Check out this profile!';
-
-        const message =
-          // `*Vysyamala Matrimony Profile*\n\n` +
-          // `🌟 *Profile Link:* ${shareUrl}\n` +
-          `${title}\n\n` +
-          `🆔 *Profile ID:* ${profileId}\n` +
-          `👤 *Profile Name:* ${profileName}\n` +
-          `🎂 *Age:* ${age} years\n` +
-          `✨ *Star Name:* ${starName}\n` +
-          `💰 *Annual Income:* ${annualIncome || 'Not available'}\n` +
-          `🎓 *Education:* ${education || 'Not available'}\n` +
-          // `💼 *Profession:* ${profession || 'Not available'}${companyName || businessName ? ` at ${companyName || businessName}` : ''}\n` +4
-          professionLine +
-          `📍 *Place of Stay:* ${placeOfStay || 'Not available'}\n\n` +
-          `🌟 *For More Details:* ${shareUrlWithoutImage}\n` +
-          `-------------------------------------------\n` +
-          `Click here to register your profile on Vysyamala:\n` +
-          `${vysyamalaUrl}`;
-
-        const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl = `whatsapp://send?text=${encodedMessage}`;
-
-        const supported = await Linking.canOpenURL(whatsappUrl);
-        if (!supported) {
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: 'WhatsApp is not installed on your device',
-            position: 'bottom',
-          });
-          return;
-        }
-
-        await Linking.openURL(whatsappUrl);
-      } catch (error) {
-        console.error('WhatsApp sharing error:', error);
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'Failed to share on WhatsApp. Please try again.',
-          position: 'bottom',
-        });
-      } finally {
-        setShareModalVisible(false);
-      }
-    };
-
-    return (
-      <SafeAreaView style={styles.container}>
-        {loading ? (
-          // Show loading indicator while fetching data
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#BD1225" />
-          </View>
-        ) : (
-          <ScrollView style={styles.menuContainer}>
-            <View style={styles.menuContainer}>
-              {/* updateProfileContainer */}
-              <View style={styles.updateProfileContainer}>
-                {/* profile Update */}
-                <TouchableOpacity
-                  onPress={() => navigation.navigate("MyProfile")}
-                >
-                  <View style={styles.imgContentFlex}>
-                    {/* <Image
+  return (
+    <SafeAreaView style={styles.container}>
+      {loading ? (
+        // Show loading indicator while fetching data
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#BD1225" />
+        </View>
+      ) : (
+        <ScrollView style={styles.menuContainer}>
+          <View style={styles.menuContainer}>
+            {/* updateProfileContainer */}
+            <View style={styles.updateProfileContainer}>
+              {/* profile Update */}
+              <TouchableOpacity
+                onPress={() => navigation.navigate("MyProfile")}
+              >
+                <View style={styles.imgContentFlex}>
+                  {/* <Image
                     source={getImageSource(dashboardData?.profile_details?.profile_image)}
                     style={styles.profileImage}
                   /> */}
-                    <TopAlignedImage
-                      uri={Array.isArray(dashboardData?.profile_details?.profile_image) ? dashboardData?.profile_details?.profile_image[0] : dashboardData?.profile_details?.profile_image}
-                      width={120}
-                      height={120}
-                    />
-                    {/* New Share Icon */}
-                    <TouchableOpacity onPress={handleShare} style={{ padding: wp(2) }}>
-                      <Ionicons name="share-social" size={wp(6)} color="#535665" />
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.profileContent}>
-                    <Text style={styles.profileName}>
-                      {profileDetails.personal_profile_name || " "}
-                    </Text>
-                    <Text style={styles.profileNumber}>
-                      {profileDetails.profile_id || " "}
-                    </Text>
+                  <TopAlignedImage
+                    uri={Array.isArray(dashboardData?.profile_details?.profile_image) ? dashboardData?.profile_details?.profile_image[0] : dashboardData?.profile_details?.profile_image}
+                    width={120}
+                    height={120}
+                  />
+                  {/* New Share Icon */}
+                  <TouchableOpacity onPress={handleShare} style={{ padding: wp(2) }}>
+                    <Ionicons name="share-social" size={wp(6)} color="#535665" />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.profileContent}>
+                  <Text style={styles.profileName}>
+                    {profileDetails.personal_profile_name || " "}
+                  </Text>
+                  <Text style={styles.profileNumber}>
+                    {profileDetails.profile_id || " "}
+                  </Text>
 
-                    {/* Plan flex */}
-                    {/* <View style={styles.planFlex}>
+                  {/* Plan flex */}
+                  {/* <View style={styles.planFlex}>
                     <LinearGradient
                       colors={
                         profileDetails.package_name === "Platinum"
@@ -480,226 +480,232 @@ export const Menu = () => {
                       </Text>
                     )}
                   </View> */}
-                    <View style={styles.planFlex}>
-                      {profileDetails.valid_upto &&
-                        new Date(profileDetails.valid_upto) < new Date() &&
-                        allowedPremiumIds.includes(activePlanId) ? (
-                        // RENDER RENEW BUTTON (IF EXPIRED AND PREMIUM)
-                        <TouchableOpacity
-                          style={styles.renewButtonWrapper}
-                          onPress={() => navigation.navigate('MembershipPlan')} // Navigates to your upgrade screen
+                  <View style={styles.planFlex}>
+                    {profileDetails.valid_upto &&
+                      new Date(profileDetails.valid_upto) < new Date() &&
+                      allowedPremiumIds.includes(activePlanId) ? (
+                      // RENDER RENEW BUTTON (IF EXPIRED AND PREMIUM)
+                      <TouchableOpacity
+                        style={styles.renewButtonWrapper}
+                        onPress={() => navigation.navigate('MembershipPlan')} // Navigates to your upgrade screen
+                      >
+                        <LinearGradient
+                          colors={["#BD1225", "#FF4050"]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.renewButton}
                         >
-                          <LinearGradient
-                            colors={["#BD1225", "#FF4050"]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={styles.renewButton}
-                          >
-                            <Text style={styles.renewButtonText}>Renew</Text>
-                          </LinearGradient>
-                        </TouchableOpacity>
-                      ) : (
-                        <View style={styles.planFlex}>
-                          <LinearGradient
-                            colors={
-                              profileDetails.package_name === "Platinum"
-                                ? ["#E5E4E2", "#C0C0C0", "#FFFFFF"]
-                                : profileDetails.package_name === "Gold"
-                                  ? ["#D79D32", "#FFB800", "#FDE166"]
-                                  : profileDetails.package_name === "Diamond"
-                                    ? ["#B9F2FF", "#FFFFFF", "#B9F2FF"]
-                                    : ["#D79D32", "#FFB800", "#FDE166"] // Fallback to Gold colors
-                            }
-                            locations={[0, 0.5, 1]}
-                            start={{ x: 1, y: 1 }}
-                            end={{ x: 0, y: 0 }}
-                            style={[styles.goldLinearGradient]}
-                          >
-                            <Text style={[styles.goldText]}>
-                              {profileDetails.package_name}
-                            </Text>
-                          </LinearGradient>
-                        </View>
-                      )}
-                      {profileDetails.valid_upto && (
-                        <Text style={[styles.date, { marginLeft: 10 }]}>
-                          Valid Upto :
-                          {profileDetails.valid_upto}
-                        </Text>
-                      )}
-                    </View>
+                          <Text style={styles.renewButtonText}>Renew</Text>
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.planFlex}>
+                        <LinearGradient
+                          colors={
+                            profileDetails.package_name === "Platinum"
+                              ? ["#E5E4E2", "#C0C0C0", "#FFFFFF"]
+                              : profileDetails.package_name === "Gold"
+                                ? ["#D79D32", "#FFB800", "#FDE166"]
+                                : profileDetails.package_name === "Diamond"
+                                  ? ["#B9F2FF", "#FFFFFF", "#B9F2FF"]
+                                  : ["#D79D32", "#FFB800", "#FDE166"] // Fallback to Gold colors
+                          }
+                          locations={[0, 0.5, 1]}
+                          start={{ x: 1, y: 1 }}
+                          end={{ x: 0, y: 0 }}
+                          style={[styles.goldLinearGradient]}
+                        >
+                          <Text style={[styles.goldText]}>
+                            {profileDetails.package_name}
+                          </Text>
+                        </LinearGradient>
+                      </View>
+                    )}
+                    {profileDetails.valid_upto && (
+                      <Text style={[styles.date, { marginLeft: 10 }]}>
+                        Valid Upto :
+                        {profileDetails.valid_upto}
+                      </Text>
+                    )}
                   </View>
-                  {/* </View> */}
-                </TouchableOpacity>
-                {/* sandalContainer */}
+                </View>
+                {/* </View> */}
+              </TouchableOpacity>
+              {/* sandalContainer */}
 
-                <TouchableOpacity
-                  style={styles.sandalProfileContainer}
-                  onPress={() =>
-                    parseInt(
-                      dashboardData?.profile_details?.completion_per,
-                      10
-                    ) !== 100 && navigation.navigate("ProfileCompletionForm")
-                  }
-                  disabled={
-                    parseInt(
-                      dashboardData?.profile_details?.completion_per,
-                      10
-                    ) === 100
-                  } // Disable touchable if 100%
-                >
-                  {parseInt(
+              <TouchableOpacity
+                style={styles.sandalProfileContainer}
+                onPress={() =>
+                  parseInt(
                     dashboardData?.profile_details?.completion_per,
                     10
-                  ) === 100 ? (
-                    // <View style={styles.sandalContainerFlex}>
-                    <View style={styles.percentageContent}>
-                      <Text style={styles.profilePercentage}>
-                        Your profile is now{" "}
-                        {dashboardData?.profile_details?.completion_per || " "} %
-                        complete
-                      </Text>
-                      {/* </View> */}
-                    </View>
-                  ) : (
-                    <>
-                      <View style={styles.sandalContainerFlex}>
-                        <CircularProgress
-                          value={
-                            parseInt(
-                              dashboardData?.profile_details?.completion_per,
-                              10
-                            ) || 0
-                          }
-                          valueSuffix={"%"}
-                          radius={35}
-                          duration={2000}
-                          activeStrokeWidth={8}
-                          inActiveStrokeWidth={8}
-                          progressValueColor={"#535665"}
-                          progressValueStyle={{ fontSize: 14, fontWeight: "500" }}
-                          titleFontSize={16}
-                          maxValue={100}
-                          activeStrokeColor={"#2FBD12"}
-                          inActiveStrokeColor={"#2FBD12"}
-                          inActiveStrokeOpacity={0.2}
-                        />
+                  ) !== 100 && navigation.navigate("ProfileCompletionForm")
+                }
+                disabled={
+                  parseInt(
+                    dashboardData?.profile_details?.completion_per,
+                    10
+                  ) === 100
+                } // Disable touchable if 100%
+              >
+                {parseInt(
+                  dashboardData?.profile_details?.completion_per,
+                  10
+                ) === 100 ? (
+                  // <View style={styles.sandalContainerFlex}>
+                  <View style={styles.percentageContent}>
+                    <Text style={styles.profilePercentage}>
+                      Your profile is now{" "}
+                      {dashboardData?.profile_details?.completion_per || " "} %
+                      complete
+                    </Text>
+                    {/* </View> */}
+                  </View>
+                ) : (
+                  <>
+                    <View style={styles.sandalContainerFlex}>
+                      <CircularProgress
+                        value={
+                          parseInt(
+                            dashboardData?.profile_details?.completion_per,
+                            10
+                          ) || 0
+                        }
+                        valueSuffix={"%"}
+                        radius={35}
+                        duration={2000}
+                        activeStrokeWidth={8}
+                        inActiveStrokeWidth={8}
+                        progressValueColor={"#535665"}
+                        progressValueStyle={{ fontSize: 14, fontWeight: "500" }}
+                        titleFontSize={16}
+                        maxValue={100}
+                        activeStrokeColor={"#2FBD12"}
+                        inActiveStrokeColor={"#2FBD12"}
+                        inActiveStrokeOpacity={0.2}
+                      />
 
-                        <View style={styles.percentageContent}>
-                          <Text style={styles.profilePercentage}>
-                            Your profile is now{" "}
-                            {dashboardData?.profile_details?.completion_per ||
-                              " "} % complete
-                          </Text>
-                          <Text style={styles.percentageText}>
-                            Complete your profile we will suggest profiles based
-                            on your preference
-                          </Text>
+                      <View style={styles.percentageContent}>
+                        <Text style={styles.profilePercentage}>
+                          Your profile is now{" "}
+                          {dashboardData?.profile_details?.completion_per ||
+                            " "} % complete
+                        </Text>
+                        <Text style={styles.percentageText}>
+                          Complete your profile we will suggest profiles based
+                          on your preference
+                        </Text>
 
-                          <View style={styles.completeTextFlex}>
-                            <Text style={styles.completeText}>
-                              Complete Your Profile{" "}
-                            </Text>
-                            <Ionicons
-                              name="arrow-forward"
-                              size={wp(4.5)}
-                              color="#ED1E24"
-                            />
-                          </View>
+                        <View style={styles.completeTextFlex}>
+                          <Text style={styles.completeText}>
+                            Complete Your Profile{" "}
+                          </Text>
+                          <Ionicons
+                            name="arrow-forward"
+                            size={wp(4.5)}
+                            color="#ED1E24"
+                          />
                         </View>
                       </View>
-                    </>
-                  )}
-                </TouchableOpacity>
+                    </View>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* hrLine */}
+            <View style={styles.hrLine} />
+
+            {/* wishlist menu */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("DashBoardWishlist")}
+            >
+              <View style={styles.menuFlex}>
+                <MaterialCommunityIcons
+                  name="bookmark"
+                  size={wp(6)}
+                  color="#535665"
+                />
+                <Text style={styles.menuText}>Wishlist</Text>
               </View>
+            </TouchableOpacity>
 
-              {/* hrLine */}
-              <View style={styles.hrLine} />
+            <View style={styles.hrLine1} />
 
-              {/* wishlist menu */}
-              <TouchableOpacity
-                onPress={() => navigation.navigate("DashBoardWishlist")}
-              >
-                <View style={styles.menuFlex}>
-                  <MaterialCommunityIcons
-                    name="bookmark"
-                    size={wp(6)}
-                    color="#535665"
-                  />
-                  <Text style={styles.menuText}>Wishlist</Text>
-                </View>
-              </TouchableOpacity>
+            {/* other settings menu */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("OtherSettings")}
+            >
+              <View style={styles.menuFlex}>
+                <FontAwesome6 name="user-gear" size={wp(6)} color="#535665" />
+                <Text style={styles.menuText}>Other Settings</Text>
+              </View>
+            </TouchableOpacity>
 
-              <View style={styles.hrLine1} />
+            <View style={styles.hrLine1} />
 
-              {/* other settings menu */}
-              <TouchableOpacity
-                onPress={() => navigation.navigate("OtherSettings")}
-              >
-                <View style={styles.menuFlex}>
-                  <FontAwesome6 name="user-gear" size={wp(6)} color="#535665" />
-                  <Text style={styles.menuText}>Other Settings</Text>
-                </View>
-              </TouchableOpacity>
+            {/* about is settings menu */}
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  // url: "http://matrimonyapp.rainyseasun.com/AboutUsMobile",
+                  url: "https://vysyamala.com/AboutUsMobile",
+                  title: "About Us",
+                })
+              }
+            >
+              <View style={styles.menuFlex}>
+                <Ionicons name="information-circle" size={wp(6)} color="#535665" />
+                <Text style={styles.menuText}>About Us</Text>
+              </View>
+            </TouchableOpacity>
 
-              <View style={styles.hrLine1} />
+            <View style={styles.hrLine1} />
 
-              {/* about is settings menu */}
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("WebViewPage", {
-                    // url: "http://matrimonyapp.rainyseasun.com/AboutUsMobile",
-                    url: "https://vysyamala.com/AboutUsMobile",
-                    title: "About Us",
-                  })
-                }
-              >
-                <View style={styles.menuFlex}>
-                  <Ionicons name="information-circle" size={wp(6)} color="#535665" />
-                  <Text style={styles.menuText}>About Us</Text>
-                </View>
-              </TouchableOpacity>
+            {/* Success Stories settings menu */}
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  // url: "http://matrimonyapp.rainyseasun.com/HappyStoriesMobile",
+                  //url: "https://vysyamala.com/HappyStoriesMobile",
+                  url: "https://vysyamala.com/HappyStoriesMobile",
+                  title: "Santhosha Pendlilu",
+                })
+              }
+            >
+              <View style={styles.menuFlex}>
+                <FontAwesome6 name="star" size={wp(6)} color="#535665" />
+                <Text style={styles.menuText}>Santhosha Pendlilu</Text>
+              </View>
+            </TouchableOpacity>
+            <View style={styles.hrLine1} />
+            <TouchableOpacity onPress={() => navigation.navigate("HelpSupport")}>
+              <View style={styles.menuFlex}>
+                <Ionicons name="help-circle" size={wp(6)} color="#535665" />
+                <Text style={styles.menuText}>Help & Support</Text>
+              </View>
+            </TouchableOpacity>
+            <View style={styles.hrLine1} />
+            {/* Awards settings menu */}
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
+                  url: "https://vysyamala.com/AwardsMobile",
+                  title: "Awards",
+                })
+              }
+            >
+              <View style={styles.menuFlex}>
+                <Ionicons name="trophy" size={wp(6)} color="#535665" />
+                <Text style={styles.menuText}>Awards</Text>
+              </View>
+            </TouchableOpacity>
 
-              <View style={styles.hrLine1} />
+            <View style={styles.hrLine1} />
 
-              {/* Success Stories settings menu */}
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("WebViewPage", {
-                    // url: "http://matrimonyapp.rainyseasun.com/HappyStoriesMobile",
-                    //url: "https://vysyamala.com/HappyStoriesMobile",
-                    url: "https://vysyamala.com/HappyStoriesMobile",
-                    title: "Santhosha Pendlilu",
-                  })
-                }
-              >
-                <View style={styles.menuFlex}>
-                  <FontAwesome6 name="star" size={wp(6)} color="#535665" />
-                  <Text style={styles.menuText}>Santhosha Pendlilu</Text>
-                </View>
-              </TouchableOpacity>
-              <View style={styles.hrLine1} />
-
-              {/* Awards settings menu */}
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("WebViewPage", {
-                    // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
-                    url: "https://vysyamala.com/AwardsMobile",
-                    title: "Awards",
-                  })
-                }
-              >
-                <View style={styles.menuFlex}>
-                  <Ionicons name="trophy" size={wp(6)} color="#535665" />
-                  <Text style={styles.menuText}>Awards</Text>
-                </View>
-              </TouchableOpacity>
-
-              <View style={styles.hrLine1} />
-
-              {/* Upgrade menu */}
-              {/* <TouchableOpacity
+            {/* Upgrade menu */}
+            {/* <TouchableOpacity
               onPress={() => navigation.navigate("MembershipPlan")}
             >
               <LinearGradient
@@ -709,379 +715,379 @@ export const Menu = () => {
                 <Text style={styles.textUpgrade}>Upgrade</Text>
               </LinearGradient>
             </TouchableOpacity> */}
-              {!isPlan16 && (
-                <TouchableOpacity onPress={handleUpgradeClick}>
-                  <LinearGradient
-                    colors={['#BD1225', '#FF4050']}
-                    style={styles.button}
-                  >
-                    <Text style={styles.textUpgrade}>{buttonText}</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              )}
-
-              {/* hrLine */}
-              <View style={styles.hrLine} />
-
-              {/* logout menu */}
-              <TouchableOpacity onPress={handleLogout}>
-                <View style={styles.menuFlex}>
-                  <MaterialIcons name="logout" size={wp(6)} color="#535665" />
-                  <Text style={styles.menuText}>Log Out</Text>
-                </View>
+            {!isPlan16 && (
+              <TouchableOpacity onPress={handleUpgradeClick}>
+                <LinearGradient
+                  colors={['#BD1225', '#FF4050']}
+                  style={styles.button}
+                >
+                  <Text style={styles.textUpgrade}>{buttonText}</Text>
+                </LinearGradient>
               </TouchableOpacity>
-            </View>
-          </ScrollView>
-        )}
-        {/* Modal for sharing */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={shareModalVisible}
-          onRequestClose={() => setShareModalVisible(false)}
+            )}
+
+            {/* hrLine */}
+            <View style={styles.hrLine} />
+
+            {/* logout menu */}
+            <TouchableOpacity onPress={handleLogout}>
+              <View style={styles.menuFlex}>
+                <MaterialIcons name="logout" size={wp(6)} color="#535665" />
+                <Text style={styles.menuText}>Log Out</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      )}
+      {/* Modal for sharing */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={shareModalVisible}
+        onRequestClose={() => setShareModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
         >
           <View
             style={{
-              flex: 1,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              justifyContent: "center",
+              backgroundColor: "white",
+              borderRadius: 15,
+              padding: 20,
+              width: "80%",
               alignItems: "center",
             }}
           >
             <View
               style={{
-                backgroundColor: "white",
-                borderRadius: 15,
-                padding: 20,
-                width: "80%",
+                flexDirection: "row",
+                justifyContent: "space-between",
                 alignItems: "center",
+                width: "100%",
+                marginBottom: 20,
               }}
             >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  width: "100%",
-                  marginBottom: 20,
-                }}
-              >
-                <Text style={{ fontSize: 18, fontWeight: "bold", color: "#000" }}>
-                  Share Profile
-                </Text>
-                <TouchableOpacity onPress={() => setShareModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#000" />
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  padding: 15,
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                  borderRadius: 10,
-                  marginVertical: 5,
-                  width: "100%",
-                }}
-                onPress={() => handleWhatsAppShareWithImage(true)}
-              >
-                <Ionicons name="image" size={24} color="#ED1E24" />
-                <Text style={{ marginLeft: 15, fontSize: 16, color: "#000" }}>
-                  Share with Image
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  padding: 15,
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                  borderRadius: 10,
-                  marginVertical: 5,
-                  width: "100%",
-                }}
-                // onPress={handleWhatsAppShareWithoutImage}
-                onPress={() => handleWhatsAppShareWithImage(false)}
-              >
-                <Ionicons name="document-text" size={24} color="#ED1E24" />
-                <Text style={{ marginLeft: 15, fontSize: 16, color: "#000" }}>
-                  Share without Image
-                </Text>
+              <Text style={{ fontSize: 18, fontWeight: "bold", color: "#000" }}>
+                Share Profile
+              </Text>
+              <TouchableOpacity onPress={() => setShareModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#000" />
               </TouchableOpacity>
             </View>
-          </View>
-        </Modal>
-      </SafeAreaView>
-    );
-  };
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                padding: 15,
+                borderWidth: 1,
+                borderColor: "#ddd",
+                borderRadius: 10,
+                marginVertical: 5,
+                width: "100%",
+              }}
+              onPress={() => handleWhatsAppShareWithImage(true)}
+            >
+              <Ionicons name="image" size={24} color="#ED1E24" />
+              <Text style={{ marginLeft: 15, fontSize: 16, color: "#000" }}>
+                Share with Image
+              </Text>
+            </TouchableOpacity>
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: "#F4F4F4",
-      alignItems: "center",
-      justifyContent: "flex-start",
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                padding: 15,
+                borderWidth: 1,
+                borderColor: "#ddd",
+                borderRadius: 10,
+                marginVertical: 5,
+                width: "100%",
+              }}
+              // onPress={handleWhatsAppShareWithoutImage}
+              onPress={() => handleWhatsAppShareWithImage(false)}
+            >
+              <Ionicons name="document-text" size={24} color="#ED1E24" />
+              <Text style={{ marginLeft: 15, fontSize: 16, color: "#000" }}>
+                Share without Image
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F4F4",
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%", // Takes full width
+    height: "100%", // Takes full height
+    backgroundColor: "#F4F4F4", // Match the main container background
+  },
+  menuContainer: {
+    width: "100%",
+    paddingHorizontal: wp(3),
+    marginVertical: hp(1.5),
+  },
+  imgContentFlex: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  updateProfileContainer: {
+    paddingHorizontal: wp(2),
+  },
+  profileContent: {
+    marginTop: hp(1.5),
+  },
+  profileName: {
+    fontSize: responsiveFontSize(16),
+    fontWeight: "700",
+    color: "#282C3F",
+    alignSelf: "flex-start",
+    marginBottom: hp(0.8),
+  },
+  profileNumber: {
+    fontSize: responsiveFontSize(12),
+    fontWeight: "300",
+    color: "#535665",
+    marginBottom: hp(1.2),
+  },
+  planFlex: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  goldLinearGradient: {
+    borderRadius: wp(1.5),
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: hp(0.8),
+    paddingHorizontal: wp(3),
+    minWidth: wp(25),
+    marginRight: wp(3),
+    marginBottom: hp(0.5),
+  },
+  goldText: {
+    color: "#202332",
+    fontSize: responsiveFontSize(14),
+    fontWeight: "700",
+    fontFamily: "inter",
+    textAlign: "center",
+  },
+  diamondText: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
     },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      width: "100%", // Takes full width
-      height: "100%", // Takes full height
-      backgroundColor: "#F4F4F4", // Match the main container background
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  date: {
+    fontSize: responsiveFontSize(13),
+    fontWeight: "300",
+    color: "#535665",
+    flex: 1,
+    flexWrap: "wrap",
+  },
+  sandalProfileContainer: {
+    width: "100%",
+    backgroundColor: "#FFFBE3",
+    borderRadius: wp(2),
+    paddingVertical: hp(2.5),
+    paddingHorizontal: wp(3),
+    marginTop: hp(2.5),
+  },
+  sandalContainerFlex: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+  },
+  percentageContent: {
+    marginLeft: wp(4),
+    flex: 1,
+  },
+  profilePercentage: {
+    color: "#535665",
+    fontSize: responsiveFontSize(14),
+    fontWeight: "700",
+    fontFamily: "inter",
+    marginBottom: hp(0.8),
+    flexWrap: "wrap",
+  },
+  percentageText: {
+    color: "#535665",
+    fontSize: responsiveFontSize(12),
+    fontWeight: "300",
+    fontFamily: "inter",
+    marginBottom: hp(1.2),
+    flexWrap: "wrap",
+    lineHeight: responsiveFontSize(16),
+  },
+  completeTextFlex: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    marginVertical: hp(1.2),
+    flexWrap: "wrap",
+  },
+  completeText: {
+    color: "#ED1E24",
+    fontSize: responsiveFontSize(12),
+    fontWeight: "500",
+    fontFamily: "inter",
+  },
+  hrLine: {
+    borderBottomColor: "#D4D5D9",
+    borderBottomWidth: 1,
+    marginVertical: hp(2.5),
+  },
+  hrLine1: {
+    borderBottomColor: "#D4D5D9",
+    borderBottomWidth: 1,
+    marginVertical: hp(0.2),
+    width: wp(60),
+  },
+  menuFlex: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    marginVertical: hp(1.5),
+    paddingHorizontal: wp(2),
+  },
+  menuText: {
+    color: "#535665",
+    fontSize: responsiveFontSize(15),
+    fontWeight: "500",
+    fontFamily: "inter",
+    marginLeft: wp(3),
+  },
+  profileImage: {
+    width: wp(25),
+    height: wp(25),
+    borderRadius: wp(2),
+    resizeMode: "cover",
+  },
+  button: {
+    borderRadius: wp(1.5),
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(6),
+    alignSelf: "flex-start",
+    minWidth: wp(35),
+    marginTop: hp(1.5),
+  },
+  textUpgrade: {
+    color: "#ffffff",
+    fontSize: responsiveFontSize(16),
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  // Responsive Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: wp(5),
+  },
+  modalContainer: {
+    backgroundColor: "white",
+    borderRadius: wp(4),
+    padding: wp(5),
+    width: "100%",
+    maxWidth: wp(85),
+    alignItems: "center",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: hp(2.5),
+  },
+  modalTitle: {
+    fontSize: responsiveFontSize(18),
+    fontWeight: "bold",
+    color: "#000",
+  },
+  modalOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: wp(4),
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: wp(2.5),
+    marginVertical: hp(0.8),
+    width: "100%",
+  },
+  modalOptionText: {
+    marginLeft: wp(4),
+    fontSize: responsiveFontSize(16),
+    color: "#000",
+  },
+  // Legacy styles for backward compatibility
+  modalView: {
+    margin: wp(5),
+    backgroundColor: "white",
+    borderRadius: wp(5),
+    padding: wp(8),
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
     },
-    menuContainer: {
-      width: "100%",
-      paddingHorizontal: wp(3),
-      marginVertical: hp(1.5),
-    },
-    imgContentFlex: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-    },
-    updateProfileContainer: {
-      paddingHorizontal: wp(2),
-    },
-    profileContent: {
-      marginTop: hp(1.5),
-    },
-    profileName: {
-      fontSize: responsiveFontSize(16),
-      fontWeight: "700",
-      color: "#282C3F",
-      alignSelf: "flex-start",
-      marginBottom: hp(0.8),
-    },
-    profileNumber: {
-      fontSize: responsiveFontSize(12),
-      fontWeight: "300",
-      color: "#535665",
-      marginBottom: hp(1.2),
-    },
-    planFlex: {
-      flexDirection: "row",
-      justifyContent: "flex-start",
-      alignItems: "center",
-      flexWrap: "wrap",
-    },
-    goldLinearGradient: {
-      borderRadius: wp(1.5),
-      justifyContent: "center",
-      alignItems: "center",
-      paddingVertical: hp(0.8),
-      paddingHorizontal: wp(3),
-      minWidth: wp(25),
-      marginRight: wp(3),
-      marginBottom: hp(0.5),
-    },
-    goldText: {
-      color: "#202332",
-      fontSize: responsiveFontSize(14),
-      fontWeight: "700",
-      fontFamily: "inter",
-      textAlign: "center",
-    },
-    diamondText: {
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
-    date: {
-      fontSize: responsiveFontSize(13),
-      fontWeight: "300",
-      color: "#535665",
-      flex: 1,
-      flexWrap: "wrap",
-    },
-    sandalProfileContainer: {
-      width: "100%",
-      backgroundColor: "#FFFBE3",
-      borderRadius: wp(2),
-      paddingVertical: hp(2.5),
-      paddingHorizontal: wp(3),
-      marginTop: hp(2.5),
-    },
-    sandalContainerFlex: {
-      flexDirection: "row",
-      justifyContent: "flex-start",
-      alignItems: "flex-start",
-    },
-    percentageContent: {
-      marginLeft: wp(4),
-      flex: 1,
-    },
-    profilePercentage: {
-      color: "#535665",
-      fontSize: responsiveFontSize(14),
-      fontWeight: "700",
-      fontFamily: "inter",
-      marginBottom: hp(0.8),
-      flexWrap: "wrap",
-    },
-    percentageText: {
-      color: "#535665",
-      fontSize: responsiveFontSize(12),
-      fontWeight: "300",
-      fontFamily: "inter",
-      marginBottom: hp(1.2),
-      flexWrap: "wrap",
-      lineHeight: responsiveFontSize(16),
-    },
-    completeTextFlex: {
-      flexDirection: "row",
-      justifyContent: "flex-start",
-      alignItems: "center",
-      marginVertical: hp(1.2),
-      flexWrap: "wrap",
-    },
-    completeText: {
-      color: "#ED1E24",
-      fontSize: responsiveFontSize(12),
-      fontWeight: "500",
-      fontFamily: "inter",
-    },
-    hrLine: {
-      borderBottomColor: "#D4D5D9",
-      borderBottomWidth: 1,
-      marginVertical: hp(2.5),
-    },
-    hrLine1: {
-      borderBottomColor: "#D4D5D9",
-      borderBottomWidth: 1,
-      marginVertical: hp(0.2),
-      width: wp(60),
-    },
-    menuFlex: {
-      flexDirection: "row",
-      justifyContent: "flex-start",
-      alignItems: "center",
-      marginVertical: hp(1.5),
-      paddingHorizontal: wp(2),
-    },
-    menuText: {
-      color: "#535665",
-      fontSize: responsiveFontSize(15),
-      fontWeight: "500",
-      fontFamily: "inter",
-      marginLeft: wp(3),
-    },
-    profileImage: {
-      width: wp(25),
-      height: wp(25),
-      borderRadius: wp(2),
-      resizeMode: "cover",
-    },
-    button: {
-      borderRadius: wp(1.5),
-      paddingVertical: hp(1.5),
-      paddingHorizontal: wp(6),
-      alignSelf: "flex-start",
-      minWidth: wp(35),
-      marginTop: hp(1.5),
-    },
-    textUpgrade: {
-      color: "#ffffff",
-      fontSize: responsiveFontSize(16),
-      fontWeight: "bold",
-      textAlign: "center",
-    },
-    // Responsive Modal Styles
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-      justifyContent: "center",
-      alignItems: "center",
-      paddingHorizontal: wp(5),
-    },
-    modalContainer: {
-      backgroundColor: "white",
-      borderRadius: wp(4),
-      padding: wp(5),
-      width: "100%",
-      maxWidth: wp(85),
-      alignItems: "center",
-    },
-    modalHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      width: "100%",
-      marginBottom: hp(2.5),
-    },
-    modalTitle: {
-      fontSize: responsiveFontSize(18),
-      fontWeight: "bold",
-      color: "#000",
-    },
-    modalOption: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: wp(4),
-      borderWidth: 1,
-      borderColor: "#ddd",
-      borderRadius: wp(2.5),
-      marginVertical: hp(0.8),
-      width: "100%",
-    },
-    modalOptionText: {
-      marginLeft: wp(4),
-      fontSize: responsiveFontSize(16),
-      color: "#000",
-    },
-    // Legacy styles for backward compatibility
-    modalView: {
-      margin: wp(5),
-      backgroundColor: "white",
-      borderRadius: wp(5),
-      padding: wp(8),
-      alignItems: "center",
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      elevation: 5,
-    },
-    modalText: {
-      marginBottom: hp(2),
-      textAlign: "center",
-      fontSize: responsiveFontSize(14),
-    },
-    modalImage: {
-      width: wp(25),
-      height: wp(25),
-      marginBottom: hp(2),
-    },
-    dottedLine: {
-      borderBottomColor: "#535665",
-      borderBottomWidth: 2,
-      borderStyle: "dotted",
-      marginVertical: hp(0.3),
-      width: wp(60),
-    },
-    renewButtonText: {
-      color: 'white',
-      fontSize: 14,
-      fontWeight: '600',
-      fontFamily: "inter",
-    },
-    renewButton: {
-      borderRadius: 6,
-      paddingVertical: 6,
-      paddingHorizontal: 12,
-      minWidth: 100,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-  });
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: hp(2),
+    textAlign: "center",
+    fontSize: responsiveFontSize(14),
+  },
+  modalImage: {
+    width: wp(25),
+    height: wp(25),
+    marginBottom: hp(2),
+  },
+  dottedLine: {
+    borderBottomColor: "#535665",
+    borderBottomWidth: 2,
+    borderStyle: "dotted",
+    marginVertical: hp(0.3),
+    width: wp(60),
+  },
+  renewButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: "inter",
+  },
+  renewButton: {
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

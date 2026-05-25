@@ -27,6 +27,9 @@ import * as FileSystem from 'expo-file-system'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ProfileDetailsView } from "../../Components/HomeTab/ProfileDetails/ProfileDetailsView";
 import Toast from "react-native-toast-message";
+import axios from "axios";
+import config from "../../API/Apiurl";
+
 
 // import {  } from "react-native";
 import {
@@ -362,6 +365,68 @@ export const ProfileDetails = () => {
   const [vysassistErrorMsg, setVysassistErrorMsg] = useState('');
   const [selectedPdfLanguage, setSelectedPdfLanguage] = useState("english");
   const [showLanguagePopup, setShowLanguagePopup] = useState(false);
+  const [blockModalVisible, setBlockModalVisible] = useState(false);
+  const [blockLoading, setBlockLoading] = useState(false);
+  
+  const handleBlockProfile = async () => {
+    try {
+      setBlockLoading(true);
+
+      const myProfileId =
+        await AsyncStorage.getItem("loginuser_profileId") ||
+        await AsyncStorage.getItem("profile_id_new");
+
+      const response = await axios.post(
+        `${config.apiUrl}/auth/block_profile/`,
+        {
+          from_profile: myProfileId,
+          to_profile: viewedProfileId,
+        }
+      );
+
+      if (
+        response.data.Status === 1 ||
+        response.data.message === "Profile already blocked"
+      ) {
+        setBlockModalVisible(false);
+        bottomSheetRef.current.close();
+
+        Toast.show({
+          type: "success",
+          text1:
+            response.data.message === "Profile already blocked"
+              ? "Already Blocked"
+              : "Profile Blocked",
+          text2:
+            response.data.message || "Profile blocked successfully.",
+          position: "bottom",
+        });
+
+        setTimeout(() => {
+          navigation.goBack();
+        }, 1500);
+
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: response.data.message || "Failed to block profile.",
+          position: "bottom",
+        });
+      }
+    } catch (error) {
+      console.log("Block Profile Error", error);
+
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Something went wrong.",
+        position: "bottom",
+      });
+    } finally {
+      setBlockLoading(false);
+    }
+  };
 
   const togglePersonalDetails = () => {
     setShowEducationDetails(false)
@@ -1559,6 +1624,7 @@ export const ProfileDetails = () => {
   };
 
   const renderBottomSheetContent = () => {
+
     const options = [
       { icon: 'phone', text: 'Call', onPress: handlePhoneCall, type: 'MaterialCommunityIcons' },
       // { icon: 'share', text: 'Share', onPress: handleShare, type: 'MaterialIcons' },
@@ -1580,8 +1646,15 @@ export const ProfileDetails = () => {
         onPress: handleDownloadMatchingReport,
         type: 'MaterialIcons'
       },
-      // { icon: 'report-problem', text: 'Report Profile', onPress: () => { }, type: 'MaterialIcons' },
+      { icon: 'report-problem', text: 'Report Profile', onPress: () => { }, type: 'MaterialIcons' },
+      {
+        icon: 'block', text: 'Block Profile', onPress: () => {
+          bottomSheetRef.current.close();
+          setBlockModalVisible(true);
+        }, type: 'MaterialIcons'
+      },
     ];
+
 
     return (
       <View style={styles.bottomSheetContent}>
@@ -1646,6 +1719,79 @@ export const ProfileDetails = () => {
 
   return (
     <View style={styles.mainContainer}>
+      <Modal
+        transparent={true}
+        visible={blockModalVisible}
+        animationType="fade"
+        onRequestClose={() => setBlockModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.passwordCard}>
+            <MaterialIcons
+              name="block"
+              size={55}
+              color="#ED1E24"
+              style={{ alignSelf: 'center', marginBottom: 10 }}
+            />
+
+            <Text style={[styles.modalTitle, { textAlign: 'center' }]}>
+              Block Profile?
+            </Text>
+
+            <Text
+              style={{
+                fontSize: 14,
+                color: "#555",
+                textAlign: "center",
+                lineHeight: 22,
+                marginBottom: 20,
+              }}
+            >
+              Are you sure you want to block this profile?
+              {"\n"}You will no longer see or interact with this profile.
+            </Text>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between'
+              }}
+            >
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: "#E5E5E5",
+                  padding: 14,
+                  borderRadius: 10,
+                  marginRight: 10,
+                  alignItems: "center",
+                }}
+                onPress={() => setBlockModalVisible(false)}
+              >
+                <Text style={{ color: "#333", fontWeight: "700" }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: "#ED1E24",
+                  padding: 14,
+                  borderRadius: 10,
+                  alignItems: "center",
+                }}
+                onPress={handleBlockProfile}
+                disabled={blockLoading}
+              >
+                <Text style={{ color: "#fff", fontWeight: "700" }}>
+                  {blockLoading ? "Blocking..." : "Block"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       {/* Fixed Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -1961,7 +2107,7 @@ export const ProfileDetails = () => {
                   // </View>
                   <TouchableOpacity
                     style={{ position: 'absolute', top: 0, right: 10 }}
-                    onPress={handleDownloadMatchingReport} 
+                    onPress={handleDownloadMatchingReport}
                     activeOpacity={0.7}
                   >
                     <View style={{ position: 'absolute', top: 0, right: 10 }}>
@@ -1971,7 +2117,7 @@ export const ProfileDetails = () => {
                         onUpgradeRequired={handleMatchingScoreUpgrade} // Correctly wired up
                       />
                     </View>
-</TouchableOpacity>
+                  </TouchableOpacity>
                   // <TouchableOpacity
                   //   onPress={handleDownloadMatchingReport}
                   //   style={{ position: 'absolute', top: 0, right: 10 }}

@@ -73,6 +73,8 @@ export const OtherSettings = () => {
     const [allowVisit, setAllowVisit] = useState(null); // ❌ no default
     //const currentPlanId = AsyncStorage.getItem("current_plan_id");
     const [currentPlanId, setCurrentPlanId] = useState(null);
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     useEffect(() => {
         const fetchCurrentPlan = async () => {
@@ -735,6 +737,62 @@ export const OtherSettings = () => {
         fetchPlanId();
     }, []);
 
+    const handleLogout = async () => {
+        try {
+            await AsyncStorage.clear();
+            navigation.reset({ index: 0, routes: [{ name: "LoginPage" }] });
+        } catch (error) {
+            console.error("Error logging out:", error);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        try {
+            setDeleteLoading(true);
+
+            const profileId =
+                await AsyncStorage.getItem("loginuser_profileId") ||
+                await AsyncStorage.getItem("profile_id_new");
+
+            const response = await axios.post(
+                `${config.apiUrl}/auth/delete_account/`,
+                { profile_id: profileId }
+            );
+
+            if (response.data.Status === 1) {
+                setDeleteModalVisible(false);
+
+                Toast.show({
+                    type: "success",
+                    text1: "Account Deleted",
+                    text2: response.data.message || "Account deleted successfully.",
+                    position: "bottom",
+                });
+
+                // ✅ Reuse handleLogout — clears storage + navigates to Login
+                await handleLogout();
+
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: response.data.message || "Failed to delete account",
+                    position: "bottom",
+                });
+            }
+        } catch (error) {
+            console.log("Delete Account Error", error);
+            Toast.show({
+                type: "error",
+                text1: "Error",
+                text2: "Something went wrong",
+                position: "bottom",
+            });
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
+
     return (
         <View style={{ flex: 1 }}>
             <ScrollView>
@@ -1185,6 +1243,77 @@ export const OtherSettings = () => {
                             {/* <Rasi /> */}
                         </Animated.View>
                     </View>
+                    <TouchableOpacity
+                        style={styles.detailsMenu}
+                        onPress={() => setDeleteModalVisible(true)}
+                    >
+                        <View style={styles.iconMenuFlex}>
+                            <MaterialIcons name="delete-forever" size={18} color="#fff" style={styles.saveIcon} />
+                            <Text style={styles.menuName}>Delete Account</Text>
+                        </View>
+                        <MaterialIcons name="chevron-right" size={18} color="#fff" />
+                    </TouchableOpacity>
+
+                    <Modal
+                        transparent={true}
+                        visible={deleteModalVisible}
+                        animationType="fade"
+                    >
+                        <View style={styles.modalOverlay}>
+                            <View style={styles.modalContainer}>
+
+                                <MaterialIcons
+                                    name="warning"
+                                    size={55}
+                                    color="#ED1E24"
+                                    style={{ marginBottom: 10 }}
+                                />
+
+                                <Text style={styles.modalTitle}>
+                                    Delete Account?
+                                </Text>
+
+                                <Text style={styles.modalDescription}>
+                                    Are you sure you want to permanently delete your account?
+
+                                    {"\n\n"}
+
+                                    {/* Your account will be disabled immediately and permanently removed after 30 days.
+
+                                    {"\n\n"}
+
+                                    This action cannot be undone. */}
+                                </Text>
+
+                                <View style={styles.modalButtonRow}>
+
+                                    <TouchableOpacity
+                                        style={styles.cancelBtn}
+                                        onPress={() =>
+                                            setDeleteModalVisible(false)
+                                        }
+                                    >
+                                        <Text style={styles.cancelText}>
+                                            Cancel
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.deleteBtn}
+                                        onPress={handleDeleteAccount}
+                                        disabled={deleteLoading}
+                                    >
+                                        <Text style={styles.deleteBtnText}>
+                                            {deleteLoading
+                                                ? "Deleting..."
+                                                : "Delete"}
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
                 </View>
             </ScrollView >
             <BottomTabBarComponent />
@@ -1623,4 +1752,65 @@ const styles = StyleSheet.create({
         fontFamily: "inter",
     },
 
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 20,
+    },
+
+    modalContainer: {
+        backgroundColor: "#fff",
+        width: "100%",
+        borderRadius: 18,
+        padding: 25,
+        alignItems: "center",
+    },
+
+    modalTitle: {
+        fontSize: 22,
+        fontWeight: "700",
+        color: "#000",
+        marginBottom: 12,
+    },
+
+    modalDescription: {
+        fontSize: 15,
+        color: "#555",
+        textAlign: "center",
+        lineHeight: 22,
+    },
+
+    modalButtonRow: {
+        flexDirection: "row",
+        marginTop: 25,
+    },
+
+    cancelBtn: {
+        flex: 1,
+        backgroundColor: "#E5E5E5",
+        padding: 14,
+        borderRadius: 10,
+        marginRight: 10,
+        alignItems: "center",
+    },
+
+    deleteBtn: {
+        flex: 1,
+        backgroundColor: "#ED1E24",
+        padding: 14,
+        borderRadius: 10,
+        alignItems: "center",
+    },
+
+    cancelText: {
+        color: "#333",
+        fontWeight: "700",
+    },
+
+    deleteBtnText: {
+        color: "#fff",
+        fontWeight: "700",
+    },
 });

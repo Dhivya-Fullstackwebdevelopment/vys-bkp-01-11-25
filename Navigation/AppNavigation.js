@@ -50,7 +50,7 @@ import { ForgotPasswordOtp } from "../Screens/ForgotPasswordOtp";
 import { ResetPassword } from "../Screens/ResetPassword";
 import { FeaturedOrSuggestProfiles } from "../Screens/AfterLogin/FeaturedOrSuggestProfiles";
 import { ProfileCompletionForm } from "../Screens/AfterLogin/ProfileCompletionForm";
-
+import { HelpSupport } from "../Tabs/HelpSupport";
 // import { ForgetPassword } from "../Components/ForgotPassword";
 
 
@@ -538,7 +538,7 @@ export const AppNavigation = () => {
         component={FeaturedOrSuggestProfiles}
         options={{ headerShown: false }}
       />
-
+      <Stack.Screen name="HelpSupport" component={HelpSupport} options={{ headerShown: false }}/>
     </Stack.Navigator>
   );
 };
