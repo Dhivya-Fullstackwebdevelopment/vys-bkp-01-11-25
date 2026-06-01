@@ -43,7 +43,8 @@ import { BottomTabBarComponent } from '../../Navigation/ReuseTabNavigation';
 // import { PartnerSettings } from '../PartnerSettings';
 import axios from 'axios';
 import config from '../../API/Apiurl';
-
+import { Picker } from "@react-native-picker/picker";
+import { Alert } from "react-native";
 
 export const OtherSettings = () => {
     const navigation = useNavigation();
@@ -73,8 +74,385 @@ export const OtherSettings = () => {
     const [allowVisit, setAllowVisit] = useState(null); // ❌ no default
     //const currentPlanId = AsyncStorage.getItem("current_plan_id");
     const [currentPlanId, setCurrentPlanId] = useState(null);
-    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [hideMenuOpen, setHideMenuOpen] = useState(false);
+    const animatedHeightHide = useRef(new Animated.Value(0)).current;
+    const rotationHide = useRef(new Animated.Value(0)).current;
+
+    const [hideReason, setHideReason] = useState("");
+    const [engagementDate, setEngagementDate] = useState("");
+    const [comments, setComments] = useState("");
+    const [profileId, setProfileId] = useState("");
+    const [hideLoading, setHideLoading] = useState(false);
+    const [otherReason, setOtherReason] = useState("");
+    const [deleteReason, setDeleteReason] = useState("");
+    const [deleteComments, setDeleteComments] = useState("");
+    const [deleteMenuOpen, setDeleteMenuOpen] = useState(false);
+    const rotationDelete = useRef(new Animated.Value(0)).current;
+
+    // const handleHideProfile = async () => {
+    //     try {
+    //         // Validation
+    //         if (!hideReason) {
+    //             Toast.show({
+    //                 type: "error",
+    //                 text1: "Hide Reason is required",
+    //                 position: "bottom",
+    //             });
+    //             return;
+    //         }
+
+    //         if (!profileId) {
+    //             Toast.show({
+    //                 type: "error",
+    //                 text1: "Profile ID is required",
+    //                 position: "bottom",
+    //             });
+    //             return;
+    //         }
+
+    //         if (!engagementDate) {
+    //             Toast.show({
+    //                 type: "error",
+    //                 text1: "Engagement Date is required",
+    //                 position: "bottom",
+    //             });
+    //             return;
+    //         }
+
+    //         if (hideReason === "Others" && !comments.trim()) {
+    //             Toast.show({
+    //                 type: "error",
+    //                 text1: "Please enter reason",
+    //                 position: "bottom",
+    //             });
+    //             return;
+    //         }
+
+    //         setHideLoading(true);
+
+    //         // Hide Profile API Payload
+    //         const payload = {
+    //             profile_id: profileId,
+    //             reason: hideReason === "Others" ? otherReason : hideReason,  // ✅
+    //             other_text: otherReason,       // ✅
+    //         };
+
+    //         console.log("Hide Profile Payload:", payload);
+
+    //         const response = await axios.post(
+    //             `${config.apiUrl}/auth/hide-profile/`,
+    //             payload,
+    //             {
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                 },
+    //             }
+    //         );
+
+    //         console.log(
+    //             "Hide Profile Response:",
+    //             response.data
+    //         );
+
+    //         if (response?.data?.Status === 1) {
+
+    //             // Call Marriage Settle API only for Marriage Settled
+    //             if (hideReason === "Marriage Settled") {
+
+    //                 const formData = new FormData();
+
+    //                 formData.append(
+    //                     "marriage_settled_comment",
+    //                     comments || ""
+    //                 );
+
+    //                 formData.append(
+    //                     "engagement_date",
+    //                     engagementDate
+    //                 );
+
+    //                 formData.append(
+    //                     "profile_id",
+    //                     profileId
+    //                 );
+
+    //                 console.log(
+    //                     "Marriage Settle Payload:",
+    //                     {
+    //                         marriage_settled_comment:
+    //                             comments || "",
+    //                         engagement_date:
+    //                             engagementDate,
+    //                         profile_id:
+    //                             profileId,
+    //                     }
+    //                 );
+
+    //                 await axios.post(
+    //                     `${config.apiUrl}/api/marriage-settle-details/create/`,
+    //                     formData,
+    //                     {
+    //                         headers: {
+    //                             "Content-Type":
+    //                                 "multipart/form-data",
+    //                         },
+    //                     }
+    //                 );
+
+    //                 Alert.alert(
+    //                     "Congratulations 💐",
+    //                     "May Lord Vasavi Kanyakaparameswari bless your married life.",
+    //                     [
+    //                         {
+    //                             text: "OK",
+    //                             onPress: () => {
+    //                                 navigation.navigate(
+    //                                     "UploadWedding"
+    //                                 );
+    //                             },
+    //                         },
+    //                     ]
+    //                 );
+
+    //                 return;
+    //             }
+
+    //             // Other Reasons
+    //             Alert.alert(
+    //                 "Success",
+    //                 response?.data?.message ||
+    //                 "Your profile has been hidden successfully.",
+    //                 [
+    //                     {
+    //                         text: "OK",
+    //                         onPress: async () => {
+    //                             try {
+    //                                 await AsyncStorage.clear();
+
+    //                                 navigation.reset({
+    //                                     index: 0,
+    //                                     routes: [
+    //                                         {
+    //                                             name: "LoginPage",
+    //                                         },
+    //                                     ],
+    //                                 });
+    //                             } catch (err) {
+    //                                 console.log(
+    //                                     "Logout Error:",
+    //                                     err
+    //                                 );
+    //                             }
+    //                         },
+    //                     },
+    //                 ]
+    //             );
+    //         } else {
+    //             Toast.show({
+    //                 type: "error",
+    //                 text1: "Error",
+    //                 text2:
+    //                     response?.data?.message ||
+    //                     "Failed to hide profile",
+    //                 position: "bottom",
+    //             });
+    //         }
+    //     } catch (error) {
+    //         console.log(
+    //             "Hide Profile Error:",
+    //             error?.response?.data || error
+    //         );
+
+    //         Toast.show({
+    //             type: "error",
+    //             text1: "Error",
+    //             text2:
+    //                 error?.response?.data?.message ||
+    //                 "Something went wrong",
+    //             position: "bottom",
+    //         });
+    //     } finally {
+    //         setHideLoading(false);
+    //     }
+    // };
+
+    const handleHideProfile = async () => {
+    try {
+        // --- 1. Validations ---
+        if (!hideReason) {
+            Toast.show({
+                type: "error",
+                text1: "Hide Reason is required",
+                position: "bottom",
+            });
+            return;
+        }
+
+        if (!profileId) {
+            Toast.show({
+                type: "error",
+                text1: "Profile ID is required",
+                position: "bottom",
+            });
+            return;
+        }
+
+        if (!engagementDate) {
+            Toast.show({
+                type: "error",
+                text1: "Engagement Date is required",
+                position: "bottom",
+            });
+            return;
+        }
+
+        if (hideReason === "Others" && !comments.trim()) {
+            Toast.show({
+                type: "error",
+                text1: "Please enter reason",
+                position: "bottom",
+            });
+            return;
+        }
+
+        setHideLoading(true);
+
+        // --- 2. Hide Profile API Request ---
+        const payload = {
+            profile_id: profileId,
+            reason: hideReason === "Others" ? otherReason : hideReason,  
+            other_text: otherReason,       
+        };
+
+        console.log("Hide Profile Payload:", payload);
+
+        const response = await axios.post(
+            `${config.apiUrl}/auth/hide-profile/`,
+            payload,
+            { headers: { "Content-Type": "application/json" } }
+        );
+
+        console.log("Hide Profile Response:", response.data);
+
+        if (response?.data?.Status === 1) {
+            
+            // --- 3. Run Marriage Settle Details API if condition matches ---
+            const formData = new FormData();
+            formData.append("marriage_settled_comment", comments || "");
+            formData.append("engagement_date", engagementDate);
+            formData.append("profile_id", profileId);
+
+            console.log("Marriage Settle Details Payload:", {
+                marriage_settled_comment: comments || "",
+                engagement_date: engagementDate,
+                profile_id: profileId
+            });
+
+            await axios.post(
+                `${config.apiUrl}/api/marriage-settle-details/create/`,
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
+
+            // --- 4. Dynamic Conditional Popup Messaging & Redirections ---
+            if (hideReason === "Marriage Settled") {
+                
+                // Web equivalence: /UploadWedding redirect after 5 seconds or manual click
+                Alert.alert(
+                    "Congratulations! 💐",
+                    "May Lord Vasavi Kanyakaparameswari bless your married life.\n\nOur team will contact you after deactivating your profile.\n\nPlease take a moment to fill the success story form.",
+                    [
+                        {
+                            text: "OK",
+                            onPress: () => {
+                                navigation.navigate("UploadWedding");
+                            },
+                        },
+                    ],
+                    { cancelable: false }
+                );
+
+                // Auto redirect fallback logic matching web timeout configuration
+                setTimeout(() => {
+                    // Check if user is still on this view context before tracking redirect triggers
+                    navigation.navigate("UploadWedding");
+                }, 5000);
+
+            } else {
+                
+                // Web equivalence: localStorage.clear() and redirect to /login after 2 seconds
+                Alert.alert(
+                    "Profile Hidden Status",
+                    "Your profile has been hidden successfully.\n\nPlease contact us whenever you want to activate your profile.",
+                    [
+                        {
+                            text: "OK",
+                            onPress: async () => {
+                                try {
+                                    await AsyncStorage.clear();
+                                    navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: "LoginPage" }],
+                                    });
+                                } catch (err) {
+                                    console.log("Logout Stack Clean Error:", err);
+                                }
+                            },
+                        },
+                    ],
+                    { cancelable: false }
+                );
+
+                // Auto logout framework sync matching web timeout configurations
+                setTimeout(async () => {
+                    try {
+                        await AsyncStorage.clear();
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: "LoginPage" }],
+                        });
+                    } catch (err) {
+                        console.log("Timeout Stack Clean Error:", err);
+                    }
+                }, 2000);
+            }
+
+        } else {
+            Toast.show({
+                type: "error",
+                text1: "Error",
+                text2: response?.data?.message || "Failed to hide profile",
+                position: "bottom",
+            });
+        }
+    } catch (error) {
+        console.log("Hide Profile Error Context:", error?.response?.data || error);
+        Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: error?.response?.data?.message || "Something went wrong",
+            position: "bottom",
+        });
+    } finally {
+        setHideLoading(false);
+    }
+};
+
+    useEffect(() => {
+        const loadProfileId = async () => {
+            const id =
+                await AsyncStorage.getItem("loginuser_profileId") ||
+                await AsyncStorage.getItem("profile_id_new");
+
+            if (id) {
+                setProfileId(id);
+            }
+        };
+
+        loadProfileId();
+    }, []);
+
 
     useEffect(() => {
         const fetchCurrentPlan = async () => {
@@ -749,43 +1127,105 @@ export const OtherSettings = () => {
     const handleDeleteAccount = async () => {
         try {
             setDeleteLoading(true);
-
             const profileId =
-                await AsyncStorage.getItem("loginuser_profileId") ||
-                await AsyncStorage.getItem("profile_id_new");
+                (await AsyncStorage.getItem("loginuser_profileId")) ||
+                (await AsyncStorage.getItem("profile_id_new"));
+
+            // 📝 Console log the request data before calling the API
+            console.log("Sending delete request for Profile ID:", profileId);
+            console.log("Payload reasons:", { reason: deleteReason, comments: deleteComments });
 
             const response = await axios.post(
                 `${config.apiUrl}/auth/delete_account/`,
-                { profile_id: profileId }
+                {
+                    profile_id: profileId,
+                    reason: deleteReason, // Making sure your backend reasons are passed if required
+                    comments: deleteComments
+                }
             );
 
-            if (response.data.Status === 1) {
-                setDeleteModalVisible(false);
+            // 🟢 This only runs if server returns 200 OK status
+            console.log("API Success Response:", response.data);
+            const { Status, message } = response.data;
 
+            const isDuplicate = message?.includes("Duplicate entry") || message?.includes("duplicate");
+            const isAlreadyDeleted = message?.includes("Account already deleted") || message?.includes("already deleted");
+
+            if (Status === 1 || isDuplicate || isAlreadyDeleted) {
                 Toast.show({
                     type: "success",
                     text1: "Account Deleted",
-                    text2: response.data.message || "Account deleted successfully.",
+                    text2: "Your account has been deleted successfully.",
                     position: "bottom",
                 });
 
-                // ✅ Reuse handleLogout — clears storage + navigates to Login
-                await handleLogout();
+                setTimeout(async () => {
+                    await AsyncStorage.clear();
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: "LoginPage" }],
+                    });
+                }, 1500);
 
             } else {
                 Toast.show({
                     type: "error",
                     text1: "Error",
-                    text2: response.data.message || "Failed to delete account",
+                    text2: message || "Failed to delete account",
                     position: "bottom",
                 });
             }
         } catch (error) {
-            console.log("Delete Account Error", error);
+            // 🔴 This handles 400, 401, 500 errors gracefully
+            console.log("Delete Account Error Object:", error);
+
+            let errorMsg = "Something went wrong";
+
+            if (error.response) {
+                // The server responded with a status code out of the 2xx range
+                console.log("API Error Response Data:", error.response.data);
+                console.log("API Error Status Code:", error.response.status);
+
+                // Extract message if it exists in response data
+                errorMsg = error.response.data?.message || error.response.data?.Error || "Bad Request (400)";
+
+                // Check if the error data itself mentions it's already deleted or duplicated
+                const serverMessage = error.response.data?.message || "";
+                const isDuplicate = serverMessage?.includes("Duplicate entry") || serverMessage?.includes("duplicate");
+                const isAlreadyDeleted = serverMessage?.includes("Account already deleted") || serverMessage?.includes("already deleted");
+
+                // If the admin side already deleted it, treat it as a success outcome for the user app
+                if (isDuplicate || isAlreadyDeleted) {
+                    Toast.show({
+                        type: "success",
+                        text1: "Account Status",
+                        text2: "Account is already processed or removed.",
+                        position: "bottom",
+                    });
+
+                    setTimeout(async () => {
+                        await AsyncStorage.clear();
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: "LoginPage" }],
+                        });
+                    }, 1500);
+                    return; // Stop running the rest of the error handler
+                }
+            } else if (error.request) {
+                // The request was made but no response was received
+                console.log("API Error Request Context:", error.request);
+                errorMsg = "No response from server. Check your network connection.";
+            } else {
+                // Something happened in setting up the request
+                console.log("Error Message:", error.message);
+                errorMsg = error.message;
+            }
+
             Toast.show({
                 type: "error",
-                text1: "Error",
-                text2: "Something went wrong",
+                text1: "Backend Error",
+                text2: errorMsg,
                 position: "bottom",
             });
         } finally {
@@ -829,77 +1269,134 @@ export const OtherSettings = () => {
                         <Animated.View style={[styles.menuContainer, { height: pMenuOpen ? 'auto' : 0 }]}>
                             {pMenuOpen && (
                                 <View style={styles.editOptions}>
-                                    <ScrollView style={styles.scrollView}>
-                                        {/* Email Alerts */}
-                                        <View style={styles.checkBoxList}>
-                                            <Text style={styles.subCaption}>Email Alerts</Text>
-                                            {emailAlerts.map(alert => (
-                                                <View key={`email_${alert.id}`} style={styles.checkboxContainer}>
-                                                    <Pressable
-                                                        style={[
-                                                            styles.checkboxBase,
-                                                            checkedAlerts[`email_${alert.id}`] && styles.checkboxChecked,
-                                                        ]}
-                                                        onPress={() => handleCheckboxToggle(`email_${alert.id}`)}
-                                                    >
-                                                        {checkedAlerts[`email_${alert.id}`] && (
-                                                            <Ionicons name="checkmark" size={14} color="white" />
-                                                        )}
-                                                    </Pressable>
-                                                    <Pressable onPress={() => handleCheckboxToggle(`email_${alert.id}`)}>
-                                                        <Text style={styles.checkboxLabel}>{alert.alert_name}</Text>
-                                                    </Pressable>
-                                                </View>
-                                            ))}
-                                        </View>
 
-                                        {/* SMS Alerts */}
-                                        <View style={styles.checkBoxList}>
-                                            <Text style={styles.subCaption}>SMS Alerts</Text>
-                                            {smsAlerts.map(alert => (
-                                                <View key={`sms_${alert.id}`} style={styles.checkboxContainer}>
-                                                    <Pressable
-                                                        style={[
-                                                            styles.checkboxBase,
-                                                            checkedAlerts[`sms_${alert.id}`] && styles.checkboxChecked,
-                                                        ]}
-                                                        onPress={() => handleCheckboxToggle(`sms_${alert.id}`)}
-                                                    >
-                                                        {checkedAlerts[`sms_${alert.id}`] && (
-                                                            <Ionicons name="checkmark" size={14} color="white" />
-                                                        )}
-                                                    </Pressable>
-                                                    <Pressable onPress={() => handleCheckboxToggle(`sms_${alert.id}`)}>
-                                                        <Text style={styles.checkboxLabel}>{alert.alert_name}</Text>
-                                                    </Pressable>
-                                                </View>
-                                            ))}
+                                    {/* Hide Reason */}
+                                    <Text style={styles.label}>
+                                        Hide Reason <Text style={{ color: "red" }}>*</Text>
+                                    </Text>
 
-                                        </View>
-                                    </ScrollView>
-
-                                    {/* Save Button */}
-                                    {/* <Button title="Save" onPress={handleSave} /> */}
-                                    <View style={styles.formContainer1}>
-                                        <TouchableOpacity
-                                            style={styles.btn}
-                                            onPress={handleSave}
+                                    <View
+                                        style={{
+                                            borderWidth: 1,
+                                            borderColor: "#D4D5D9",
+                                            borderRadius: 5,
+                                            marginBottom: 15,
+                                        }}
+                                    >
+                                        <Picker
+                                            selectedValue={hideReason}
+                                            onValueChange={(itemValue) =>
+                                                setHideReason(itemValue)
+                                            }
                                         >
-                                            <LinearGradient
-                                                colors={["#BD1225", "#FF4050"]}
-                                                start={{ x: 0, y: 0 }}
-                                                end={{ x: 1, y: 1 }}
-                                                useAngle={true}
-                                                angle={92.08}
-                                                angleCenter={{ x: 0.5, y: 0.5 }}
-                                                style={styles.linearGradient}
-                                            >
-                                                <View style={styles.loginContainer}>
-                                                    <Text style={styles.login}>Save</Text>
-                                                </View>
-                                            </LinearGradient>
-                                        </TouchableOpacity>
+                                            <Picker.Item
+                                                label="Select Reason"
+                                                value=""
+                                            />
+
+                                            <Picker.Item
+                                                label="Temporary Hide"
+                                                value="Temporary Hide"
+                                            />
+
+                                            <Picker.Item
+                                                label="Take a Break"
+                                                value="Take a Break"
+                                            />
+
+                                            <Picker.Item
+                                                label="Marriage Settled"
+                                                value="Marriage Settled"
+                                            />
+
+                                            <Picker.Item
+                                                label="Personal Reason"
+                                                value="Personal Reason"
+                                            />
+
+                                            <Picker.Item
+                                                label="Others"
+                                                value="Others"
+                                            />
+                                        </Picker>
                                     </View>
+
+                                    {/* Others Reason */}
+                                    {hideReason === "Others" && (
+                                        <>
+                                            <Text style={styles.label}>
+                                                Enter Reason
+                                            </Text>
+
+                                            <TextInput
+                                                style={[styles.input, { height: 100 }]}
+                                                multiline
+                                                value={otherReason}           // ✅ FIXED
+                                                onChangeText={setOtherReason} // ✅ FIXED
+                                                placeholder="Enter your reason"
+                                            />
+                                        </>
+                                    )}
+
+                                    {/* Profile ID */}
+                                    <Text style={[styles.label, { marginTop: 10 }]}>
+                                        Vysyamala Groom/Bride ID
+                                        <Text style={{ color: "red" }}> *</Text>
+                                    </Text>
+
+                                    <TextInput
+                                        style={styles.input}
+                                        value={profileId}
+                                        onChangeText={setProfileId}
+                                        placeholder="Enter Profile ID"
+                                    />
+
+                                    {/* Engagement Date */}
+                                    <Text style={[styles.label, { marginTop: 10 }]}>
+                                        Engagement Date
+                                        <Text style={{ color: "red" }}> *</Text>
+                                    </Text>
+
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="YYYY-MM-DD"
+                                        value={engagementDate}
+                                        onChangeText={setEngagementDate}
+                                    />
+
+                                    {/* Comments */}
+                                    <Text style={[styles.label, { marginTop: 10 }]}>
+                                        Comments
+                                    </Text>
+
+                                    <TextInput
+                                        style={[
+                                            styles.input,
+                                            { height: 100 }
+                                        ]}
+                                        multiline
+                                        value={comments}
+                                        onChangeText={setComments}
+                                        placeholder="Comments"
+                                    />
+
+                                    <TouchableOpacity
+                                        style={styles.btn}
+                                        onPress={handleHideProfile}
+                                        disabled={hideLoading}
+                                    >
+                                        <LinearGradient
+                                            colors={["#BD1225", "#FF4050"]}
+                                            style={styles.linearGradient}
+                                        >
+                                            <Text style={styles.login}>
+                                                {hideLoading
+                                                    ? "Submitting..."
+                                                    : "Submit"}
+                                            </Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+
                                 </View>
                             )}
                         </Animated.View>
@@ -970,22 +1467,64 @@ export const OtherSettings = () => {
                         )} */}
                         {eduMenuOpen && (
                             <View style={styles.editOptions}>
-                                {renderFilePreview = (label, currentFile, uploadedUrl, type) => (
+
+                                {/* Horoscope Image */}
+                                <View style={{ marginBottom: 20 }}>
+                                    <Text style={styles.label}>Horoscope Image</Text>
+                                    <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage('horoscope')}>
+                                        <Text style={styles.uploadText}>
+                                            {horoscopeFile ? horoscopeFile.fileName : `Select Horoscope Image`}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    {uploadedHoroscope && !horoscopeFile && (
+                                        <View style={styles.fileItem}>
+                                            <Image source={{ uri: uploadedHoroscope }} style={styles.fileImage} />
+                                            <View style={styles.fileDetails}>
+                                                <Text style={styles.checkboxLabel} numberOfLines={1}>
+                                                    {uploadedHoroscope.split('/').pop()}
+                                                </Text>
+                                                <Text style={styles.uploadedStatus}>Uploaded Files</Text>
+                                            </View>
+                                        </View>
+                                    )}
+                                </View>
+
+                                {/* ID Proof */}
+                                <View style={{ marginBottom: 20 }}>
+                                    <Text style={styles.label}>ID Proof</Text>
+                                    <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage('idproof')}>
+                                        <Text style={styles.uploadText}>
+                                            {idProofFile ? idProofFile.fileName : `Select ID Proof`}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    {uploadedIDProof && !idProofFile && (
+                                        <View style={styles.fileItem}>
+                                            <Image source={{ uri: uploadedIDProof }} style={styles.fileImage} />
+                                            <View style={styles.fileDetails}>
+                                                <Text style={styles.checkboxLabel} numberOfLines={1}>
+                                                    {uploadedIDProof.split('/').pop()}
+                                                </Text>
+                                                <Text style={styles.uploadedStatus}>Uploaded Files</Text>
+                                            </View>
+                                        </View>
+                                    )}
+                                </View>
+
+                                {/* Divorce Proof - only for marital status 2 */}
+                                {maritalStatus === "2" && (
                                     <View style={{ marginBottom: 20 }}>
-                                        <Text style={styles.label}>{label}</Text>
-                                        <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage(type)}>
+                                        <Text style={styles.label}>Divorce Proof</Text>
+                                        <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage('divorce')}>
                                             <Text style={styles.uploadText}>
-                                                {currentFile ? currentFile.fileName : `Select ${label}`}
+                                                {divorceFile ? divorceFile.fileName : `Select Divorce Proof`}
                                             </Text>
                                         </TouchableOpacity>
-
-                                        {/* Show Uploaded File (Like your reference image) */}
-                                        {uploadedUrl && !currentFile && (
+                                        {uploadedDivorceProof && !divorceFile && (
                                             <View style={styles.fileItem}>
-                                                <Image source={{ uri: uploadedUrl }} style={styles.fileImage} />
+                                                <Image source={{ uri: uploadedDivorceProof }} style={styles.fileImage} />
                                                 <View style={styles.fileDetails}>
                                                     <Text style={styles.checkboxLabel} numberOfLines={1}>
-                                                        {uploadedUrl.split('/').pop()}
+                                                        {uploadedDivorceProof.split('/').pop()}
                                                     </Text>
                                                     <Text style={styles.uploadedStatus}>Uploaded Files</Text>
                                                 </View>
@@ -993,14 +1532,6 @@ export const OtherSettings = () => {
                                         )}
                                     </View>
                                 )}
-
-                                {renderFilePreview("Horoscope Image", horoscopeFile, uploadedHoroscope, 'horoscope')}
-                                {renderFilePreview("ID Proof", idProofFile, uploadedIDProof, 'idproof')}
-
-                                {maritalStatus === "2" &&
-                                    renderFilePreview("Divorce Proof", divorceFile, uploadedDivorceProof, 'divorce')
-                                }
-
 
                                 {/* Password Protection */}
                                 <View style={styles.checkboxContainer}>
@@ -1015,7 +1546,6 @@ export const OtherSettings = () => {
                                         <TextInput
                                             style={styles.input}
                                             placeholder="Enter Password"
-                                            // Use the showPassword state to toggle visibility
                                             secureTextEntry={!showPassword}
                                             value={password}
                                             onChangeText={setPassword}
@@ -1024,14 +1554,15 @@ export const OtherSettings = () => {
                                             onPress={() => setShowPassword(!showPassword)}
                                             style={styles.passwordIcon}
                                         >
-                                            <AntDesign
-                                                name={showPassword ? "eye" : "eyeo"}
+                                            <Ionicons
+                                                name={showPassword ? "eye" : "eye-off"}
                                                 size={18}
                                                 color="#535665"
                                             />
                                         </Pressable>
                                     </View>
                                 )}
+
                                 {/* Video URL */}
                                 <Text style={[styles.label, { marginTop: 15 }]}>Upload Video Link</Text>
                                 <TextInput
@@ -1047,22 +1578,14 @@ export const OtherSettings = () => {
                                 {currentPlanId === "16" && (
                                     <>
                                         <Text style={[styles.label, { marginTop: 10 }]}>Delight Visibility Setting</Text>
-
                                         <View style={styles.radioRow}>
-                                            <TouchableOpacity
-                                                style={styles.radioOption}
-                                                onPress={() => setAllowVisit(1)}
-                                            >
+                                            <TouchableOpacity style={styles.radioOption} onPress={() => setAllowVisit(1)}>
                                                 <View style={[styles.radioOuter, allowVisit === 1 && styles.radioOuterActive]}>
                                                     {allowVisit === 1 && <View style={styles.radioInner} />}
                                                 </View>
                                                 <Text style={styles.radioText}>Yes</Text>
                                             </TouchableOpacity>
-
-                                            <TouchableOpacity
-                                                style={styles.radioOption}
-                                                onPress={() => setAllowVisit(0)}
-                                            >
+                                            <TouchableOpacity style={styles.radioOption} onPress={() => setAllowVisit(0)}>
                                                 <View style={[styles.radioOuter, allowVisit === 0 && styles.radioOuterActive]}>
                                                     {allowVisit === 0 && <View style={styles.radioInner} />}
                                                 </View>
@@ -1077,6 +1600,7 @@ export const OtherSettings = () => {
                                         <Text style={styles.login}>Save</Text>
                                     </LinearGradient>
                                 </TouchableOpacity>
+
                             </View>
                         )}
                     </View>
@@ -1168,7 +1692,8 @@ export const OtherSettings = () => {
                                                     onPress={() => setShowOldPassword((prev) => !prev)}
                                                     style={styles.passwordIcon}
                                                 >
-                                                    <AntDesign name={showOldPassword ? "eye" : "eyeo"} size={18} color="#535665" />
+                                                    <Ionicons name={showOldPassword ? "eye" : "eye-off"} size={18} color="#535665" />
+
                                                 </Pressable>
                                             </View>
                                             {oldPasswordError ? <Text style={styles.errorText}>{oldPasswordError}</Text> : null}
@@ -1189,7 +1714,7 @@ export const OtherSettings = () => {
                                                     onPress={() => setShowNewPassword((prev) => !prev)}
                                                     style={styles.passwordIcon}
                                                 >
-                                                    <AntDesign name={showNewPassword ? "eye" : "eyeo"} size={18} color="#535665" />
+                                                    <Ionicons name={showNewPassword ? "eye" : "eye-off"} size={18} color="#535665" />
                                                 </Pressable>
                                             </View>
                                             {newPasswordError ? <Text style={styles.errorText}>{newPasswordError}</Text> : null}
@@ -1210,7 +1735,7 @@ export const OtherSettings = () => {
                                                     onPress={() => setShowConfirmPassword((prev) => !prev)}
                                                     style={styles.passwordIcon}
                                                 >
-                                                    <AntDesign name={showConfirmPassword ? "eye" : "eyeo"} size={18} color="#535665" />
+                                                    <Ionicons name={showConfirmPassword ? "eye" : "eye-off"} size={18} color="#535665" />
                                                 </Pressable>
                                             </View>
                                             {confirmPasswordError ? <Text style={styles.errorText}>{confirmPasswordError}</Text> : null}
@@ -1243,77 +1768,258 @@ export const OtherSettings = () => {
                             {/* <Rasi /> */}
                         </Animated.View>
                     </View>
-                    <TouchableOpacity
-                        style={styles.detailsMenu}
-                        onPress={() => setDeleteModalVisible(true)}
-                    >
-                        <View style={styles.iconMenuFlex}>
-                            <MaterialIcons name="delete-forever" size={18} color="#fff" style={styles.saveIcon} />
-                            <Text style={styles.menuName}>Delete Account</Text>
-                        </View>
-                        <MaterialIcons name="chevron-right" size={18} color="#fff" />
-                    </TouchableOpacity>
 
-                    <Modal
-                        transparent={true}
-                        visible={deleteModalVisible}
-                        animationType="fade"
-                    >
-                        <View style={styles.modalOverlay}>
-                            <View style={styles.modalContainer}>
+                    {/* Delete Account Menu */}
+                    <View>
+                        <TouchableWithoutFeedback onPress={() => toggleMenu(deleteMenuOpen, setDeleteMenuOpen, new Animated.Value(0), rotationDelete, 300)}>
+                            <View style={styles.detailsMenu}>
+                                <View style={styles.iconMenuFlex}>
+                                    <MaterialIcons name="delete-forever" size={18} color="#fff" style={styles.saveIcon} />
+                                    <Text style={styles.menuName}>Delete Account</Text>
+                                </View>
+                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationDelete) }] }}>
+                                    <MaterialIcons name="arrow-drop-down" size={18} color="#fff" />
+                                </Animated.View>
+                            </View>
+                        </TouchableWithoutFeedback>
 
-                                <MaterialIcons
-                                    name="warning"
-                                    size={55}
-                                    color="#ED1E24"
-                                    style={{ marginBottom: 10 }}
-                                />
+                        {deleteMenuOpen && (
+                            <View style={styles.editOptions}>
+                                <Text style={styles.label}>
+                                    Reason <Text style={{ color: "red" }}>*</Text>
+                                </Text>
+                                <View style={{
+                                    borderWidth: 1,
+                                    borderColor: "#D4D5D9",
+                                    borderRadius: 5,
+                                    marginBottom: 15,
+                                }}>
+                                    <Picker
+                                        selectedValue={deleteReason}
+                                        onValueChange={(itemValue) => setDeleteReason(itemValue)}
+                                    >
+                                        <Picker.Item label="Select Reason" value="" />
+                                        <Picker.Item label="Marriage Settled" value="Marriage Settled" />
+                                        <Picker.Item label="Personal Reason" value="Personal Reason" />
+                                        <Picker.Item label="Others" value="Others" />
+                                    </Picker>
+                                </View>
 
-                                <Text style={styles.modalTitle}>
-                                    Delete Account?
+                                {deleteReason !== "" && (
+                                    <>
+                                        <Text style={styles.label}>Comments</Text>
+                                        <TextInput
+                                            style={[styles.input, { height: 80, marginBottom: 15 }]}
+                                            multiline
+                                            value={deleteComments}
+                                            onChangeText={setDeleteComments}
+                                            placeholder="Enter your comments"
+                                        />
+                                    </>
+                                )}
+
+                                <TouchableOpacity
+                                    style={styles.btn}
+                                    onPress={handleDeleteAccount}
+                                    disabled={deleteLoading}
+                                >
+                                    <LinearGradient
+                                        colors={["#BD1225", "#FF4050"]}
+                                        style={styles.linearGradient}
+                                    >
+                                        <Text style={styles.login}>
+                                            {deleteLoading ? "Deleting..." : "Delete Account"}
+                                        </Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                    </View>
+
+
+                    {/* Delete Account Menu */}
+
+                    <View>
+                        <TouchableWithoutFeedback
+                            onPress={() =>
+                                toggleMenu(
+                                    hideMenuOpen,
+                                    setHideMenuOpen,
+                                    animatedHeightHide,
+                                    rotationHide,
+                                    600
+                                )
+                            }
+                        >
+                            <View style={styles.detailsMenu}>
+                                <View style={styles.iconMenuFlex}>
+                                    <MaterialIcons
+                                        name="visibility-off"
+                                        size={18}
+                                        color="#fff"
+                                    />
+                                    <Text style={styles.menuName}>
+                                        Hide My Profile
+                                    </Text>
+                                </View>
+
+                                <Animated.View
+                                    style={{
+                                        transform: [
+                                            {
+                                                rotate:
+                                                    rotateInterpolate(
+                                                        rotationHide
+                                                    ),
+                                            },
+                                        ],
+                                    }}
+                                >
+                                    <MaterialIcons
+                                        name="arrow-drop-down"
+                                        size={18}
+                                        color="#fff"
+                                    />
+                                </Animated.View>
+                            </View>
+                        </TouchableWithoutFeedback>
+
+                        {hideMenuOpen && (
+                            <View style={styles.editOptions}>
+
+                                {/* Hide Reason */}
+                                <Text style={styles.label}>
+                                    Hide Reason <Text style={{ color: "red" }}>*</Text>
                                 </Text>
 
-                                <Text style={styles.modalDescription}>
-                                    Are you sure you want to permanently delete your account?
-
-                                    {"\n\n"}
-
-                                    {/* Your account will be disabled immediately and permanently removed after 30 days.
-
-                                    {"\n\n"}
-
-                                    This action cannot be undone. */}
-                                </Text>
-
-                                <View style={styles.modalButtonRow}>
-
-                                    <TouchableOpacity
-                                        style={styles.cancelBtn}
-                                        onPress={() =>
-                                            setDeleteModalVisible(false)
+                                <View
+                                    style={{
+                                        borderWidth: 1,
+                                        borderColor: "#D4D5D9",
+                                        borderRadius: 5,
+                                        marginBottom: 15,
+                                    }}
+                                >
+                                    <Picker
+                                        selectedValue={hideReason}
+                                        onValueChange={(itemValue) =>
+                                            setHideReason(itemValue)
                                         }
                                     >
-                                        <Text style={styles.cancelText}>
-                                            Cancel
-                                        </Text>
-                                    </TouchableOpacity>
+                                        <Picker.Item
+                                            label="Select Reason"
+                                            value=""
+                                        />
 
-                                    <TouchableOpacity
-                                        style={styles.deleteBtn}
-                                        onPress={handleDeleteAccount}
-                                        disabled={deleteLoading}
-                                    >
-                                        <Text style={styles.deleteBtnText}>
-                                            {deleteLoading
-                                                ? "Deleting..."
-                                                : "Delete"}
-                                        </Text>
-                                    </TouchableOpacity>
+                                        <Picker.Item
+                                            label="Temporary Hide"
+                                            value="Temporary Hide"
+                                        />
 
+                                        <Picker.Item
+                                            label="Take a Break"
+                                            value="Take a Break"
+                                        />
+
+                                        <Picker.Item
+                                            label="Marriage Settled"
+                                            value="Marriage Settled"
+                                        />
+
+                                        <Picker.Item
+                                            label="Personal Reason"
+                                            value="Personal Reason"
+                                        />
+
+                                        <Picker.Item
+                                            label="Others"
+                                            value="Others"
+                                        />
+                                    </Picker>
                                 </View>
+
+                                {/* Others Reason */}
+                                {hideReason === "Others" && (
+                                    <>
+                                        <Text style={styles.label}>
+                                            Enter Reason
+                                        </Text>
+
+                                        <TextInput
+                                            style={[
+                                                styles.input,
+                                                { height: 100 }
+                                            ]}
+                                            multiline
+                                            value={comments}
+                                            onChangeText={setComments}
+                                            placeholder="Enter your reason"
+                                        />
+                                    </>
+                                )}
+
+                                {/* Profile ID */}
+                                <Text style={[styles.label, { marginTop: 10 }]}>
+                                    Vysyamala Groom/Bride ID
+                                    <Text style={{ color: "red" }}> *</Text>
+                                </Text>
+
+                                <TextInput
+                                    style={styles.input}
+                                    value={profileId}
+                                    onChangeText={setProfileId}
+                                    placeholder="Enter Profile ID"
+                                />
+
+                                {/* Engagement Date */}
+                                <Text style={[styles.label, { marginTop: 10 }]}>
+                                    Engagement Date
+                                    <Text style={{ color: "red" }}> *</Text>
+                                </Text>
+
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="YYYY-MM-DD"
+                                    value={engagementDate}
+                                    onChangeText={setEngagementDate}
+                                />
+
+                                {/* Comments */}
+                                <Text style={[styles.label, { marginTop: 10 }]}>
+                                    Comments
+                                </Text>
+
+                                <TextInput
+                                    style={[
+                                        styles.input,
+                                        { height: 100 }
+                                    ]}
+                                    multiline
+                                    value={comments}
+                                    onChangeText={setComments}
+                                    placeholder="Comments"
+                                />
+
+                                <TouchableOpacity
+                                    style={styles.btn}
+                                    onPress={handleHideProfile}
+                                    disabled={hideLoading}
+                                >
+                                    <LinearGradient
+                                        colors={["#BD1225", "#FF4050"]}
+                                        style={styles.linearGradient}
+                                    >
+                                        <Text style={styles.login}>
+                                            {hideLoading
+                                                ? "Submitting..."
+                                                : "Submit"}
+                                        </Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+
                             </View>
-                        </View>
-                    </Modal>
+                        )}
+                    </View>
                 </View>
             </ScrollView >
             <BottomTabBarComponent />

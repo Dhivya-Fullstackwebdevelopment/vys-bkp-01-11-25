@@ -679,13 +679,7 @@ export const Menu = () => {
               </View>
             </TouchableOpacity>
             <View style={styles.hrLine1} />
-            <TouchableOpacity onPress={() => navigation.navigate("HelpSupport")}>
-              <View style={styles.menuFlex}>
-                <Ionicons name="help-circle" size={wp(6)} color="#535665" />
-                <Text style={styles.menuText}>Help & Support</Text>
-              </View>
-            </TouchableOpacity>
-            <View style={styles.hrLine1} />
+
             {/* Awards settings menu */}
             <TouchableOpacity
               onPress={() =>
@@ -704,6 +698,92 @@ export const Menu = () => {
 
             <View style={styles.hrLine1} />
 
+            <TouchableOpacity onPress={() => navigation.navigate("HelpSupport")}>
+              <View style={styles.menuFlex}>
+                <Ionicons name="help-circle" size={wp(6)} color="#535665" />
+                <Text style={styles.menuText}>Help & Support</Text>
+              </View>
+            </TouchableOpacity>
+
+
+            <View style={styles.hrLine1} />
+
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
+                  url: "https://www.vysyamala.com/PrivacyPolicy",
+                  title: "Privacy Policy",
+                })
+              }
+            >
+              <View style={styles.menuFlex}>
+                <Ionicons name="shield-checkmark-outline" size={wp(6)} color="#535665" />
+                <Text style={styles.menuText}>Privacy Policy</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.hrLine1} />
+
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
+                  url: "https://www.vysyamala.com/TermsandConditions",
+                  title: "Terms & Condiitons",
+                })
+              }
+            >
+              <View style={styles.menuFlex}>
+                <Ionicons name="document-text-outline" size={wp(6)} color="#535665" />
+                <Text style={styles.menuText}>Terms & Condiitons</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.hrLine1} />
+
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
+                  url: "https://www.vysyamala.com/TermsandConditions",
+                  title: "Child Safety",
+                })
+              }
+            >
+              <View style={styles.menuFlex}>
+                {/* <Ionicons name="shield-child-outline" size={wp(6)} color="#535665" /> */}
+                <MaterialCommunityIcons
+                  name="shield-account-outline"
+                  size={wp(6)}
+                  color="#535665"
+                />
+                <Text style={styles.menuText}>Child Safety</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.hrLine1} />
+
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
+                  url: "https://www.vysyamala.com/TermsandConditions",
+                  title: "Community Guidelines",
+                })
+              }
+            >
+              <View style={styles.menuFlex}>
+                <MaterialCommunityIcons
+                  name="account-group-outline"
+                  size={wp(6)}
+                  color="#535665"
+                />
+                <Text style={styles.menuText}>Community Guidelines</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.hrLine1} />
             {/* Upgrade menu */}
             {/* <TouchableOpacity
               onPress={() => navigation.navigate("MembershipPlan")}

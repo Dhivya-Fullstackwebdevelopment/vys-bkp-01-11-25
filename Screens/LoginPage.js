@@ -221,8 +221,8 @@ export const LoginPage = () => {
             onPress={togglePasswordVisibility}
             style={styles.passwordIcon}
           >
-            <AntDesign
-              name={showPassword ? "eye" : "eyeo"}
+            <Ionicons
+              name={showPassword ? "eye" : "eye-off"}
               size={18}
               color="#535665"
             />

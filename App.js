@@ -61,15 +61,23 @@ export default function App() {
       console.log("Notification Response Received:", response);
     });
 
+    // return () => {
+    //   Notifications.removeNotificationSubscription(notificationReceivedListener);
+    //   Notifications.removeNotificationSubscription(notificationResponseListener);
+    // };
+
     return () => {
-      Notifications.removeNotificationSubscription(notificationReceivedListener);
-      Notifications.removeNotificationSubscription(notificationResponseListener);
+      if (notificationReceivedListener) notificationReceivedListener.remove();
+      if (notificationResponseListener) notificationResponseListener.remove();
     };
   }, []);
 
   const [fontsLoaded] = useFonts({
     kaush: require("./assets/fonts/KaushanScript-Regular.ttf"),
     inter: require("./assets/fonts/Inter-VariableFont_slnt,wght.ttf"),
+    // Add these:
+    AntDesign: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/AntDesign.ttf"),
+    Ionicons: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf"),
   });
 
   if (!fontsLoaded) {

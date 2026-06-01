@@ -1646,7 +1646,7 @@ export const ProfileDetails = () => {
         onPress: handleDownloadMatchingReport,
         type: 'MaterialIcons'
       },
-      { icon: 'report-problem', text: 'Report Profile', onPress: () => { }, type: 'MaterialIcons' },
+      // { icon: 'report-problem', text: 'Report Profile', onPress: () => { }, type: 'MaterialIcons' },
       {
         icon: 'block', text: 'Block Profile', onPress: () => {
           bottomSheetRef.current.close();
