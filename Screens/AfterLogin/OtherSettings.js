@@ -17,6 +17,7 @@ import {
     Dimensions,
     Modal,
     Button,
+    Platform,
 } from "react-native";
 import {
     AntDesign,
@@ -44,6 +45,7 @@ import { BottomTabBarComponent } from '../../Navigation/ReuseTabNavigation';
 import axios from 'axios';
 import config from '../../API/Apiurl';
 import { Picker } from "@react-native-picker/picker";
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Alert } from "react-native";
 
 export const OtherSettings = () => {
@@ -89,7 +91,8 @@ export const OtherSettings = () => {
     const [deleteComments, setDeleteComments] = useState("");
     const [deleteMenuOpen, setDeleteMenuOpen] = useState(false);
     const rotationDelete = useRef(new Animated.Value(0)).current;
-
+    const [showHideCalendar, setShowHideCalendar] = useState(false);
+    const [calendarDate, setCalendarDate] = useState(new Date());
     // const handleHideProfile = async () => {
     //     try {
     //         // Validation
@@ -277,167 +280,180 @@ export const OtherSettings = () => {
     //     }
     // };
 
+    const onHideDateChange = (event, selectedDate) => {
+        if (Platform.OS === 'android') {
+            setShowHideCalendar(false);
+        }
+        if (selectedDate) {
+            setCalendarDate(selectedDate);
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            setEngagementDate(`${year}-${month}-${day}`);
+        }
+    };
+
     const handleHideProfile = async () => {
-    try {
-        // --- 1. Validations ---
-        if (!hideReason) {
-            Toast.show({
-                type: "error",
-                text1: "Hide Reason is required",
-                position: "bottom",
-            });
-            return;
-        }
-
-        if (!profileId) {
-            Toast.show({
-                type: "error",
-                text1: "Profile ID is required",
-                position: "bottom",
-            });
-            return;
-        }
-
-        if (!engagementDate) {
-            Toast.show({
-                type: "error",
-                text1: "Engagement Date is required",
-                position: "bottom",
-            });
-            return;
-        }
-
-        if (hideReason === "Others" && !comments.trim()) {
-            Toast.show({
-                type: "error",
-                text1: "Please enter reason",
-                position: "bottom",
-            });
-            return;
-        }
-
-        setHideLoading(true);
-
-        // --- 2. Hide Profile API Request ---
-        const payload = {
-            profile_id: profileId,
-            reason: hideReason === "Others" ? otherReason : hideReason,  
-            other_text: otherReason,       
-        };
-
-        console.log("Hide Profile Payload:", payload);
-
-        const response = await axios.post(
-            `${config.apiUrl}/auth/hide-profile/`,
-            payload,
-            { headers: { "Content-Type": "application/json" } }
-        );
-
-        console.log("Hide Profile Response:", response.data);
-
-        if (response?.data?.Status === 1) {
-            
-            // --- 3. Run Marriage Settle Details API if condition matches ---
-            const formData = new FormData();
-            formData.append("marriage_settled_comment", comments || "");
-            formData.append("engagement_date", engagementDate);
-            formData.append("profile_id", profileId);
-
-            console.log("Marriage Settle Details Payload:", {
-                marriage_settled_comment: comments || "",
-                engagement_date: engagementDate,
-                profile_id: profileId
-            });
-
-            await axios.post(
-                `${config.apiUrl}/api/marriage-settle-details/create/`,
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
-
-            // --- 4. Dynamic Conditional Popup Messaging & Redirections ---
-            if (hideReason === "Marriage Settled") {
-                
-                // Web equivalence: /UploadWedding redirect after 5 seconds or manual click
-                Alert.alert(
-                    "Congratulations! 💐",
-                    "May Lord Vasavi Kanyakaparameswari bless your married life.\n\nOur team will contact you after deactivating your profile.\n\nPlease take a moment to fill the success story form.",
-                    [
-                        {
-                            text: "OK",
-                            onPress: () => {
-                                navigation.navigate("UploadWedding");
-                            },
-                        },
-                    ],
-                    { cancelable: false }
-                );
-
-                // Auto redirect fallback logic matching web timeout configuration
-                setTimeout(() => {
-                    // Check if user is still on this view context before tracking redirect triggers
-                    navigation.navigate("UploadWedding");
-                }, 5000);
-
-            } else {
-                
-                // Web equivalence: localStorage.clear() and redirect to /login after 2 seconds
-                Alert.alert(
-                    "Profile Hidden Status",
-                    "Your profile has been hidden successfully.\n\nPlease contact us whenever you want to activate your profile.",
-                    [
-                        {
-                            text: "OK",
-                            onPress: async () => {
-                                try {
-                                    await AsyncStorage.clear();
-                                    navigation.reset({
-                                        index: 0,
-                                        routes: [{ name: "LoginPage" }],
-                                    });
-                                } catch (err) {
-                                    console.log("Logout Stack Clean Error:", err);
-                                }
-                            },
-                        },
-                    ],
-                    { cancelable: false }
-                );
-
-                // Auto logout framework sync matching web timeout configurations
-                setTimeout(async () => {
-                    try {
-                        await AsyncStorage.clear();
-                        navigation.reset({
-                            index: 0,
-                            routes: [{ name: "LoginPage" }],
-                        });
-                    } catch (err) {
-                        console.log("Timeout Stack Clean Error:", err);
-                    }
-                }, 2000);
+        try {
+            // --- 1. Validations ---
+            if (!hideReason) {
+                Toast.show({
+                    type: "error",
+                    text1: "Hide Reason is required",
+                    position: "bottom",
+                });
+                return;
             }
 
-        } else {
+            if (!profileId) {
+                Toast.show({
+                    type: "error",
+                    text1: "Profile ID is required",
+                    position: "bottom",
+                });
+                return;
+            }
+
+            if (!engagementDate) {
+                Toast.show({
+                    type: "error",
+                    text1: "Engagement Date is required",
+                    position: "bottom",
+                });
+                return;
+            }
+
+            if (hideReason === "Others" && !comments.trim()) {
+                Toast.show({
+                    type: "error",
+                    text1: "Please enter reason",
+                    position: "bottom",
+                });
+                return;
+            }
+
+            setHideLoading(true);
+
+            // --- 2. Hide Profile API Request ---
+            const payload = {
+                profile_id: profileId,
+                reason: hideReason === "Others" ? otherReason : hideReason,
+                other_text: otherReason,
+            };
+
+            console.log("Hide Profile Payload:", payload);
+
+            const response = await axios.post(
+                `${config.apiUrl}/auth/hide-profile/`,
+                payload,
+                { headers: { "Content-Type": "application/json" } }
+            );
+
+            console.log("Hide Profile Response:", response.data);
+
+            if (response?.data?.Status === 1) {
+
+                // --- 3. Run Marriage Settle Details API if condition matches ---
+                const formData = new FormData();
+                formData.append("marriage_settled_comment", comments || "");
+                formData.append("engagement_date", engagementDate);
+                formData.append("profile_id", profileId);
+
+                console.log("Marriage Settle Details Payload:", {
+                    marriage_settled_comment: comments || "",
+                    engagement_date: engagementDate,
+                    profile_id: profileId
+                });
+
+                await axios.post(
+                    `${config.apiUrl}/api/marriage-settle-details/create/`,
+                    formData,
+                    { headers: { "Content-Type": "multipart/form-data" } }
+                );
+
+                // --- 4. Dynamic Conditional Popup Messaging & Redirections ---
+                if (hideReason === "Marriage Settled") {
+
+                    // Web equivalence: /UploadWedding redirect after 5 seconds or manual click
+                    Alert.alert(
+                        "Congratulations! 💐",
+                        "May Lord Vasavi Kanyakaparameswari bless your married life.\n\nOur team will contact you after deactivating your profile.\n\nPlease take a moment to fill the success story form.",
+                        [
+                            {
+                                text: "OK",
+                                onPress: () => {
+                                    navigation.navigate("UploadWedding");
+                                },
+                            },
+                        ],
+                        { cancelable: false }
+                    );
+
+                    // Auto redirect fallback logic matching web timeout configuration
+                    setTimeout(() => {
+                        // Check if user is still on this view context before tracking redirect triggers
+                        navigation.navigate("UploadWedding");
+                    }, 5000);
+
+                } else {
+
+                    // Web equivalence: localStorage.clear() and redirect to /login after 2 seconds
+                    Alert.alert(
+                        "Profile Hidden Status",
+                        "Your profile has been hidden successfully.\n\nPlease contact us whenever you want to activate your profile.",
+                        [
+                            {
+                                text: "OK",
+                                onPress: async () => {
+                                    try {
+                                        await AsyncStorage.clear();
+                                        navigation.reset({
+                                            index: 0,
+                                            routes: [{ name: "LoginPage" }],
+                                        });
+                                    } catch (err) {
+                                        console.log("Logout Stack Clean Error:", err);
+                                    }
+                                },
+                            },
+                        ],
+                        { cancelable: false }
+                    );
+
+                    // Auto logout framework sync matching web timeout configurations
+                    setTimeout(async () => {
+                        try {
+                            await AsyncStorage.clear();
+                            navigation.reset({
+                                index: 0,
+                                routes: [{ name: "LoginPage" }],
+                            });
+                        } catch (err) {
+                            console.log("Timeout Stack Clean Error:", err);
+                        }
+                    }, 2000);
+                }
+
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: response?.data?.message || "Failed to hide profile",
+                    position: "bottom",
+                });
+            }
+        } catch (error) {
+            console.log("Hide Profile Error Context:", error?.response?.data || error);
             Toast.show({
                 type: "error",
                 text1: "Error",
-                text2: response?.data?.message || "Failed to hide profile",
+                text2: error?.response?.data?.message || "Something went wrong",
                 position: "bottom",
             });
+        } finally {
+            setHideLoading(false);
         }
-    } catch (error) {
-        console.log("Hide Profile Error Context:", error?.response?.data || error);
-        Toast.show({
-            type: "error",
-            text1: "Error",
-            text2: error?.response?.data?.message || "Something went wrong",
-            position: "bottom",
-        });
-    } finally {
-        setHideLoading(false);
-    }
-};
+    };
 
     useEffect(() => {
         const loadProfileId = async () => {
@@ -1972,17 +1988,40 @@ export const OtherSettings = () => {
                                 />
 
                                 {/* Engagement Date */}
+                                {/* Engagement Date Selector Row */}
                                 <Text style={[styles.label, { marginTop: 10 }]}>
-                                    Engagement Date
-                                    <Text style={{ color: "red" }}> *</Text>
+                                    Engagement Date <Text style={{ color: "red" }}> *</Text>
                                 </Text>
 
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="YYYY-MM-DD"
-                                    value={engagementDate}
-                                    onChangeText={setEngagementDate}
-                                />
+                                <TouchableOpacity
+                                    style={styles.calendarTriggerButton}
+                                    onPress={() => setShowHideCalendar(true)}
+                                >
+                                    <Text style={[styles.calendarTriggerText, !engagementDate && { color: "#888" }]}>
+                                        {engagementDate ? engagementDate : "Select Engagement Date"}
+                                    </Text>
+                                    <Ionicons name="calendar-outline" size={20} color="#ED1E24" />
+                                </TouchableOpacity>
+
+                                {showHideCalendar && (
+                                    <View>
+                                        <DateTimePicker
+                                            value={calendarDate}
+                                            mode="date"
+                                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                            onChange={onHideDateChange}
+                                        // maximumDate={new Date()} // Disallows future selections
+                                        />
+                                        {Platform.OS === 'ios' && (
+                                            <TouchableOpacity
+                                                style={styles.iosConfirmButton}
+                                                onPress={() => setShowHideCalendar(false)}
+                                            >
+                                                <Text style={styles.iosConfirmButtonText}>Confirm Date</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+                                )}
 
                                 {/* Comments */}
                                 <Text style={[styles.label, { marginTop: 10 }]}>
@@ -2519,4 +2558,32 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontWeight: "700",
     },
+    calendarTriggerButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderWidth: 1,
+        borderColor: "#D4D5D9",
+        borderRadius: 4,
+        padding: 12,
+        backgroundColor: "#fff",
+        marginBottom: 10
+    },
+    calendarTriggerText: {
+        fontSize: 14,
+        color: "#535665",
+        fontFamily: "inter"
+    },
+    iosConfirmButton: {
+        padding: 12,
+        backgroundColor: "#F3F4F6",
+        alignItems: "center",
+        marginTop: 5,
+        borderRadius: 6
+    },
+    iosConfirmButtonText: {
+        color: "#ED1E24",
+        fontWeight: "700",
+        fontSize: 14
+    }
 });

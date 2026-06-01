@@ -1,352 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import {
-//     StyleSheet,
-//     Text,
-//     TextInput,
-//     View,
-//     ScrollView,
-//     TouchableOpacity,
-//     Image,
-//     Pressable,
-//     Platform,
-//     Alert,
-//     ActivityIndicator,
-//     SafeAreaView
-// } from "react-native";
-// import { Ionicons } from "@expo/vector-icons";
-// import { launchImageLibrary } from "react-native-image-picker";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { useNavigation } from "@react-navigation/native";
-// import { LinearGradient } from 'expo-linear-gradient';
-// import Toast from "react-native-toast-message";
-// import axios from 'axios';
-// import config from '../API/Apiurl';
-// import { Picker } from "@react-native-picker/picker";
-// import { BottomTabBarComponent } from '../Navigation/ReuseTabNavigation'
-
-// export const UploadWedding = () => {
-//     const navigation = useNavigation();
-//     const [isSubmitting, setIsSubmitting] = useState(false);
-//     const [loginUserProfileId, setLoginUserProfileId] = useState("");
-
-//     // Form States
-//     const [name, setName] = useState("");
-//     const [city, setCity] = useState("");
-//     const [weddingDate, setWeddingDate] = useState("");
-//     const [through, setThrough] = useState("Vysyamala");
-//     const [experience, setExperience] = useState("");
-//     const [agreed, setAgreed] = useState(false);
-//     const [photoFile, setPhotoFile] = useState(null);
-
-//     // Validation Error States
-//     const [errors, setErrors] = useState({});
-
-//     useEffect(() => {
-//         const getProfileId = async () => {
-//             const id =
-//                 await AsyncStorage.getItem("loginuser_profileId") ||
-//                 await AsyncStorage.getItem("profile_id_new");
-//             if (id) setLoginUserProfileId(id);
-//         };
-//         getProfileId();
-//     }, []);
-
-//     const handlePickPhoto = () => {
-//         const options = { mediaType: 'photo', quality: 1 };
-//         launchImageLibrary(options, (response) => {
-//             if (response.didCancel) return;
-//             if (response.assets && response.assets.length > 0) {
-//                 const asset = response.assets[0];
-
-//                 // Max file size validation: 5MB check
-//                 if (asset.fileSize && asset.fileSize > 5000000) {
-//                     Toast.show({
-//                         type: "error",
-//                         text1: "File Too Large",
-//                         text2: "Maximum wedding photo size is 5MB",
-//                         position: "bottom"
-//                     });
-//                     return;
-//                 }
-//                 setPhotoFile(asset);
-//                 setErrors(prev => ({ ...prev, photo: null }));
-//             }
-//         });
-//     };
-
-//     const validateForm = () => {
-//         let valid = true;
-//         let formErrors = {};
-
-//         if (!name.trim()) { formErrors.name = "Bride / Groom Name is required"; valid = false; }
-//         if (!city.trim()) { formErrors.city = "City is required"; valid = false; }
-//         if (!weddingDate.trim()) { formErrors.weddingDate = "Wedding Date is required"; valid = false; }
-//         if (!experience.trim()) { formErrors.experience = "Please share your experience"; valid = false; }
-//         if (!photoFile) { formErrors.photo = "Wedding photo is required"; valid = false; }
-//         if (!agreed) { formErrors.agreed = "You must agree to display the photo"; valid = false; }
-
-//         setErrors(formErrors);
-//         return valid;
-//     };
-
-//     const onSubmit = async () => {
-//         if (!validateForm()) return;
-
-//         try {
-//             setIsSubmitting(true);
-
-//             // 1. Upload Wedding Image API Block
-//             const imageUploadData = new FormData();
-//             imageUploadData.append('image', {
-//                 uri: Platform.OS === 'android' ? photoFile.uri : photoFile.uri.replace('file://', ''),
-//                 name: photoFile.fileName || 'wedding_photo.jpg',
-//                 type: photoFile.type || 'image/jpeg',
-//             });
-//             imageUploadData.append('profile_id', loginUserProfileId);
-
-//             console.log("Uploading Wedding Image...");
-//             const imageResponse = await axios.post(
-//                 `${config.apiUrl}/auth/upload-profile-image/`,
-//                 imageUploadData,
-//                 { headers: { 'Content-Type': 'multipart/form-data' } }
-//             );
-
-//             // 2. Image Upload Verification Step
-//             if (imageResponse.status === 200 && imageResponse.data.status === 1) {
-
-//                 // 3. Create Marriage Settlement Details Entry Payload
-//                 const marriageDetailsPayload = {
-//                     profile_id: loginUserProfileId,
-//                     marriage_date: weddingDate,
-//                     groom_bride_name: name,
-//                     groombridecity: city,
-//                     settled_thru: through,
-//                     marriage_comments: experience,
-//                     marriage_photo_details: agreed ? "Yes" : "No"
-//                 };
-
-//                 console.log("Submitting Settlement Details Payload:", marriageDetailsPayload);
-//                 const detailsResponse = await axios.post(
-//                     `${config.apiUrl}/api/marriage-settle-details/create/`,
-//                     marriageDetailsPayload,
-//                     { headers: { 'Content-Type': 'application/json' } }
-//                 );
-
-//                 if (detailsResponse.status === 200 || detailsResponse.status === 201) {
-
-//                     // 🎉 4. Final Alert Popup matching Web Timeout + Structural App Logout
-//                     Alert.alert(
-//                         "Wedding Details Submitted! 💍",
-//                         "Thank you for sharing your beautiful success story with us!",
-//                         [
-//                             {
-//                                 text: "OK",
-//                                 onPress: async () => {
-//                                     await AsyncStorage.clear();
-//                                     navigation.reset({
-//                                         index: 0,
-//                                         routes: [{ name: "LoginPage" }],
-//                                     });
-//                                 }
-//                             }
-//                         ],
-//                         { cancelable: false }
-//                     );
-
-//                     // Web 2-second fallback simulation safely resetting state tree
-//                     setTimeout(async () => {
-//                         try {
-//                             await AsyncStorage.clear();
-//                             navigation.reset({
-//                                 index: 0,
-//                                 routes: [{ name: "LoginPage" }],
-//                             });
-//                         } catch (e) {
-//                             console.log("Fallback loop clearing exception context:", e);
-//                         }
-//                     }, 2000);
-//                 }
-//             } else {
-//                 Toast.show({
-//                     type: 'error',
-//                     text1: 'Upload Failed',
-//                     text2: 'Failed to upload image to directory asset routes.',
-//                     position: 'bottom'
-//                 });
-//             }
-
-//         } catch (error) {
-//             console.error('Submission Framework Error:', error?.response?.data || error);
-//             Toast.show({
-//                 type: 'error',
-//                 text1: 'Unexpected Error',
-//                 text2: error?.response?.data?.message || 'An error occurred during submission.',
-//                 position: 'bottom'
-//             });
-//         } finally {
-//             setIsSubmitting(false);
-//         }
-//     };
-
-//     return (
-//         <SafeAreaView style={styles.safeArea}>
-//             <View style={styles.headerContainer}>
-//                 <TouchableOpacity onPress={() => navigation.goBack()}>
-//                     <Ionicons name="arrow-back" size={24} color="#ED1E24" />
-//                 </TouchableOpacity>
-//                 <Text style={styles.headerText}>Upload Wedding Details 💍</Text>
-//             </View>
-
-//             <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-//                 <View style={styles.card}>
-
-//                     {/* Name Input */}
-//                     <View style={styles.inputGroup}>
-//                         <Text style={styles.label}>Bride / Groom Name <Text style={styles.redText}>*</Text></Text>
-//                         <TextInput
-//                             style={[styles.input, errors.name && styles.inputError]}
-//                             placeholder="Enter name"
-//                             placeholderTextColor="#888"
-//                             value={name}
-//                             onChangeText={(text) => { setName(text); setErrors(p => ({ ...p, name: null })); }}
-//                         />
-//                         {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-//                     </View>
-
-//                     {/* City Input */}
-//                     <View style={styles.inputGroup}>
-//                         <Text style={styles.label}>City <Text style={styles.redText}>*</Text></Text>
-//                         <TextInput
-//                             style={[styles.input, errors.city && styles.inputError]}
-//                             placeholder="Enter city"
-//                             placeholderTextColor="#888"
-//                             value={city}
-//                             onChangeText={(text) => { setCity(text); setErrors(p => ({ ...p, city: null })); }}
-//                         />
-//                         {errors.city && <Text style={styles.errorText}>{errors.city}</Text>}
-//                     </View>
-
-//                     {/* Date Input */}
-//                     <View style={styles.inputGroup}>
-//                         <Text style={styles.label}>Wedding Date <Text style={styles.redText}>*</Text></Text>
-//                         <TextInput
-//                             style={[styles.input, errors.weddingDate && styles.inputError]}
-//                             placeholder="YYYY-MM-DD"
-//                             placeholderTextColor="#888"
-//                             value={weddingDate}
-//                             onChangeText={(text) => { setWeddingDate(text); setErrors(p => ({ ...p, weddingDate: null })); }}
-//                         />
-//                         {errors.weddingDate && <Text style={styles.errorText}>{errors.weddingDate}</Text>}
-//                     </View>
-
-//                     {/* Dropdown Pickers */}
-//                     <View style={styles.inputGroup}>
-//                         <Text style={styles.label}>Marriage Fixed Through <Text style={styles.redText}>*</Text></Text>
-//                         <View style={styles.pickerBorder}>
-//                             <Picker selectedValue={through} onValueChange={(itemValue) => setThrough(itemValue)}>
-//                                 <Picker.Item label="Vysyamala" value="Vysyamala" />
-//                                 <Picker.Item label="Relative" value="Relative" />
-//                                 <Picker.Item label="Friend" value="Friend" />
-//                                 <Picker.Item label="Others" value="Others" />
-//                             </Picker>
-//                         </View>
-//                     </View>
-
-//                     {/* Photo Selector */}
-//                     {/* Photo Selector */}
-//                     <View style={styles.inputGroup}>
-//                         <Text style={styles.label}>Upload Wedding Photo <Text style={styles.redText}>*</Text></Text>
-
-//                         <Pressable
-//                             style={({ pressed }) => [
-//                                 styles.uploadButton,
-//                                 errors.photo && styles.inputError,
-//                                 pressed && { opacity: 0.7, backgroundColor: '#f0f0f0' }
-//                             ]}
-//                             // Intercepts the gesture instantly before the scroll container locks the touch responder
-//                             onPressIn={handlePickPhoto}
-//                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-//                         >
-//                             <Ionicons name="image-outline" size={20} color="#888" style={{ marginRight: 8 }} />
-//                             <Text style={styles.uploadButtonText} numberOfLines={1}>
-//                                 {photoFile ? photoFile.fileName : "Select Wedding Photo"}
-//                             </Text>
-//                         </Pressable>
-
-//                         {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
-//                     </View>
-
-//                     {/* Experience Text Area Input */}
-//                     <View style={styles.inputGroup}>
-//                         <Text style={styles.label}>Your Experience <Text style={styles.redText}>*</Text></Text>
-//                         <TextInput
-//                             style={[styles.input, styles.textArea, errors.experience && styles.inputError]}
-//                             placeholder="Share your experience"
-//                             placeholderTextColor="#888"
-//                             multiline
-//                             numberOfLines={4}
-//                             value={experience}
-//                             onChangeText={(text) => { setExperience(text); setErrors(p => ({ ...p, experience: null })); }}
-//                         />
-//                         {errors.experience && <Text style={styles.errorText}>{errors.experience}</Text>}
-//                     </View>
-
-//                     {/* Checkbox Element */}
-//                     <View style={styles.checkboxContainer}>
-//                         <Pressable
-//                             style={[styles.checkboxBase, agreed && styles.checkboxChecked, errors.agreed && styles.checkboxError]}
-//                             onPress={() => { setAgreed(!agreed); setErrors(p => ({ ...p, agreed: null })); }}
-//                         >
-//                             {agreed && <Ionicons name="checkmark" size={14} color="white" />}
-//                         </Pressable>
-//                         <Text style={styles.checkboxLabel}>I agree to display the photo in Santhosha Pendlilu section</Text>
-//                     </View>
-//                     {errors.agreed && <Text style={[styles.errorText, { marginTop: -5, marginBottom: 15 }]}>{errors.agreed}</Text>}
-
-//                     {/* Submit Form Button Block */}
-//                     <TouchableOpacity style={styles.btn} onPress={onSubmit} disabled={isSubmitting}>
-//                         <LinearGradient colors={["#BD1225", "#FF4050"]} style={styles.linearGradient}>
-//                             {isSubmitting ? (
-//                                 <ActivityIndicator size="small" color="#fff" />
-//                             ) : (
-//                                 <Text style={styles.btnText}>Submit Details</Text>
-//                             )}
-//                         </LinearGradient>
-//                     </TouchableOpacity>
-
-//                 </View>
-//             </ScrollView>
-//             <BottomTabBarComponent />
-//         </SafeAreaView>
-//     );
-// };
-
-// const styles = StyleSheet.create({
-//     safeArea: { flex: 1, backgroundColor: "#fff5f7" },
-//     headerContainer: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#E5E5E5", flexDirection: "row", alignItems: "center", backgroundColor: "#fff", paddingHorizontal: 15 },
-//     headerText: { color: "#000000", fontSize: 18, fontWeight: "bold", marginLeft: 12 },
-//     scrollContainer: { paddingHorizontal: 15, paddingVertical: 20, paddingBottom: 100 },
-//     card: { backgroundColor: "#fff", padding: 20, borderRadius: 16, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
-//     inputGroup: { marginBottom: 15 },
-//     label: { color: "#444444", fontSize: 14, fontWeight: "700", fontFamily: "inter", marginBottom: 6 },
-//     redText: { color: "red" },
-//     input: { color: "#333333", borderWidth: 1, borderRadius: 10, borderColor: "#ccc", padding: 12, fontSize: 14, fontFamily: "inter" },
-//     inputError: { borderColor: "#ED1E24" },
-//     textArea: { height: 100, textAlignVertical: "top" },
-//     pickerBorder: { borderWidth: 1, borderColor: "#ccc", borderRadius: 10, overflow: 'hidden' },
-//     uploadButton: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#ccc", borderRadius: 10, padding: 12, backgroundColor: "#f9f9f9" },
-//     uploadButtonText: { color: "#555", fontSize: 14, flex: 1 },
-//     checkboxContainer: { flexDirection: "row", alignItems: "flex-start", marginBottom: 20, paddingRight: 15 },
-//     checkboxBase: { width: 18, height: 18, justifyContent: "center", alignItems: "center", borderRadius: 4, borderWidth: 2, borderColor: "#535665", backgroundColor: "transparent", marginRight: 8, marginTop: 2 },
-//     checkboxChecked: { backgroundColor: "#e51b3f", borderColor: "#e51b3f" },
-//     checkboxError: { borderColor: "#ED1E24" },
-//     checkboxLabel: { fontSize: 13, color: "#555", lineHeight: 18 },
-//     errorText: { color: "#ED1E24", fontSize: 12, marginTop: 4, fontWeight: "600", paddingLeft: 2 },
-//     linearGradient: { borderRadius: 10, justifyContent: "center", padding: 14, alignItems: "center" },
-//     btn: { width: "100%", marginTop: 10 },
-//     btnText: { color: "white", fontWeight: "700", fontSize: 16 }
-// });
-
 import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
@@ -355,6 +6,7 @@ import {
     View,
     ScrollView,
     TouchableOpacity,
+    Image,
     Pressable,
     Platform,
     Alert,
@@ -362,8 +14,8 @@ import {
     SafeAreaView
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-// 1. Changed import to expo-image-picker ✅
 import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker'; // ✅ Added calendar support
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -381,11 +33,19 @@ export const UploadWedding = () => {
     // Form States
     const [name, setName] = useState("");
     const [city, setCity] = useState("");
-    const [weddingDate, setWeddingDate] = useState("");
+    const [weddingDate, setWeddingDate] = useState(""); // Holds clean "YYYY-MM-DD" string
     const [through, setThrough] = useState("Vysyamala");
     const [experience, setExperience] = useState("");
     const [agreed, setAgreed] = useState(false);
-    const [photoFile, setPhotoFile] = useState(null);
+    
+    // Calendar Picker Control States
+    const [showCalendar, setShowCalendar] = useState(false);
+    const [currentDateValue, setCurrentDateValue] = useState(new Date());
+
+    // Upload Management States
+    const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState(""); 
+    const [isUploadingImage, setIsUploadingImage] = useState(false); 
+    const [localFileName, setLocalFileName] = useState(""); 
 
     // Validation Error States
     const [errors, setErrors] = useState({});
@@ -400,57 +60,128 @@ export const UploadWedding = () => {
         getProfileId();
     }, []);
 
-    // 2. Fixed handlePickPhoto using Expo's native picker API ✅
-    const handlePickPhoto = async () => {
-        try {
-            // Request permissions to open gallery
-            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    // ── Interactive Calendar Event Handlers ─────────────────────────
+    const onDateChange = (event, selectedDate) => {
+        // Hide native UI modal element immediately for Android platforms
+        if (Platform.OS === 'android') {
+            setShowCalendar(false);
+        }
 
-            if (permissionResult.granted === false) {
-                Alert.alert("Permission Required", "You need to allow access to your photos to upload a wedding picture.");
-                return;
-            }
-
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                quality: 1,
-            });
-
-            if (!result.canceled && result.assets && result.assets.length > 0) {
-                const asset = result.assets[0];
-
-                // Auto extract filename cleanly from image path
-                const filename = asset.fileName || asset.uri.split('/').pop() || 'wedding_photo.jpg';
-
-                setPhotoFile({
-                    uri: asset.uri,
-                    fileName: filename,
-                    type: asset.mimeType || 'image/jpeg',
-                });
-                
-                setErrors(prev => ({ ...prev, photo: null }));
-            }
-        } catch (err) {
-            console.log("Gallery Picker Error:", err);
-            Toast.show({
-                type: "error",
-                text1: "Error",
-                text2: "Failed to open photo library.",
-                position: "bottom"
-            });
+        if (selectedDate) {
+            setCurrentDateValue(selectedDate);
+            
+            // Format to standard structural payload string template: YYYY-MM-DD
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            setWeddingDate(formattedDate);
+            setErrors(p => ({ ...p, weddingDate: null }));
         }
     };
 
+    // ── Media Selection & Safe Processing Pipeline ──────────────────
+    const handlePickPhoto = async () => {
+        try {
+            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+            if (permissionResult.granted === false) {
+                Alert.alert(
+                    "Permission Required 🔒", 
+                    "You need to allow access to your photos to upload a wedding picture."
+                );
+                return;
+            }
+
+            // ✅ FIX: Replaced deprecated parameters matching modern modern standard
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'], // Clean explicit string target configuration block
+                allowsEditing: false,        
+                aspect: [1, 1],             
+                quality: 0.8,                 
+            });
+
+            if (result.canceled || !result.assets?.length) {
+                return;
+            }
+
+            const asset = result.assets[0];
+            const filename = asset.fileName || asset.uri.split('/').pop() || 'wedding_photo.jpg';
+            const mimeType = asset.mimeType || 'image/jpeg';
+
+            setLocalFileName(filename);
+            setErrors(prev => ({ ...prev, photo: null }));
+            setIsUploadingImage(true);
+
+            const imageUploadData = new FormData();
+            imageUploadData.append('image', {
+                uri: Platform.OS === 'android' ? asset.uri : asset.uri.replace('file://', ''),
+                name: filename,
+                type: mimeType,
+            });
+            imageUploadData.append('profile_id', loginUserProfileId);
+
+            console.log("Uploading Wedding Image directly to Backend API...");
+            
+            const imageResponse = await axios.post(
+                `${config.apiUrl}/auth/upload-profile-image/`,
+                imageUploadData,
+                { 
+                    headers: { 
+                        'Content-Type': 'multipart/form-data',
+                        'Accept': 'application/json'
+                    } 
+                }
+            );
+
+            console.log("Image Upload API Response Data:", imageResponse.data);
+            const isImageUploadSuccess = imageResponse.data?.status === 1 || imageResponse.data?.Status === 1;
+
+            if (imageResponse.status === 200 && isImageUploadSuccess) {
+                const serverUrl = imageResponse.data?.url || asset.uri; 
+                setUploadedPhotoUrl(serverUrl);
+
+                Toast.show({
+                    type: "success",
+                    text1: "Uploaded Successfully ✓",
+                    text2: "Your cropped wedding image is verified on the server.",
+                    position: "bottom"
+                });
+            } else {
+                setLocalFileName("");
+                setUploadedPhotoUrl("");
+                Toast.show({
+                    type: 'error',
+                    text1: 'Upload Failed',
+                    text2: imageResponse.data?.message || 'Failed to process crop imagery properties.',
+                    position: 'bottom'
+                });
+            }
+        } catch (err) {
+            console.log("Gallery Picker or Upload Failure Context:", err);
+            setLocalFileName("");
+            setUploadedPhotoUrl("");
+            Toast.show({
+                type: "error",
+                text1: "Error",
+                text2: "Failed to upload photo selection to the server.",
+                position: "bottom"
+            });
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
+    
     const validateForm = () => {
         let valid = true;
         let formErrors = {};
 
         if (!name.trim()) { formErrors.name = "Bride / Groom Name is required"; valid = false; }
         if (!city.trim()) { formErrors.city = "City is required"; valid = false; }
-        if (!weddingDate.trim()) { formErrors.weddingDate = "Wedding Date is required"; valid = false; }
+        if (!weddingDate.trim()) { formErrors.weddingDate = "Wedding Date selection is required"; valid = false; }
         if (!experience.trim()) { formErrors.experience = "Please share your experience"; valid = false; }
-        if (!photoFile) { formErrors.photo = "Wedding photo is required"; valid = false; }
+        if (!uploadedPhotoUrl) { formErrors.photo = "Wedding photo upload is mandatory"; valid = false; }
         if (!agreed) { formErrors.agreed = "You must agree to display the photo"; valid = false; }
 
         setErrors(formErrors);
@@ -463,83 +194,47 @@ export const UploadWedding = () => {
         try {
             setIsSubmitting(true);
 
-            const imageUploadData = new FormData();
-            imageUploadData.append('image', {
-                uri: Platform.OS === 'android' ? photoFile.uri : photoFile.uri.replace('file://', ''),
-                name: photoFile.fileName,
-                type: photoFile.type,
-            });
-            imageUploadData.append('profile_id', loginUserProfileId);
+            const marriageDetailsPayload = {
+                profile_id: loginUserProfileId,
+                marriage_date: weddingDate,
+                groom_bride_name: name,
+                groombridecity: city,
+                settled_thru: through,
+                marriage_comments: experience,
+                marriage_photo_details: agreed ? "Yes" : "No",
+                marriage_image_url: uploadedPhotoUrl 
+            };
 
-            console.log("Uploading Wedding Image...");
-            const imageResponse = await axios.post(
-                `${config.apiUrl}/auth/upload-profile-image/`,
-                imageUploadData,
-                { headers: { 'Content-Type': 'multipart/form-data' } }
+            console.log("Submitting Settlement Details Payload:", marriageDetailsPayload);
+            const detailsResponse = await axios.post(
+                `${config.apiUrl}/api/marriage-settle-details/create/`,
+                marriageDetailsPayload,
+                { headers: { 'Content-Type': 'application/json' } }
             );
 
-            if (imageResponse.status === 200 && imageResponse.data.status === 1) {
+            console.log("Settlement Details Response Data:", detailsResponse.data);
 
-                const marriageDetailsPayload = {
-                    profile_id: loginUserProfileId,
-                    marriage_date: weddingDate,
-                    groom_bride_name: name,
-                    groombridecity: city,
-                    settled_thru: through,
-                    marriage_comments: experience,
-                    marriage_photo_details: agreed ? "Yes" : "No"
-                };
-
-                console.log("Submitting Settlement Details Payload:", marriageDetailsPayload);
-                const detailsResponse = await axios.post(
-                    `${config.apiUrl}/api/marriage-settle-details/create/`,
-                    marriageDetailsPayload,
-                    { headers: { 'Content-Type': 'application/json' } }
-                );
-
-                if (detailsResponse.status === 200 || detailsResponse.status === 201) {
-
-                    Alert.alert(
-                        "Wedding Details Submitted! 💍",
-                        "Thank you for sharing your beautiful success story with us!",
-                        [
-                            {
-                                text: "OK",
-                                onPress: async () => {
-                                    await AsyncStorage.clear();
-                                    navigation.reset({
-                                        index: 0,
-                                        routes: [{ name: "LoginPage" }],
-                                    });
-                                }
+            if (detailsResponse.status === 200 || detailsResponse.status === 201) {
+                Alert.alert(
+                    "Wedding Details Submitted! 💍",
+                    "Thank you for sharing your beautiful success story with us!",
+                    [
+                        {
+                            text: "OK",
+                            onPress: async () => {
+                                await AsyncStorage.clear();
+                                navigation.reset({
+                                    index: 0,
+                                    routes: [{ name: "LoginPage" }],
+                                });
                             }
-                        ],
-                        { cancelable: false }
-                    );
-
-                    setTimeout(async () => {
-                        try {
-                            await AsyncStorage.clear();
-                            navigation.reset({
-                                index: 0,
-                                routes: [{ name: "LoginPage" }],
-                            });
-                        } catch (e) {
-                            console.log("Fallback loop clearing exception context:", e);
                         }
-                    }, 2000);
-                }
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Upload Failed',
-                    text2: 'Failed to upload image.',
-                    position: 'bottom'
-                });
+                    ],
+                    { cancelable: false }
+                );
             }
-
         } catch (error) {
-            console.error('Submission Framework Error:', error?.response?.data || error);
+            console.error('Submission Framework Error Context:', error?.response?.data || error);
             Toast.show({
                 type: 'error',
                 text1: 'Unexpected Error',
@@ -589,17 +284,40 @@ export const UploadWedding = () => {
                         {errors.city && <Text style={styles.errorText}>{errors.city}</Text>}
                     </View>
 
-                    {/* Date Input */}
+                    {/* ✅ FIXED: Interactive Calendar Trigger Field */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Wedding Date <Text style={styles.redText}>*</Text></Text>
-                        <TextInput
-                            style={[styles.input, errors.weddingDate && styles.inputError]}
-                            placeholder="YYYY-MM-DD"
-                            placeholderTextColor="#888"
-                            value={weddingDate}
-                            onChangeText={(text) => { setWeddingDate(text); setErrors(p => ({ ...p, weddingDate: null })); }}
-                        />
+                        <TouchableOpacity 
+                            style={[styles.dateSelectorButton, errors.weddingDate && styles.inputError]}
+                            onPress={() => setShowCalendar(true)}
+                        >
+                            <Text style={[styles.dateSelectorText, !weddingDate && { color: "#888" }]}>
+                                {weddingDate ? weddingDate : "Select Wedding Date"}
+                            </Text>
+                            <Ionicons name="calendar-outline" size={20} color="#ED1E24" />
+                        </TouchableOpacity>
                         {errors.weddingDate && <Text style={styles.errorText}>{errors.weddingDate}</Text>}
+
+                        {/* Native Calendar Picker Overlay Element Component */}
+                        {showCalendar && (
+                            <View>
+                                <DateTimePicker
+                                    value={currentDateValue}
+                                    mode="date"
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                    onChange={onDateChange}
+                                    // maximumDate={new Date()} // Blocks picking impossible future dates
+                                />
+                                {Platform.OS === 'ios' && (
+                                    <TouchableOpacity 
+                                        style={styles.iosDoneButton} 
+                                        onPress={() => setShowCalendar(false)}
+                                    >
+                                        <Text style={styles.iosDoneButtonText}>Confirm Date Selection</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        )}
                     </View>
 
                     {/* Dropdown Fixed Through */}
@@ -615,25 +333,57 @@ export const UploadWedding = () => {
                         </View>
                     </View>
 
-                    {/* Photo Selector - Fixed with Pressable + hitSlop combination */}
+                    {/* Upload Tile Input Row */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Upload Wedding Photo <Text style={styles.redText}>*</Text></Text>
                         <Pressable
                             style={({ pressed }) => [
                                 styles.uploadButton,
-                                errors.photo && styles.inputError,
-                                pressed && { backgroundColor: '#e8e8e8', opacity: 0.8 }
+                                uploadedPhotoUrl ? styles.uploadSuccessBorder : errors.photo ? styles.inputError : null,
+                                pressed && { opacity: 0.85 }
                             ]}
                             onPress={handlePickPhoto}
-                            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                            disabled={isUploadingImage}
                         >
-                            <Ionicons name="image-outline" size={20} color="#888" style={{ marginRight: 8 }} />
-                            <Text style={styles.uploadButtonText} numberOfLines={1}>
-                                {photoFile ? photoFile.fileName : "Select Wedding Photo"}
-                            </Text>
+                            <View style={styles.uploadRowLeft}>
+                                {isUploadingImage ? (
+                                    <ActivityIndicator size="small" color="#BD1225" style={{ marginRight: 10 }} />
+                                ) : (
+                                    <Ionicons 
+                                        name={uploadedPhotoUrl ? "checkmark-circle" : "image-outline"} 
+                                        size={22} 
+                                        color={uploadedPhotoUrl ? "#22C55E" : "#888"} 
+                                        style={{ marginRight: 8 }} 
+                                    />
+                                )}
+                                <Text style={[styles.uploadButtonText, uploadedPhotoUrl && { color: '#16A34A', fontWeight: '600' }]} numberOfLines={1}>
+                                    {isUploadingImage 
+                                        ? "Uploading Image..." 
+                                        : uploadedPhotoUrl 
+                                            ? "✓ Uploaded successfully" 
+                                            : "Select & Crop Wedding Photo"
+                                    }
+                                </Text>
+                            </View>
+                            
+                            <View style={[styles.statusBadge, { backgroundColor: uploadedPhotoUrl ? "#DCFCE7" : "#F3F4F6" }]}>
+                                <Ionicons 
+                                    name={uploadedPhotoUrl ? "checkmark" : "cloud-upload-outline"} 
+                                    size={16} 
+                                    color={uploadedPhotoUrl ? "#22C55E" : "#4B5563"} 
+                                />
+                            </View>
                         </Pressable>
                         {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
                     </View>
+
+                    {/* Preview Area Component */}
+                    {uploadedPhotoUrl && !isUploadingImage && (
+                        <View style={styles.previewBox}>
+                            <Image source={{ uri: uploadedPhotoUrl }} style={styles.previewImage} />
+                            <Text style={styles.previewText}>Uploaded File: {localFileName}</Text>
+                        </View>
+                    )}
 
                     {/* Experience Text Area Input */}
                     <View style={styles.inputGroup}>
@@ -663,7 +413,7 @@ export const UploadWedding = () => {
                     {errors.agreed && <Text style={[styles.errorText, { marginTop: -5, marginBottom: 15 }]}>{errors.agreed}</Text>}
 
                     {/* Submit Form Button Block */}
-                    <TouchableOpacity style={styles.btn} onPress={onSubmit} disabled={isSubmitting}>
+                    <TouchableOpacity style={styles.btn} onPress={onSubmit} disabled={isSubmitting || isUploadingImage}>
                         <LinearGradient colors={["#BD1225", "#FF4050"]} style={styles.linearGradient}>
                             {isSubmitting ? (
                                 <ActivityIndicator size="small" color="#fff" />
@@ -693,8 +443,20 @@ const styles = StyleSheet.create({
     inputError: { borderColor: "#ED1E24" },
     textArea: { height: 100, textAlignVertical: "top" },
     pickerBorder: { borderWidth: 1, borderColor: "#ccc", borderRadius: 10, overflow: 'hidden' },
-    uploadButton: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#ccc", borderRadius: 10, padding: 12, backgroundColor: "#f9f9f9" },
+    
+    // Calendar UI styles
+    dateSelectorButton: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderWidth: 1, borderColor: "#ccc", borderRadius: 10, padding: 12, backgroundColor: "#fff" },
+    dateSelectorText: { fontSize: 14, color: "#333", fontFamily: "inter" },
+    iosDoneButton: { padding: 10, backgroundColor: "#F3F4F6", alignItems: "center", marginTop: 5, borderRadius: 8 },
+    iosDoneButtonText: { color: "#ED1E24", fontWeight: "700", fontSize: 14 },
+
+    // Upload Tile UI Updates
+    uploadButton: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderWidth: 1.5, borderColor: "#ccc", borderRadius: 10, padding: 12, backgroundColor: "#f9f9f9" },
+    uploadRowLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
+    uploadSuccessBorder: { borderColor: "#22C55E", backgroundColor: "#F0FDF4" },
+    statusBadge: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
     uploadButtonText: { color: "#555", fontSize: 14, flex: 1 },
+    
     checkboxContainer: { flexDirection: "row", alignItems: "flex-start", marginBottom: 20, paddingRight: 15 },
     checkboxBase: { width: 18, height: 18, justifyContent: "center", alignItems: "center", borderRadius: 4, borderWidth: 2, borderColor: "#535665", backgroundColor: "transparent", marginRight: 8, marginTop: 2 },
     checkboxChecked: { backgroundColor: "#e51b3f", borderColor: "#e51b3f" },
@@ -703,5 +465,8 @@ const styles = StyleSheet.create({
     errorText: { color: "#ED1E24", fontSize: 12, marginTop: 4, fontWeight: "600", paddingLeft: 2 },
     linearGradient: { borderRadius: 10, justifyContent: "center", padding: 14, alignItems: "center" },
     btn: { width: "100%", marginTop: 10 },
-    btnText: { color: "white", fontWeight: "700", fontSize: 16 }
+    btnText: { color: "white", fontWeight: "700", fontSize: 16 },
+    previewBox: { alignItems: 'center', marginBottom: 15, marginTop: 5 },
+    previewImage: { width: 120, height: 120, borderRadius: 10, borderWidth: 1, borderColor: '#22C55E' },
+    previewText: { fontSize: 11, color: '#666', marginTop: 5 }
 });
