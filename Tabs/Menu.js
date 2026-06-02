@@ -784,6 +784,27 @@ export const Menu = () => {
             </TouchableOpacity>
 
             <View style={styles.hrLine1} />
+
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
+                  url: "https://www.vysyamala.com/AccountDeletionPolicy",
+                  title: "Account Deletion Policy",
+                })
+              }
+            >
+              <View style={styles.menuFlex}>
+                <MaterialCommunityIcons
+                  name="account-remove-outline"
+                  size={wp(6)}
+                  color="#535665"
+                />
+                <Text style={styles.menuText}>Account Deletion Policy</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.hrLine1} />
             {/* Upgrade menu */}
             {/* <TouchableOpacity
               onPress={() => navigation.navigate("MembershipPlan")}

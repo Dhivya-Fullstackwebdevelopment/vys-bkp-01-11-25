@@ -2590,38 +2590,43 @@ export const downloadPdfmyprofile = async (encryptedId, selectedLanguage) => {
 };
 
 // Create Order paymnet
-export const createOrder = async (amount, profileID, planID, packageids) => {
+export const createOrder = async (
+    amount,
+    profileID,
+    planID,
+    packageids
+) => {
     try {
-
-        // Sending the POST request with the required params
-        const response = await axios.post(`${BASE_URL}/create-orderid/`,
+        const response = await axios.post(
+            `${BASE_URL}/create-orderid/`,
             {
-                amount: amount,
+                amount,
                 profile_id: profileID,
                 plan_id: planID,
-                addon_package_id: packageids
+                addon_package_id: packageids,
             }
         );
-        // Log the response data
-        console.log("Create Order response:", response.data);
 
-        // Check if the response is successful (status code 200 or 201)
-        if (!response.data || (response.status !== 200)) {
-            throw new Error("Failed to create order. Unexpected response.");
+        console.log("Status:", response.status);
+        console.log("Response:", JSON.stringify(response.data));
+
+        if (!response.data?.order?.id) {
+            throw new Error("Order ID not received");
         }
 
-        // If successful, return the order details (response.data)
         return response.data;
     } catch (error) {
-        //   console.error("Error creating order:", error.response?.data?.error || error.message || error);
+        console.log(
+            "Create Order Error:",
+            error.response?.data || error.message
+        );
 
-        // Provide a user-friendly message only for actual errors
-        const backendError = error.response?.data?.error;
-        if (backendError) {
-            throw new Error(backendError);
-        } else {
-            throw new Error("Unable to create order. Please try again later.");
-        }
+        throw new Error(
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Unable to create order"
+        );
     }
 };
 

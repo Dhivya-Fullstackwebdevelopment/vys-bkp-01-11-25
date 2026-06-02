@@ -40,6 +40,14 @@ export const PayNow = () => {
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [gpayModalVisible, setGpayModalVisible] = useState(false);
 
+  let RazorpayCheckout;
+  try {
+    RazorpayCheckout = require("react-native-razorpay").default;
+  } catch (e) {
+    RazorpayCheckout = null;
+  }
+
+
   useEffect(() => {
     const fetchPackages = async () => {
       try {
@@ -296,27 +304,23 @@ export const PayNow = () => {
   const handleRazorpay = async (totalPriceNew, order_id) => {
     console.log("Opening Razorpay with amount:", totalPriceNew, "Order ID:", order_id);
 
-    // Check if RazorpayCheckout is available
-    if (!RazorpayCheckout) {
-      console.error("RazorpayCheckout is not available");
+    // ✅ Guard: module not linked (Expo Go, simulator, missing native build)
+    if (!RazorpayCheckout || typeof RazorpayCheckout.open !== "function") {
       setIsPaymentLoading(false);
       Toast.show({
         type: "error",
-        text1: "Error",
-        text2: "Payment gateway not initialized. Please restart the app.",
+        text1: "Payment Error",
+        text2: "Razorpay is not available. Please use a development build (not Expo Go).",
       });
-      return;
+      return; // ✅ actually stops here now
     }
 
     try {
       const options = {
         description: "Purchase Credits",
-        // image: 'https://vysyamaladev2025.blob.core.windows.net/vysyamala/VysyamalaLogo-i_e8O9Ou.png',
-        image: 'https://vysyamat.blob.core.windows.net/vysyamala/VysyamalaLogo-i_e8O9Ou.png',
+        image: "https://vysyamat.blob.core.windows.net/vysyamala/VysyamalaLogo-i_e8O9Ou.png",
         currency: "INR",
-        //key: "rzp_test_bR07kHwjYrmOHm", 
         key: "rzp_live_HYCeDsho3jhHRt",
-        //key: "rzp_test_SEjGDBXnicHcim",
         amount: Math.round(totalPriceNew * 100),
         order_id: order_id,
         name: "Vysyamala",
@@ -343,34 +347,36 @@ export const PayNow = () => {
       console.error("Razorpay error:", error);
       setIsPaymentLoading(false);
 
-      // Handle different error types
-      if (error.code === 0) {
+      // ✅ Fix: error is an object, not a string — access .code and .description properly
+      const errorCode = error?.code;
+      const errorDescription = error?.description || "Something went wrong. Please try again.";
+
+      if (errorCode === 0) {
         // Payment cancelled by user
         Toast.show({
           type: "info",
           text1: "Payment Cancelled",
-          text2: "You have cancelled the payment",
+          text2: "You have cancelled the payment.",
         });
         Alert.alert(
-          "Payment Incompleted",
+          "Payment Incomplete",
           "It looks like your payment was not completed. Please retry, or share your transaction screenshot with us on WhatsApp 9944851550 for assistance.",
           [{ text: "OK" }]
         );
-      } else if (error.code === 2) {
-        // Network error
+      } else if (errorCode === 2) {
         Toast.show({
           type: "error",
           text1: "Network Error",
-          text2: "Please check your internet connection and try again",
+          text2: "Please check your internet connection and try again.",
         });
       } else {
         Toast.show({
           type: "error",
           text1: "Payment Failed",
-          text2: error.description || "Something went wrong. Please try again.",
+          text2: errorDescription,
         });
         Alert.alert(
-          "Payment Incompleted",
+          "Payment Incomplete",
           "It looks like your payment was not completed. Please retry, or share your transaction screenshot with us on WhatsApp 9944851550 for assistance.",
           [{ text: "OK" }]
         );
@@ -381,41 +387,66 @@ export const PayNow = () => {
   const placePaymentRazorpay = async (data) => {
     try {
       setIsPaymentLoading(true);
-      const profileId = await AsyncStorage.getItem("loginuser_profileId");
-      console.log(
-        "placePaymentRazorpay razorpay ===> ",
-        data.razorpay_order_id,
-        data.razorpay_payment_id,
-        data.razorpay_signature
-      );
+
+      const profileId =
+        (await AsyncStorage.getItem("loginuser_profileId")) ||
+        (await AsyncStorage.getItem("profile_id_new"));
+
+      console.log("========== PAYMENT VERIFY ==========");
+      console.log("Profile ID:", profileId);
+      console.log("Order ID:", data?.razorpay_order_id);
+      console.log("Payment ID:", data?.razorpay_payment_id);
+      console.log("Signature:", data?.razorpay_signature);
+
       const verifyResponse = await verifyPayment(
         profileId,
         data.razorpay_order_id,
         data.razorpay_payment_id,
         data.razorpay_signature
       );
-      console.log("verifyResponse ==>", JSON.stringify(verifyResponse));
-      if (verifyResponse.status === "success") {
+
+      console.log(
+        "Verify Payment Response:",
+        JSON.stringify(verifyResponse, null, 2)
+      );
+
+      if (
+        verifyResponse &&
+        (verifyResponse.status === "success" ||
+          verifyResponse.Status === 1)
+      ) {
         Toast.show({
           type: "success",
-          text1: "Saved",
-          text2: "Payment verified successfully!",
+          text1: "Payment Success",
+          text2: "Payment verified successfully",
           position: "bottom",
         });
+
         await handleSavePlanPackage();
       } else {
+        console.log("Verification Failed Response:", verifyResponse);
+
         Toast.show({
           type: "error",
-          text1: "Error",
-          text2: "Payment verification failed!",
+          text1: "Verification Failed",
+          text2:
+            verifyResponse?.message ||
+            "Payment verification failed",
         });
       }
     } catch (error) {
-      console.error("Error during payment verification:", error.message);
+      console.log(
+        "VERIFY PAYMENT ERROR:",
+        error?.response?.data || error?.message || error
+      );
+
       Toast.show({
         type: "error",
-        text1: "Error",
-        text2: "Error during payment verification. Please try again.",
+        text1: "Payment Verification Error",
+        text2:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong",
       });
     } finally {
       setIsPaymentLoading(false);
