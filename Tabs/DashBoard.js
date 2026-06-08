@@ -25,6 +25,12 @@ import Toast from "react-native-toast-message"; // Make sure this is imported
 import { fetchProfileInterests, fetchDashboardData, updateProfileInterest } from '../CommonApiCall/CommonApiCall';
 import { TopAlignedImage } from "../Components/ReuseImageAlign/TopAlignedImage";
 // import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { Dimensions } from 'react-native';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isTablet = SCREEN_WIDTH >= 768;
+const fs = (size) => isTablet ? Math.round(size * 0.7) : size;
+
 
 export const DashBoard = () => {
   const [profileData, setProfileData] = useState([]);
@@ -645,13 +651,15 @@ export const DashBoard = () => {
                 >
                   <CircularProgress
                     value={parseInt(dashboardData?.profile_details?.completion_per, 10) || 0}
-                    valueSuffix={"%"}
+                    // ❌ Remove this line:
+                    // valueSuffix={"%"}
+                    // ✅ Use this instead:
+                    progressValueColor={"#535665"}
+                    progressValueStyle={{ fontSize: fs(14), fontWeight: "500" }}
                     radius={35}
                     duration={2000}
                     activeStrokeWidth={8}
                     inActiveStrokeWidth={8}
-                    progressValueColor={"#535665"}
-                    progressValueStyle={{ fontSize: 14, fontWeight: "500" }}
                     titleFontSize={16}
                     maxValue={100}
                     titleColor={"white"}
@@ -702,11 +710,11 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     color: '#007BFF',
-    fontSize: 14,
+    fontSize: fs(14),
   },
 
   dashBoard: {
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
     fontFamily: "inter",
     color: "#282C3F",
@@ -740,7 +748,7 @@ const styles = StyleSheet.create({
 
   matching: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
     fontFamily: "inter",
     marginVertical: 10,
@@ -748,7 +756,7 @@ const styles = StyleSheet.create({
 
   matchingNumbers: {
     color: "#fff",
-    fontSize: 36,
+    fontSize: fs(36),
     fontWeight: "700",
     fontFamily: "inter",
     // alignSelf: "center",
@@ -787,7 +795,7 @@ const styles = StyleSheet.create({
 
   Numbers: {
     color: "#fff",
-    fontSize: 36,
+    fontSize: fs(36),
     fontWeight: "700",
     fontFamily: "inter",
     // alignSelf: "center",
@@ -804,7 +812,7 @@ const styles = StyleSheet.create({
 
   text: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
     fontFamily: "inter",
     // marginVertical: 10,
@@ -825,7 +833,7 @@ const styles = StyleSheet.create({
   },
 
   interest: {
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
     color: "#282C3F",
     alignSelf: "flex-start",
@@ -834,7 +842,7 @@ const styles = StyleSheet.create({
   },
 
   interestNumber: {
-    fontSize: 14,
+    fontSize: fs(14),
     color: "#85878C",
   },
 
@@ -874,7 +882,7 @@ const styles = StyleSheet.create({
   },
 
   profileName: {
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
     color: "#000",
     fontFamily: "inter",
@@ -882,12 +890,12 @@ const styles = StyleSheet.create({
   },
 
   profileId: {
-    fontSize: 14,
+    fontSize: fs(14),
     color: "#85878C",
   },
 
   profileAge: {
-    fontSize: 14,
+    fontSize: fs(14),
     color: "#4F515D",
     marginBottom: 5,
   },
@@ -895,7 +903,7 @@ const styles = StyleSheet.create({
   line: {},
 
   profileText: {
-    fontSize: 14,
+    fontSize: fs(14),
     color: "#4F515D",
     marginBottom: 5,
     lineHeight: 20, // Set line height for consistent spacing
@@ -947,7 +955,7 @@ const styles = StyleSheet.create({
 
   blackText: {
     color: "#282C3F",
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
     fontFamily: "inter",
     marginBottom: 20,
@@ -955,7 +963,7 @@ const styles = StyleSheet.create({
 
   blackNumbers: {
     color: "#282C3F",
-    fontSize: 30,
+    fontSize: fs(30),
     fontWeight: "700",
     fontFamily: "inter",
     // alignSelf: "center",
@@ -1049,7 +1057,7 @@ const styles = StyleSheet.create({
   },
 
   profileNumber: {
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "300",
     color: "#535665",
     marginBottom: 10,
@@ -1075,13 +1083,13 @@ const styles = StyleSheet.create({
 
   goldText: {
     color: "#202332",
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "700",
     fontFamily: "inter",
   },
 
   date: {
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "300",
     color: "#535665",
   },
@@ -1097,7 +1105,7 @@ const styles = StyleSheet.create({
 
   profilePercentage: {
     color: "#535665",
-    fontSize: 14,
+    fontSize: fs(14),
     fontWeight: "700",
     fontFamily: "inter",
     marginTop: 10,
@@ -1107,7 +1115,7 @@ const styles = StyleSheet.create({
 
   percentageText: {
     color: "#535665",
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "300",
     fontFamily: "inter",
     marginBottom: 10,
@@ -1125,7 +1133,7 @@ const styles = StyleSheet.create({
 
   completeText: {
     color: "#ED1E24",
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: "500",
     fontFamily: "inter",
     flexDirection: "row",

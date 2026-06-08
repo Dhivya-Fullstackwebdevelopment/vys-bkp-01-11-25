@@ -11,7 +11,7 @@ import {
     Dimensions,
     Modal,
     Alert,
-    ActivityIndicator, Linking
+    ActivityIndicator, Linking    
 } from "react-native";
 import {
     Ionicons,
@@ -33,6 +33,11 @@ import Toast from "react-native-toast-message";
 import { getMyEducationalDetails } from '../../CommonApiCall/CommonApiCall';
 import { TopAlignedImage } from '../../Components/ReuseImageAlign/TopAlignedImage';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isTablet = SCREEN_WIDTH >= 768;
+const fs = (size) => isTablet ? Math.round(size * 1.3) : size;
+
+
 export const MyProfile = () => {
     const navigation = useNavigation();
 
@@ -44,7 +49,12 @@ export const MyProfile = () => {
     };
 
     // Carousel State
-    const width = Dimensions.get('window').width;
+    // const width = Dimensions.get('window').width;
+    // const screenWidth = Dimensions.get('window').width;
+
+    const screenWidth = Dimensions.get('window').width;
+    const width = isTablet ? Math.min(screenWidth, 600) : screenWidth;
+    const carouselHeight = isTablet ? 500 : 400;
     const [shareModalVisible, setShareModalVisible] = useState(false);
 
     const [activeSlide, setActiveSlide] = useState(0);
@@ -593,8 +603,8 @@ export const MyProfile = () => {
                             <Carousel
                                 loop
                                 width={width}
-                                height={400}
-                                style={{ width: width, height: 400 }}
+                                height={carouselHeight}
+                                style={{ width: width, height: carouselHeight }}
                                 autoPlay={false}
                                 data={data}
                                 scrollAnimationDuration={1000}
@@ -1007,7 +1017,7 @@ const styles = StyleSheet.create({
     },
     headerText: {
         color: "#000000",
-        fontSize: 18,
+        fontSize: fs(18),
         fontWeight: "bold",
         marginLeft: 10,
     },
@@ -1028,7 +1038,7 @@ const styles = StyleSheet.create({
     },
     name: {
         color: "#FF6666",
-        fontSize: 22,
+        fontSize: fs(22),
         fontFamily: "inter",
         fontWeight: "700",
         // marginBottom: 10,
@@ -1055,7 +1065,7 @@ const styles = StyleSheet.create({
     },
 
     profileNumber: {
-        fontSize: 17,
+        fontSize: fs(17),
         fontWeight: "700",
         color: "#535665",
         // paddingHorizontal: 10,
@@ -1083,20 +1093,20 @@ const styles = StyleSheet.create({
 
     goldText: {
         color: "#202332",
-        fontSize: 14,
+        fontSize: fs(14),
         fontWeight: "700",
         fontFamily: "inter",
     },
 
     date: {
-        fontSize: 13,
+        fontSize: fs(13),
         fontWeight: "700",
         color: "#535665",
     },
 
     label: {
         color: "#535665",
-        fontSize: 16,
+        fontSize: fs(16),
         fontWeight: "700",
         fontFamily: "inter",
         marginBottom: 10,
@@ -1104,7 +1114,7 @@ const styles = StyleSheet.create({
 
     value: {
         color: "#535665",
-        fontSize: 16,
+        fontSize: fs(16),
         fontWeight: "500",
         fontFamily: "inter",
     },
@@ -1135,7 +1145,7 @@ const styles = StyleSheet.create({
 
     profilePercentage: {
         color: "#535665",
-        fontSize: 14,
+        fontSize: fs(14),
         fontWeight: "700",
         fontFamily: "inter",
         // marginTop: 10,
@@ -1145,7 +1155,7 @@ const styles = StyleSheet.create({
 
     percentageText: {
         color: "#535665",
-        fontSize: 12,
+        fontSize: fs(12),
         fontWeight: "300",
         fontFamily: "inter",
         marginBottom: 10,
@@ -1165,7 +1175,7 @@ const styles = StyleSheet.create({
 
     completeText: {
         color: "#ED1E24",
-        fontSize: 14,
+        fontSize: fs(14),
         fontWeight: "500",
         fontFamily: "inter",
         flexDirection: "row",
@@ -1174,7 +1184,7 @@ const styles = StyleSheet.create({
     },
 
     details: {
-        fontSize: 16,
+        fontSize: fs(16),
         fontWeight: "700",
         fontFamily: "inter",
         color: "#282C3F",
@@ -1247,7 +1257,7 @@ const styles = StyleSheet.create({
 
     indexText: {
         textAlign: 'center',
-        fontSize: 30,
+        fontSize: fs(30),
     },
 
     paginationContainer: {
@@ -1256,6 +1266,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginVertical: 10,
         backgroundColor: 'transparent',
+        position: 'relative',
+        zIndex: 10,
     },
 
     dot: {
