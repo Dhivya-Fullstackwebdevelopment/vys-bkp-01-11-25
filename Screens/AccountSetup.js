@@ -25,9 +25,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage"; // Import 
 import { CountryButton, CountryPicker } from "react-native-country-codes-picker";
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-
-
-
 const schema = zod.object({
   profileValue: zod.string().min(1, "Profile for is required."),
   genderValue: zod.string().min(1, "Gender is required."),
@@ -468,7 +465,11 @@ export const AccountSetup = () => {
 
             {/* Toggle Password Visibility */}
             <TouchableOpacity onPress={togglePasswordVisibility} style={styles.passwordIcon}>
-              <AntDesign name={showPassword ? "eye" : "eyeo"} size={18} color="#535665" />
+              <Ionicons
+                name={showPassword ? "eye" : "eye-off"}
+                size={20}
+                color="#535665"
+              />
             </TouchableOpacity>
 
             {/* Display Password Validation Errors */}
