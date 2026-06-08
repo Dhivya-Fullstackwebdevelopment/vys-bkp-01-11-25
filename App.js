@@ -8,6 +8,9 @@ import { AppNavigation } from "./Navigation/AppNavigation";
 import * as Notifications from 'expo-notifications';
 import { Platform, ActivityIndicator } from 'react-native';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import 'react-native-gesture-handler';
+
 
 export default function App() {
 
@@ -85,12 +88,14 @@ export default function App() {
   }
 
   return (
-    <ProfileProvider>
-      <NavigationContainer>
-        <StatusBar hidden />
-        <AppNavigation />
-        <Toast />
-      </NavigationContainer>
-    </ProfileProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ProfileProvider>
+        <NavigationContainer>
+          <StatusBar hidden />
+          <AppNavigation />
+          <Toast />
+        </NavigationContainer>
+      </ProfileProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -594,6 +594,7 @@ export const MyProfile = () => {
                                 loop
                                 width={width}
                                 height={400}
+                                style={{ width: width, height: 400 }}
                                 autoPlay={false}
                                 data={data}
                                 scrollAnimationDuration={1000}

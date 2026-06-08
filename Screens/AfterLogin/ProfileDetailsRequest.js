@@ -94,8 +94,9 @@ export const ProfileDetailsRequest = () => {
                 <View style={{ flex: 1 }}>
                     <Carousel
                         loop
-                        width={width}
-                        height={400}
+                        // width={width}
+                        // height={400}
+                        style={{ width: width, height: 400 }}
                         autoPlay={false}
                         data={data}
                         scrollAnimationDuration={1000}
