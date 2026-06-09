@@ -28,7 +28,7 @@
       },
       "usesCleartextTraffic": true,
       "package": "com.vysmala.app",
-      "versionCode": 45
+      "versionCode": 51
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -49,12 +49,13 @@
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
             "minSdkVersion": 24,
-            "ndkVersion": "27.1.12297006",
+            "ndkVersion": "27.2.12479018",
             "packagingOptions": {
               "jniLibs": {
                 "useLegacyPackaging": false
               }
-            }
+            },
+            "extraProguardRules": "-keep class * { *; }"
           }
         }
       ],
