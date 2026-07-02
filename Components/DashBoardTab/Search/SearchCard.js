@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { StyleSheet, FlatList, View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 
 import { MaterialIcons } from "@expo/vector-icons";
@@ -25,6 +25,8 @@ export const SearchCard = () => {
     const navigation = useNavigation();
     const [isPlatinumModalVisible, setIsPlatinumModalVisible] = useState(false); // New State
 
+    const isFetchingRef = useRef(false);
+
     const handleEndReached = () => {
         if (currentPage < totalPages && !isLoading) {
             setCurrentPage((prevPage) => prevPage + 1);
@@ -33,27 +35,27 @@ export const SearchCard = () => {
 
     useEffect(() => {
         const loadProfiles = async () => {
-            if (isLoading || currentPage > totalPages) return; // Prevent multiple concurrent requests or over-fetching
-
-            setIsLoading(true); // Set loading state
+            if (isFetchingRef.current) return; // Prevent concurrent calls
+            isFetchingRef.current = true;
+            setIsLoading(true);
 
             try {
-                const count = await AsyncStorage.getItem('totalcount');
-                const totalCount = parseInt(count, 10);
                 const perPage = 6;
-                const pageNumber = currentPage;
+                const response = await getAdvanceSearchResults(perPage, currentPage);
 
-                const response = await getAdvanceSearchResults(perPage, pageNumber);
-                console.log("response all data search ===>", JSON.stringify(response));
-                if (response) {
-                    setProfiles((prevProfiles) => [...prevProfiles, ...(response.data || [])]);
-                    setTotalPages(Math.ceil(totalCount / perPage));
-                    const profileIds = response.data.reduce((acc, profile, index) => {
-                        const globalIndex = (pageNumber - 1) * perPage + index;
-                        acc[globalIndex] = profile.profile_id;
-                        return acc;
-                    }, {});
-                    setAllProfileIds((prevIds) => ({ ...prevIds, ...profileIds }));
+                if (response && response.status !== 'failure') {
+                    // Append new profiles to existing list
+                    setProfiles((prev) => [...prev, ...(response.data || [])]);
+
+                    // Use total_count directly from API response
+                    setTotalPages(Math.ceil(response.total_count / perPage));
+
+                    // On first page, store the complete all_profile_ids from API
+                    if (currentPage === 1 && response.all_profile_ids) {
+                        setAllProfileIds(response.all_profile_ids);
+                    }
+
+                    // Update bookmarks from this page's data
                     setBookmarkedProfiles((prevSet) => {
                         const newSet = new Set(prevSet);
                         response.data.forEach((profile) => {
@@ -64,18 +66,18 @@ export const SearchCard = () => {
                         return newSet;
                     });
                 } else {
-                    console.warn('No profiles found or error in response.');
+                    console.warn('No profiles found or API failure.');
                 }
             } catch (error) {
                 console.error('Error loading profiles:', error);
             } finally {
-                setIsLoading(false); // Reset loading state
+                setIsLoading(false);
+                isFetchingRef.current = false; // Release the guard
             }
         };
 
         loadProfiles();
-    }, [currentPage]); // Re-run when currentPage changes
-
+    }, [currentPage]);
 
     useEffect(() => {
         const loadWishlistProfiles = async () => {
