@@ -746,7 +746,7 @@ export const Menu = () => {
               onPress={() =>
                 navigation.navigate("WebViewPage", {
                   // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
-                  url: "https://www.vysyamala.com/TermsandConditions",
+                  url: "https://www.vysyamala.com/ChildSafety",
                   title: "Child Safety",
                 })
               }
@@ -768,7 +768,7 @@ export const Menu = () => {
               onPress={() =>
                 navigation.navigate("WebViewPage", {
                   // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
-                  url: "https://www.vysyamala.com/TermsandConditions",
+                  url: "https://www.vysyamala.com/CommunityGuidelines",
                   title: "Community Guidelines",
                 })
               }
