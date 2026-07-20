@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Modal,
   Switch,
+  ScrollView,
 } from "react-native";
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -54,6 +55,10 @@ export const HomeWithToast = () => {
   const [isProfilesLoading, setIsProfilesLoading] = useState(false);
   const [vysassistData, setVysassistData] = useState([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  
+  // State to control visibility of the top red banner based on scroll
+  const [showBanner, setShowBanner] = useState(true);
+
   const flatListRef = useRef(null);
   // Toggle switch - false = "1" (default), true = "2" (sort by date)
   const [isEnabled, setIsEnabled] = useState(false);
@@ -62,6 +67,16 @@ export const HomeWithToast = () => {
   const getOrderBy = () => isEnabled ? "2" : "1";
 
   const CARD_WIDTH = width - 80;
+
+  const handleScrollVertical = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    // Hide top red banner when scrolled down beyond 50px
+    if (offsetY > 50) {
+      if (showBanner) setShowBanner(false);
+    } else {
+      if (!showBanner) setShowBanner(true);
+    }
+  };
 
   const handleSlideNext = () => {
     if (currentSlideIndex < combinedData.length - 1) {
@@ -90,6 +105,7 @@ export const HomeWithToast = () => {
     const index = Math.round(contentOffsetX / CARD_WIDTH);
     setCurrentSlideIndex(index);
   };
+
   const fetchAllData = async (orderBy = "1") => {
     setIsInitialLoading(true);
     setIsInterestsLoading(true);
@@ -147,11 +163,9 @@ export const HomeWithToast = () => {
     setIsEnabled(newState);
     const newOrderBy = newState ? "2" : "1";
 
-    // If searching, update search results with new order
     if (searchProfileId.length > 0) {
       await handleSearchPress(searchProfileId, newOrderBy);
     } else {
-      // Otherwise, fetch all profiles with new order
       await fetchAllData(newOrderBy);
     }
   };
@@ -179,17 +193,6 @@ export const HomeWithToast = () => {
       if (response.Status === 1 && response.profiles) {
         setSearchResults(response.profiles);
         setTotalCount(response.total_count || response.profiles.length);
-        // const wishlistedIds = response.profiles
-        //   .filter((p) => p.wish_list === 1 || p.wish_list === "1")
-        //   .map((p) => p.profile_id);
-
-        // if (wishlistedIds.length > 0) {
-        //   setBookmarkedProfiles((prev) => {
-        //     const updated = new Set(prev);
-        //     wishlistedIds.forEach((id) => updated.add(id));
-        //     return updated;
-        //   });
-        // }
       } else {
         setSearchResults([]);
         setTotalCount(0);
@@ -317,7 +320,6 @@ export const HomeWithToast = () => {
   const renderVysassistItem = ({ item, index }) => (
     <View style={styles.cardContainer} key={`vysassist-${index}`}>
       <View style={styles.cardStyle}>
-        {/* Left grey section */}
         <View style={styles.vysassistLeft}>
           <Text style={styles.fromLabel}>FROM</Text>
           <Text style={styles.fromProfileId}>{item.profile_from}</Text>
@@ -327,10 +329,8 @@ export const HomeWithToast = () => {
           </Text>
         </View>
 
-        {/* Message */}
         <Text style={styles.vysassistMessage}>"{item.to_message}"</Text>
 
-        {/* Button */}
         <TouchableOpacity
           style={styles.btn}
           onPress={() => handleViewProfile(item.profile_from)}
@@ -348,13 +348,11 @@ export const HomeWithToast = () => {
     </View>
   );
 
-  // 5. Combine both datasets for the FlatList
   const combinedData = useMemo(() => [
     ...(profiles || []).map(item => ({ ...item, type: 'interest' })),
     ...(vysassistData || []).map(item => ({ ...item, type: 'vysassist' })),
   ], [profiles, vysassistData]);
 
-  // 6. Update renderItem to handle both types
   const renderSliderItem = ({ item, index }) => {
     if (!item) return null;
     if (item.type === 'vysassist') {
@@ -376,10 +374,13 @@ export const HomeWithToast = () => {
           <Text style={styles.loadingText}>Loading your matches...</Text>
         </View>
       ) : (
-        <View style={styles.mainContainer}>
-          {/* Header Section */}
-          {/* Interest List Section */}
-          {combinedData.length > 0 ? (
+        <ScrollView 
+          style={styles.mainContainer}
+          onScroll={handleScrollVertical}
+          scrollEventThrottle={16}
+        >
+          {/* Header/Interest Section - Conditionally rendered when scrolling */}
+          {showBanner && combinedData.length > 0 ? (
             <View style={styles.heartinBg}>
               <ImageBackground
                 style={styles.heartinBg}
@@ -389,9 +390,6 @@ export const HomeWithToast = () => {
                   style={styles.MessageImg}
                   source={require("../assets/img/MessageImg.png")}
                 />
-                {/* <View style={styles.newInterestContainer}>
-                  <Text style={styles.newInterest}>New Interest Received</Text>
-                </View> */}
 
                 <Text style={styles.newInterest}>
                   {sliderHeaderText}
@@ -399,7 +397,6 @@ export const HomeWithToast = () => {
 
                 {/* Slider Row with Arrows */}
                 <View style={styles.sliderRow}>
-                  {/* Left Arrow */}
                   <TouchableOpacity
                     onPress={handleSlidePrev}
                     disabled={currentSlideIndex === 0}
@@ -415,7 +412,6 @@ export const HomeWithToast = () => {
                     />
                   </TouchableOpacity>
 
-                  {/* FlatList */}
                   <FlatList
                     ref={flatListRef}
                     horizontal
@@ -440,7 +436,7 @@ export const HomeWithToast = () => {
                       index,
                     })}
                   />
-                  {/* Right Arrow */}
+
                   <TouchableOpacity
                     onPress={handleSlideNext}
                     disabled={currentSlideIndex === combinedData.length - 1}
@@ -578,7 +574,7 @@ export const HomeWithToast = () => {
               />
             </View>
           </View>
-        </View>
+        </ScrollView>
       )}
 
       <Modal
@@ -597,30 +593,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F4F4F4",
   },
-
-  // toggleSwitchcontainer: {
-  //   flex: 0.1,
-  //   width: '100%',
-  //   alignItems: 'flex-end',
-  //   justifyContent: 'center',
-  //   marginRight: '40px'
-  // },
-
   matchingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginHorizontal: 15, // optional for spacing
-    // marginTop: 10,
+    marginHorizontal: 15,
   },
-
-  // toggleSwitchcontainer: {
-  //   // padding: 3,
-  //   marginTop: 10,
-  // },
-
-
-
   mainContainer: {
     flex: 1,
   },
@@ -668,7 +646,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   cardContainer: {
-    justifyContent: 'center'
+    justify: 'center'
   },
   cardStyle: {
     backgroundColor: "#FFF",
@@ -752,13 +730,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     backgroundColor: "transparent",
   },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginHorizontal: 8,
-    backgroundColor: "#fff",
-  },
   matchingSection: {
     flex: 1,
     backgroundColor: '#F4F4F4',
@@ -769,9 +740,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#282C3F",
-    // paddingHorizontal: 10,
-    // marginTop: 10,
-    // marginLeft: 10,
   },
   matchNumber: {
     color: "#FF6666",
@@ -953,6 +921,6 @@ const styles = StyleSheet.create({
     width: 20,
     borderRadius: 4,
   },
-
 });
+
 export default HomeWithToast;

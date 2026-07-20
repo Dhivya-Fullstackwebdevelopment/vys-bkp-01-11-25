@@ -3980,7 +3980,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     // position: 'absolute',
     top: '5%',
-    transform: [{ translateY: -20 }],
+    transform: [{ translateY: -88 }],
     // left: 10,
     // right: 10,
     // zIndex: 10,
