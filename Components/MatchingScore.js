@@ -47,6 +47,7 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
     try {
       setLoading(true);
       const result = await downloadPdfPoruthamNew(encryptedId, myId);
+      console.log("Matching score api result",result)
 
       if (result && (result.status === "failure" || result.Status === 0)) {
         if (onUpgradeRequired) {

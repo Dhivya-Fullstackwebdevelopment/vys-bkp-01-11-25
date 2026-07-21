@@ -2896,7 +2896,7 @@ export const callRequestDetails = async (formdata) => {
 //     }
 // };
 
-export const downloadPdfPoruthamNew = async (encryptedId, myId) => {
+export const downloadPdfPoruthamNew = async (encryptedId1, myId1) => {
     const profileId = await retrieveProfileId();
     if (!profileId) {
         console.warn('Profile ID is empty, skipping API call.');
@@ -2904,7 +2904,8 @@ export const downloadPdfPoruthamNew = async (encryptedId, myId) => {
     }
 
     // const url = `${BASE_URL}/generate-porutham-pdf-mobile/${profileId}/${idparam}`;
-    const url = `${BASE_URL}/generate-porutham-pdf-mobile/${encryptedId}/${myId}`;
+    const url = `${BASE_URL}/generate-porutham-pdf-mobile/${myId1}/${encryptedId1}`;
+    console.log('Matching score api url',url)
     const date = new Date();
     const formattedDate = date.toISOString().split('T')[0];
     const fileName = `Matching_Report_${formattedDate}.pdf`;
@@ -2925,7 +2926,7 @@ export const downloadPdfPoruthamNew = async (encryptedId, myId) => {
         content: {
             title: 'Download Started',
             body: `Downloading ${fileName}...`,
-            data: { encryptedId },
+            data: { encryptedId1 },
         },
         trigger: null,
     });
