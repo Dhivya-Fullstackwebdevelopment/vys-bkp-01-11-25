@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import Svg, { Path, Circle } from "react-native-svg";
 import { downloadPdfPoruthamNew } from "../CommonApiCall/CommonApiCall";
@@ -6,14 +6,30 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function MatchingScore({ scorePercentage, viewedProfileId, onScorePress, onUpgradeRequired }) {
   const [loading, setLoading] = useState(false);
+  const [encryptedId, setEncryptedId] = useState(null);
+  const [myId, setMyId] = useState(null);
+
+  useEffect(() => {
+    const loadIds = async () => {
+      try {
+        const eId = await AsyncStorage.getItem('encryptedId');
+        const mId = await AsyncStorage.getItem('myId');
+        console.log("encryptedId, myId", encryptedId, myId)
+        setEncryptedId(eId);
+        setMyId(mId);
+      } catch (error) {
+        console.error('Error loading IDs:', error);
+      }
+    };
+    loadIds();
+  }, []);
+
   console.log("scorePercentage check ==>", scorePercentage);
   const screenWidth = Dimensions.get("window").width;
   const radius = Math.min(screenWidth * 0.25, 60);
   const strokeWidth = 20;
   const center = radius + strokeWidth;
   const progress = Math.min((scorePercentage / 100) * Math.PI, Math.PI);
-  const encryptedId = AsyncStorage.getItem('encryptedId');
-  const myId = AsyncStorage.getItem('myId');
 
   const getEmoji = () => {
     if (scorePercentage >= 75) return "😊"
@@ -22,44 +38,14 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
     return "😞"
   }
 
-  // const handleDownloadPdf = async () => {
-  //   try {
-  //     setLoading(true);
-  //     // This function MUST return either the file path on success, 
-  //     // OR the JSON failure object {status: "failure", message: "..."}
-  //     const result = await downloadPdfPoruthamNew(encryptedId, myId);
-
-  //     // 1. Check for failure object returned by the utility
-  //     if (result && result.status === "failure") {
-  //       if (onUpgradeRequired) {
-  //         // Call the parent handler with the error message
-  //         onUpgradeRequired(result.message || "No access to see the compatibility report");
-  //       }
-  //       return; // Stop execution
-  //     }
-
-  //     // 2. Success case: Download/open handled by the utility.
-
-  //   } catch (error) {
-  //     console.error("Error downloading PDF:", error);
-  //     Alert.alert("Error", "Failed to download the file.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleDownloadPdf = async () => {
+    if (!encryptedId || !myId) {
+      Alert.alert("Error", "Session data missing. Please try again.");
+      return;
+    }
+
     try {
       setLoading(true);
-
-      const encryptedId = await AsyncStorage.getItem('encryptedId');
-      const myId = await AsyncStorage.getItem('myId');
-
-      if (!encryptedId || !myId) {
-        Alert.alert("Error", "Session data missing. Please try again.");
-        return;
-      }
-
       const result = await downloadPdfPoruthamNew(encryptedId, myId);
 
       if (result && (result.status === "failure" || result.Status === 0)) {
@@ -69,9 +55,12 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
         return;
       }
 
+      // Success - file downloaded and shared
+      Alert.alert("Success", "PDF downloaded successfully!");
+
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      Alert.alert("Error", "An unexpected error occurred.");
+      Alert.alert("Error", "An unexpected error occurred: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -82,9 +71,7 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
     const y1 = center + radius * Math.sin(start - Math.PI);
     const x2 = center + radius * Math.cos(end - Math.PI);
     const y2 = center + radius * Math.sin(end - Math.PI);
-
     const largeArcFlag = end - start <= Math.PI ? "0" : "1";
-
     return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`;
   };
 
@@ -94,6 +81,7 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
         <ActivityIndicator size="large" color="#4A9E80" />
       ) : (
         <View style={styles.gaugeContainer}>
+          {/* SVG remains the same */}
           <Svg
             width={(radius + strokeWidth) * 2}
             height={(radius + strokeWidth + 10) * 2}
@@ -103,8 +91,7 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
               <Path
                 key={`segment-${index}`}
                 d={createArc(segment * Math.PI, (segment + 0.25) * Math.PI)}
-                stroke={`rgb(${74 + index * 1}, ${222 - index * 20}, ${128 - index * 20
-                  })`}
+                stroke={`rgb(${74 + index * 1}, ${222 - index * 20}, ${128 - index * 20})`}
                 strokeWidth={strokeWidth}
                 strokeLinecap="butt"
                 fill="none"
@@ -158,7 +145,7 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
       )}
     </TouchableOpacity>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

@@ -19,7 +19,11 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.vysmala.app"
+      "bundleIdentifier": "com.vysmala.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app needs access to save PDF reports.",
+        "NSDocumentDirectoryUsageDescription": "This app needs access to save PDF reports."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -28,7 +32,13 @@
       },
       "usesCleartextTraffic": true,
       "package": "com.vysmala.app",
-      "versionCode": 52
+      "versionCode": 52,
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.DOWNLOAD_WITHOUT_NOTIFICATION",
+        "android.permission.ACCESS_MEDIA_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -59,7 +69,19 @@
           }
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to save the matching report.",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save the matching report to your photos.",
+          "isAccessMediaLocationEnabled": true,
+          "granularPermissions": [
+            "photo",
+            "video"
+          ]
+        }
+      ]
     ],
     "owner": "dhivya_p98"
   }

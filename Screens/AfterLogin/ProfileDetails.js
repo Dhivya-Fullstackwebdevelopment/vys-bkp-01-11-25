@@ -367,7 +367,7 @@ export const ProfileDetails = () => {
   const [showLanguagePopup, setShowLanguagePopup] = useState(false);
   const [blockModalVisible, setBlockModalVisible] = useState(false);
   const [blockLoading, setBlockLoading] = useState(false);
-  
+
   const handleBlockProfile = async () => {
     try {
       setBlockLoading(true);
@@ -1058,31 +1058,58 @@ export const ProfileDetails = () => {
   // console.log('fetchedUserImages:', fetchedUserImages);
 
   const handleDownloadPdf = async () => {
-    console.log("handleDownloadPdf ==>", viewedProfileId)
-    bottomSheetRef.current.close();
-    setShowLanguagePopup(false);
-    setLoading(true)
-    // Proceed with the download if permission is granted
-    try {
-      // const filePath = await downloadPdf(viewedProfileId);
-      // console.log("handleDownloadPdf", filePath)
-      // setLoading(false)
-      const encryptedId = profileData?.encrypted_profile_id;
-      const myId = profileData?.My_profile_id;
-      const langParam = selectedPdfLanguage;
-      const result = await Printhoroscopepdf(encryptedId, myId, langParam);
-
-      if (result && result.status === 'success') {
-        Toast.show({ type: 'success', text1: 'Success', text2: 'Report downloaded!' });
-      }
-      selectedPdfLanguage("english")
-      // Alert.alert("Download Complete", `File saved to: ${filePath}`);
-    } catch (error) {
-      Alert.alert("Error", "Failed to download the file.");
-    } finally {
-      setLoading(false)
+  console.log("handleDownloadPdf ==>", viewedProfileId)
+  bottomSheetRef.current.close();
+  setShowLanguagePopup(false);
+  setLoading(true)
+  
+  try {
+    const encryptedId = profileData?.encrypted_profile_id;
+    const myId = profileData?.My_profile_id;
+    const langParam = selectedPdfLanguage;
+    const result = await Printhoroscopepdf(encryptedId, myId, langParam);
+    
+    // Check if result is an error response (object with status: 'failure')
+    if (result && typeof result === 'object' && result.status === 'failure') {
+      // Handle the failure case
+      Toast.show({ 
+        type: 'error', 
+        text1: 'Error', 
+        text2: result.message || 'Failed to download report' 
+      });
+      return;
     }
-  };
+    
+    // If we get here, the download was successful (result is fileUri string)
+    if (result && typeof result === 'string') {
+      Toast.show({ 
+        type: 'success', 
+        text1: 'Success', 
+        text2: 'Report downloaded successfully!' 
+      });
+    } else {
+      // Unexpected result
+      Toast.show({ 
+        type: 'error', 
+        text1: 'Error', 
+        text2: 'Unexpected response from server' 
+      });
+    }
+    
+    // Reset language selection
+    setSelectedPdfLanguage("english");
+    
+  } catch (error) {
+    console.error('Download error:', error);
+    Toast.show({ 
+      type: 'error', 
+      text1: 'Error', 
+      text2: 'Failed to download the file. Please try again.' 
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Inside ProfileDetails functional component (before the return statement)
 

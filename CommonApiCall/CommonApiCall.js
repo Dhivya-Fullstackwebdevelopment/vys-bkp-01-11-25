@@ -1,14 +1,15 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from "react-native-toast-message";
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { Alert, Platform } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import config from '../API/Apiurl';
-
+import * as Sharing from 'expo-sharing';
+// import { requestStoragePermission } from '../Components/permissionUtils'; 
 
 
 // Base URL for the API
@@ -1847,12 +1848,13 @@ export const downloadMatchingReportPdf = async (viewedProfileId) => {
 
 
 // Function to request storage permission
+// Function to request storage permission
 async function requestStoragePermission() {
-    if (Platform.OS === 'android') {
-        const { status } = await MediaLibrary.requestPermissionsAsync();
-        return status === 'granted';
-    }
-    return true; // iOS does not need explicit permission for document directory
+    // PDFs are written to FileSystem.documentDirectory (app-scoped storage)
+    // and shared via expo-sharing — this does NOT require MediaLibrary/AUDIO
+    // permissions. MediaLibrary is only needed when saving photos/videos to
+    // the device gallery, which we are not doing here.
+    return true;
 }
 
 // Function to update download progress in the notification
@@ -2817,6 +2819,82 @@ export const callRequestDetails = async (formdata) => {
         throw error; // Let the handlePhoneCall function catch the error
     }
 };
+
+// export const downloadPdfPoruthamNew = async (encryptedId, myId) => {
+//     console.log('[downloadPdfPoruthamNew] START', { encryptedId, myId });
+
+//     const profileId = await retrieveProfileId();
+//     if (!profileId) {
+//         console.warn('[downloadPdfPoruthamNew] Profile ID missing, aborting.');
+//         return null;
+//     }
+
+//     const url = `${BASE_URL}/generate-porutham-pdf-mobile/${encryptedId}/${myId}`;
+//     const date = new Date();
+//     const formattedDate = date.toISOString().split('T')[0];
+//     const fileName = `Matching_Report_${formattedDate}.pdf`;
+//     console.log('[downloadPdfPoruthamNew] URL:', url, 'fileName:', fileName);
+
+//     const hasPermission = await requestStoragePermission();
+//     console.log('[downloadPdfPoruthamNew] Storage permission:', hasPermission);
+//     if (!hasPermission) {
+//         Alert.alert('Permission Denied', 'Storage permission is required to download the file.');
+//         return null;
+//     }
+
+//     try {
+//         console.log('[downloadPdfPoruthamNew] Fetching to inspect content-type...');
+//         const response = await fetch(url, {
+//             method: 'GET',
+//             headers: { Accept: 'application/pdf, application/json' },
+//         });
+//         console.log('[downloadPdfPoruthamNew] fetch status:', response.status);
+
+//         const contentType = response.headers.get('content-type');
+//         console.log('[downloadPdfPoruthamNew] content-type:', contentType);
+
+//         if (contentType && contentType.includes('application/json')) {
+//             const jsonData = await response.json();
+//             console.log('[downloadPdfPoruthamNew] Backend returned JSON (likely upgrade/error):', jsonData);
+//             return jsonData;
+//         }
+
+//         if (response.ok && contentType && contentType.includes('application/pdf')) {
+//             const fileUri = FileSystem.documentDirectory + fileName;
+//             console.log('[downloadPdfPoruthamNew] Downloading to:', fileUri);
+
+//             const downloadResult = await FileSystem.downloadAsync(url, fileUri);
+//             console.log('[downloadPdfPoruthamNew] downloadAsync result:', downloadResult);
+
+//             if (downloadResult.status === 200) {
+//                 console.log('[downloadPdfPoruthamNew] PDF downloaded successfully:', fileUri);
+
+//                 const shareAvailable = await Sharing.isAvailableAsync();
+//                 console.log('[downloadPdfPoruthamNew] Sharing available:', shareAvailable);
+
+//                 if (shareAvailable) {
+//                     await Sharing.shareAsync(fileUri, {
+//                         mimeType: 'application/pdf',
+//                         dialogTitle: 'Save Matching Report',
+//                     });
+//                     console.log('[downloadPdfPoruthamNew] Share sheet opened.');
+//                 } else {
+//                     Alert.alert('Success', `File downloaded to: ${fileUri}`);
+//                 }
+
+//                 return fileUri;
+//             } else {
+//                 throw new Error('Download failed with status: ' + downloadResult.status);
+//             }
+//         }
+
+//         throw new Error('Unexpected response format');
+//     } catch (error) {
+//         console.log('[downloadPdfPoruthamNew] ERROR:', error.message);
+//         Alert.alert('Download Error', `Failed to download: ${error.message}`);
+//         return { status: 'failure', message: error.message || 'Failed to download PDF' };
+//     }
+// };
 
 export const downloadPdfPoruthamNew = async (encryptedId, myId) => {
     const profileId = await retrieveProfileId();
