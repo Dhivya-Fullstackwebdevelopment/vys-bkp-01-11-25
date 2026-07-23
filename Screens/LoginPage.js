@@ -121,6 +121,7 @@ export const LoginPage = () => {
           custom_message,
           age,
           height,
+          profile_image
         } = response.data;
 
         console.log("Login Success:");
@@ -148,6 +149,7 @@ export const LoginPage = () => {
         await AsyncStorage.setItem("custom_message", custom_message?.toString() || "");
         await AsyncStorage.setItem("age", age?.toString() || "");
         await AsyncStorage.setItem("height", height?.toString() || "");
+        await AsyncStorage.setItem("profile_image", profile_image || "");
 
         Toast.show({
           type: "success",

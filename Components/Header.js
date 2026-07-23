@@ -10,7 +10,7 @@ import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fetchNotifications, markNotificationsAsRead } from '../CommonApiCall/CommonApiCall'; // Import the function from commonApi.js
+import { fetchNotifications, markNotificationsAsRead } from '../CommonApiCall/CommonApiCall';
 import { LinearGradient } from 'expo-linear-gradient';
 
 
@@ -19,9 +19,10 @@ export const Header = (props) => {
   const [notifyCount, setNotifyCount] = useState(0);
   const [buttonText, setButtonText] = useState("Upgrade");
   const [hidePlanButton, setHidePlanButton] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileId, setProfileId] = useState("");
 
   const handleLogoClick = () => {
-    console.log("Logo Clicked"); // Check your terminal/console to see if this triggers
     navigation.navigate("Home");
   };
 
@@ -40,7 +41,6 @@ export const Header = (props) => {
         console.error(error.message);
       }
     };
-
     getNotificationCount();
   }, []);
 
@@ -48,7 +48,7 @@ export const Header = (props) => {
     const determineButtonType = async () => {
       try {
         const currentPlanId = await AsyncStorage.getItem("current_plan_id");
-        const validityDate = await AsyncStorage.getItem("valid_till_date"); // You need to store this during login
+        const validityDate = await AsyncStorage.getItem("valid_till_date");
 
         const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
         const planId = parseInt(currentPlanId || "0");
@@ -66,14 +66,12 @@ export const Header = (props) => {
           if (validityDate) {
             const validDate = new Date(validityDate);
             const currentDate = new Date();
-
             if (validDate.getTime() > currentDate.getTime()) {
-              buttonType = "Add-On"; // validity still active
+              buttonType = "Add-On";
             } else {
-              buttonType = "Renew"; // validity expired
+              buttonType = "Renew";
             }
           } else {
-            // If no validity date, default to Upgrade
             buttonType = "Upgrade";
           }
         }
@@ -81,22 +79,16 @@ export const Header = (props) => {
         setButtonText(buttonType);
       } catch (error) {
         console.error("Error determining button type:", error);
-        setButtonText("Upgrade"); // fallback
+        setButtonText("Upgrade");
       }
     };
-
     determineButtonType();
   }, []);
 
-
   const handleNotificationClick = async () => {
     try {
-      await markNotificationsAsRead(); // Call the common API function
-
-      // Reset the notification count after marking as read
+      await markNotificationsAsRead();
       setNotifyCount(0);
-
-      // Navigate to the Notifications screen
       navigation.navigate("Notifications");
     } catch (error) {
       console.error(error.message);
@@ -113,70 +105,130 @@ export const Header = (props) => {
     }
   };
 
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const img = await AsyncStorage.getItem("profile_image");
+        const id = await AsyncStorage.getItem("loginuser_profileId");
+        if (img) setProfileImage(img);
+        if (id) setProfileId(id);
+      } catch (error) {
+        console.error("Error loading profile info:", error);
+      }
+    };
+    loadProfile();
+  }, []);
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={handleLogoClick} activeOpacity={0.7}>
+      {/* Logo - left side */}
+      <TouchableOpacity onPress={handleLogoClick} activeOpacity={0.7} style={styles.logoWrapper}>
         <Image
           style={styles.logo}
           source={require("../assets/img/VysyamalaLogo.png")}
         />
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={handleNotificationClick}
-        style={[
-          styles.notificationContainer,
-          hidePlanButton && { left: 0 }   // ✅ if plan hidden, remove left
-        ]}
-      >
-        <MaterialIcons name="notifications" size={24} color="#535665" />
-        {notifyCount > 0 && (
-          <View style={styles.notificationBadge}>
-            <Text style={styles.notificationText}>{notifyCount}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-      {!hidePlanButton && (
-        <TouchableOpacity onPress={handleUpgradeClick}>
-          <LinearGradient
-            colors={['#BD1225', '#FF4050']} // Gradient colors
-            style={styles.button}
-          >
-            <Text style={styles.textUpgrade}>{buttonText}</Text>
-            {/* <MaterialCommunityIcons name="arrow-up-circle" size={28} color="#fff" style={{ left: 5 }} /> */}
-          </LinearGradient>
+
+      {/* Right side group: bell, add-on, profile */}
+      <View style={styles.rightGroup}>
+        <TouchableOpacity
+          onPress={handleNotificationClick}
+          style={styles.notificationContainer}
+        >
+          <MaterialIcons name="notifications" size={24} color="#535665" />
+          {notifyCount > 0 && (
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationText}>{notifyCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
-      )}
+
+        {!hidePlanButton && (
+          <TouchableOpacity onPress={handleUpgradeClick} style={styles.buttonWrapper}>
+            <LinearGradient
+              colors={['#BD1225', '#FF4050']}
+              style={styles.button}
+            >
+              <Text style={styles.textUpgrade}>{buttonText}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("MyProfile")}
+          style={styles.profileContainer}
+        >
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, styles.avatarPlaceholder]}>
+              <MaterialIcons name="person" size={20} color="#fff" />
+            </View>
+          )}
+          <Text style={styles.profileIdText} numberOfLines={1}>{profileId}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
-
 const styles = StyleSheet.create({
-  // container: {
-  //   flex: 1,
-  //   flexDirection: "row",
-  //   backgroundColor: "#fff",
-  //   alignItems: "center",
-  //   justifyContent: "space-between",
-  //   width: "100%",
-  // },
   container: {
-    flex: 1,
     flexDirection: "row",
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "space-between",
-    // paddingHorizontal: 10,
     width: "100%",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    height: 70,   
   },
 
+  logoWrapper: {
+    flexShrink: 0,
+  },
+  logo: {
+    width: 110,
+    height: 60,
+    resizeMode: "contain",
+  },
+
+  rightGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 1,
+  },
+
+  notificationContainer: {
+    position: "relative",
+    padding: 8,
+    marginRight: 4,
+  },
+  notificationBadge: {
+    position: "absolute",
+    right: 2,
+    top: 2,
+    backgroundColor: "red",
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 3,
+  },
+  notificationText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "bold",
+  },
+
+  buttonWrapper: {
+    marginRight: 8,
+  },
   button: {
     borderRadius: 6,
-    paddingVertical: 7,
-    paddingHorizontal: 7,
-    width: '100%',
-    marginTop: 1
+    paddingVertical: 8,
+    paddingHorizontal: 14,
   },
   textUpgrade: {
     color: '#ffffff',
@@ -184,39 +236,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  logo: {
-    width: 125,
-    height: 100,
-    resizeMode: "contain",
-    // width: 132,
-    // height: 30,
-    // resizeMode: "cover",
-  },
 
-  bell: {
-    width: 15,
-    height: 15,
-    resizeMode: "contain",
+  profileContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop:18
   },
-  notificationContainer: {
-    position: "relative",
-    padding: 10,
-    left: 59
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginBottom: 2,
   },
-  notificationBadge: {
-    position: "absolute",
-    right: 0,
-    top: 0,
-    backgroundColor: "red",
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+  avatarPlaceholder: {
+    backgroundColor: "#ED1E24",
     justifyContent: "center",
     alignItems: "center",
   },
-  notificationText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "bold",
+  profileIdText: {
+    color: "#535665",
+    fontSize: 10,
+    fontWeight: "600",
+    fontFamily: "inter",
+    maxWidth: 50,
   },
 });
