@@ -27,7 +27,7 @@ export const OtpVerifyLogin = () => {
 
   useEffect(() => {
     retrieveDataFromSession();
-    
+
     // Fetch the hash (if necessary)
     // getHash().then(hash => {
     //   console.log("harsss--> ", hash);
@@ -85,10 +85,12 @@ export const OtpVerifyLogin = () => {
 
   const handleVerify = async () => {
     const enteredOtp = otp.join("");
+
     if (otp.includes("") || enteredOtp.length !== 6) {
       Alert.alert("Error", "Please enter a complete 6-digit OTP.");
       return;
     }
+
     try {
       const response = await axios.post(
         `${config.apiUrl}/auth/Login_verifyotp/`,
@@ -102,14 +104,63 @@ export const OtpVerifyLogin = () => {
           },
         }
       );
-      const jsonResponse = response.data;
-      console.log(jsonResponse);
+
+      console.log("OTP Verify Response:", response.data);
+
       if (response.data.status === 1) {
-        const token = response.data.token;
-                const profile_id = response.data.profile_id;
-                await AsyncStorage.setItem("loginuser_profileId", profile_id);
-                console.log(profile_id);
-                await AsyncStorage.setItem("auth_token", token);
+        const {
+          token,
+          profile_id,
+          notification_count,
+          cur_plan_id,
+          profile_image,
+          profile_completion,
+          gender,
+          height,
+          marital_status,
+          custom_message,
+          birth_star_id,
+          birth_rasi_id,
+          profile_owner,
+          quick_reg,
+          plan_limits,
+          valid_till,
+        } = response.data;
+
+        // Store all login details
+        await AsyncStorage.setItem("auth_token", token || "");
+        await AsyncStorage.setItem("loginuser_profileId", profile_id || "");
+        await AsyncStorage.setItem(
+          "notification_count",
+          String(notification_count ?? 0)
+        );
+        await AsyncStorage.setItem("cur_plan_id", cur_plan_id || "");
+        await AsyncStorage.setItem("profile_image", profile_image || "");
+        await AsyncStorage.setItem(
+          "profile_completion",
+          String(profile_completion ?? "")
+        );
+        await AsyncStorage.setItem("gender", gender || "");
+        await AsyncStorage.setItem("height", height || "");
+        await AsyncStorage.setItem("marital_status", marital_status || "");
+        await AsyncStorage.setItem(
+          "custom_message",
+          String(custom_message ?? "")
+        );
+        await AsyncStorage.setItem("birth_star_id", birth_star_id || "");
+        await AsyncStorage.setItem("birth_rasi_id", birth_rasi_id || "");
+        await AsyncStorage.setItem("profile_owner", profile_owner || "");
+        await AsyncStorage.setItem("quick_reg", String(quick_reg ?? ""));
+        await AsyncStorage.setItem("valid_till", valid_till || "");
+
+        // Store plan limits array
+        await AsyncStorage.setItem(
+          "plan_limits",
+          JSON.stringify(plan_limits || [])
+        );
+
+        console.log("Login data stored successfully.");
+
         Toast.show({
           type: "success",
           text1: "Login Successful",
@@ -117,7 +168,7 @@ export const OtpVerifyLogin = () => {
           position: "bottom",
           visibilityTime: 4000,
         });
-        // navigation.navigate("HomeWithToast");
+
         navigation.reset({
           index: 0,
           routes: [{ name: "HomeWithToast" }],
@@ -126,8 +177,16 @@ export const OtpVerifyLogin = () => {
         Alert.alert("Login Failed", response.data.message);
       }
     } catch (error) {
-      console.error("Error during login:", error);
-      Alert.alert("Error", "An error occurred while logging in. Please try again.");
+      console.error(
+        "OTP Verify Error:",
+        error.response?.data || error.message
+      );
+
+      Alert.alert(
+        "Error",
+        error.response?.data?.message ||
+        "An error occurred while logging in. Please try again."
+      );
     }
   };
 
