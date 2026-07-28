@@ -2896,16 +2896,239 @@ export const callRequestDetails = async (formdata) => {
 //     }
 // };
 
+// export const downloadPdfPoruthamNew = async (encryptedId1, myId1) => {
+//     const profileId = await retrieveProfileId();
+//     if (!profileId) {
+//         console.warn('Profile ID is empty, skipping API call.');
+//         return null;
+//     }
+
+//     // const url = `${BASE_URL}/generate-porutham-pdf-mobile/${profileId}/${idparam}`;
+//     const url = `${BASE_URL}/generate-porutham-pdf-mobile/${myId1}/${encryptedId1}`;
+//     console.log('Matching score api url', url)
+//     const date = new Date();
+//     const formattedDate = date.toISOString().split('T')[0];
+//     const fileName = `Matching_Report_${formattedDate}.pdf`;
+
+//     const hasPermission = await requestStoragePermission();
+//     if (!hasPermission) {
+//         Alert.alert('Permission Denied', 'Storage permission is required to download the file.');
+//         return null;
+//     }
+
+//     const notificationPermission = await Notifications.requestPermissionsAsync();
+//     if (!notificationPermission.granted) {
+//         console.warn('Notification permission not granted');
+//     }
+
+//     // Show initial download notification
+//     let notificationId = await Notifications.scheduleNotificationAsync({
+//         content: {
+//             title: 'Download Started',
+//             body: `Downloading ${fileName}...`,
+//             data: { encryptedId1 },
+//         },
+//         trigger: null,
+//     });
+
+//     try {
+//         // First, make a fetch request to check the response type
+//         const response = await fetch(url, {
+//             method: 'GET',
+//             headers: {
+//                 'Accept': 'application/pdf, application/json',
+//             },
+//         });
+
+//         const contentType = response.headers.get('content-type');
+
+//         // Check if response is JSON (error response)
+//         if (contentType && contentType.includes('application/json')) {
+//             const jsonData = await response.json();
+
+//             // Cancel the notification for error case
+//             await Notifications.dismissNotificationAsync(notificationId);
+
+//             // Return the error response
+//             return jsonData;
+//         }
+
+//         // If it's a PDF, proceed with download
+//         if (response.ok && contentType && contentType.includes('application/pdf')) {
+//             let fileUri;
+//             let progress = 0;
+
+//             // Use Storage Access Framework (SAF) for Android 10+
+//             if (Platform.OS === 'android' && Platform.Version >= 29) {
+//                 const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+//                 if (!permissions.granted) {
+//                     console.warn('Permission to access the Documents folder was denied.');
+//                     await Notifications.dismissNotificationAsync(notificationId);
+//                     return null;
+//                 }
+
+//                 // Create the file in the user-selected directory
+//                 fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
+//                     permissions.directoryUri,
+//                     fileName,
+//                     'application/pdf'
+//                 );
+
+//                 // Download the file with progress tracking
+//                 const downloadResumable = FileSystem.createDownloadResumable(
+//                     url,
+//                     FileSystem.documentDirectory + fileName,
+//                     {},
+//                     (downloadProgress) => {
+//                         progress = Math.round(
+//                             (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100
+//                         );
+//                         updateDownloadNotification(notificationId, progress);
+//                     }
+//                 );
+
+//                 const { uri } = await downloadResumable.downloadAsync();
+//                 const pdfData = await FileSystem.readAsStringAsync(uri, {
+//                     encoding: FileSystem.EncodingType.Base64
+//                 });
+
+//                 // Write the PDF to the selected folder via SAF
+//                 await FileSystem.StorageAccessFramework.writeAsStringAsync(fileUri, pdfData, {
+//                     encoding: FileSystem.EncodingType.Base64,
+//                 });
+
+//             } else {
+//                 const downloadResumable = FileSystem.createDownloadResumable(
+//                     url,
+//                     FileSystem.documentDirectory + fileName,
+//                     {},
+//                     (downloadProgress) => {
+//                         progress = Math.round(
+//                             (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100
+//                         );
+//                         updateDownloadNotification(notificationId, progress);
+//                     }
+//                 );
+
+//                 const { uri } = await downloadResumable.downloadAsync();
+//                 fileUri = uri;
+//             }
+
+//             // Complete notification
+//             await Notifications.scheduleNotificationAsync({
+//                 content: {
+//                     title: 'Download Complete',
+//                     body: `File saved to: ${fileUri}`,
+//                 },
+//                 trigger: null,
+//             });
+
+//             console.log('PDF downloaded successfully:', fileUri);
+
+//             // Automatically open the downloaded PDF
+//             openPdf(fileUri);
+
+//             return fileUri;
+//         }
+
+//         throw new Error('Unexpected response format');
+
+//     } catch (error) {
+//         console.log('Error downloading PDF:', error.message);
+//         await Notifications.scheduleNotificationAsync({
+//             content: {
+//                 title: 'Download Error',
+//                 body: `Failed to download: ${error.message}`,
+//             },
+//             trigger: null,
+//         });
+//         return null;
+//     }
+// };
+
+// CommonApiCall.js
+
+// Fetches the Matching Report PDF to a private cache location for VIEWING ONLY.
 export const downloadPdfPoruthamNew = async (encryptedId1, myId1) => {
+    const url = `${BASE_URL}/generate-porutham-pdf-mobile/${myId1}/${encryptedId1}`;
+    const localUri = FileSystem.cacheDirectory + `matching_report_${Date.now()}.pdf`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/pdf, application/json' },
+        });
+
+        const contentType = response.headers.get('content-type');
+
+        if (contentType && contentType.includes('application/json')) {
+            const jsonData = await response.json();
+            return jsonData; // caller handles error
+        }
+
+        if (response.ok && contentType && contentType.includes('application/pdf')) {
+            const downloadResumable = FileSystem.createDownloadResumable(url, localUri, {});
+            const { uri } = await downloadResumable.downloadAsync();
+            return uri; // return cached URI
+        }
+
+        throw new Error('Unexpected response format');
+    } catch (error) {
+        console.error('Error fetching Matching Report PDF:', error.message);
+        return { status: 'failure', message: error.message };
+    }
+};
+// Fetches the PDF to a private cache location for VIEWING ONLY.
+// No SAF picker, no "choose folder" prompt — just silently caches it.
+export const fetchPoruthamPdfForViewing = async (encryptedId1, myId1) => {
     const profileId = await retrieveProfileId();
     if (!profileId) {
         console.warn('Profile ID is empty, skipping API call.');
         return null;
     }
 
-    // const url = `${BASE_URL}/generate-porutham-pdf-mobile/${profileId}/${idparam}`;
     const url = `${BASE_URL}/generate-porutham-pdf-mobile/${myId1}/${encryptedId1}`;
-    console.log('Matching score api url',url)
+    console.log('Matching score api url', url);
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/pdf, application/json' },
+        });
+
+        const contentType = response.headers.get('content-type');
+
+        // Error response (upgrade required etc.) — return as-is, let caller handle it
+        if (contentType && contentType.includes('application/json')) {
+            const jsonData = await response.json();
+            return jsonData;
+        }
+
+        if (response.ok && contentType && contentType.includes('application/pdf')) {
+            // Cache locally — this path is app-private, no permission/picker needed
+            const localUri = FileSystem.cacheDirectory + `porutham_preview_${Date.now()}.pdf`;
+
+            const downloadResumable = FileSystem.createDownloadResumable(
+                url,
+                localUri,
+                {}
+            );
+
+            const { uri } = await downloadResumable.downloadAsync();
+            return { status: 'success', localUri: uri };
+        }
+
+        throw new Error('Unexpected response format');
+
+    } catch (error) {
+        console.log('Error fetching PDF for viewing:', error.message);
+        return { status: 'failure', message: error.message };
+    }
+};
+
+// Called ONLY when the user taps "Download" inside the PDF viewer.
+// This is your original SAF / save-location flow, now triggered explicitly.
+export const savePoruthamPdfToDevice = async (localUri) => {
     const date = new Date();
     const formattedDate = date.toISOString().split('T')[0];
     const fileName = `Matching_Report_${formattedDate}.pdf`;
@@ -2921,279 +3144,244 @@ export const downloadPdfPoruthamNew = async (encryptedId1, myId1) => {
         console.warn('Notification permission not granted');
     }
 
-    // Show initial download notification
     let notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-            title: 'Download Started',
-            body: `Downloading ${fileName}...`,
-            data: { encryptedId1 },
-        },
+        content: { title: 'Download Started', body: `Downloading ${fileName}...` },
         trigger: null,
     });
 
     try {
-        // First, make a fetch request to check the response type
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/pdf, application/json',
-            },
-        });
+        let fileUri;
 
-        const contentType = response.headers.get('content-type');
-
-        // Check if response is JSON (error response)
-        if (contentType && contentType.includes('application/json')) {
-            const jsonData = await response.json();
-
-            // Cancel the notification for error case
-            await Notifications.dismissNotificationAsync(notificationId);
-
-            // Return the error response
-            return jsonData;
-        }
-
-        // If it's a PDF, proceed with download
-        if (response.ok && contentType && contentType.includes('application/pdf')) {
-            let fileUri;
-            let progress = 0;
-
-            // Use Storage Access Framework (SAF) for Android 10+
-            if (Platform.OS === 'android' && Platform.Version >= 29) {
-                const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-                if (!permissions.granted) {
-                    console.warn('Permission to access the Documents folder was denied.');
-                    await Notifications.dismissNotificationAsync(notificationId);
-                    return null;
-                }
-
-                // Create the file in the user-selected directory
-                fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
-                    permissions.directoryUri,
-                    fileName,
-                    'application/pdf'
-                );
-
-                // Download the file with progress tracking
-                const downloadResumable = FileSystem.createDownloadResumable(
-                    url,
-                    FileSystem.documentDirectory + fileName,
-                    {},
-                    (downloadProgress) => {
-                        progress = Math.round(
-                            (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100
-                        );
-                        updateDownloadNotification(notificationId, progress);
-                    }
-                );
-
-                const { uri } = await downloadResumable.downloadAsync();
-                const pdfData = await FileSystem.readAsStringAsync(uri, {
-                    encoding: FileSystem.EncodingType.Base64
-                });
-
-                // Write the PDF to the selected folder via SAF
-                await FileSystem.StorageAccessFramework.writeAsStringAsync(fileUri, pdfData, {
-                    encoding: FileSystem.EncodingType.Base64,
-                });
-
-            } else {
-                const downloadResumable = FileSystem.createDownloadResumable(
-                    url,
-                    FileSystem.documentDirectory + fileName,
-                    {},
-                    (downloadProgress) => {
-                        progress = Math.round(
-                            (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100
-                        );
-                        updateDownloadNotification(notificationId, progress);
-                    }
-                );
-
-                const { uri } = await downloadResumable.downloadAsync();
-                fileUri = uri;
+        if (Platform.OS === 'android' && Platform.Version >= 29) {
+            const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+            if (!permissions.granted) {
+                console.warn('Permission to access the Documents folder was denied.');
+                await Notifications.dismissNotificationAsync(notificationId);
+                return null;
             }
 
-            // Complete notification
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title: 'Download Complete',
-                    body: `File saved to: ${fileUri}`,
-                },
-                trigger: null,
+            const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
+                permissions.directoryUri,
+                fileName,
+                'application/pdf'
+            );
+
+            const pdfData = await FileSystem.readAsStringAsync(localUri, {
+                encoding: FileSystem.EncodingType.Base64,
             });
 
-            console.log('PDF downloaded successfully:', fileUri);
+            await FileSystem.StorageAccessFramework.writeAsStringAsync(destUri, pdfData, {
+                encoding: FileSystem.EncodingType.Base64,
+            });
 
-            // Automatically open the downloaded PDF
-            openPdf(fileUri);
-
-            return fileUri;
+            fileUri = destUri;
+        } else {
+            // iOS / older Android — copy from cache to document directory
+            const destUri = FileSystem.documentDirectory + fileName;
+            await FileSystem.copyAsync({ from: localUri, to: destUri });
+            fileUri = destUri;
         }
 
-        throw new Error('Unexpected response format');
+        await Notifications.scheduleNotificationAsync({
+            content: { title: 'Download Complete', body: `File saved to: ${fileUri}` },
+            trigger: null,
+        });
+
+        return fileUri;
 
     } catch (error) {
-        console.log('Error downloading PDF:', error.message);
+        console.log('Error saving PDF:', error.message);
         await Notifications.scheduleNotificationAsync({
-            content: {
-                title: 'Download Error',
-                body: `Failed to download: ${error.message}`,
-            },
+            content: { title: 'Download Error', body: `Failed to download: ${error.message}` },
             trigger: null,
         });
         return null;
     }
 };
 
+// export const Printhoroscopepdf = async (encryptedId, myId, selectedPdfLanguage) => {
+//     const profileId = await retrieveProfileId();
+//     if (!profileId) {
+//         console.warn('Profile ID is empty, skipping API call.');
+//         return null;
+//     }
+//     const langParam = selectedPdfLanguage;
+//     // const url = `${BASE_URL}/generate-porutham-pdf-mobile/${profileId}/${idparam}`;
+//     const url = `${BASE_URL}/New_horoscope_color/${encryptedId}/${myId}/?lang=${langParam}`;
+//     const date = new Date();
+//     const formattedDate = date.toISOString().split('T')[0];
+//     const fileName = `Horoscope_${selectedPdfLanguage}_${formattedDate}.pdf`;
+
+//     // Request storage permission
+//     const hasPermission = await requestStoragePermission();
+//     if (!hasPermission) {
+//         Alert.alert('Permission Denied', 'Storage permission is required to download the file.');
+//         return null;
+//     }
+
+//     // Request notification permission
+//     const notificationPermission = await Notifications.requestPermissionsAsync();
+//     if (!notificationPermission.granted) {
+//         console.warn('Notification permission not granted');
+//     }
+
+//     // Show initial download notification
+//     let notificationId = await Notifications.scheduleNotificationAsync({
+//         content: {
+//             title: 'Download Started',
+//             body: `Downloading ${fileName}...`,
+//             data: { encryptedId },
+//         },
+//         trigger: null,
+//     });
+
+//     try {
+//         // First, make a fetch request to check the response type
+//         const response = await fetch(url, {
+//             method: 'GET',
+//             headers: {
+//                 'Accept': 'application/pdf, application/json',
+//             },
+//         });
+
+//         const contentType = response.headers.get('content-type');
+
+//         // Check if response is JSON (error response)
+//         if (contentType && contentType.includes('application/json')) {
+//             const jsonData = await response.json();
+
+//             // Cancel the notification for error case
+//             await Notifications.dismissNotificationAsync(notificationId);
+
+//             // Return the error response
+//             return jsonData;
+//         }
+
+//         // If it's a PDF, proceed with download
+//         if (response.ok && contentType && contentType.includes('application/pdf')) {
+//             let fileUri;
+//             let progress = 0;
+
+//             // Use Storage Access Framework (SAF) for Android 10+
+//             if (Platform.OS === 'android' && Platform.Version >= 29) {
+//                 const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+//                 if (!permissions.granted) {
+//                     console.warn('Permission to access the Documents folder was denied.');
+//                     await Notifications.dismissNotificationAsync(notificationId);
+//                     return null;
+//                 }
+
+//                 // Create the file in the user-selected directory
+//                 fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
+//                     permissions.directoryUri,
+//                     fileName,
+//                     'application/pdf'
+//                 );
+
+//                 // Download the file with progress tracking
+//                 const downloadResumable = FileSystem.createDownloadResumable(
+//                     url,
+//                     FileSystem.documentDirectory + fileName,
+//                     {},
+//                     (downloadProgress) => {
+//                         progress = Math.round(
+//                             (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100
+//                         );
+//                         updateDownloadNotification(notificationId, progress);
+//                     }
+//                 );
+
+//                 const { uri } = await downloadResumable.downloadAsync();
+//                 const pdfData = await FileSystem.readAsStringAsync(uri, {
+//                     encoding: FileSystem.EncodingType.Base64
+//                 });
+
+//                 // Write the PDF to the selected folder via SAF
+//                 await FileSystem.StorageAccessFramework.writeAsStringAsync(fileUri, pdfData, {
+//                     encoding: FileSystem.EncodingType.Base64,
+//                 });
+
+//             } else {
+//                 const downloadResumable = FileSystem.createDownloadResumable(
+//                     url,
+//                     FileSystem.documentDirectory + fileName,
+//                     {},
+//                     (downloadProgress) => {
+//                         progress = Math.round(
+//                             (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100
+//                         );
+//                         updateDownloadNotification(notificationId, progress);
+//                     }
+//                 );
+
+//                 const { uri } = await downloadResumable.downloadAsync();
+//                 fileUri = uri;
+//             }
+
+//             // Complete notification
+//             await Notifications.scheduleNotificationAsync({
+//                 content: {
+//                     title: 'Download Complete',
+//                     body: `File saved to: ${fileUri}`,
+//                 },
+//                 trigger: null,
+//             });
+
+//             console.log('PDF downloaded successfully:', fileUri);
+
+//             // Automatically open the downloaded PDF
+//             openPdf(fileUri);
+
+//             return fileUri;
+//         }
+
+//         throw new Error('Unexpected response format');
+
+//     } catch (error) {
+//         console.log('Error downloading PDF:', error.message);
+//         await Notifications.scheduleNotificationAsync({
+//             content: {
+//                 title: 'Download Error',
+//                 body: `Failed to download: ${error.message}`,
+//             },
+//             trigger: null,
+//         });
+//         return null;
+//     }
+// };
+
+// CommonApiCall.js
+
+// Fetches the Horoscope PDF to a private cache location for VIEWING ONLY.
 export const Printhoroscopepdf = async (encryptedId, myId, selectedPdfLanguage) => {
-    const profileId = await retrieveProfileId();
-    if (!profileId) {
-        console.warn('Profile ID is empty, skipping API call.');
-        return null;
-    }
-    const langParam = selectedPdfLanguage;
-    // const url = `${BASE_URL}/generate-porutham-pdf-mobile/${profileId}/${idparam}`;
-    const url = `${BASE_URL}/New_horoscope_color/${encryptedId}/${myId}/?lang=${langParam}`;
-    const date = new Date();
-    const formattedDate = date.toISOString().split('T')[0];
-    const fileName = `Horoscope_${selectedPdfLanguage}_${formattedDate}.pdf`;
-
-    // Request storage permission
-    const hasPermission = await requestStoragePermission();
-    if (!hasPermission) {
-        Alert.alert('Permission Denied', 'Storage permission is required to download the file.');
-        return null;
-    }
-
-    // Request notification permission
-    const notificationPermission = await Notifications.requestPermissionsAsync();
-    if (!notificationPermission.granted) {
-        console.warn('Notification permission not granted');
-    }
-
-    // Show initial download notification
-    let notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-            title: 'Download Started',
-            body: `Downloading ${fileName}...`,
-            data: { encryptedId },
-        },
-        trigger: null,
-    });
+    const url = `${BASE_URL}/New_horoscope_color/${encryptedId}/${myId}/?lang=${selectedPdfLanguage}`;
+    const localUri = FileSystem.cacheDirectory + `horoscope_${Date.now()}.pdf`;
 
     try {
-        // First, make a fetch request to check the response type
         const response = await fetch(url, {
             method: 'GET',
-            headers: {
-                'Accept': 'application/pdf, application/json',
-            },
+            headers: { 'Accept': 'application/pdf, application/json' },
         });
 
         const contentType = response.headers.get('content-type');
 
-        // Check if response is JSON (error response)
+        // Check for JSON error (e.g., upgrade required)
         if (contentType && contentType.includes('application/json')) {
             const jsonData = await response.json();
-
-            // Cancel the notification for error case
-            await Notifications.dismissNotificationAsync(notificationId);
-
-            // Return the error response
-            return jsonData;
+            return jsonData; // caller will handle status === 'failure'
         }
 
-        // If it's a PDF, proceed with download
         if (response.ok && contentType && contentType.includes('application/pdf')) {
-            let fileUri;
-            let progress = 0;
-
-            // Use Storage Access Framework (SAF) for Android 10+
-            if (Platform.OS === 'android' && Platform.Version >= 29) {
-                const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-                if (!permissions.granted) {
-                    console.warn('Permission to access the Documents folder was denied.');
-                    await Notifications.dismissNotificationAsync(notificationId);
-                    return null;
-                }
-
-                // Create the file in the user-selected directory
-                fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
-                    permissions.directoryUri,
-                    fileName,
-                    'application/pdf'
-                );
-
-                // Download the file with progress tracking
-                const downloadResumable = FileSystem.createDownloadResumable(
-                    url,
-                    FileSystem.documentDirectory + fileName,
-                    {},
-                    (downloadProgress) => {
-                        progress = Math.round(
-                            (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100
-                        );
-                        updateDownloadNotification(notificationId, progress);
-                    }
-                );
-
-                const { uri } = await downloadResumable.downloadAsync();
-                const pdfData = await FileSystem.readAsStringAsync(uri, {
-                    encoding: FileSystem.EncodingType.Base64
-                });
-
-                // Write the PDF to the selected folder via SAF
-                await FileSystem.StorageAccessFramework.writeAsStringAsync(fileUri, pdfData, {
-                    encoding: FileSystem.EncodingType.Base64,
-                });
-
-            } else {
-                const downloadResumable = FileSystem.createDownloadResumable(
-                    url,
-                    FileSystem.documentDirectory + fileName,
-                    {},
-                    (downloadProgress) => {
-                        progress = Math.round(
-                            (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100
-                        );
-                        updateDownloadNotification(notificationId, progress);
-                    }
-                );
-
-                const { uri } = await downloadResumable.downloadAsync();
-                fileUri = uri;
-            }
-
-            // Complete notification
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title: 'Download Complete',
-                    body: `File saved to: ${fileUri}`,
-                },
-                trigger: null,
-            });
-
-            console.log('PDF downloaded successfully:', fileUri);
-
-            // Automatically open the downloaded PDF
-            openPdf(fileUri);
-
-            return fileUri;
+            // Download directly to cache
+            const downloadResumable = FileSystem.createDownloadResumable(url, localUri, {});
+            const { uri } = await downloadResumable.downloadAsync();
+            return uri; // return the local cache URI
         }
 
         throw new Error('Unexpected response format');
-
     } catch (error) {
-        console.log('Error downloading PDF:', error.message);
-        await Notifications.scheduleNotificationAsync({
-            content: {
-                title: 'Download Error',
-                body: `Failed to download: ${error.message}`,
-            },
-            trigger: null,
-        });
-        return null;
+        console.error('Error fetching Horoscope PDF:', error.message);
+        return { status: 'failure', message: error.message };
     }
 };
 // Fetch profile data API call

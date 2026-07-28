@@ -67,6 +67,8 @@ import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import Timeline from "react-native-timeline-flatlist";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImage";
+import { openCachedPdf } from "../../Screens/AfterLogin/PdfViewerModal"
+
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
 const ProfileDetailsShimmer = () => {
@@ -1057,171 +1059,101 @@ export const ProfileDetails = () => {
   // console.log('photoProtection:', photoProtection);
   // console.log('fetchedUserImages:', fetchedUserImages);
 
-  const handleDownloadPdf = async () => {
-  console.log("handleDownloadPdf ==>", viewedProfileId)
-  bottomSheetRef.current.close();
-  setShowLanguagePopup(false);
-  setLoading(true)
-  
-  try {
-    const encryptedId = profileData?.encrypted_profile_id;
-    const myId = profileData?.My_profile_id;
-    const langParam = selectedPdfLanguage;
-    const result = await Printhoroscopepdf(encryptedId, myId, langParam);
-    
-    // Check if result is an error response (object with status: 'failure')
-    if (result && typeof result === 'object' && result.status === 'failure') {
-      // Handle the failure case
-      Toast.show({ 
-        type: 'error', 
-        text1: 'Error', 
-        text2: result.message || 'Failed to download report' 
-      });
-      return;
-    }
-    
-    // If we get here, the download was successful (result is fileUri string)
-    if (result && typeof result === 'string') {
-      Toast.show({ 
-        type: 'success', 
-        text1: 'Success', 
-        text2: 'Report downloaded successfully!' 
-      });
-    } else {
-      // Unexpected result
-      Toast.show({ 
-        type: 'error', 
-        text1: 'Error', 
-        text2: 'Unexpected response from server' 
-      });
-    }
-    
-    // Reset language selection
-    setSelectedPdfLanguage("english");
-    
-  } catch (error) {
-    console.error('Download error:', error);
-    Toast.show({ 
-      type: 'error', 
-      text1: 'Error', 
-      text2: 'Failed to download the file. Please try again.' 
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
-  // Inside ProfileDetails functional component (before the return statement)
-
-  // const handleDownloadMatchingReport = async () => {
-  //   console.log("handleDownloadMatchingReport called for:", viewedProfileId);
-  //   bottomSheetRef.current.close(); // Close the bottom sheet
-  //   setLoading(true); // Start loading indicator
+  // const handleDownloadPdf = async () => {
+  //   console.log("handleDownloadPdf ==>", viewedProfileId)
+  //   bottomSheetRef.current.close();
+  //   setShowLanguagePopup(false);
+  //   setLoading(true)
 
   //   try {
-  //     // Call the new API function
-  //     const filePath = await downloadMatchingReportPdf(viewedProfileId);
-  //     console.log("downloadMatchingReportPdf", filePath)
-  //     // if (filePath) {
-  //     //   // Optional: Show a toast/alert for success if the internal function didn't already
-  //     //   Toast.show({
-  //     //     type: 'success',
-  //     //     text1: 'Success',
-  //     //     text2: 'Matching Report Download Complete!',
-  //     //     position: "bottom",
-  //     //   });
-  //     // } else {
-  //     //   // Error handling from the API function
-  //     //   Alert.alert("Error", "Failed to download the Matching Report file.");
-  //     // }
+  //     const encryptedId = profileData?.encrypted_profile_id;
+  //     const myId = profileData?.My_profile_id;
+  //     const langParam = selectedPdfLanguage;
+  //     const result = await Printhoroscopepdf(encryptedId, myId, langParam);
+
+  //     // Check if result is an error response (object with status: 'failure')
+  //     if (result && typeof result === 'object' && result.status === 'failure') {
+  //       // Handle the failure case
+  //       Toast.show({
+  //         type: 'error',
+  //         text1: 'Error',
+  //         text2: result.message || 'Failed to download report'
+  //       });
+  //       return;
+  //     }
+
+  //     // If we get here, the download was successful (result is fileUri string)
+  //     if (result && typeof result === 'string') {
+  //       Toast.show({
+  //         type: 'success',
+  //         text1: 'Success',
+  //         text2: 'Report downloaded successfully!'
+  //       });
+  //     } else {
+  //       // Unexpected result
+  //       Toast.show({
+  //         type: 'error',
+  //         text1: 'Error',
+  //         text2: 'Unexpected response from server'
+  //       });
+  //     }
+
+  //     // Reset language selection
+  //     setSelectedPdfLanguage("english");
+
   //   } catch (error) {
-  //     console.error("Error initiating Matching Report download:", error);
-  //     Alert.alert("Error", "An unexpected error occurred during download.");
+  //     console.error('Download error:', error);
+  //     Toast.show({
+  //       type: 'error',
+  //       text1: 'Error',
+  //       text2: 'Failed to download the file. Please try again.'
+  //     });
   //   } finally {
-  //     setLoading(false); // Stop loading indicator
+  //     setLoading(false);
   //   }
   // };
+
   // const handleDownloadMatchingReport = async () => {
   //   console.log("handleDownloadMatchingReport called for:", viewedProfileId);
   //   bottomSheetRef.current.close();
   //   setLoading(true);
 
   //   try {
-  //     const loginuser_profileId = await AsyncStorage.getItem("loginuser_profileId");
-  //     const url = `https://app.vysyamala.com/auth/generate-porutham-pdf-mobile/${loginuser_profileId}/${viewedProfileId}/`;
+  //     // Call the API function from CommonApiCall
+  //     // const result = await downloadPdfPoruthamNew(viewedProfileId);
 
-  //     const response = await fetch(url, {
-  //       method: 'GET',
-  //       headers: {
-  //         'Accept': 'application/pdf, application/json',
-  //       },
-  //     });
+  //     const encryptedId = profileData.encrypted_profile_id;
+  //     const myId = profileData.My_profile_id;
+  //     const result = await downloadPdfPoruthamNew(encryptedId, myId);
+  //     console.log("matching pdf result", result);
 
-  //     const contentType = response.headers.get('content-type');
+  //     // Check if result is null or undefined (permission denied or other error)
+  //     // if (!result) {
+  //     //   Toast.show({
+  //     //     type: 'error',s
+  //     //     text1: 'Error',
+  //     //     text2: 'Failed to download matching report',
+  //     //     position: "bottom",
+  //     //   });
+  //     //   return;
+  //     // }
 
-  //     // Check if response is JSON (error response)
-  //     if (contentType && contentType.includes('application/json')) {
-  //       const jsonData = await response.json();
-
-  //       if (jsonData.status === 'failure' && jsonData.message) {
-  //         // Show upgrade popup with the API message
-  //         setMatchingReportMessage(jsonData.message);
-  //         setShowMatchingReportUpgrade(true);
-  //         return;
-  //       }
+  //     // Check if result is JSON error response (upgrade required)
+  //     // Must check if it's an object first, then check for status property
+  //     if (typeof result === 'object' && result !== null && result.status === 'failure') {
+  //       setResponseMsg(result.message || 'No access to see the compatibility report');
+  //       setShowUpgradeModal(true);
+  //       return;
   //     }
 
-  //     // Check if response is PDF (success response)
-  //     if (response.ok && contentType && contentType.includes('application/pdf')) {
-  //       const blob = await response.blob();
-
-  //       // For Android, save and open the PDF
-  //       if (Platform.OS === 'android') {
-  //         const fileName = `matching_report_${viewedProfileId}.pdf`;
-  //         const filePath = `${FileSystem.documentDirectory}${fileName}`;
-
-  //         // Convert blob to base64
-  //         const reader = new FileReader();
-  //         reader.onloadend = async () => {
-  //           const base64data = reader.result.split(',')[1];
-
-  //           try {
-  //             // Save the PDF file
-  //             await FileSystem.writeAsStringAsync(filePath, base64data, {
-  //               encoding: FileSystem.EncodingType.Base64,
-  //             });
-
-  //             // Open the PDF
-  //             await Linking.openURL(filePath);
-
-  //             Toast.show({
-  //               type: 'success',
-  //               text1: 'Success',
-  //               text2: 'Matching Report downloaded successfully!',
-  //               position: "bottom",
-  //             });
-  //           } catch (error) {
-  //             console.error('Error saving/opening PDF:', error);
-  //             Toast.show({
-  //               type: 'error',
-  //               text1: 'Error',
-  //               text2: 'Failed to save/open PDF',
-  //               position: "bottom",
-  //             });
-  //           }
-  //         };
-  //         reader.readAsDataURL(blob);
-  //       } else {
-  //         // For iOS or other platforms
-  //         Toast.show({
-  //           type: 'success',
-  //           text1: 'Success',
-  //           text2: 'Matching Report generated successfully!',
-  //           position: "bottom",
-  //         });
-  //       }
-  //     } else {
-  //       throw new Error('Unexpected response format');
+  //     if (typeof result === 'string' && result.length > 0) {
+  //       console.log('Matching report downloaded successfully:', result);
+  //       Toast.show({
+  //         type: 'success',
+  //         text1: 'Success',
+  //         text2: 'Matching report downloaded successfully!',
+  //         position: "bottom",
+  //       });
   //     }
 
   //   } catch (error) {
@@ -1229,7 +1161,7 @@ export const ProfileDetails = () => {
   //     Toast.show({
   //       type: 'error',
   //       text1: 'Error',
-  //       text2: 'Failed to download matching report',
+  //       text2: error.message || 'Failed to download matching report. Please try again.',
   //       position: "bottom",
   //     });
   //   } finally {
@@ -1237,33 +1169,64 @@ export const ProfileDetails = () => {
   //   }
   // };
 
+  // Inside ProfileDetails component
+
+  const handleDownloadPdf = async () => {
+    bottomSheetRef.current.close();
+    setShowLanguagePopup(false);
+    setLoading(true);
+
+    try {
+      const encryptedId = profileData?.encrypted_profile_id;
+      const myId = profileData?.My_profile_id;
+      const langParam = selectedPdfLanguage;
+      const result = await Printhoroscopepdf(encryptedId, myId, langParam);
+
+      // Check for error response
+      if (result && typeof result === 'object' && result.status === 'failure') {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: result.message || 'Failed to fetch horoscope',
+        });
+        return;
+      }
+
+      // On success, result is a string (local URI)
+      if (typeof result === 'string' && result.length > 0) {
+        // Open the PDF immediately (view-only)
+        await openCachedPdf(result);
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Profile Opened successfully!',
+        });
+      } else {
+        throw new Error('Unexpected result');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to load horoscope. Please try again.',
+      });
+    } finally {
+      setLoading(false);
+      setSelectedPdfLanguage('english');
+    }
+  };
+
   const handleDownloadMatchingReport = async () => {
-    console.log("handleDownloadMatchingReport called for:", viewedProfileId);
     bottomSheetRef.current.close();
     setLoading(true);
 
     try {
-      // Call the API function from CommonApiCall
-      // const result = await downloadPdfPoruthamNew(viewedProfileId);
-
-      const encryptedId = profileData.encrypted_profile_id;
-      const myId = profileData.My_profile_id;
+      const encryptedId = profileData?.encrypted_profile_id;
+      const myId = profileData?.My_profile_id;
       const result = await downloadPdfPoruthamNew(encryptedId, myId);
-      console.log("matching pdf result", result);
 
-      // Check if result is null or undefined (permission denied or other error)
-      // if (!result) {
-      //   Toast.show({
-      //     type: 'error',s
-      //     text1: 'Error',
-      //     text2: 'Failed to download matching report',
-      //     position: "bottom",
-      //   });
-      //   return;
-      // }
-
-      // Check if result is JSON error response (upgrade required)
-      // Must check if it's an object first, then check for status property
+      // Check for error (upgrade required, etc.)
       if (typeof result === 'object' && result !== null && result.status === 'failure') {
         setResponseMsg(result.message || 'No access to see the compatibility report');
         setShowUpgradeModal(true);
@@ -1271,22 +1234,22 @@ export const ProfileDetails = () => {
       }
 
       if (typeof result === 'string' && result.length > 0) {
-        console.log('Matching report downloaded successfully:', result);
+        // Open the cached PDF directly
+        await openCachedPdf(result);
         Toast.show({
           type: 'success',
           text1: 'Success',
-          text2: 'Matching report downloaded successfully!',
-          position: "bottom",
+          text2: 'Matching report loaded successfully!',
         });
+      } else {
+        throw new Error('Unexpected result');
       }
-
     } catch (error) {
-      console.error("Error downloading matching report:", error);
+      console.error('Error loading matching report:', error);
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: error.message || 'Failed to download matching report. Please try again.',
-        position: "bottom",
+        text2: error.message || 'Failed to load matching report.',
       });
     } finally {
       setLoading(false);

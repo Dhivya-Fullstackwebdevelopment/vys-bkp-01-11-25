@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import Svg, { Path, Circle } from "react-native-svg";
-import { downloadPdfPoruthamNew } from "../CommonApiCall/CommonApiCall";
+import { fetchPoruthamPdfForViewing } from "../CommonApiCall/CommonApiCall";
+import { openCachedPdf } from "../Screens/AfterLogin/PdfViewerModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function MatchingScore({ scorePercentage, viewedProfileId, onScorePress, onUpgradeRequired }) {
   const [loading, setLoading] = useState(false);
   const [encryptedId, setEncryptedId] = useState(null);
   const [myId, setMyId] = useState(null);
+  const [lastLocalUri, setLastLocalUri] = useState(null);
 
   useEffect(() => {
     const loadIds = async () => {
       try {
         const eId = await AsyncStorage.getItem('encryptedId');
         const mId = await AsyncStorage.getItem('myId');
-        console.log("encryptedId, myId", encryptedId, myId)
         setEncryptedId(eId);
         setMyId(mId);
       } catch (error) {
@@ -24,7 +25,6 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
     loadIds();
   }, []);
 
-  console.log("scorePercentage check ==>", scorePercentage);
   const screenWidth = Dimensions.get("window").width;
   const radius = Math.min(screenWidth * 0.25, 60);
   const strokeWidth = 20;
@@ -32,13 +32,13 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
   const progress = Math.min((scorePercentage / 100) * Math.PI, Math.PI);
 
   const getEmoji = () => {
-    if (scorePercentage >= 75) return "😊"
-    if (scorePercentage >= 50 && scorePercentage <= 74) return "🙂"
-    if (scorePercentage >= 25 && scorePercentage <= 49) return "😐"
-    return "😞"
-  }
+    if (scorePercentage >= 75) return "😊";
+    if (scorePercentage >= 50 && scorePercentage <= 74) return "🙂";
+    if (scorePercentage >= 25 && scorePercentage <= 49) return "😐";
+    return "😞";
+  };
 
-  const handleDownloadPdf = async () => {
+  const handleOpenPdf = async () => {
     if (!encryptedId || !myId) {
       Alert.alert("Error", "Session data missing. Please try again.");
       return;
@@ -46,21 +46,28 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
 
     try {
       setLoading(true);
-      const result = await downloadPdfPoruthamNew(encryptedId, myId);
-      console.log("Matching score api result",result)
+      const result = await fetchPoruthamPdfForViewing(encryptedId, myId);
 
-      if (result && (result.status === "failure" || result.Status === 0)) {
+      if (!result) {
+        Alert.alert("Error", "Something went wrong.");
+        return;
+      }
+
+      if (result.status === "failure" || result.Status === 0) {
         if (onUpgradeRequired) {
           onUpgradeRequired(result.message || "Upgrade required to view report");
         }
         return;
       }
 
-      // Success - file downloaded and shared
-      Alert.alert("Success", "PDF downloaded successfully!");
+      if (result.status === "success" && result.localUri) {
+        setLastLocalUri(result.localUri);
+        // ✅ Open PDF immediately – no "Save this report?" alert
+        await openCachedPdf(result.localUri);
+      }
 
     } catch (error) {
-      console.error("Error downloading PDF:", error);
+      console.error("Error fetching PDF:", error);
       Alert.alert("Error", "An unexpected error occurred: " + error.message);
     } finally {
       setLoading(false);
@@ -77,17 +84,12 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handleDownloadPdf} disabled={loading}>
+    <TouchableOpacity style={styles.container} onPress={handleOpenPdf} disabled={loading}>
       {loading ? (
         <ActivityIndicator size="large" color="#4A9E80" />
       ) : (
         <View style={styles.gaugeContainer}>
-          {/* SVG remains the same */}
-          <Svg
-            width={(radius + strokeWidth) * 2}
-            height={(radius + strokeWidth + 10) * 2}
-          >
-            {/* Background segments */}
+          <Svg width={(radius + strokeWidth) * 2} height={(radius + strokeWidth + 10) * 2}>
             {[0, 0.25, 0.5, 0.75].map((segment, index) => (
               <Path
                 key={`segment-${index}`}
@@ -98,8 +100,6 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
                 fill="none"
               />
             ))}
-
-            {/* Segment divider lines */}
             {[0.25, 0.5, 0.75].map((segment, index) => {
               const angle = segment * Math.PI - Math.PI;
               const x1 = center + (radius - strokeWidth / 2) * Math.cos(angle);
@@ -107,37 +107,19 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
               const x2 = center + (radius + strokeWidth / 2) * Math.cos(angle);
               const y2 = center + (radius + strokeWidth / 2) * Math.sin(angle);
               return (
-                <Path
-                  key={`divider-${index}`}
-                  d={`M ${x1} ${y1} L ${x2} ${y2}`}
-                  stroke="white"
-                  strokeWidth={2}
-                />
+                <Path key={`divider-${index}`} d={`M ${x1} ${y1} L ${x2} ${y2}`} stroke="white" strokeWidth={2} />
               );
             })}
-
-            {/* Indicator arrow */}
             {(() => {
               const angle = progress - Math.PI;
               const x1 = center + (radius - strokeWidth - 5) * Math.cos(angle);
               const y1 = center + (radius - strokeWidth - 5) * Math.sin(angle);
               const x2 = center + (radius + 5) * Math.cos(angle);
               const y2 = center + (radius + 5) * Math.sin(angle);
-              return (
-                <Path
-                  d={`M ${x1} ${y1} L ${x2} ${y2}`}
-                  stroke="#333"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                />
-              );
+              return <Path d={`M ${x1} ${y1} L ${x2} ${y2}`} stroke="#333" strokeWidth={3} strokeLinecap="round" />;
             })()}
-
-            {/* Center circle */}
             <Circle cx={center} cy={center} r={radius - 20} fill="#ffffff" stroke="#333333" strokeWidth={2} />
           </Svg>
-
-          {/* Center content */}
           <View style={styles.centerContent}>
             <Text style={styles.emoji}>{getEmoji()}</Text>
             <Text style={styles.percentage}>{scorePercentage}%</Text>
@@ -149,34 +131,9 @@ export default function MatchingScore({ scorePercentage, viewedProfileId, onScor
 }
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  gaugeContainer: {
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  centerContent: {
-    position: "absolute",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emoji: {
-    fontSize: 20,
-    marginBottom: 2,
-  },
-  percentage: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333333",
-  },
-  label: {
-    marginTop: 12,
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
+  container: { alignItems: "center", justifyContent: "center", padding: 20 },
+  gaugeContainer: { position: "relative", alignItems: "center", justifyContent: "center" },
+  centerContent: { position: "absolute", alignItems: "center", justifyContent: "center" },
+  emoji: { fontSize: 20, marginBottom: 2 },
+  percentage: { fontSize: 16, fontWeight: "600", color: "#333333" },
 });
