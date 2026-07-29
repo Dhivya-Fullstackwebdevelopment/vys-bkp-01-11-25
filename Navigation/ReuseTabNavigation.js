@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const tabs = [
   { name: 'Home', icon: 'home', route: 'HomeWithToast' },
   { name: 'Search', icon: 'search', route: 'Search' },
-  { name: 'DashBoard j', icon: 'dashboard', route: 'DashBoard' },
+  { name: 'DashBoard', icon: 'dashboard', route: 'DashBoard' },
   { name: 'Menu', icon: 'menu', route: 'Menu' },
 ];
 

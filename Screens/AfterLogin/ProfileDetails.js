@@ -71,12 +71,20 @@ import { openCachedPdf } from "../../Screens/AfterLogin/PdfViewerModal"
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
+// ---- Collapsing header tuning constants (layout only, no color/theme changes) ----
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const HERO_IMAGE_HEIGHT = 400;
+const COMPACT_HEADER_HEIGHT = 64;
+// Point (in scroll px) at which the hero image is considered fully collapsed
+const COLLAPSE_DISTANCE = HERO_IMAGE_HEIGHT - COMPACT_HEADER_HEIGHT;
+
 const ProfileDetailsShimmer = () => {
   const width = Dimensions.get('window').width;
 
   return (
     <ScrollView>
       <View style={styles.container}>
+        {/* Top Header Shimmer */}
         <View style={styles.headerContainer}>
           <ShimmerPlaceholder style={{ width: 24, height: 24, borderRadius: 12 }} />
           <ShimmerPlaceholder style={{ width: 150, height: 24, marginHorizontal: 20 }} />
@@ -102,55 +110,47 @@ const ProfileDetailsShimmer = () => {
         </View>
 
         <View style={styles.contentContainer}>
-          {/* Profile Name and Icons */}
+          {/* Name and Header Icons Shimmer */}
           <View style={styles.nameIconFlex}>
             <View style={styles.nameVerifyFlex}>
-              <ShimmerPlaceholder style={{ width: 150, height: 28, marginRight: 10 }} />
+              <ShimmerPlaceholder style={{ width: 160, height: 26, borderRadius: 4, marginRight: 8 }} />
               <ShimmerPlaceholder style={{ width: 20, height: 20, borderRadius: 10 }} />
             </View>
-            <View style={{ flexDirection: 'row' }}>
-              <ShimmerPlaceholder style={{ width: 22, height: 22, marginHorizontal: 5 }} />
-              <ShimmerPlaceholder style={{ width: 24, height: 24, marginHorizontal: 5 }} />
-              <ShimmerPlaceholder style={{ width: 24, height: 24, marginLeft: 5 }} />
+
+            <View style={styles.iconFlex}>
+              <ShimmerPlaceholder style={{ width: 22, height: 22, borderRadius: 4, marginHorizontal: 4 }} />
+              <ShimmerPlaceholder style={{ width: 22, height: 22, borderRadius: 4, marginHorizontal: 4 }} />
+              <ShimmerPlaceholder style={{ width: 22, height: 22, borderRadius: 4, marginLeft: 4 }} />
             </View>
           </View>
 
-          {/* Profile ID */}
-          <ShimmerPlaceholder style={{ width: 100, height: 20, marginVertical: 10 }} />
+          {/* Profile ID Shimmer */}
+          <ShimmerPlaceholder style={{ width: 90, height: 16, borderRadius: 4, marginBottom: 12 }} />
 
-          {/* Details Section */}
+          {/* Details & Matching Score Row Shimmer */}
           <View style={styles.detailsMeterFlex}>
-            <View style={{ flex: 1 }}>
-              {[1, 2, 3, 4, 5, 6, 7].map((_, index) => (
-                <ShimmerPlaceholder
-                  key={index}
-                  style={{
-                    width: '80%',
-                    height: 20,
-                    marginBottom: 15,
-                    borderRadius: 4
-                  }}
-                />
-              ))}
+            <View style={styles.bulletTextContainer}>
+              <ShimmerPlaceholder style={{ width: '90%', height: 16, borderRadius: 4, marginBottom: 8 }} />
+              <ShimmerPlaceholder style={{ width: '75%', height: 16, borderRadius: 4 }} />
             </View>
-            <ShimmerPlaceholder
-              style={{
-                width: 100,
-                height: 100,
-                borderRadius: 50,
-                marginLeft: 20
-              }}
-            />
+            <ShimmerPlaceholder style={{ width: 100, height: 100, borderRadius: 50 }} />
           </View>
 
-          {/* Status Tags */}
-          <View style={styles.detailsMeterFlex1}>
-            <ShimmerPlaceholder style={{ width: '45%', height: 30, borderRadius: 3, marginRight: 10 }} />
-            <ShimmerPlaceholder style={{ width: '45%', height: 30, borderRadius: 3 }} />
+          {/* Filter Tags Rows Shimmer */}
+          <View style={styles.tagsRow}>
+            <ShimmerPlaceholder style={{ width: 130, height: 28, borderRadius: 14, marginRight: 12 }} />
+            <ShimmerPlaceholder style={{ width: 110, height: 28, borderRadius: 14 }} />
           </View>
 
-          {/* Action Buttons */}
-          <ShimmerPlaceholder style={{ width: '100%', height: 45, borderRadius: 5, marginVertical: 20 }} />
+          <View style={styles.tagsRow}>
+            <ShimmerPlaceholder style={{ width: 150, height: 28, borderRadius: 14, marginRight: 12 }} />
+            <ShimmerPlaceholder style={{ width: 90, height: 28, borderRadius: 14 }} />
+          </View>
+
+          {/* Express Interest Button Shimmer */}
+          <View style={styles.buttonContainerExpress}>
+            <ShimmerPlaceholder style={{ width: 150, height: 42, borderRadius: 6 }} />
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -159,7 +159,9 @@ const ProfileDetailsShimmer = () => {
 
 export const ProfileDetails = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
-  const headerHeight = 1010; // Height of the profile image section
+  const scrollViewRef = useRef(null);
+  // Height of the profile image/hero section that should collapse into the sticky header
+  const headerHeight = HERO_IMAGE_HEIGHT;
   // Navigation
   const navigation = useNavigation();
   const route = useRoute();
@@ -216,25 +218,6 @@ export const ProfileDetails = () => {
       setCurrentProfileIndex(index !== -1 ? index : 0);
     }
   }, [allProfileIds, viewedProfileId]);
-
-  // Navigation functions
-  // const navigateToProfile = (index) => {
-  //   if (index >= 0 && index < profileIds.length) {
-  //     navigation.replace("ProfileDetails", {
-  //       viewedProfileId: profileIds[index],
-  //       interestParam,
-  //       allProfileIds
-  //     });
-  //   }
-  // };
-
-  // const goToNextProfile = () => {
-  //   navigateToProfile(currentProfileIndex + 1);
-  // };
-
-  // const goToPreviousProfile = () => {
-  //   navigateToProfile(currentProfileIndex - 1);
-  // };
 
   // Navigation functions
   const navigateToProfile = async (index) => {
@@ -349,6 +332,9 @@ export const ProfileDetails = () => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [responseMsg, setResponseMsg] = useState('');
   console.log("responseMsg", responseMsg)
+  // NOTE: these flags are now only used to highlight the active section pill
+  // in the (now sticky, always-scrollable) icon row. All detail sections
+  // render continuously in the page; nothing is hidden/toggled any more.
   const [showPersonalDetails, setShowPersonalDetails] = useState(true);
   const [showEducationDetails, setShowEducationDetails] = useState(false);
   const [showFamilyDetails, setShowFamilyDetails] = useState(false);
@@ -369,6 +355,25 @@ export const ProfileDetails = () => {
   const [showLanguagePopup, setShowLanguagePopup] = useState(false);
   const [blockModalVisible, setBlockModalVisible] = useState(false);
   const [blockLoading, setBlockLoading] = useState(false);
+
+  // ---- Section scroll offsets, captured via onLayout so the icon row can
+  // smooth-scroll to a section instead of hiding/showing content ----
+  const sectionOffsetsRef = useRef({
+    detailsTop: 0,
+    personal: 0,
+    education: 0,
+    family: 0,
+    horoscope: 0,
+    contact: 0,
+  });
+
+  const scrollToSection = (key) => {
+    const offsets = sectionOffsetsRef.current;
+    const y = Math.max(0, (offsets.detailsTop || 0) + (offsets[key] || 0) - 10);
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y, animated: true });
+    }
+  };
 
   const handleBlockProfile = async () => {
     try {
@@ -435,7 +440,8 @@ export const ProfileDetails = () => {
     setShowFamilyDetails(false)
     setShowHoroscopeDetails(false)
     setShowContactDetails(false)
-    setShowPersonalDetails((prev) => !prev);
+    setShowPersonalDetails(true);
+    scrollToSection('personal');
   };
 
   const toggleEducationDetails = () => {
@@ -443,7 +449,8 @@ export const ProfileDetails = () => {
     setShowFamilyDetails(false)
     setShowHoroscopeDetails(false)
     setShowContactDetails(false)
-    setShowEducationDetails((prev) => !prev);
+    setShowEducationDetails(true);
+    scrollToSection('education');
   };
 
   const toggleFamilyDetails = () => {
@@ -451,7 +458,8 @@ export const ProfileDetails = () => {
     setShowEducationDetails(false)
     setShowHoroscopeDetails(false)
     setShowContactDetails(false)
-    setShowFamilyDetails((prev) => !prev);
+    setShowFamilyDetails(true);
+    scrollToSection('family');
   };
 
   const toggleHoroscopeDetails = () => {
@@ -459,7 +467,8 @@ export const ProfileDetails = () => {
     setShowEducationDetails(false)
     setShowFamilyDetails(false)
     setShowContactDetails(false)
-    setShowHoroscopeDetails((prev) => !prev);
+    setShowHoroscopeDetails(true);
+    scrollToSection('horoscope');
   };
 
   const toggleContactDetails = () => {
@@ -472,7 +481,8 @@ export const ProfileDetails = () => {
       setShowEducationDetails(false)
       setShowFamilyDetails(false)
       setShowHoroscopeDetails(false)
-      setShowContactDetails((prev) => !prev);
+      setShowContactDetails(true);
+      scrollToSection('contact');
     }
   };
 
@@ -706,15 +716,6 @@ export const ProfileDetails = () => {
           "No response from the opposite side",
         ];
         setOptions(options);
-        // const rasiData = await fetchRasiImage(viewedProfileId); // <--- Pass the ID here
-
-        // if (rasiData && rasiData.status === 1) {
-        //   console.log("Rasi Image Found:", rasiData.image);
-        //   setRasiImage(rasiData.image);
-        // } else {
-        //   console.log("Rasi Image Not Found");
-        //   setRasiImage(null);
-        // }
 
         const rasiData = await fetchRasiImage(viewedProfileId);
         if (rasiData && rasiData.status === 1) {
@@ -860,12 +861,6 @@ export const ProfileDetails = () => {
         console.log("Wishlist response:", response);
 
         if (!response || !Array.isArray(response)) {
-          // Toast.show({
-          //   type: "info",
-          //   text1: "Some profiles were deleted",
-          //   visibilityTime: 2000,
-          //   position: "bottom",
-          // });
           console.warn("Invalid wishlist response:", response);
           return;
         }
@@ -1055,122 +1050,6 @@ export const ProfileDetails = () => {
     }
   };
 
-  // console.log('isProfileUnlocked:', isProfileUnlocked);
-  // console.log('photoProtection:', photoProtection);
-  // console.log('fetchedUserImages:', fetchedUserImages);
-
-  // const handleDownloadPdf = async () => {
-  //   console.log("handleDownloadPdf ==>", viewedProfileId)
-  //   bottomSheetRef.current.close();
-  //   setShowLanguagePopup(false);
-  //   setLoading(true)
-
-  //   try {
-  //     const encryptedId = profileData?.encrypted_profile_id;
-  //     const myId = profileData?.My_profile_id;
-  //     const langParam = selectedPdfLanguage;
-  //     const result = await Printhoroscopepdf(encryptedId, myId, langParam);
-
-  //     // Check if result is an error response (object with status: 'failure')
-  //     if (result && typeof result === 'object' && result.status === 'failure') {
-  //       // Handle the failure case
-  //       Toast.show({
-  //         type: 'error',
-  //         text1: 'Error',
-  //         text2: result.message || 'Failed to download report'
-  //       });
-  //       return;
-  //     }
-
-  //     // If we get here, the download was successful (result is fileUri string)
-  //     if (result && typeof result === 'string') {
-  //       Toast.show({
-  //         type: 'success',
-  //         text1: 'Success',
-  //         text2: 'Report downloaded successfully!'
-  //       });
-  //     } else {
-  //       // Unexpected result
-  //       Toast.show({
-  //         type: 'error',
-  //         text1: 'Error',
-  //         text2: 'Unexpected response from server'
-  //       });
-  //     }
-
-  //     // Reset language selection
-  //     setSelectedPdfLanguage("english");
-
-  //   } catch (error) {
-  //     console.error('Download error:', error);
-  //     Toast.show({
-  //       type: 'error',
-  //       text1: 'Error',
-  //       text2: 'Failed to download the file. Please try again.'
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const handleDownloadMatchingReport = async () => {
-  //   console.log("handleDownloadMatchingReport called for:", viewedProfileId);
-  //   bottomSheetRef.current.close();
-  //   setLoading(true);
-
-  //   try {
-  //     // Call the API function from CommonApiCall
-  //     // const result = await downloadPdfPoruthamNew(viewedProfileId);
-
-  //     const encryptedId = profileData.encrypted_profile_id;
-  //     const myId = profileData.My_profile_id;
-  //     const result = await downloadPdfPoruthamNew(encryptedId, myId);
-  //     console.log("matching pdf result", result);
-
-  //     // Check if result is null or undefined (permission denied or other error)
-  //     // if (!result) {
-  //     //   Toast.show({
-  //     //     type: 'error',s
-  //     //     text1: 'Error',
-  //     //     text2: 'Failed to download matching report',
-  //     //     position: "bottom",
-  //     //   });
-  //     //   return;
-  //     // }
-
-  //     // Check if result is JSON error response (upgrade required)
-  //     // Must check if it's an object first, then check for status property
-  //     if (typeof result === 'object' && result !== null && result.status === 'failure') {
-  //       setResponseMsg(result.message || 'No access to see the compatibility report');
-  //       setShowUpgradeModal(true);
-  //       return;
-  //     }
-
-  //     if (typeof result === 'string' && result.length > 0) {
-  //       console.log('Matching report downloaded successfully:', result);
-  //       Toast.show({
-  //         type: 'success',
-  //         text1: 'Success',
-  //         text2: 'Matching report downloaded successfully!',
-  //         position: "bottom",
-  //       });
-  //     }
-
-  //   } catch (error) {
-  //     console.error("Error downloading matching report:", error);
-  //     Toast.show({
-  //       type: 'error',
-  //       text1: 'Error',
-  //       text2: error.message || 'Failed to download matching report. Please try again.',
-  //       position: "bottom",
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // Inside ProfileDetails component
-
   const handleDownloadPdf = async () => {
     bottomSheetRef.current.close();
     setShowLanguagePopup(false);
@@ -1289,11 +1168,6 @@ export const ProfileDetails = () => {
     }
   };
 
-  // const handleSubmit = () => {
-  //   console.log("Selected Options:", selectedOptions);
-  //   closePopup();
-  // };
-
   const formDate = (isoString) => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-US", {
@@ -1325,7 +1199,6 @@ export const ProfileDetails = () => {
     } else {
       alert(response.message);
     }
-    // console.log('Submitted:', message);
     closePopup();
   };
 
@@ -1344,7 +1217,6 @@ export const ProfileDetails = () => {
       setExpressInterestError("Please select at least one option.");
       return;
     }
-    // console.log("selectedOptions ==>", selectedOptions)
     try {
       const message = selectedOptions.join(", ");
       const response = await sendVysassistRequest(viewedProfileId, message);
@@ -1360,9 +1232,7 @@ export const ProfileDetails = () => {
           topOffset: 30
         });
         setExpressInterestError("");
-        //setShowVysassist(false);
         setSelectedOptions([]);
-        // bottomSheetRef.current.close();
         setRemainCount(response.vys_assist_count);
         setIsSuccess(true);
 
@@ -1375,7 +1245,6 @@ export const ProfileDetails = () => {
 
           setProfileData(data);
           setVysassistEnable(data.basic_details.vysy_assist_enable);
-          // setVysassits(data.basic_details.vys_assits);
 
           if (data.basic_details.vys_list !== null) {
             const formatDate = (dateString) => {
@@ -1545,15 +1414,6 @@ export const ProfileDetails = () => {
             style={styles.thumbnail}
             disabled={isBlurNeeded}
           >
-            {/* <Image
-              source={{ uri: getSafeImage(Array.isArray(image) ? image[0] : image) }}
-              style={[
-                styles.thumbnailImage,
-                // Apply blurRadius if locked. 10 is usually sufficient for thumbnails.
-                isBlurNeeded && { blurRadius: 10, opacity: 0.8 }
-              ]}
-            /> */}
-
             <TopAlignedImage
               uri={getSafeImage(Array.isArray(image) ? image[0] : image)}
               width={100}
@@ -1580,14 +1440,6 @@ export const ProfileDetails = () => {
             onPress={() => !isBlurNeeded && handleSlidePress(4)}
             disabled={isBlurNeeded}
           >
-            {/* <Image
-              source={{ uri: getSafeImage(imagesArray[4]) }}
-              style={[
-                styles.thumbnailImage,
-                isBlurNeeded && { blurRadius: 10 }
-              ]}
-            /> */}
-
             <TopAlignedImage
               uri={getSafeImage(imagesArray[4])}
               width={100}
@@ -1617,9 +1469,7 @@ export const ProfileDetails = () => {
 
     const options = [
       { icon: 'phone', text: 'Call', onPress: handlePhoneCall, type: 'MaterialCommunityIcons' },
-      // { icon: 'share', text: 'Share', onPress: handleShare, type: 'MaterialIcons' },
       { icon: 'document-text', text: 'Personal Notes', onPress: toggleModal, type: 'Ionicons' },
-      // { icon: 'account-voice', text: 'Vys Assist', onPress: openPopup, type: 'MaterialCommunityIcons' },
       ...(!isPlan16
         ? [{ icon: "account-voice", text: "Vys Assist", onPress: openPopup, type: "MaterialCommunityIcons" }]
         : []),
@@ -1636,7 +1486,6 @@ export const ProfileDetails = () => {
         onPress: handleDownloadMatchingReport,
         type: 'MaterialIcons'
       },
-      // { icon: 'report-problem', text: 'Report Profile', onPress: () => { }, type: 'MaterialIcons' },
       {
         icon: 'block', text: 'Block Profile', onPress: () => {
           bottomSheetRef.current.close();
@@ -1706,6 +1555,32 @@ export const ProfileDetails = () => {
       </TouchableOpacity>
     </View>
   );
+
+  // The primary display image (mirrors original main-image logic)
+  const primaryImageUri = getSafeImage((fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0]);
+  const isLocked = !isProfileUnlocked && photoProtection === 1;
+
+  // Sticky/collapsing hero interpolations
+  const heroTranslateY = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [0, -COLLAPSE_DISTANCE],
+    extrapolate: 'clamp',
+  });
+  const heroOpacity = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE * 0.6, COLLAPSE_DISTANCE],
+    outputRange: [1, 0.4, 0],
+    extrapolate: 'clamp',
+  });
+  const compactBarOpacity = scrollY.interpolate({
+    inputRange: [COLLAPSE_DISTANCE * 0.5, COLLAPSE_DISTANCE],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+  const compactBarTranslateY = scrollY.interpolate({
+    inputRange: [COLLAPSE_DISTANCE * 0.5, COLLAPSE_DISTANCE],
+    outputRange: [-16, 0],
+    extrapolate: 'clamp',
+  });
 
   return (
     <View style={styles.mainContainer}>
@@ -1782,99 +1657,193 @@ export const ProfileDetails = () => {
           </View>
         </View>
       </Modal>
-      {/* Fixed Header */}
+
+      {/* ===== Fixed top bar (always visible) ===== */}
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#282C3F" />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Profile Details</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerText} numberOfLines={1}>Profile Details</Text>
+      </View>
+
+      {/* ===== Compact sticky profile bar - fades/slides in as hero collapses ===== */}
+      <Animated.View
+        pointerEvents={"box-none"}
+        style={[
+          styles.compactProfileBar,
+          {
+            opacity: compactBarOpacity,
+            transform: [{ translateY: compactBarTranslateY }],
+          },
+        ]}
+      >
+        <Image
+          source={{ uri: primaryImageUri }}
+          style={[styles.compactAvatar, isLocked && { opacity: 0.5 }]}
+          blurRadius={isLocked ? 8 : 0}
+        />
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.compactName} numberOfLines={1}>{basic_details.profile_name}</Text>
+            <Ionicons name="shield-checkmark" size={14} color="#53C840" style={{ marginLeft: 6 }} />
+          </View>
+          <Text style={styles.compactSub} numberOfLines={1}>
+            {basic_details.profile_id} • {basic_details.age} yrs
+          </Text>
+        </View>
+        <TouchableOpacity onPress={handlePhoneCall} style={{ marginRight: 8 }}>
+          <MaterialIcons name="phone" size={22} color="#4F515D" />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => handleSavePress(profileData?.basic_details?.profile_id)}>
+          <MaterialIcons
+            name={bookmarkedProfiles.has(profileData?.basic_details?.profile_id) ? 'bookmark' : 'bookmark-border'}
+            size={20}
+            color="red"
+          />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => bottomSheetRef.current.open()}>
+          <MaterialIcons name="more-vert" size={22} color="#282C3F" />
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* ===== Sticky prev/next navigation arrows - pinned on screen, always visible while scrolling ===== */}
+      <View style={styles.navigationContainer} pointerEvents="box-none">
+        {/* Left/Previous Button - Always show but disable when needed */}
+        <TouchableOpacity
+          onPress={currentProfileIndex > 0 && !isLoadingProfiles ? goToPreviousProfile : null}
+          style={[
+            styles.navButton,
+            (currentProfileIndex === 0 || isLoadingProfiles) && styles.disabledButton
+          ]}
+          disabled={currentProfileIndex === 0 || isLoadingProfiles}
+          activeOpacity={currentProfileIndex === 0 || isLoadingProfiles ? 1 : 0.7}
+        >
+          <Ionicons
+            name="chevron-back-circle"
+            size={40}
+            color={currentProfileIndex === 0 || isLoadingProfiles ? "#D3D3D3" : "red"}
+          />
+        </TouchableOpacity>
+
+        {/* Right/Next Button - Show only if not last profile */}
+        {profileIds.length > 0 && currentProfileIndex < profileIds.length - 1 && (
+          <TouchableOpacity
+            onPress={!isLoadingProfiles ? goToNextProfile : null}
+            style={[styles.navButton, isLoadingProfiles && styles.disabledButton]}
+            disabled={isLoadingProfiles}
+            activeOpacity={isLoadingProfiles ? 1 : 0.7}
+          >
+            <Ionicons
+              name="chevron-forward-circle"
+              size={40}
+              color={isLoadingProfiles ? "#D3D3D3" : "red"}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Main Content */}
       <View style={styles.container}>
         <Animated.ScrollView
+          ref={scrollViewRef}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: false }
+            { useNativeDriver: true }
           )}
           scrollEventThrottle={16}
+          contentContainerStyle={{ paddingTop: 0 }}
         >
 
-          <View style={styles.contentWrapper}>
-            {/* <TouchableOpacity
-              onPress={() => !(!isProfileUnlocked && photoProtection === 1) && handleSlidePress(0)}
-              disabled={!isProfileUnlocked && photoProtection === 1}
-            > */}
-            <TouchableOpacity
-              onPress={() => {
-                // Check if locked and NOT yet unlocked by password
-                if (!isProfileUnlocked && photoProtection === 1) {
-                  setPassword('');
-                  setIsPasswordModalVisible(true);
-                } else {
-                  handleSlidePress(0);
-                }
-              }}
-              // Keep disabled false so the click always registers to show the popup
-              disabled={false}
-            >
-              {/* <Image
-                source={{ uri: getSafeImage((fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0]) }}
-                style={[
-                  styles.mainImage,
-                  (!isProfileUnlocked && photoProtection === 1) && { blurRadius: 15 } // Apply blur if locked
-                ]}
-                resizeMode="cover"
-              /> */}
-              <Image
-                source={{ uri: getSafeImage((fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0]) }}
-                style={[
-                  styles.mainImage,
-                  (!isProfileUnlocked && photoProtection === 1) && { blurRadius: 20 }
-                ]}
-                resizeMode="cover"
-              />
-
-              {/* Overlay Lock Symbol */}
-              {!isProfileUnlocked && photoProtection === 1 && (
-                <View style={styles.lockOverlayLarge}>
-                  <MaterialCommunityIcons name="lock" size={60} color="#FF6666" />
-                  <Text style={styles.lockOverlayText}>
-                    Click here to request password to view profile photo
-                  </Text>
-                </View>
-              )}
-
-              {/* LOCK OVERLAY: Add this block */}
-              {/* {!isProfileUnlocked && photoProtection === 1 && (
-                <View style={styles.passwordContainer}>
-                  <Text style={styles.lockedMessage}>
-                    * Profile is locked, please enter the password to view the image
-                  </Text>
-                  <View style={styles.inputWrapper}>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="Enter the password"
-                      secureTextEntry={!passwordVisible}
-                      value={password}
-                      onChangeText={setPassword}
+          {/* ===== Collapsing hero image block ===== */}
+          <Animated.View
+            style={[
+              styles.heroWrapper,
+              {
+                transform: [{ translateY: heroTranslateY }],
+              },
+            ]}
+          >
+            <Animated.View style={{ opacity: heroOpacity }}>
+              <View style={styles.contentWrapper}>
+                {isLocked ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setPassword('');
+                      setIsPasswordModalVisible(true);
+                    }}
+                  >
+                    <Image
+                      source={{ uri: primaryImageUri }}
+                      style={styles.mainImage}
+                      resizeMode="cover"
+                      blurRadius={20}
                     />
-                    <TouchableOpacity
-                      onPress={() => setPasswordVisible(!passwordVisible)}
-                      style={styles.eyeIcon}
-                    >
-                      <MaterialIcons name={passwordVisible ? 'visibility' : 'visibility-off'} size={24} color="black" />
-                    </TouchableOpacity>
-                  </View>
-                  <TouchableOpacity onPress={handlePasswordSubmit} style={styles.submitButton}>
-                    <Text style={styles.submitButtonText}>Submit Password</Text>
+
+                    {/* Overlay Lock Symbol */}
+                    <View style={styles.lockOverlayLarge}>
+                      <MaterialCommunityIcons name="lock" size={60} color="#FF6666" />
+                      <Text style={styles.lockOverlayText}>
+                        Click here to request password to view profile photo
+                      </Text>
+                    </View>
                   </TouchableOpacity>
-                </View>
-              )} */}
-            </TouchableOpacity>
-            {renderThumbnails()}
-          </View>
+                ) : (
+                  <View>
+                    {/* Swipeable image carousel, matches uploaded reference style */}
+                    <ScrollView
+                      horizontal
+                      pagingEnabled
+                      showsHorizontalScrollIndicator={false}
+                      onMomentumScrollEnd={(e) => {
+                        const idx = Math.round(e.nativeEvent.contentOffset.x / width);
+                        setCurrentImageIndex(idx);
+                      }}
+                    >
+                      {images.map((img, idx) => (
+                        <TouchableOpacity
+                          key={idx}
+                          activeOpacity={0.9}
+                          onPress={() => handleSlidePress(idx)}
+                        >
+                          <Image
+                            source={{ uri: img.url }}
+                            style={[styles.mainImage, { width: width }]}
+                            resizeMode="cover"
+                          />
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+
+                    {/* 3-dot style pagination indicator overlay, matching reference style */}
+                    {images.length > 1 && (
+                      <View style={styles.dotsOverlayContainer} pointerEvents="none">
+                        {images.map((_, idx) => (
+                          <View
+                            key={idx}
+                            style={[
+                              styles.dotIndicator,
+                              currentImageIndex === idx && styles.dotIndicatorActive
+                            ]}
+                          />
+                        ))}
+                      </View>
+                    )}
+
+                    {/* Counter badge e.g. "1/4" like the reference screenshot */}
+                    {images.length > 1 && (
+                      <View style={styles.imageCounterBadge} pointerEvents="none">
+                        <Text style={styles.imageCounterText}>
+                          {currentImageIndex + 1}/{images.length}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+                {renderThumbnails()}
+              </View>
+            </Animated.View>
+          </Animated.View>
 
           <Modal
             visible={isPasswordModalVisible}
@@ -1951,86 +1920,6 @@ export const ProfileDetails = () => {
             />
           )}
 
-          {/* <View style={styles.navigationContainer}>
-            <TouchableOpacity
-              onPress={currentProfileIndex > 0 ? goToPreviousProfile : null}
-              style={[styles.navButton, currentProfileIndex === 0 && styles.disabledButton]}
-              disabled={currentProfileIndex === 0}
-            >
-              <Ionicons name="chevron-back-circle" size={40} color={currentProfileIndex === 0 ? "#D3D3D3" : "red"} />
-            </TouchableOpacity>
-
-            {currentProfileIndex < profileIds.length - 1 && (
-              <TouchableOpacity
-                onPress={goToNextProfile}
-                style={[styles.navButton]}
-              >
-                <Ionicons name="chevron-forward-circle" size={40} color="red" />
-              </TouchableOpacity>
-            )}
-          </View> */}
-
-          <View style={styles.navigationContainer}>
-            {/* Left/Previous Button - Always show but disable when needed */}
-            <TouchableOpacity
-              onPress={currentProfileIndex > 0 && !isLoadingProfiles ? goToPreviousProfile : null}
-              style={[
-                styles.navButton,
-                (currentProfileIndex === 0 || isLoadingProfiles) && styles.disabledButton
-              ]}
-              disabled={currentProfileIndex === 0 || isLoadingProfiles}
-              activeOpacity={currentProfileIndex === 0 || isLoadingProfiles ? 1 : 0.7}
-            >
-              <Ionicons
-                name="chevron-back-circle"
-                size={40}
-                color={currentProfileIndex === 0 || isLoadingProfiles ? "#D3D3D3" : "red"}
-              />
-            </TouchableOpacity>
-
-            {/* Right/Next Button - Show only if not last profile */}
-            {profileIds.length > 0 && currentProfileIndex < profileIds.length - 1 && (
-              <TouchableOpacity
-                onPress={!isLoadingProfiles ? goToNextProfile : null}
-                style={[styles.navButton, isLoadingProfiles && styles.disabledButton]}
-                disabled={isLoadingProfiles}
-                activeOpacity={isLoadingProfiles ? 1 : 0.7}
-              >
-                <Ionicons
-                  name="chevron-forward-circle"
-                  size={40}
-                  color={isLoadingProfiles ? "#D3D3D3" : "red"}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* {!isProfileUnlocked && photoProtection === 1 && (
-            <View style={styles.passwordContainer}>
-              <Text style={styles.lockedMessage}>
-                * Profile is locked, please enter the password to view the image
-              </Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Enter the password"
-                  secureTextEntry={!passwordVisible}
-                  value={password}
-                  onChangeText={setPassword}
-                />
-                <TouchableOpacity
-                  onPress={() => setPasswordVisible(!passwordVisible)}
-                  style={styles.eyeIcon}
-                >
-                  <MaterialIcons name={passwordVisible ? 'visibility' : 'visibility-off'} size={24} color="black" />
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity onPress={handlePasswordSubmit} style={styles.submitButton}>
-                <Text style={styles.submitButtonText}>Submit</Text>
-              </TouchableOpacity>
-            </View>
-          )} */}
-
           <View style={styles.contentContainer}>
             <View style={styles.nameIconFlex}>
               <View style={styles.nameVerifyFlex}>
@@ -2039,6 +1928,7 @@ export const ProfileDetails = () => {
               </View>
 
               <View style={{ flexDirection: 'row' }}>
+
                 <TouchableOpacity onPress={() => handleSavePress(profileData?.basic_details?.profile_id)}>
                   <MaterialIcons
                     name={bookmarkedProfiles.has(profileData?.basic_details?.profile_id) ? 'bookmark' : 'bookmark-border'}
@@ -2069,32 +1959,24 @@ export const ProfileDetails = () => {
             <View style={styles.detailsMeterFlex}>
 
 
+              {/* Main profile details shown as a single bullet/bar-separated line
+                  (no field labels), matching the reference profile-card style */}
               <View style={{ flex: 1, marginRight: 150 }}>
-                <Text style={styles.label}>Age: <Text style={styles.value}>{basic_details.age}</Text></Text>
-                <Text style={styles.label}>Height: <Text style={styles.value}>{basic_details.height?.height_desc} </Text></Text>
-                {basic_details.weight !== 0 || basic_details.weight !== null && (
-                  <Text style={styles.label}>
-                    Weight: <Text style={styles.value}>{basic_details.weight} kg</Text>
-                  </Text>
-                )}
-
-
-                <Text style={styles.label}>Star: <Text style={styles.value}>{basic_details.star}</Text></Text>
-                <Text style={styles.label}>Profession: <Text style={styles.value}>{basic_details.profession}</Text></Text>
-                <Text style={styles.label}>Education: <Text style={styles.value}>{basic_details.education}</Text></Text>
-                {/* <Text style={styles.label}>About: <Text style={styles.value}>{basic_details.about}</Text></Text> */}
-                <Text style={styles.label}>Degree: <Text style={styles.value}>{basic_details.degeree}</Text></Text>
+                <Text style={styles.bulletDetailsText}>
+                  {[
+                    basic_details.age ? `${basic_details.age} yrs` : null,
+                    basic_details.height?.height_desc,
+                    (basic_details.weight && basic_details.weight !== 0) ? `${basic_details.weight} kg` : null,
+                    basic_details.star,
+                    basic_details.profession,
+                    basic_details.education,
+                    basic_details.degeree,
+                  ].filter(Boolean).join('  |  ')}
+                </Text>
               </View>
               {basic_details?.matching_score !== undefined &&
                 basic_details.matching_score > 50 &&
                 basic_details.matching_score !== 100 && (
-                  // <View style={{ position: 'absolute', top: 0, right: 10 }}>
-                  //   <MatchingScore
-                  //     scorePercentage={parseInt(basic_details.matching_score)}
-                  //     viewedProfileId={viewedProfileId}
-                  //     onUpgradeRequired={handleMatchingScoreUpgrade}
-                  //   />
-                  // </View>
                   <TouchableOpacity
                     style={{ position: 'absolute', top: 0, right: 10 }}
                     onPress={handleDownloadMatchingReport}
@@ -2108,15 +1990,6 @@ export const ProfileDetails = () => {
                       />
                     </View>
                   </TouchableOpacity>
-                  // <TouchableOpacity
-                  //   onPress={handleDownloadMatchingReport}
-                  //   style={{ position: 'absolute', top: 0, right: 10 }}
-                  // >
-                  //   <MatchingScore
-                  //     scorePercentage={parseInt(basic_details.matching_score)}
-                  //     viewedProfileId={viewedProfileId}
-                  //   />
-                  // </TouchableOpacity>
                 )}
             </View>
             <View style={styles.detailsMeterFlex1}>
@@ -2215,8 +2088,6 @@ export const ProfileDetails = () => {
               )}
             </View>
 
-            {/* <View style={styles.fiveIconFlex}> */}
-
             <Modal
               visible={isModalVisible}
               transparent={true}
@@ -2312,13 +2183,11 @@ export const ProfileDetails = () => {
               </View>
             </Modal>
 
-            {/* --- REPLACE THE ENTIRE MODAL WITH THIS --- */}
             <Modal
               animationType="slide"
               transparent={true}
               visible={showInterestModal}
               onRequestClose={() => {
-                // Reset all modal state on close
                 setShowInterestModal(false);
                 setInterestMessage('');
                 setSelectedCategory('');
@@ -2329,10 +2198,6 @@ export const ProfileDetails = () => {
                 <View style={styles.modalContent}>
                   <Text style={styles.modalTitle}>Enter your Interest Message</Text>
 
-                  {/* Show TextInput if:
-              1. User is on a premium plan (planId is in restrictedPlanIds)
-              2. User has NOT selected a category from the picker
-            */}
                   {!selectedCategory && custom_message !== "0" && restrictedPlanIds.includes(planId) && (
                     <TextInput
                       style={styles.messageInput}
@@ -2344,9 +2209,6 @@ export const ProfileDetails = () => {
                     />
                   )}
 
-                  {/* Show Picker if:
-              1. User has NOT typed a custom message
-            */}
                   {(!interestMessage || interestMessage.length === 0) && (
                     <Picker
                       selectedValue={selectedCategory}
@@ -2386,7 +2248,6 @@ export const ProfileDetails = () => {
                     <TouchableOpacity
                       style={[styles.modalButton, styles.closeButton]}
                       onPress={() => {
-                        // Reset all modal state on close
                         setShowInterestModal(false);
                         setInterestMessage('');
                         setSelectedCategory('');
@@ -2399,423 +2260,354 @@ export const ProfileDetails = () => {
                 </View>
               </View>
             </Modal>
-            {/* </View> */}
-
-            {/* <Text style={styles.details}>Details</Text> */}
           </View>
 
-          {/* <ProfileDetailsView viewedProfileId={viewedProfileId} /> */}
-          <View style={styles.scrollViewContentContainer}>
-            {/* Icons Row */}
-            <View style={styles.iconsRowContainer}>
-              <View style={styles.iconContainer}>
-                {/* Personal Icon */}
+          {/* ===== Section jump-icons row (sticky at top once reached) ===== */}
+          <View
+            style={styles.scrollViewContentContainer}
+            onLayout={(e) => { sectionOffsetsRef.current.detailsTop = e.nativeEvent.layout.y; }}
+          >
 
-                <TouchableOpacity onPress={togglePersonalDetails}>
-                  <FontAwesome5
-                    name="user-circle"
-                    size={22}
-                    color={showPersonalDetails ? '#FFFFFF' : '#85878C'}
-                    style={styles.iconStyle}
-                  />
-                </TouchableOpacity>
-                <Text style={[styles.iconText, { color: showPersonalDetails ? '#FFFFFF' : '#85878C' }]}>Personal</Text>
-              </View>
-
-              <View style={styles.iconContainer}>
-                {/* Work */}
-
-                <TouchableOpacity onPress={toggleEducationDetails}>
-                  <MaterialIcons
-                    name="work"
-                    size={22}
-                    color={showEducationDetails ? '#FFFFFF' : '#85878C'}
-                    style={styles.iconStyle}
-                  />
-                </TouchableOpacity>
-                <Text style={[styles.iconText, { color: showEducationDetails ? '#FFFFFF' : '#85878C' }]}>Work</Text>
-              </View>
-
-              <View style={styles.iconContainer}>
-                {/* Family */}
-
-                <TouchableOpacity onPress={toggleFamilyDetails}>
-                  <FontAwesome5
-                    name="users"
-                    size={22}
-                    color={showFamilyDetails ? '#FFFFFF' : '#85878C'}
-                    style={styles.iconStyle}
-                  />
-                  <Text style={[styles.iconText, { color: showFamilyDetails ? '#FFFFFF' : '#85878C' }]}>Family</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.iconContainer}>
-                {/* Horoscope */}
-
-                <TouchableOpacity onPress={toggleHoroscopeDetails}>
-                  <MaterialCommunityIcons
-                    name="zodiac-libra"
-                    size={22}
-                    color={showHoroscopeDetails ? '#FFFFFF' : '#85878C'}
-                    style={styles.iconStyle}
-                  />
-                </TouchableOpacity>
-                <Text style={[styles.iconText, { color: showHoroscopeDetails ? '#FFFFFF' : '#85878C' }]}>Horoscope</Text>
-              </View>
-
-              <View style={styles.iconContainer}>
-                {/* Contact */}
-
-                <TouchableOpacity onPress={toggleContactDetails}>
-                  <MaterialIcons
-                    name="phone"
-                    size={22}
-                    color={showContactDetails ? '#FFFFFF' : '#85878C'}
-                    style={styles.iconStyle}
-                  />
-                </TouchableOpacity>
-                <Text style={[styles.iconText, { color: showContactDetails ? '#FFFFFF' : '#85878C' }]}>Contact</Text>
+            {/* Personal Details */}
+            <View
+              style={styles.menuChanges}
+              onLayout={(e) => { sectionOffsetsRef.current.personal = e.nativeEvent.layout.y; }}
+            >
+              <View style={styles.editOptions}>
+                <Text style={styles.titleNew}>Personal Details</Text>
+                <View style={styles.line} />
+                {profileData.personal_details?.profile_name && profileData.personal_details.profile_name !== "" && profileData.personal_details.profile_name !== null && (
+                  <Text style={styles.labelNew}>Name : <Text style={styles.valueNew}>{profileData.personal_details.profile_name}</Text></Text>
+                )}
+                {profileData.personal_details?.gender && profileData.personal_details.gender !== "" && profileData.personal_details.gender !== null && (
+                  <Text style={styles.labelNew}>Gender : <Text style={styles.valueNew}>{profileData.personal_details.gender}</Text></Text>
+                )}
+                {profileData.personal_details?.age && profileData.personal_details.age !== "" && profileData.personal_details.age !== null && (
+                  <Text style={styles.labelNew}>Age : <Text style={styles.valueNew}>{profileData.personal_details.age} Years</Text></Text>
+                )}
+                {profileData.personal_details?.dob && profileData.personal_details.dob !== "" && profileData.personal_details.dob !== null && (
+                  <Text style={styles.labelNew}>DOB : <Text style={styles.valueNew}>{profileData.personal_details.dob}</Text></Text>
+                )}
+                {profileData.personal_details?.place_of_birth && profileData.personal_details.place_of_birth !== "" && profileData.personal_details.place_of_birth !== null && (
+                  <Text style={styles.labelNew}>Place of Birth : <Text style={styles.valueNew}>{profileData.personal_details.place_of_birth}</Text></Text>
+                )}
+                {profileData.personal_details?.time_of_birth && profileData.personal_details.time_of_birth !== "" && profileData.personal_details.time_of_birth !== null && (
+                  <Text style={styles.labelNew}>Time of Birth : <Text style={styles.valueNew}>{profileData.personal_details.time_of_birth}</Text></Text>
+                )}
+                {profileData.personal_details?.height && profileData.personal_details.height !== "" && profileData.personal_details.height !== null && (
+                  <Text style={styles.labelNew}>Height : <Text style={styles.valueNew}>{profileData.personal_details.height?.height_desc}</Text></Text>
+                )}
+                {profileData.personal_details?.weight && profileData.personal_details.weight !== "" && profileData.personal_details.weight !== null && profileData.personal_details.weight !== "0" && (
+                  <Text style={styles.labelNew}>Weight : <Text style={styles.valueNew}>{profileData.personal_details.weight}</Text></Text>
+                )}
+                {profileData.personal_details?.body_type && profileData.personal_details.body_type !== "" && profileData.personal_details.body_type !== null && profileData.personal_details.body_type !== "0" && (
+                  <Text style={styles.labelNew}>Body Type : <Text style={styles.valueNew}>{profileData.personal_details.body_type}</Text></Text>
+                )}
+                {profileData.personal_details?.eye_wear && profileData.personal_details.eye_wear !== "" && profileData.personal_details.eye_wear !== null && profileData.personal_details.eye_wear !== "0" && (
+                  <Text style={styles.labelNew}>Eye Wear : <Text style={styles.valueNew}>{profileData.personal_details.eye_wear}</Text></Text>
+                )}
+                {profileData.personal_details?.marital_status && profileData.personal_details.marital_status !== "" && profileData.personal_details.marital_status !== null && (
+                  <Text style={styles.labelNew}>Marital Status : <Text style={styles.valueNew}>{profileData.personal_details.marital_status}</Text></Text>
+                )}
+                {profileData.personal_details?.blood_group && profileData.personal_details.blood_group !== "" && profileData.personal_details.blood_group !== null && (
+                  <Text style={styles.labelNew}>Blood Group : <Text style={styles.valueNew}>{profileData.personal_details.blood_group}</Text></Text>
+                )}
+                {profileData.personal_details?.about_self && profileData.personal_details.about_self !== "" && profileData.personal_details.about_self !== null && (
+                  <Text style={styles.labelNew}>About Myself : <Text style={styles.valueNew}>{profileData.personal_details.about_self}</Text></Text>
+                )}
+                {profileData.personal_details?.complexion && profileData.personal_details.complexion !== "" && profileData.personal_details.complexion !== null && (
+                  <Text style={styles.labelNew}>Complexion : <Text style={styles.valueNew}>{profileData.personal_details.complexion}</Text></Text>
+                )}
+                {profileData.personal_details?.hobbies && profileData.personal_details.hobbies !== "" && profileData.personal_details.hobbies !== null && (
+                  <Text style={styles.labelNew}>Hobbies : <Text style={styles.valueNew}>{profileData.personal_details.hobbies}</Text></Text>
+                )}
+                {profileData.personal_details?.physical_status && profileData.personal_details.physical_status !== "" && profileData.personal_details.physical_status !== null && profileData.personal_details.physical_status !== "0" && (
+                  <Text style={styles.labelNew}>Physical Status : <Text style={styles.valueNew}>{profileData.personal_details.physical_status}</Text></Text>
+                )}
               </View>
             </View>
 
-            {/* Details Sections */}
-            {/* Personal Details */}
-            {showPersonalDetails && (
-              <View style={styles.menuChanges}>
-                <View style={styles.editOptions}>
-                  <Text style={styles.titleNew}>Personal Details</Text>
-                  <View style={styles.line} />
-                  {profileData.personal_details?.profile_name && profileData.personal_details.profile_name !== "" && profileData.personal_details.profile_name !== null && (
-                    <Text style={styles.labelNew}>Name : <Text style={styles.valueNew}>{profileData.personal_details.profile_name}</Text></Text>
-                  )}
-                  {profileData.personal_details?.gender && profileData.personal_details.gender !== "" && profileData.personal_details.gender !== null && (
-                    <Text style={styles.labelNew}>Gender : <Text style={styles.valueNew}>{profileData.personal_details.gender}</Text></Text>
-                  )}
-                  {profileData.personal_details?.age && profileData.personal_details.age !== "" && profileData.personal_details.age !== null && (
-                    <Text style={styles.labelNew}>Age : <Text style={styles.valueNew}>{profileData.personal_details.age} Years</Text></Text>
-                  )}
-                  {profileData.personal_details?.dob && profileData.personal_details.dob !== "" && profileData.personal_details.dob !== null && (
-                    <Text style={styles.labelNew}>DOB : <Text style={styles.valueNew}>{profileData.personal_details.dob}</Text></Text>
-                  )}
-                  {profileData.personal_details?.place_of_birth && profileData.personal_details.place_of_birth !== "" && profileData.personal_details.place_of_birth !== null && (
-                    <Text style={styles.labelNew}>Place of Birth : <Text style={styles.valueNew}>{profileData.personal_details.place_of_birth}</Text></Text>
-                  )}
-                  {profileData.personal_details?.time_of_birth && profileData.personal_details.time_of_birth !== "" && profileData.personal_details.time_of_birth !== null && (
-                    <Text style={styles.labelNew}>Time of Birth : <Text style={styles.valueNew}>{profileData.personal_details.time_of_birth}</Text></Text>
-                  )}
-                  {profileData.personal_details?.height && profileData.personal_details.height !== "" && profileData.personal_details.height !== null && (
-                    <Text style={styles.labelNew}>Height : <Text style={styles.valueNew}>{profileData.personal_details.height?.height_desc}</Text></Text>
-                  )}
-                  {profileData.personal_details?.weight && profileData.personal_details.weight !== "" && profileData.personal_details.weight !== null && profileData.personal_details.weight !== "0" && (
-                    <Text style={styles.labelNew}>Weight : <Text style={styles.valueNew}>{profileData.personal_details.weight}</Text></Text>
-                  )}
-                  {profileData.personal_details?.body_type && profileData.personal_details.body_type !== "" && profileData.personal_details.body_type !== null && profileData.personal_details.body_type !== "0" && (
-                    <Text style={styles.labelNew}>Body Type : <Text style={styles.valueNew}>{profileData.personal_details.body_type}</Text></Text>
-                  )}
-                  {profileData.personal_details?.eye_wear && profileData.personal_details.eye_wear !== "" && profileData.personal_details.eye_wear !== null && profileData.personal_details.eye_wear !== "0" && (
-                    <Text style={styles.labelNew}>Eye Wear : <Text style={styles.valueNew}>{profileData.personal_details.eye_wear}</Text></Text>
-                  )}
-                  {profileData.personal_details?.marital_status && profileData.personal_details.marital_status !== "" && profileData.personal_details.marital_status !== null && (
-                    <Text style={styles.labelNew}>Marital Status : <Text style={styles.valueNew}>{profileData.personal_details.marital_status}</Text></Text>
-                  )}
-                  {profileData.personal_details?.blood_group && profileData.personal_details.blood_group !== "" && profileData.personal_details.blood_group !== null && (
-                    <Text style={styles.labelNew}>Blood Group : <Text style={styles.valueNew}>{profileData.personal_details.blood_group}</Text></Text>
-                  )}
-                  {profileData.personal_details?.about_self && profileData.personal_details.about_self !== "" && profileData.personal_details.about_self !== null && (
-                    <Text style={styles.labelNew}>About Myself : <Text style={styles.valueNew}>{profileData.personal_details.about_self}</Text></Text>
-                  )}
-                  {profileData.personal_details?.complexion && profileData.personal_details.complexion !== "" && profileData.personal_details.complexion !== null && (
-                    <Text style={styles.labelNew}>Complexion : <Text style={styles.valueNew}>{profileData.personal_details.complexion}</Text></Text>
-                  )}
-                  {profileData.personal_details?.hobbies && profileData.personal_details.hobbies !== "" && profileData.personal_details.hobbies !== null && (
-                    <Text style={styles.labelNew}>Hobbies : <Text style={styles.valueNew}>{profileData.personal_details.hobbies}</Text></Text>
-                  )}
-                  {profileData.personal_details?.physical_status && profileData.personal_details.physical_status !== "" && profileData.personal_details.physical_status !== null && profileData.personal_details.physical_status !== "0" && (
-                    <Text style={styles.labelNew}>Physical Status : <Text style={styles.valueNew}>{profileData.personal_details.physical_status}</Text></Text>
-                  )}
-                  {/* <Text style={styles.labelNew}>Mobile no :<Text style={styles.valueNew}>{profileData.personal_details.Mobile_no}</Text></Text> */}
-                  {/* <Text style={styles.labelNew}>Profile Created By : <Text style={styles.valueNew}>{profileData.personal_details.profile_created_by}</Text></Text> */}
-                </View>
+            {/* Education & Profession Details */}
+            <View
+              style={styles.menuChanges}
+              onLayout={(e) => { sectionOffsetsRef.current.education = e.nativeEvent.layout.y; }}
+            >
+              <View style={styles.editOptions}>
+                <Text style={styles.titleNew}>Education & Profession Details</Text>
+                <View style={styles.line} />
+                {profileData.education_details?.education_level && profileData.education_details.education_level !== "" && profileData.education_details.education_level !== null && (
+                  <Text style={styles.labelNew}>Education Level : <Text style={styles.valueNew}>{profileData.education_details.education_level}</Text></Text>
+                )}
+                {profileData.education_details?.degeree && profileData.education_details.degeree !== "" && profileData.education_details.degeree !== null && (
+                  <Text style={styles.labelNew}>Degree : <Text style={styles.valueNew}>{profileData.education_details.degeree}</Text></Text>
+                )}
+                {profileData.education_details?.about_education && profileData.education_details.about_education !== "" && profileData.education_details.about_education !== null && (
+                  <Text style={styles.labelNew}>About Education : <Text style={styles.valueNew}>{profileData.education_details.about_education}</Text></Text>
+                )}
+                <Text style={styles.labelNew}>Profession : <Text style={styles.valueNew}>{profileData.education_details.profession}</Text></Text>
+                {profileData.education_details?.company_name && profileData.education_details.company_name !== "" && profileData.education_details.company_name !== null && (
+                  <Text style={styles.labelNew}>Company Name : <Text style={styles.valueNew}>{profileData.education_details.company_name}</Text></Text>
+                )}
+                {profileData.education_details?.designation && profileData.education_details.designation !== "" && profileData.education_details.designation !== null && (
+                  <Text style={styles.labelNew}>Designation : <Text style={styles.valueNew}>{profileData.education_details.designation}</Text></Text>
+                )}
+                {profileData.education_details?.business_name && profileData.education_details.business_name !== "" && profileData.education_details.business_name !== null && (
+                  <Text style={styles.labelNew}>Business Name : <Text style={styles.valueNew}>{profileData.education_details.business_name}</Text></Text>
+                )}
+                {profileData.education_details?.business_address && profileData.education_details.business_address !== "" && profileData.education_details.business_address !== null && (
+                  <Text style={styles.labelNew}>Business Address : <Text style={styles.valueNew}>{profileData.education_details.business_address}</Text></Text>
+                )}
+                {profileData.education_details?.annual_income && profileData.education_details.annual_income !== "" && profileData.education_details.annual_income !== null && (
+                  <Text style={styles.labelNew}>Annual Income : <Text style={styles.valueNew}>{profileData.education_details.annual_income}</Text></Text>
+                )}
+                {profileData.education_details?.gross_annual_income && profileData.education_details.gross_annual_income !== "" && profileData.education_details.gross_annual_income !== null && (
+                  <Text style={styles.labelNew}>Gross annual Income : <Text style={styles.valueNew}>{profileData.education_details.gross_annual_income}</Text></Text>
+                )}
+                {profileData.education_details?.place_of_stay && profileData.education_details.place_of_stay !== "" && profileData.education_details.place_of_stay !== null && (
+                  <Text style={styles.labelNew}>Place of Stay : <Text style={styles.valueNew}>{profileData.education_details.place_of_stay}</Text></Text>
+                )}
               </View>
-            )}
+            </View>
 
-            {showEducationDetails && (
-              <View style={styles.menuChanges}>
-                <View style={styles.editOptions}>
-                  <Text style={styles.titleNew}>Education & Profession Details</Text>
-                  <View style={styles.line} />
-                  {profileData.education_details?.education_level && profileData.education_details.education_level !== "" && profileData.education_details.education_level !== null && (
-                    <Text style={styles.labelNew}>Education Level : <Text style={styles.valueNew}>{profileData.education_details.education_level}</Text></Text>
-                  )}
-                  {profileData.education_details?.degeree && profileData.education_details.degeree !== "" && profileData.education_details.degeree !== null && (
-                    <Text style={styles.labelNew}>Degree : <Text style={styles.valueNew}>{profileData.education_details.degeree}</Text></Text>
-                  )}
-                  {/* <Text style={styles.labelNew}>Educational Details : <Text style={styles.valueNew}>{profileData.education_details.education_detail}</Text></Text> */}
-                  {profileData.education_details?.about_education && profileData.education_details.about_education !== "" && profileData.education_details.about_education !== null && (
-                    <Text style={styles.labelNew}>About Education : <Text style={styles.valueNew}>{profileData.education_details.about_education}</Text></Text>
-                  )}
-                  <Text style={styles.labelNew}>Profession : <Text style={styles.valueNew}>{profileData.education_details.profession}</Text></Text>
-                  {profileData.education_details?.company_name && profileData.education_details.company_name !== "" && profileData.education_details.company_name !== null && (
-                    <Text style={styles.labelNew}>Company Name : <Text style={styles.valueNew}>{profileData.education_details.company_name}</Text></Text>
-                  )}
-                  {profileData.education_details?.designation && profileData.education_details.designation !== "" && profileData.education_details.designation !== null && (
-                    <Text style={styles.labelNew}>Designation : <Text style={styles.valueNew}>{profileData.education_details.designation}</Text></Text>
-                  )}
-                  {profileData.education_details?.business_name && profileData.education_details.business_name !== "" && profileData.education_details.business_name !== null && (
-                    <Text style={styles.labelNew}>Business Name : <Text style={styles.valueNew}>{profileData.education_details.business_name}</Text></Text>
-                  )}
-                  {profileData.education_details?.business_address && profileData.education_details.business_address !== "" && profileData.education_details.business_address !== null && (
-                    <Text style={styles.labelNew}>Business Address : <Text style={styles.valueNew}>{profileData.education_details.business_address}</Text></Text>
-                  )}
-                  {profileData.education_details?.annual_income && profileData.education_details.annual_income !== "" && profileData.education_details.annual_income !== null && (
-                    <Text style={styles.labelNew}>Annual Income : <Text style={styles.valueNew}>{profileData.education_details.annual_income}</Text></Text>
-                  )}
-                  {profileData.education_details?.gross_annual_income && profileData.education_details.gross_annual_income !== "" && profileData.education_details.gross_annual_income !== null && (
-                    <Text style={styles.labelNew}>Gross annual Income : <Text style={styles.valueNew}>{profileData.education_details.gross_annual_income}</Text></Text>
-                  )}
-                  {profileData.education_details?.place_of_stay && profileData.education_details.place_of_stay !== "" && profileData.education_details.place_of_stay !== null && (
-                    <Text style={styles.labelNew}>Place of Stay : <Text style={styles.valueNew}>{profileData.education_details.place_of_stay}</Text></Text>
-                  )}
-                </View>
+            {/* Family Details */}
+            <View
+              style={styles.menuChanges}
+              onLayout={(e) => { sectionOffsetsRef.current.family = e.nativeEvent.layout.y; }}
+            >
+              <View style={styles.editOptions}>
+                <Text style={styles.titleNew}>Family Details</Text>
+                <View style={styles.line} />
+                {profileData.family_details?.about_family && profileData.family_details.about_family !== "" && profileData.family_details.about_family !== null && (
+                  <Text style={styles.labelNew}>About Family : <Text style={styles.valueNew}>{profileData.family_details.about_family}</Text></Text>
+                )}
+                {profileData.family_details?.father_name && profileData.family_details.father_name !== "" && profileData.family_details.father_name !== null && (
+                  <Text style={styles.labelNew}>Father's Name : <Text style={styles.valueNew}>{profileData.family_details.father_name}</Text></Text>
+                )}
+                {profileData.family_details?.father_occupation && profileData.family_details.father_occupation !== "" && profileData.family_details.father_occupation !== null && (
+                  <Text style={styles.labelNew}>Father's occupation : <Text style={styles.valueNew}>{profileData.family_details.father_occupation}</Text></Text>
+                )}
+                {profileData.family_details?.mother_name && profileData.family_details.mother_name !== "" && profileData.family_details.mother_name !== null && (
+                  <Text style={styles.labelNew}>Mother's Name : <Text style={styles.valueNew}>{profileData.family_details.mother_name}</Text></Text>
+                )}
+                {profileData.family_details?.mother_occupation && profileData.family_details.mother_occupation !== "" && profileData.family_details.mother_occupation !== null && (
+                  <Text style={styles.labelNew}>Mother's occupation : <Text style={styles.valueNew}>{profileData.family_details.mother_occupation}</Text></Text>
+                )}
+                {profileData.family_details?.family_status && profileData.family_details.family_status !== "" && profileData.family_details.family_status !== null && (
+                  <Text style={styles.labelNew}>Family Status : <Text style={styles.valueNew}>{profileData.family_details.family_status}</Text></Text>
+                )}
+                {profileData.family_details?.no_of_sisters && profileData.family_details.no_of_sisters !== "" && profileData.family_details.no_of_sisters !== null && (
+                  <Text style={styles.labelNew}>Sisters : <Text style={styles.valueNew}>{profileData.family_details.no_of_sisters}</Text></Text>
+                )}
+                {profileData.family_details?.no_of_sis_married && profileData.family_details.no_of_sis_married !== "" && profileData.family_details.no_of_sis_married !== null && (
+                  <Text style={styles.labelNew}>Sisters Married : <Text style={styles.valueNew}>{profileData.family_details.no_of_sis_married}</Text></Text>
+                )}
+                {profileData.family_details?.no_of_brothers && profileData.family_details.no_of_brothers !== "" && profileData.family_details.no_of_brothers !== null && (
+                  <Text style={styles.labelNew}>Brothers : <Text style={styles.valueNew}>{profileData.family_details.no_of_brothers}</Text></Text>
+                )}
+                {profileData.family_details?.no_of_bro_married && profileData.family_details.no_of_bro_married !== "" && profileData.family_details.no_of_bro_married !== null && (
+                  <Text style={styles.labelNew}>Brothers Married : <Text style={styles.valueNew}>{profileData.family_details.no_of_bro_married}</Text></Text>
+                )}
+                {profileData.family_details?.property_details && profileData.family_details.property_details !== "" && profileData.family_details.property_details !== null && (
+                  <Text style={styles.labelNew}>Property details : <Text style={styles.valueNew}>{profileData.family_details.property_details}</Text></Text>
+                )}
+                {profileData.family_details?.property_details && profileData.family_details.property_details !== "" && profileData.family_details.property_details !== null && (
+                  <Text style={styles.labelNew}>Father Alive : <Text style={styles.valueNew}>{profileData.family_details.father_alive}</Text></Text>
+                )}
+                {profileData.family_details?.property_details && profileData.family_details.property_details !== "" && profileData.family_details.property_details !== null && (
+                  <Text style={styles.labelNew}>Mother Alive : <Text style={styles.valueNew}>{profileData.family_details.father_alive}</Text></Text>
+                )}
               </View>
-            )}
+            </View>
 
-            {showFamilyDetails && (
-              <View style={styles.menuChanges}>
-                <View style={styles.editOptions}>
-                  <Text style={styles.titleNew}>Family Details</Text>
-                  <View style={styles.line} />
-                  {profileData.family_details?.about_family && profileData.family_details.about_family !== "" && profileData.family_details.about_family !== null && (
-                    <Text style={styles.labelNew}>About Family : <Text style={styles.valueNew}>{profileData.family_details.about_family}</Text></Text>
-                  )}
-                  {profileData.family_details?.father_name && profileData.family_details.father_name !== "" && profileData.family_details.father_name !== null && (
-                    <Text style={styles.labelNew}>Father's Name : <Text style={styles.valueNew}>{profileData.family_details.father_name}</Text></Text>
-                  )}
-                  {profileData.family_details?.father_occupation && profileData.family_details.father_occupation !== "" && profileData.family_details.father_occupation !== null && (
-                    <Text style={styles.labelNew}>Father's occupation : <Text style={styles.valueNew}>{profileData.family_details.father_occupation}</Text></Text>
-                  )}
-                  {profileData.family_details?.mother_name && profileData.family_details.mother_name !== "" && profileData.family_details.mother_name !== null && (
-                    <Text style={styles.labelNew}>Mother's Name : <Text style={styles.valueNew}>{profileData.family_details.mother_name}</Text></Text>
-                  )}
-                  {profileData.family_details?.mother_occupation && profileData.family_details.mother_occupation !== "" && profileData.family_details.mother_occupation !== null && (
-                    <Text style={styles.labelNew}>Mother's occupation : <Text style={styles.valueNew}>{profileData.family_details.mother_occupation}</Text></Text>
-                  )}
-                  {profileData.family_details?.family_status && profileData.family_details.family_status !== "" && profileData.family_details.family_status !== null && (
-                    <Text style={styles.labelNew}>Family Status : <Text style={styles.valueNew}>{profileData.family_details.family_status}</Text></Text>
-                  )}
-                  {profileData.family_details?.no_of_sisters && profileData.family_details.no_of_sisters !== "" && profileData.family_details.no_of_sisters !== null && (
-                    <Text style={styles.labelNew}>Sisters : <Text style={styles.valueNew}>{profileData.family_details.no_of_sisters}</Text></Text>
-                  )}
-                  {profileData.family_details?.no_of_sis_married && profileData.family_details.no_of_sis_married !== "" && profileData.family_details.no_of_sis_married !== null && (
-                    <Text style={styles.labelNew}>Sisters Married : <Text style={styles.valueNew}>{profileData.family_details.no_of_sis_married}</Text></Text>
-                  )}
-                  {profileData.family_details?.no_of_brothers && profileData.family_details.no_of_brothers !== "" && profileData.family_details.no_of_brothers !== null && (
-                    <Text style={styles.labelNew}>Brothers : <Text style={styles.valueNew}>{profileData.family_details.no_of_brothers}</Text></Text>
-                  )}
-                  {profileData.family_details?.no_of_bro_married && profileData.family_details.no_of_bro_married !== "" && profileData.family_details.no_of_bro_married !== null && (
-                    <Text style={styles.labelNew}>Brothers Married : <Text style={styles.valueNew}>{profileData.family_details.no_of_bro_married}</Text></Text>
-                  )}
-                  {profileData.family_details?.property_details && profileData.family_details.property_details !== "" && profileData.family_details.property_details !== null && (
-                    <Text style={styles.labelNew}>Property details : <Text style={styles.valueNew}>{profileData.family_details.property_details}</Text></Text>
-                  )}
-                  {profileData.family_details?.property_details && profileData.family_details.property_details !== "" && profileData.family_details.property_details !== null && (
-                    <Text style={styles.labelNew}>Father Alive : <Text style={styles.valueNew}>{profileData.family_details.father_alive}</Text></Text>
-                  )}
-                  {profileData.family_details?.property_details && profileData.family_details.property_details !== "" && profileData.family_details.property_details !== null && (
-                    <Text style={styles.labelNew}>Mother Alive : <Text style={styles.valueNew}>{profileData.family_details.father_alive}</Text></Text>
-                  )}
-                </View>
-              </View>
-            )}
+            {/* Horoscope Details */}
+            <View
+              style={styles.menuChanges}
+              onLayout={(e) => { sectionOffsetsRef.current.horoscope = e.nativeEvent.layout.y; }}
+            >
+              <View style={styles.editOptions}>
+                <Text style={styles.titleNew}>Horoscope Details</Text>
+                <View style={styles.line} />
+                {profileData.horoscope_details?.rasi && profileData.horoscope_details.rasi !== "" && profileData.horoscope_details.rasi !== null && (
+                  <Text style={styles.labelNew}>Rasi : <Text style={styles.valueNew}>{profileData.horoscope_details.rasi}</Text></Text>
+                )}
+                {profileData.horoscope_details?.padham && profileData.horoscope_details.padham !== "" && profileData.horoscope_details.padham !== null && (
+                  <Text style={styles.labelNew}>Padham : <Text style={styles.valueNew}>{profileData.horoscope_details.padham}</Text></Text>
+                )}
+                {profileData.horoscope_details?.star_name && profileData.horoscope_details.star_name !== "" && profileData.horoscope_details.star_name !== null && (
+                  <Text style={styles.labelNew}>Star : <Text style={styles.valueNew}>{profileData.horoscope_details.star_name}</Text></Text>
+                )}
+                {profileData.horoscope_details?.lagnam && profileData.horoscope_details.lagnam !== "" && profileData.horoscope_details.lagnam !== null && (
+                  <Text style={styles.labelNew}>Lagnam : <Text style={styles.valueNew}>{profileData.horoscope_details.lagnam}</Text></Text>
+                )}
+                {profileData.horoscope_details?.nallikai && profileData.horoscope_details.nallikai !== "" && profileData.horoscope_details.nallikai !== null && (
+                  <Text style={styles.labelNew}>Nallikai : <Text style={styles.valueNew}>{profileData.horoscope_details.nallikai}</Text></Text>
+                )}
+                {profileData.horoscope_details?.didi && profileData.horoscope_details.didi !== "" && profileData.horoscope_details.didi !== null && (
+                  <Text style={styles.labelNew}>Didi : <Text style={styles.valueNew}>{profileData.horoscope_details.didi}</Text></Text>
+                )}
+                {profileData.horoscope_details?.surya_gothram && profileData.horoscope_details.surya_gothram !== "" && profileData.horoscope_details.surya_gothram !== null && (
+                  <Text style={styles.labelNew}>Surya Gothram : <Text style={styles.valueNew}>{profileData.horoscope_details.surya_gothram}</Text></Text>
+                )}
+                {profileData.horoscope_details?.madulamn && profileData.horoscope_details.madulamn !== "" && profileData.horoscope_details.madulamn !== null && (
+                  <Text style={styles.labelNew}>Madhulam : <Text style={styles.valueNew}>{profileData.horoscope_details.madulamn}</Text></Text>
+                )}
+                {profileData.horoscope_details?.dasa_name && profileData.horoscope_details.dasa_name !== "" && profileData.horoscope_details.dasa_name !== null && (
+                  <Text style={styles.labelNew}>Dasa Name : <Text style={styles.valueNew}>{profileData.horoscope_details.dasa_name}</Text></Text>
+                )}
+                {profileData.horoscope_details?.dasa_balance && profileData.horoscope_details.dasa_balance !== "" && profileData.horoscope_details.dasa_balance !== null && (
+                  <Text style={styles.labelNew}>Dasa Balance : <Text style={styles.valueNew}>{profileData.horoscope_details.dasa_balance}</Text></Text>
+                )}
+                {profileData.horoscope_details?.chevvai_dosham && profileData.horoscope_details.chevvai_dosham !== "" && profileData.horoscope_details.chevvai_dosham !== null && (
+                  <Text style={styles.labelNew}>Chevvai Dosham : <Text style={styles.valueNew}>{profileData.horoscope_details.chevvai_dosham}</Text></Text>
+                )}
+                {profileData.horoscope_details?.sarpadosham && profileData.horoscope_details.sarpadosham !== "" && profileData.horoscope_details.sarpadosham !== null && (
+                  <Text style={styles.labelNew}>Ragu/Kethu Dhosham: : <Text style={styles.valueNew}>{profileData.horoscope_details.sarpadosham}</Text></Text>
+                )}
+                {/* RASI CHART - SOUTH INDIAN LAYOUT */}
+                {rasiGrid.length >= 4 && (
+                  <View style={styles.horoscopeSection}>
+                    <Text style={styles.chartTitle}>Rasi & Amsam Grid</Text>
+                    <View style={styles.chartBorder}>
 
-            {showHoroscopeDetails && (
-              <View style={styles.menuChanges}>
-                <View style={styles.editOptions}>
-                  <Text style={styles.titleNew}>Horoscope Details</Text>
-                  <View style={styles.line} />
-                  {profileData.horoscope_details?.rasi && profileData.horoscope_details.rasi !== "" && profileData.horoscope_details.rasi !== null && (
-                    <Text style={styles.labelNew}>Rasi : <Text style={styles.valueNew}>{profileData.horoscope_details.rasi}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.padham && profileData.horoscope_details.padham !== "" && profileData.horoscope_details.padham !== null && (
-                    <Text style={styles.labelNew}>Padham : <Text style={styles.valueNew}>{profileData.horoscope_details.padham}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.star_name && profileData.horoscope_details.star_name !== "" && profileData.horoscope_details.star_name !== null && (
-                    <Text style={styles.labelNew}>Star : <Text style={styles.valueNew}>{profileData.horoscope_details.star_name}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.lagnam && profileData.horoscope_details.lagnam !== "" && profileData.horoscope_details.lagnam !== null && (
-                    <Text style={styles.labelNew}>Lagnam : <Text style={styles.valueNew}>{profileData.horoscope_details.lagnam}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.nallikai && profileData.horoscope_details.nallikai !== "" && profileData.horoscope_details.nallikai !== null && (
-                    <Text style={styles.labelNew}>Nallikai : <Text style={styles.valueNew}>{profileData.horoscope_details.nallikai}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.didi && profileData.horoscope_details.didi !== "" && profileData.horoscope_details.didi !== null && (
-                    <Text style={styles.labelNew}>Didi : <Text style={styles.valueNew}>{profileData.horoscope_details.didi}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.surya_gothram && profileData.horoscope_details.surya_gothram !== "" && profileData.horoscope_details.surya_gothram !== null && (
-                    <Text style={styles.labelNew}>Surya Gothram : <Text style={styles.valueNew}>{profileData.horoscope_details.surya_gothram}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.madulamn && profileData.horoscope_details.madulamn !== "" && profileData.horoscope_details.madulamn !== null && (
-                    <Text style={styles.labelNew}>Madhulam : <Text style={styles.valueNew}>{profileData.horoscope_details.madulamn}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.dasa_name && profileData.horoscope_details.dasa_name !== "" && profileData.horoscope_details.dasa_name !== null && (
-                    <Text style={styles.labelNew}>Dasa Name : <Text style={styles.valueNew}>{profileData.horoscope_details.dasa_name}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.dasa_balance && profileData.horoscope_details.dasa_balance !== "" && profileData.horoscope_details.dasa_balance !== null && (
-                    <Text style={styles.labelNew}>Dasa Balance : <Text style={styles.valueNew}>{profileData.horoscope_details.dasa_balance}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.chevvai_dosham && profileData.horoscope_details.chevvai_dosham !== "" && profileData.horoscope_details.chevvai_dosham !== null && (
-                    <Text style={styles.labelNew}>Chevvai Dosham : <Text style={styles.valueNew}>{profileData.horoscope_details.chevvai_dosham}</Text></Text>
-                  )}
-                  {profileData.horoscope_details?.sarpadosham && profileData.horoscope_details.sarpadosham !== "" && profileData.horoscope_details.sarpadosham !== null && (
-                    <Text style={styles.labelNew}>Ragu/Kethu Dhosham: : <Text style={styles.valueNew}>{profileData.horoscope_details.sarpadosham}</Text></Text>
-                  )}
-                  {/* <View style={styles.rasiContainer}> */}
-                  {/* RASI CHART - SOUTH INDIAN LAYOUT */}
-                  {showHoroscopeDetails && rasiGrid.length >= 4 && (
-                    <View style={styles.horoscopeSection}>
-                      <Text style={styles.chartTitle}>Rasi & Amsam Grid</Text>
-                      <View style={styles.chartBorder}>
-
-                        {/* --- TOP ROW (Pisces, Aries, Taurus, Gemini) --- */}
-                        <View style={styles.chartRow}>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][0]}</Text></View>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][1]}</Text></View>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][2]}</Text></View>
-                          <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[0][3]}</Text></View>
-                        </View>
-
-                        {/* --- MIDDLE SECTION (Aquarius/Cap & Cancer/Leo) --- */}
-                        <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
-
-                          {/* Left Column (Aquarius, Capricorn) */}
-                          <View style={styles.sideColumn}>
-                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
-                              <Text style={styles.chartText}>{rasiGrid[1][0]}</Text>
-                            </View>
-                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
-                              <Text style={styles.chartText}>{rasiGrid[2][0]}</Text>
-                            </View>
-                          </View>
-
-                          {/* Center Box (Empty / Title) */}
-                          <View style={styles.centerBox}>
-                            <Text style={styles.centerLabel}>Rasi</Text>
-                            <Text style={styles.centerDomain}>vysyamala.com</Text>
-                          </View>
-
-                          {/* Right Column (Cancer, Leo) - Note the Index [3] for the last cell */}
-                          <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
-                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
-                              <Text style={styles.chartText}>{rasiGrid[1][rasiGrid[1].length - 1]}</Text>
-                            </View>
-                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
-                              <Text style={styles.chartText}>{rasiGrid[2][rasiGrid[2].length - 1]}</Text>
-                            </View>
-                          </View>
-                        </View>
-
-                        {/* --- BOTTOM ROW (Sagittarius, Scorpio, Libra, Virgo) --- */}
-                        <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][0]}</Text></View>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][1]}</Text></View>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][2]}</Text></View>
-                          <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[3][3]}</Text></View>
-                        </View>
-
+                      {/* --- TOP ROW (Pisces, Aries, Taurus, Gemini) --- */}
+                      <View style={styles.chartRow}>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][0]}</Text></View>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][1]}</Text></View>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][2]}</Text></View>
+                        <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[0][3]}</Text></View>
                       </View>
-                    </View>
-                  )}
-                  {showHoroscopeDetails && amsaGrid.length >= 4 && (
-                    <View style={styles.horoscopeSection}>
-                      <View style={styles.chartBorder}>
 
-                        {/* --- TOP ROW (Pisces, Aries, Taurus, Gemini) --- */}
-                        <View style={styles.chartRow}>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][0]}</Text></View>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][1]}</Text></View>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][2]}</Text></View>
-                          <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[0][3]}</Text></View>
-                        </View>
+                      {/* --- MIDDLE SECTION (Aquarius/Cap & Cancer/Leo) --- */}
+                      <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
 
-                        {/* --- MIDDLE SECTION (Aquarius/Cap & Cancer/Leo) --- */}
-                        <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
-
-                          {/* Left Column (Aquarius, Capricorn) */}
-                          <View style={styles.sideColumn}>
-                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
-                              <Text style={styles.chartText}>{amsaGrid[1][0]}</Text>
-                            </View>
-                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
-                              <Text style={styles.chartText}>{amsaGrid[2][0]}</Text>
-                            </View>
+                        {/* Left Column (Aquarius, Capricorn) */}
+                        <View style={styles.sideColumn}>
+                          <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                            <Text style={styles.chartText}>{rasiGrid[1][0]}</Text>
                           </View>
-
-                          {/* Center Box (Empty / Title) */}
-                          <View style={styles.centerBox}>
-                            <Text style={styles.centerLabel}>Amsam</Text>
-                            <Text style={styles.centerDomain}>vysyamala.com</Text>
-                          </View>
-
-                          {/* Right Column (Cancer, Leo) - Note the Index [3] for the last cell */}
-                          <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
-                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
-                              <Text style={styles.chartText}>{amsaGrid[1][amsaGrid[1].length - 1]}</Text>
-                            </View>
-                            <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
-                              <Text style={styles.chartText}>{amsaGrid[2][amsaGrid[2].length - 1]}</Text>
-                            </View>
+                          <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                            <Text style={styles.chartText}>{rasiGrid[2][0]}</Text>
                           </View>
                         </View>
 
-                        {/* --- BOTTOM ROW (Sagittarius, Scorpio, Libra, Virgo) --- */}
-                        <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][0]}</Text></View>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][1]}</Text></View>
-                          <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][2]}</Text></View>
-                          <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[3][3]}</Text></View>
+                        {/* Center Box (Empty / Title) */}
+                        <View style={styles.centerBox}>
+                          <Text style={styles.centerLabel}>Rasi</Text>
+                          <Text style={styles.centerDomain}>vysyamala.com</Text>
                         </View>
 
+                        {/* Right Column (Cancer, Leo) - Note the Index [3] for the last cell */}
+                        <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
+                          <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                            <Text style={styles.chartText}>{rasiGrid[1][rasiGrid[1].length - 1]}</Text>
+                          </View>
+                          <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                            <Text style={styles.chartText}>{rasiGrid[2][rasiGrid[2].length - 1]}</Text>
+                          </View>
+                        </View>
                       </View>
-                    </View>
-                  )}
-                  {/* </View> */}
-                </View>
-              </View>
-            )}
 
-            {showContactDetails && (
-              <View style={styles.menuChanges}>
-                <View style={styles.editOptions}>
-                  <Text style={styles.titleNew}>Contact Details</Text>
-                  <View style={styles.line} />
-                  {profileData.contact_details?.address && profileData.contact_details.address !== "" && profileData.contact_details.address !== null && (
-                    <Text style={styles.labelNew}>Address : <Text style={styles.valueNew}>{profileData.contact_details.address}</Text></Text>
-                  )}
-                  {profileData.contact_details?.city && profileData.contact_details.city !== "" && profileData.contact_details.city !== null && (
-                    <Text style={styles.labelNew}>City : <Text style={styles.valueNew}>{profileData.contact_details.city}</Text></Text>
-                  )}
-                  {profileData.contact_details?.state && profileData.contact_details.state !== "" && profileData.contact_details.state !== null && (
-                    <Text style={styles.labelNew}>State : <Text style={styles.valueNew}>{profileData.contact_details.state}</Text></Text>
-                  )}
-                  {profileData.contact_details?.country && profileData.contact_details.country !== "" && profileData.contact_details.country !== null && (
-                    <Text style={styles.labelNew}>Country : <Text style={styles.valueNew}>{profileData.contact_details.country}</Text></Text>
-                  )}
-                  {profileData.contact_details?.phone && profileData.contact_details.phone !== "" && profileData.contact_details.phone !== null && (
-                    <Text style={styles.labelNew}>Phone no : <Text style={styles.valueNew}>{profileData.contact_details.phone}</Text></Text>
-                  )}
-                  {profileData.contact_details?.mobile && profileData.contact_details.mobile !== "" && profileData.contact_details.mobile !== null && (
-                    <Text style={styles.labelNew}>Mobile no : <Text style={styles.valueNew}>{profileData.contact_details.mobile}</Text></Text>
-                  )}
-                  {profileData.contact_details?.whatsapp && profileData.contact_details.whatsapp !== "" && profileData.contact_details.whatsapp !== null && (
-                    <Text style={styles.labelNew}>Whatsapp : <Text style={styles.valueNew}>{profileData.contact_details.whatsapps}</Text></Text>
-                  )}
-                  {profileData.contact_details?.email && profileData.contact_details.email !== "" && profileData.contact_details.email !== null && (
-                    <Text style={styles.labelNew}>Email : <Text style={styles.valueNew}>{profileData.contact_details.email}</Text></Text>
-                  )}
-                </View>
+                      {/* --- BOTTOM ROW (Sagittarius, Scorpio, Libra, Virgo) --- */}
+                      <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][0]}</Text></View>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][1]}</Text></View>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][2]}</Text></View>
+                        <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[3][3]}</Text></View>
+                      </View>
+
+                    </View>
+                  </View>
+                )}
+                {amsaGrid.length >= 4 && (
+                  <View style={styles.horoscopeSection}>
+                    <View style={styles.chartBorder}>
+
+                      {/* --- TOP ROW (Pisces, Aries, Taurus, Gemini) --- */}
+                      <View style={styles.chartRow}>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][0]}</Text></View>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][1]}</Text></View>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][2]}</Text></View>
+                        <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[0][3]}</Text></View>
+                      </View>
+
+                      {/* --- MIDDLE SECTION (Aquarius/Cap & Cancer/Leo) --- */}
+                      <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
+
+                        {/* Left Column (Aquarius, Capricorn) */}
+                        <View style={styles.sideColumn}>
+                          <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                            <Text style={styles.chartText}>{amsaGrid[1][0]}</Text>
+                          </View>
+                          <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                            <Text style={styles.chartText}>{amsaGrid[2][0]}</Text>
+                          </View>
+                        </View>
+
+                        {/* Center Box (Empty / Title) */}
+                        <View style={styles.centerBox}>
+                          <Text style={styles.centerLabel}>Amsam</Text>
+                          <Text style={styles.centerDomain}>vysyamala.com</Text>
+                        </View>
+
+                        {/* Right Column (Cancer, Leo) - Note the Index [3] for the last cell */}
+                        <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
+                          <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
+                            <Text style={styles.chartText}>{amsaGrid[1][amsaGrid[1].length - 1]}</Text>
+                          </View>
+                          <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}>
+                            <Text style={styles.chartText}>{amsaGrid[2][amsaGrid[2].length - 1]}</Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      {/* --- BOTTOM ROW (Sagittarius, Scorpio, Libra, Virgo) --- */}
+                      <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][0]}</Text></View>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][1]}</Text></View>
+                        <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][2]}</Text></View>
+                        <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[3][3]}</Text></View>
+                      </View>
+
+                    </View>
+                  </View>
+                )}
               </View>
-            )}
+            </View>
+
+            {/* Contact Details */}
+            <View
+              style={styles.menuChanges}
+              onLayout={(e) => { sectionOffsetsRef.current.contact = e.nativeEvent.layout.y; }}
+            >
+              <View style={styles.editOptions}>
+                <Text style={styles.titleNew}>Contact Details</Text>
+                <View style={styles.line} />
+                {profileData.contact_details?.address && profileData.contact_details.address !== "" && profileData.contact_details.address !== null && (
+                  <Text style={styles.labelNew}>Address : <Text style={styles.valueNew}>{profileData.contact_details.address}</Text></Text>
+                )}
+                {profileData.contact_details?.city && profileData.contact_details.city !== "" && profileData.contact_details.city !== null && (
+                  <Text style={styles.labelNew}>City : <Text style={styles.valueNew}>{profileData.contact_details.city}</Text></Text>
+                )}
+                {profileData.contact_details?.state && profileData.contact_details.state !== "" && profileData.contact_details.state !== null && (
+                  <Text style={styles.labelNew}>State : <Text style={styles.valueNew}>{profileData.contact_details.state}</Text></Text>
+                )}
+                {profileData.contact_details?.country && profileData.contact_details.country !== "" && profileData.contact_details.country !== null && (
+                  <Text style={styles.labelNew}>Country : <Text style={styles.valueNew}>{profileData.contact_details.country}</Text></Text>
+                )}
+                {profileData.contact_details?.phone && profileData.contact_details.phone !== "" && profileData.contact_details.phone !== null && (
+                  <Text style={styles.labelNew}>Phone no : <Text style={styles.valueNew}>{profileData.contact_details.phone}</Text></Text>
+                )}
+                {profileData.contact_details?.mobile && profileData.contact_details.mobile !== "" && profileData.contact_details.mobile !== null && (
+                  <Text style={styles.labelNew}>Mobile no : <Text style={styles.valueNew}>{profileData.contact_details.mobile}</Text></Text>
+                )}
+                {profileData.contact_details?.whatsapp && profileData.contact_details.whatsapp !== "" && profileData.contact_details.whatsapp !== null && (
+                  <Text style={styles.labelNew}>Whatsapp : <Text style={styles.valueNew}>{profileData.contact_details.whatsapps}</Text></Text>
+                )}
+                {profileData.contact_details?.email && profileData.contact_details.email !== "" && profileData.contact_details.email !== null && (
+                  <Text style={styles.labelNew}>Email : <Text style={styles.valueNew}>{profileData.contact_details.email}</Text></Text>
+                )}
+              </View>
+            </View>
           </View>
           <FeaturedProfiles />
           <SuggestedProfiles />
@@ -3087,7 +2879,6 @@ export const ProfileDetails = () => {
                   options={{
                     style: { paddingTop: 5 }
                   }}
-                // innerCircle={'dot'}
                 />
               </ScrollView>
               <View style={styles.modalButtonsNew}>
@@ -3107,7 +2898,6 @@ export const ProfileDetails = () => {
 
       {showVysassist &&
         VysassistEnable === 0 && (
-          // VysassistEnable === 1 &&  vysassits === true && data !== null && (
           <Modal visible={showVysassist} transparent animationType="fade">
             <View style={styles.overlay}>
               <View style={styles.popupContainer}>
@@ -3148,7 +2938,6 @@ export const ProfileDetails = () => {
                   <TouchableOpacity
                     style={[styles.modalButton, styles.submitButtonpop]}
                     onPress={() => {
-                      // closePopupnew();
                       navigation.navigate("PayNow", { autoCheckId: "1" });
                     }}
                     activeOpacity={0.7}
@@ -3170,88 +2959,6 @@ export const ProfileDetails = () => {
 
         )}
 
-      {/* Sticky Icons Navigation */}
-      <Animated.View
-        style={[
-          styles.stickyIconsContainer,
-          {
-            transform: [{
-              translateY: scrollY.interpolate({
-                inputRange: [headerHeight - 60, headerHeight],
-                outputRange: [-60, 0],
-                extrapolate: 'clamp',
-              })
-            }],
-            opacity: scrollY.interpolate({
-              inputRange: [headerHeight - 60, headerHeight],
-              outputRange: [0, 1],
-              extrapolate: 'clamp',
-            })
-          }
-        ]}
-      >
-        <View style={styles.iconsRowContainer}>
-          <View style={styles.iconContainer}>
-            <TouchableOpacity onPress={togglePersonalDetails}>
-              <FontAwesome5
-                name="user-circle"
-                size={22}
-                color={showPersonalDetails ? '#FFFFFF' : '#85878C'}
-                style={styles.iconStyle}
-              />
-            </TouchableOpacity>
-            <Text style={[styles.iconText, { color: showPersonalDetails ? '#FFFFFF' : '#85878C' }]}>Personal</Text>
-          </View>
-
-          <View style={styles.iconContainer}>
-            <TouchableOpacity onPress={toggleEducationDetails}>
-              <MaterialIcons
-                name="work"
-                size={22}
-                color={showEducationDetails ? '#FFFFFF' : '#85878C'}
-                style={styles.iconStyle}
-              />
-            </TouchableOpacity>
-            <Text style={[styles.iconText, { color: showEducationDetails ? '#FFFFFF' : '#85878C' }]}>Work</Text>
-          </View>
-
-          <View style={styles.iconContainer}>
-            <TouchableOpacity onPress={toggleFamilyDetails}>
-              <FontAwesome5
-                name="users"
-                size={22}
-                color={showFamilyDetails ? '#FFFFFF' : '#85878C'}
-                style={styles.iconStyle}
-              />
-              <Text style={[styles.iconText, { color: showFamilyDetails ? '#FFFFFF' : '#85878C' }]}>Family</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.iconContainer}>
-            <TouchableOpacity onPress={toggleHoroscopeDetails}>
-              <MaterialCommunityIcons
-                name="zodiac-libra"
-                size={22}
-                color={showHoroscopeDetails ? '#FFFFFF' : '#85878C'}
-                style={styles.iconStyle}
-              />
-            </TouchableOpacity>
-            <Text style={[styles.iconText, { color: showHoroscopeDetails ? '#FFFFFF' : '#85878C' }]}>Horoscope</Text>
-          </View>
-
-          <View style={styles.iconContainer}>
-            <TouchableOpacity onPress={toggleContactDetails}>
-              <MaterialIcons
-                name="phone"
-                size={22}
-                color={showContactDetails ? '#FFFFFF' : '#85878C'}
-                style={styles.iconStyle}
-              />
-            </TouchableOpacity>
-            <Text style={[styles.iconText, { color: showContactDetails ? '#FFFFFF' : '#85878C' }]}>Contact</Text>
-          </View>
-        </View>
-      </Animated.View>
       {/* Vysassist Error Modal */}
       <Modal
         visible={showVysassistErrorModal}
@@ -3395,8 +3102,47 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#fff",
+    zIndex: 20,
+    paddingTop: Platform.OS === 'ios' ? 50 : 30, // adjust as needed
+
+  },
+  // ===== New: compact sticky profile bar shown once hero collapses =====
+  compactProfileBar: {
+    position: 'absolute',
+    top: 60, // sits directly under the fixed top bar
+    left: 0,
+    right: 0,
+    zIndex: 15,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    height: COMPACT_HEADER_HEIGHT,
+  },
+  compactAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#eee',
+  },
+  compactName: {
+    color: '#282C3F',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  compactSub: {
+    color: '#85878C',
+    fontSize: 12,
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  heroWrapper: {
     zIndex: 1,
   },
+
   headerText: {
     color: "#282C3F",
     fontSize: 18,
@@ -3404,6 +3150,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
   },
+
   navigationButtons: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -3456,15 +3203,14 @@ const styles = StyleSheet.create({
 
   contentContainer: {
     width: "100%",
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
+    paddingTop: 10,
   },
-
   name: {
-    color: "#FF6666",
+    color: "#282C3F",
     fontSize: 22,
-    fontFamily: "inter",
-    fontWeight: "700",
-    marginRight: 10,
+    fontWeight: "800",
+    marginRight: 6,
   },
 
   nameIconFlex: {
@@ -3472,18 +3218,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    paddingVertical: 10,
+    marginBottom: 2,
   },
 
   nameVerifyFlex: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
   },
 
   iconFlex: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
   },
 
@@ -3492,40 +3236,47 @@ const styles = StyleSheet.create({
   },
 
   profileNumber: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#535665",
-    marginBottom: 6,
-    alignSelf: "flex-start",
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#85878C",
+    marginBottom: 12,
   },
 
   detailsMeterFlex: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    position: "relative",
+    alignItems: "center",
+    marginBottom: 16,
+    width: "100%",
   },
   detailsMeterFlex1: {
     flexDirection: "row",
-    // justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 10, top: -20, left: -5,
     marginTop: 20, top: -20, left: -5,
   },
 
   label: {
-    color: "#535665",
-    fontSize: 16,
-    fontWeight: "700",
+    color: "#85878C",
+    fontSize: 14,
+    fontWeight: "600",
     fontFamily: "inter",
-    marginBottom: 8,
+    marginBottom: 9,
   },
 
   value: {
+    color: "#282C3F",
+    fontSize: 14,
+    fontWeight: "700",
+    fontFamily: "inter",
+  },
+
+  // ===== New: bullet/bar-separated single-line profile summary (no field labels) =====
+  bulletDetailsText: {
     color: "#4F515D",
     fontSize: 14,
-    fontWeight: "500",
-    fontFamily: "inter",
+    fontWeight: "600",
+    lineHeight: 22,
   },
 
   buttonContainer: {
@@ -3538,14 +3289,14 @@ const styles = StyleSheet.create({
   },
 
   btn: {
-    alignSelf: "center",
+    alignSelf: "flex-start",
     borderRadius: 6,
+    overflow: "hidden",
   },
 
   loginContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
   },
 
   cancel: {
@@ -3562,21 +3313,17 @@ const styles = StyleSheet.create({
   },
 
   login: {
-    textAlign: "center",
-    color: "white",
-    fontWeight: "600",
+    color: "#ffffff",
+    fontWeight: "700",
     fontSize: 14,
-    letterSpacing: 1,
-    fontFamily: "inter",
+    letterSpacing: 0.5,
   },
 
   linearGradient: {
-    borderRadius: 5,
-    justifyContent: "center",
-    padding: 10,
-    marginRight: 15,
+    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
-
   fiveIconFlex: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -3636,7 +3383,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    // borderRadius: 5,
     alignSelf: 'center',
     borderColor: 'black',
     borderWidth: 2,
@@ -3678,25 +3424,26 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   filterTag: {
-    backgroundColor: '#E9EAEC',
-    paddingHorizontal: 14,
+    backgroundColor: "#F4F4F4",
+    paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 3,
-    marginLeft: 7,
-    flexDirection: 'row'
+    borderRadius: 14,
+    marginRight: 12,
+    flexDirection: "row",
+    alignItems: "center",
   },
   gridIcon: {
-    width: 16,
-    height: 16,
-    resizeMode: 'contain',
-    marginTop: 2,
-    // marginRight: 2
+    width: 14,
+    height: 14,
+    resizeMode: "contain",
+    tintColor: "#535665",
   },
+
   filterTagText: {
-    color: '#85878C',
-    fontSize: 14,
-    marginLeft: 2,
-    fontWeight: 'bold'
+    color: "#535665",
+    fontSize: 12.5,
+    marginLeft: 6,
+    fontWeight: "600",
   },
   loadingOverlay: {
     position: 'absolute',
@@ -3792,12 +3539,50 @@ const styles = StyleSheet.create({
 
   mainImage: {
     width: '100%',
-    height: 400,
+    height: HERO_IMAGE_HEIGHT,
+  },
+
+  // ===== New: 3-dot pagination indicator overlay for image carousel =====
+  dotsOverlayContainer: {
+    position: 'absolute',
+    bottom: 14,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dotIndicator: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    marginHorizontal: 3.5,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+  },
+  dotIndicatorActive: {
+    backgroundColor: '#ffffff',
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+  },
+  // ===== New: "1/4" style counter badge shown top-right of the image =====
+  imageCounterBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  imageCounterText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
   },
 
   thumbnailContainer: {
     flexDirection: 'row',
-    // justifyContent: 'space-between',
     padding: 5,
   },
 
@@ -3862,13 +3647,11 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    // marginBottom: 8,
   },
   checkboxContainerNew1: {
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    // marginBottom: 8,
   },
   checkboxContainerNew2: {
     flexDirection: 'row',
@@ -3882,12 +3665,18 @@ const styles = StyleSheet.create({
     color: "#333",
     marginTop: 5
   },
-  // label: {
-  //   fontSize: 16,
-  //   fontWeight: "bold",
-  //   color: "#535665",
-  //   marginTop: 15,
-  // },
+  gaugeContainer: {
+    width: 110,
+    height: 110,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  tagsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    flexWrap: "wrap",
+  },
   textInputnew: {
     width: "100%",
     padding: 10,
@@ -3965,55 +3754,55 @@ const styles = StyleSheet.create({
   checkboxChecked: {
     backgroundColor: "#e0e0e0",
   },
+  // ===== Updated: navigation arrows now positioned fixed on screen (sticky while scrolling) =====
   navigationContainer: {
+    position: 'absolute',
+    top: HERO_IMAGE_HEIGHT / 1 - 20,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // position: 'absolute',
-    top: '5%',
-    transform: [{ translateY: -88 }],
-    // left: 10,
-    // right: 10,
-    // zIndex: 10,
+    paddingHorizontal: 10,
+    zIndex: 18,
     pointerEvents: 'box-none',
   },
   messageButton: {
-    flexDirection: 'row', // Align icon and text horizontally
-    alignItems: 'center', // Center items vertically
-    justifyContent: 'center', // Center items horizontally
-    backgroundColor: '#007AFF', // Blue background
-    paddingVertical: 10, // Vertical padding
-    paddingHorizontal: 10, // Horizontal padding
-    borderRadius: 8, // Rounded corners
-    shadowColor: '#000', // Shadow for elevation
-    shadowOffset: { width: 0, height: 2 }, // Shadow position
-    shadowOpacity: 0.25, // Shadow transparency
-    shadowRadius: 4, // Shadow spread
-    elevation: 5, // Shadow effect for Android
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007AFF',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
     marginBottom: 10,
     marginTop: 10
   },
   icon: {
-    color: '#fff', // White color for icon
-    fontSize: 20, // Size of the icon
-    marginRight: 8, // Space between icon and text
+    color: '#fff',
+    fontSize: 20,
+    marginRight: 8,
   },
   messageText: {
-    color: '#fff', // White color for text
-    fontSize: 16, // Font size
-    fontWeight: 'bold', // Bold text
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   disabledButton: {
     opacity: 0.5,
   },
   buttonContainerExpress: {
-    flexDirection: 'row',
-    width: '100%',
-    marginTop: -10,
-    marginBottom: 20
+    width: "100%",
+    marginTop: 10,
+    marginBottom: 20,
   },
   popupContainernew: {
     backgroundColor: 'white',
-    width: '90%',  // Adjust width to match design
+    width: '90%',
     borderRadius: 8,
     padding: 15,
     maxHeight: '80%',
@@ -4026,78 +3815,89 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     paddingBottom: 10,
-    paddingHorizontal: 10, // Add horizontal padding for more space
+    paddingHorizontal: 10,
     width: '100%',
   },
   titlenew: {
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
-    flex: 1, // Allow the title to take available space
+    flex: 1,
     marginRight: 10,
   },
   scrollViewContentContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    // padding: 16,
+    width: '100%',
   },
   iconsRowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // alignItems: 'center',
     width: '100%',
     paddingHorizontal: 16,
-    backgroundColor: '#4F515D',
-    paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderColor: '#fff',
+    backgroundColor: '#BD1225',
+    paddingVertical: 12,
+    borderBottomWidth: 0,
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconText: {
-    fontSize: 12,
-    marginBottom: 2,
+    fontSize: 11.5,
+    marginTop: 4,
+    marginBottom: 0,
     textAlign: 'center',
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   menuChanges: {
-    width: '100%', backgroundColor: '#4F515D',
+    width: '100%', backgroundColor: '#F4F4F4',
     justifyContent: 'center', alignItems: 'center'
   },
   editOptions: {
-    width: '90%',
+    width: '92%',
     backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 2,
-    marginTop: 10
+    padding: 18,
+    borderRadius: 12,
+    marginBottom: 12,
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 1,
   },
   titleNew: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#282C3F',
-    // fontFamily : 'Inter'
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 12,
+    color: '#BD1225',
+    letterSpacing: 0.2,
   },
   line: {
     borderBottomWidth: 1,
-    borderBottomColor: '#000',  // Change color as needed
-    width: '100%',  // Adjust width as needed
+    borderBottomColor: '#EDEDED',
+    width: '100%',
+    marginBottom: 4,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F2',
   },
   labelNew: {
-    color: '#282C3F',
-    fontSize: 15,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    marginTop: 7
+    color: '#8A8D95',
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 0,
+    marginTop: 9,
+    lineHeight: 20,
   },
   valueNew: {
     color: '#282C3F',
-    fontSize: 15,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '700',
   },
   iconStyle: {
     marginHorizontal: 8,
@@ -4109,31 +3909,6 @@ const styles = StyleSheet.create({
   loadingIndicator: {
     marginTop: 20,
   },
-  stickyIconsContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-  },
-  // iconsRowContainer: {
-  //   flexDirection: 'row',
-  //   justifyContent: 'space-between',
-  //   width: '100%',
-  //   paddingHorizontal: 16,
-  //   backgroundColor: '#4F515D',
-  //   paddingVertical: 10,
-  //   borderBottomWidth: 0.5,
-  //   borderColor: '#fff',
-  //   shadowColor: '#000',
-  //   shadowOffset: {
-  //     width: 0,
-  //     height: 2,
-  //   },
-  //   shadowOpacity: 0.25,
-  //   shadowRadius: 3.84,
-  //   elevation: 5,
-  // },
   lockOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -4152,7 +3927,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 5,
-    opacity: 0.3, // Make thumbnails faint if locked
+    opacity: 0.3,
   },
   lockOverlaySmall: {
     ...StyleSheet.absoluteFillObject,
@@ -4172,14 +3947,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  lockOverlayText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 15,
-    paddingHorizontal: 40,
-  },
   passwordInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -4187,6 +3954,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 20,
     paddingHorizontal: 10,
+  },
+  bulletTextContainer: {
+    flex: 1,
+    paddingRight: 10,
   },
   cardInputTransparent: {
     flex: 1,
@@ -4270,7 +4041,7 @@ const styles = StyleSheet.create({
   chartBorder: {
     borderWidth: 1.5,
     borderColor: '#000',
-    backgroundColor: '#FFFACD', // Cream/LemonChiffon color match
+    backgroundColor: '#FFFACD',
     width: '100%',
     maxWidth: 350,
     aspectRatio: 1,
@@ -4288,8 +4059,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRightWidth: 1,
     borderColor: '#000',
-    padding: 1, // Reduced padding to maximize space
-    overflow: 'hidden', // Prevents content from spilling out
+    padding: 1,
+    overflow: 'hidden',
   },
   sideColumn: {
     flex: 1,
@@ -4304,26 +4075,25 @@ const styles = StyleSheet.create({
     borderColor: '#000',
     backgroundColor: '#FFFACD',
   },
-  // --- TEXT STYLES TO MATCH IMAGE ---
   chartText: {
-    fontSize: 10, // Reduced font size to fit 6 items (was 13)
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#008000',
     textAlign: 'center',
-    lineHeight: 12, // Tighter line height for stacking
+    lineHeight: 12,
     fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
   },
   centerLabel: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#008000', // Green
+    color: '#008000',
     marginBottom: 5,
     fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
   },
   centerDomain: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#008000', // Green
+    color: '#008000',
     fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
   },
   chartTitle: {
