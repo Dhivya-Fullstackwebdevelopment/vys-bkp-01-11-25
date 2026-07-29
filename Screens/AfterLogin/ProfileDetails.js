@@ -152,7 +152,7 @@ const ProfileDetailsShimmer = () => {
               <ShimmerPlaceholder style={{ width: '90%', height: 16, borderRadius: 4, marginBottom: 8 }} />
               <ShimmerPlaceholder style={{ width: '75%', height: 16, borderRadius: 4 }} />
             </View>
-                        <ShimmerPlaceholder style={{ width: 100, height: 100, borderRadius: 50 }} />
+            <ShimmerPlaceholder style={{ width: 100, height: 100, borderRadius: 50 }} />
 
           </View>
 
@@ -160,7 +160,7 @@ const ProfileDetailsShimmer = () => {
             <ShimmerPlaceholder style={{ width: 130, height: 28, borderRadius: 14, marginRight: 12 }} />
             <ShimmerPlaceholder style={{ width: 110, height: 28, borderRadius: 14 }} />
           </View>
-           <View style={styles.tagsRow}>
+          <View style={styles.tagsRow}>
             <ShimmerPlaceholder style={{ width: 150, height: 28, borderRadius: 14, marginRight: 12 }} />
             <ShimmerPlaceholder style={{ width: 90, height: 28, borderRadius: 14 }} />
           </View>
@@ -453,7 +453,7 @@ export const ProfileDetails = () => {
     fetchPlanId();
   }, []);
 
-   const fetchStatusHandlerNew = async () => {
+  const fetchStatusHandlerNew = async () => {
     const status = await fetchProfileStatus(viewedProfileId);
     if (status) {
       setStatus(status); // Update the state with the fetched status
@@ -641,7 +641,7 @@ export const ProfileDetails = () => {
           await AsyncStorage.setItem('myId', data.My_profile_id);
         }
         await logProfileVisit(viewedProfileId);
-          const response = await logProfileVisit(viewedProfileId);
+        const response = await logProfileVisit(viewedProfileId);
         console.log("Profile Details fully 2 ==>", data, response)
 
         if (
@@ -755,14 +755,14 @@ export const ProfileDetails = () => {
     const loadWishlistProfiles = async () => {
       try {
         const response = await getWishlistProfiles();
- if (!response || !Array.isArray(response)) {
+        if (!response || !Array.isArray(response)) {
           console.warn("Invalid wishlist response:", response);
           return;
-        }        const profileIds = response.map((p) => p.wishlist_profileid);
+        } const profileIds = response.map((p) => p.wishlist_profileid);
         setBookmarkedProfiles(new Set(profileIds));
       } catch (error) {
         console.error("Error loading wishlist profiles:", error);
-       Toast.show({
+        Toast.show({
           type: "error",
           text1: "Error loading wishlist profiles",
           position: "bottom",
@@ -868,7 +868,7 @@ export const ProfileDetails = () => {
       }
     } catch (error) {
       console.error("Error updating express interest:", error);
-     Toast.show({
+      Toast.show({
         type: 'error',
         text1: 'error',
         text2: 'Failed to update express interest!',
@@ -953,7 +953,7 @@ export const ProfileDetails = () => {
       }
     } catch (error) {
       console.error('Download error:', error);
-       Toast.show({
+      Toast.show({
         type: 'error',
         text1: 'Error',
         text2: 'Failed to load horoscope. Please try again.',
@@ -1009,7 +1009,7 @@ export const ProfileDetails = () => {
   const openPopup = () => {
     setShowVysassist(!showVysassist);
   };
-   const closeVysassistpopup = () => {
+  const closeVysassistpopup = () => {
     setShowVysassist(false);
   };
 
@@ -1031,7 +1031,7 @@ export const ProfileDetails = () => {
       setSelectedOptions([...selectedOptions, option]);
     }
   };
-   const formDate = (isoString) => {
+  const formDate = (isoString) => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -1045,7 +1045,7 @@ export const ProfileDetails = () => {
     if (text) setSelectValue('');
   };
 
-   const handleSelectChange = (value) => {
+  const handleSelectChange = (value) => {
     setSelectValue(value);
     if (value) setNotes('');
   };
@@ -1229,7 +1229,7 @@ export const ProfileDetails = () => {
       }
     } catch (error) {
       console.error('Error opening dialer:', error);
-       Toast.show({
+      Toast.show({
         type: 'error',
         text1: 'Network Error',
         text2: 'Please check your internet connection',
@@ -2079,7 +2079,16 @@ export const ProfileDetails = () => {
               onLayout={(e) => { sectionOffsetsRef.current.personal = e.nativeEvent.layout.y; }}
             >
               <View style={styles.editOptions}>
-                <Text style={styles.titleNew}>Personal Details</Text>
+                <View style={styles.sectionTitleRow}>
+                  <FontAwesome5
+                    name="user-circle"
+                    size={22}
+                    color="#BD1225"   // Static theme color – matches other section icons
+                    style={{ marginRight: 8, paddingBottom: 10 }}
+                  />
+
+                  <Text style={styles.titleNew}>Personal Details</Text>
+                </View>
                 <View style={styles.line} />
                 {profileData.personal_details?.profile_name && profileData.personal_details.profile_name !== "" && profileData.personal_details.profile_name !== null && (
                   <Text style={styles.labelNew}>Name : <Text style={styles.valueNew}>{profileData.personal_details.profile_name}</Text></Text>
@@ -2137,8 +2146,17 @@ export const ProfileDetails = () => {
               style={styles.menuChanges}
               onLayout={(e) => { sectionOffsetsRef.current.education = e.nativeEvent.layout.y; }}
             >
-               <View style={styles.editOptions}>
-                <Text style={styles.titleNew}>Education & Profession Details</Text>
+              <View style={styles.editOptions}>
+                <View style={styles.sectionTitleRow}>
+                  <MaterialCommunityIcons 
+                    name="work"
+                    size={22}
+                    color="#BD1225"   // Static theme color – matches other section icons
+                    style={{ marginRight: 8, paddingBottom: 10 }}
+                  />
+
+                  <Text style={styles.titleNew}>Education & Profession Details</Text>
+                </View>
                 <View style={styles.line} />
                 {profileData.education_details?.education_level && profileData.education_details.education_level !== "" && profileData.education_details.education_level !== null && (
                   <Text style={styles.labelNew}>Education Level : <Text style={styles.valueNew}>{profileData.education_details.education_level}</Text></Text>
@@ -2180,7 +2198,15 @@ export const ProfileDetails = () => {
               onLayout={(e) => { sectionOffsetsRef.current.family = e.nativeEvent.layout.y; }}
             >
               <View style={styles.editOptions}>
-                <Text style={styles.titleNew}>Family Details</Text>
+                <View style={styles.sectionTitleRow}>
+                  <FontAwesome5
+                    name="users"
+                    size={22}
+                    color="#BD1225"   // Static theme color – matches other section icons
+                    style={{ marginRight: 8, paddingBottom: 10 }}
+                  />
+                  <Text style={styles.titleNew}>Family Details</Text>
+                </View>
                 <View style={styles.line} />
                 {profileData.family_details?.about_family && profileData.family_details.about_family !== "" && profileData.family_details.about_family !== null && (
                   <Text style={styles.labelNew}>About Family : <Text style={styles.valueNew}>{profileData.family_details.about_family}</Text></Text>
@@ -2230,7 +2256,15 @@ export const ProfileDetails = () => {
               onLayout={(e) => { sectionOffsetsRef.current.horoscope = e.nativeEvent.layout.y; }}
             >
               <View style={styles.editOptions}>
-                <Text style={styles.titleNew}>Horoscope Details</Text>
+                <View style={styles.sectionTitleRow}>
+                  <MaterialCommunityIcons
+                    name="star"
+                    size={22}
+                    color="#BD1225"   // Static theme color – matches other section icons
+                    style={{ marginRight: 8, paddingBottom: 10 }}
+                  />
+                  <Text style={styles.titleNew}>Horoscope Details</Text>
+                </View>
                 <View style={styles.line} />
                 {profileData.horoscope_details?.rasi && profileData.horoscope_details.rasi !== "" && profileData.horoscope_details.rasi !== null && (
                   <Text style={styles.labelNew}>Rasi : <Text style={styles.valueNew}>{profileData.horoscope_details.rasi}</Text></Text>
@@ -2386,7 +2420,15 @@ export const ProfileDetails = () => {
               onLayout={(e) => { sectionOffsetsRef.current.contact = e.nativeEvent.layout.y; }}
             >
               <View style={styles.editOptions}>
-                <Text style={styles.titleNew}>Contact Details</Text>
+                <View style={styles.sectionTitleRow}>
+                  <MaterialIcons
+                    name="phone"
+                    size={22}
+                    color="#BD1225"   
+                    style={{ marginRight: 8, paddingBottom: 10 }}
+                  />
+                  <Text style={styles.titleNew}>Contact Details</Text>
+                </View>
                 <View style={styles.line} />
                 {profileData.contact_details?.address && profileData.contact_details.address !== "" && profileData.contact_details.address !== null && (
                   <Text style={styles.labelNew}>Address : <Text style={styles.valueNew}>{profileData.contact_details.address}</Text></Text>
@@ -3573,5 +3615,10 @@ const styles = StyleSheet.create({
     color: "#282C3F",
     marginBottom: 6,
     alignSelf: "flex-start",
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
 });
