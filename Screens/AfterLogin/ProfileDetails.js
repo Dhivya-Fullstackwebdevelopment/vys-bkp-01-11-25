@@ -14,24 +14,25 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   Platform,
-  ToastAndroid,
   TouchableWithoutFeedback,
-  Linking, ActivityIndicator, Share, Pressable, Animated
+  Linking,
+  ActivityIndicator,
+  Share,
+  Pressable,
+  Animated
 } from "react-native";
 import { Ionicons, MaterialIcons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-// import RNFS from 'react-native-fs';
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ProfileDetailsView } from "../../Components/HomeTab/ProfileDetails/ProfileDetailsView";
+
 import Toast from "react-native-toast-message";
 import axios from "axios";
 import config from "../../API/Apiurl";
 
-
-// import {  } from "react-native";
 import {
   fetchProfileData,
   handleExpressInterest,
@@ -40,7 +41,6 @@ import {
   getPhotoByPassword,
   getPersonalNotes,
   savePersonalNotes,
-  downloadPdf,
   fetchProfileStatus,
   updateProfileInterest,
   createOrRetrieveChat,
@@ -49,7 +49,6 @@ import {
   callRequestDetails,
   logProfileVisit,
   getProfileListMatch,
-  downloadMatchingReportPdf,
   downloadPdfPoruthamNew,
   Printhoroscopepdf,
   fetchRasiImage,
@@ -63,20 +62,46 @@ import RBSheet from "react-native-raw-bottom-sheet";
 import { SuggestedProfiles } from "../../Components/HomeTab/SuggestedProfiles";
 import { FeaturedProfiles } from "../../Components/HomeTab/FeaturedProfiles";
 import ProfileVysAssistPopup from "../../Components/HomeTab/ProfileDetails/ProfileVysAssistPopup";
+
 import { createShimmerPlaceholder } from 'react-native-shimmer-placeholder';
 import Timeline from "react-native-timeline-flatlist";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImage";
-import { openCachedPdf } from "../../Screens/AfterLogin/PdfViewerModal"
+import { openCachedPdf } from "../../Screens/AfterLogin/PdfViewerModal";
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
-// ---- Collapsing header tuning constants (layout only, no color/theme changes) ----
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_IMAGE_HEIGHT = 400;
 const COMPACT_HEADER_HEIGHT = 64;
-// Point (in scroll px) at which the hero image is considered fully collapsed
 const COLLAPSE_DISTANCE = HERO_IMAGE_HEIGHT - COMPACT_HEADER_HEIGHT;
+
+// Dynamic Matching Score Bar Component
+const HorizontalMatchingScore = ({ score, onPress }) => {
+  const scoreNum = parseInt(score, 10) || 0;
+
+  // Color logic based on match score
+  let barColor = "#F44336"; // Default Low Red
+  if (scoreNum >= 80) {
+    barColor = "#008000"; // Deep Green
+  } else if (scoreNum >= 60) {
+    barColor = "#4CAF50"; // Standard Green
+  } else if (scoreNum >= 40) {
+    barColor = "#FF9800"; // Orange
+  }
+
+  return (
+    <TouchableOpacity style={styles.scoreBarWrapper} onPress={onPress} activeOpacity={0.8}>
+      <View style={styles.scoreHeaderRow}>
+        <Text style={styles.scoreLabel}>Matching Score</Text>
+        <Text style={styles.scorePercentText}>{scoreNum}%</Text>
+      </View>
+      <View style={styles.scoreTrack}>
+        <View style={[styles.scoreFill, { width: `${Math.min(scoreNum, 100)}%`, backgroundColor: barColor }]} />
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const ProfileDetailsShimmer = () => {
   const width = Dimensions.get('window').width;
@@ -84,17 +109,14 @@ const ProfileDetailsShimmer = () => {
   return (
     <ScrollView>
       <View style={styles.container}>
-        {/* Top Header Shimmer */}
         <View style={styles.headerContainer}>
           <ShimmerPlaceholder style={{ width: 24, height: 24, borderRadius: 12 }} />
           <ShimmerPlaceholder style={{ width: 150, height: 24, marginHorizontal: 20 }} />
           <View style={{ width: 24 }} />
         </View>
 
-        {/* Main Image Shimmer */}
         <ShimmerPlaceholder style={{ width: width, height: 400 }} />
 
-        {/* Thumbnails Shimmer */}
         <View style={styles.thumbnailContainer}>
           {[1, 2, 3, 4].map((_, index) => (
             <ShimmerPlaceholder
@@ -110,7 +132,6 @@ const ProfileDetailsShimmer = () => {
         </View>
 
         <View style={styles.contentContainer}>
-          {/* Name and Header Icons Shimmer */}
           <View style={styles.nameIconFlex}>
             <View style={styles.nameVerifyFlex}>
               <ShimmerPlaceholder style={{ width: 160, height: 26, borderRadius: 4, marginRight: 8 }} />
@@ -124,30 +145,26 @@ const ProfileDetailsShimmer = () => {
             </View>
           </View>
 
-          {/* Profile ID Shimmer */}
           <ShimmerPlaceholder style={{ width: 90, height: 16, borderRadius: 4, marginBottom: 12 }} />
 
-          {/* Details & Matching Score Row Shimmer */}
           <View style={styles.detailsMeterFlex}>
             <View style={styles.bulletTextContainer}>
               <ShimmerPlaceholder style={{ width: '90%', height: 16, borderRadius: 4, marginBottom: 8 }} />
               <ShimmerPlaceholder style={{ width: '75%', height: 16, borderRadius: 4 }} />
             </View>
-            <ShimmerPlaceholder style={{ width: 100, height: 100, borderRadius: 50 }} />
+                        <ShimmerPlaceholder style={{ width: 100, height: 100, borderRadius: 50 }} />
+
           </View>
 
-          {/* Filter Tags Rows Shimmer */}
           <View style={styles.tagsRow}>
             <ShimmerPlaceholder style={{ width: 130, height: 28, borderRadius: 14, marginRight: 12 }} />
             <ShimmerPlaceholder style={{ width: 110, height: 28, borderRadius: 14 }} />
           </View>
-
-          <View style={styles.tagsRow}>
+           <View style={styles.tagsRow}>
             <ShimmerPlaceholder style={{ width: 150, height: 28, borderRadius: 14, marginRight: 12 }} />
             <ShimmerPlaceholder style={{ width: 90, height: 28, borderRadius: 14 }} />
           </View>
 
-          {/* Express Interest Button Shimmer */}
           <View style={styles.buttonContainerExpress}>
             <ShimmerPlaceholder style={{ width: 150, height: 42, borderRadius: 6 }} />
           </View>
@@ -160,20 +177,15 @@ const ProfileDetailsShimmer = () => {
 export const ProfileDetails = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
-  // Height of the profile image/hero section that should collapse into the sticky header
-  const headerHeight = HERO_IMAGE_HEIGHT;
-  // Navigation
   const navigation = useNavigation();
   const route = useRoute();
   const { viewedProfileId, interestParam, allProfileIds } = route.params;
-  console.log("viewedProfileId", viewedProfileId)
-  // Add state for profile navigation
+
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [profileIds, setProfileIds] = useState([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [rasiGrid, setRasiGrid] = useState([]);
   const [amsaGrid, setAmsaGrid] = useState([]);
-  console.log("rasiGriddddd", rasiGrid)
   const [storedPlanId, setStoredPlanId] = useState(null);
 
   useEffect(() => {
@@ -186,40 +198,27 @@ export const ProfileDetails = () => {
 
   const isPlan16 = storedPlanId === "16";
 
-
   const getSafeImage = (imageUrl) => {
-
-    // FEMALE profile ID starts with "VF"
     const isFemaleProfile = basic_details?.profile_id?.startsWith("VF");
+    const defaultImgUrl = isFemaleProfile
+      ? "https://vysyamat.blob.core.windows.net/vysyamala/default_bride.png"
+      : "https://vysyamat.blob.core.windows.net/vysyamala/default_groom.png";
 
-    // Set default image based on profile gender prefix
-    const defaultImgUrl =
-      isFemaleProfile
-        ? "https://vysyamat.blob.core.windows.net/vysyamala/default_bride.png"
-        : "https://vysyamat.blob.core.windows.net/vysyamala/default_groom.png";
-
-    // Return default image if missing
     if (!imageUrl || imageUrl.trim() === "") {
       return defaultImgUrl;
     }
-
     return imageUrl;
   };
 
-
-  // Initialize profile IDs and current index
   useEffect(() => {
     if (allProfileIds) {
       const ids = Object.values(allProfileIds);
       setProfileIds(ids);
-      // const ids = allProfileIds;
-      // setProfileIds(ids);
       const index = ids.findIndex(id => id === viewedProfileId);
       setCurrentProfileIndex(index !== -1 ? index : 0);
     }
   }, [allProfileIds, viewedProfileId]);
 
-  // Navigation functions
   const navigateToProfile = async (index) => {
     if (index >= 0 && index < profileIds.length && !isLoadingProfiles) {
       setIsLoadingProfiles(true);
@@ -260,7 +259,6 @@ export const ProfileDetails = () => {
             const index = response.profile_ids.findIndex(id => id === viewedProfileId);
             setCurrentProfileIndex(index !== -1 ? index : 0);
           } else {
-            // Fallback
             const ids = Object.values(allProfileIds);
             setProfileIds(ids);
             const index = ids.findIndex(id => id === viewedProfileId);
@@ -274,7 +272,6 @@ export const ProfileDetails = () => {
             text2: 'Failed to load profile list',
             position: "bottom",
           });
-          // Fallback
           const ids = Object.values(allProfileIds);
           setProfileIds(ids);
           const index = ids.findIndex(id => id === viewedProfileId);
@@ -288,26 +285,23 @@ export const ProfileDetails = () => {
     fetchAndSetProfileIds();
   }, [allProfileIds, viewedProfileId]);
 
-  // Carousel State
   const width = Dimensions.get('window').width;
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(null);
   const [isZoomVisible, setZoomVisible] = useState(false);
   const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
   const [password, setPassword] = useState('');
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [fetchedUserImages, setFetchedUserImages] = useState(null); // State for fetched images
-  const [isProfileUnlocked, setIsProfileUnlocked] = useState(false); // State to manage profile unlock status
+  const [fetchedUserImages, setFetchedUserImages] = useState(null);
+  const [isProfileUnlocked, setIsProfileUnlocked] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [notes, setNotes] = useState('');
   const [notesData, setNotesData] = useState(null);
   const [profileData, setProfileData] = useState(null);
-  console.log("profileData", profileData)
 
   const [photoProtection, setPhotoProtection] = useState(null);
   const [photoRequest, setPhotoRequest] = useState(null);
   const [expressInt, setExpressInt] = useState(false);
-  const [status, setStatus] = useState(); // State to hold API status
+  const [status, setStatus] = useState();
   const [hideExpressButton, setHideExpressButton] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isPopupVisible, setPopupVisible] = useState(false);
@@ -318,32 +312,18 @@ export const ProfileDetails = () => {
   const [isPickerVisible, setIsPickerVisible] = useState(true);
   const [expressInterestError, setExpressInterestError] = useState("");
   const [selectedCategory, setSelectedCategory] = useState('');
-  console.log("selectedCategory express interest", selectedCategory)
-  const custom_message = AsyncStorage.getItem('custom_message')
-  console.log("customMessage", custom_message)
+  const custom_message = AsyncStorage.getItem('custom_message');
   const [mobileNumber, setMobileNumber] = useState('');
-  const [VysassistEnable, setVysassistEnable] = useState()
-  const [vysassits, setVysassits] = useState()
-  const [data, setData] = useState([])
-  const [options, setOptions] = useState([])
+  const [VysassistEnable, setVysassistEnable] = useState();
+  const [vysassits, setVysassits] = useState();
+  const [data, setData] = useState([]);
+  const [options, setOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState([]);
-  const [isVisible, setIsVisible] = useState(false)
   const bottomSheetRef = useRef();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [responseMsg, setResponseMsg] = useState('');
-  console.log("responseMsg", responseMsg)
-  // NOTE: these flags are now only used to highlight the active section pill
-  // in the (now sticky, always-scrollable) icon row. All detail sections
-  // render continuously in the page; nothing is hidden/toggled any more.
-  const [showPersonalDetails, setShowPersonalDetails] = useState(true);
-  const [showEducationDetails, setShowEducationDetails] = useState(false);
-  const [showFamilyDetails, setShowFamilyDetails] = useState(false);
-  const [showHoroscopeDetails, setShowHoroscopeDetails] = useState(false);
-  const [showContactDetails, setShowContactDetails] = useState(false);
   const [planId, setPlanId] = useState(null);
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
-  const [showMatchingReportUpgrade, setShowMatchingReportUpgrade] = useState(false);
-  const [matchingReportMessage, setMatchingReportMessage] = useState('');
   const restrictedPlanIds = ["1", "2", "3", "14", "15", "17"];
   const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -356,8 +336,6 @@ export const ProfileDetails = () => {
   const [blockModalVisible, setBlockModalVisible] = useState(false);
   const [blockLoading, setBlockLoading] = useState(false);
 
-  // ---- Section scroll offsets, captured via onLayout so the icon row can
-  // smooth-scroll to a section instead of hiding/showing content ----
   const sectionOffsetsRef = useRef({
     detailsTop: 0,
     personal: 0,
@@ -423,7 +401,6 @@ export const ProfileDetails = () => {
       }
     } catch (error) {
       console.log("Block Profile Error", error);
-
       Toast.show({
         type: "error",
         text1: "Error",
@@ -435,58 +412,6 @@ export const ProfileDetails = () => {
     }
   };
 
-  const togglePersonalDetails = () => {
-    setShowEducationDetails(false)
-    setShowFamilyDetails(false)
-    setShowHoroscopeDetails(false)
-    setShowContactDetails(false)
-    setShowPersonalDetails(true);
-    scrollToSection('personal');
-  };
-
-  const toggleEducationDetails = () => {
-    setShowPersonalDetails(false)
-    setShowFamilyDetails(false)
-    setShowHoroscopeDetails(false)
-    setShowContactDetails(false)
-    setShowEducationDetails(true);
-    scrollToSection('education');
-  };
-
-  const toggleFamilyDetails = () => {
-    setShowPersonalDetails(false)
-    setShowEducationDetails(false)
-    setShowHoroscopeDetails(false)
-    setShowContactDetails(false)
-    setShowFamilyDetails(true);
-    scrollToSection('family');
-  };
-
-  const toggleHoroscopeDetails = () => {
-    setShowPersonalDetails(false)
-    setShowEducationDetails(false)
-    setShowFamilyDetails(false)
-    setShowContactDetails(false)
-    setShowHoroscopeDetails(true);
-    scrollToSection('horoscope');
-  };
-
-  const toggleContactDetails = () => {
-    if (!profileData.contact_details) {
-      console.log("contact details not found")
-      navigation.navigate('MembershipPlan');
-    } else {
-      console.log("contact details found")
-      setShowPersonalDetails(false)
-      setShowEducationDetails(false)
-      setShowFamilyDetails(false)
-      setShowHoroscopeDetails(false)
-      setShowContactDetails(true);
-      scrollToSection('contact');
-    }
-  };
-
-
   const handleUpdateInterest = async (profileId, status) => {
     const result = await updateProfileInterest(profileId, status);
 
@@ -496,8 +421,6 @@ export const ProfileDetails = () => {
         setHideExpressButton(false);
         if (viewedProfileId) {
           await fetchStatusHandlerNew();
-        } else {
-          console.error("loginUserProfileId is null or undefined");
         }
       } else if (status === "3") {
         Alert.alert("Declined", "Interest Declined");
@@ -512,11 +435,8 @@ export const ProfileDetails = () => {
     const fetchStatusHandler = async () => {
       const status = await fetchProfileStatus(viewedProfileId);
       if (status) {
-        setStatus(status); // Update the state with the fetched status
+        setStatus(status);
       }
-      // else {
-      //   console.error("Error fetching status");
-      // }
     };
     fetchStatusHandler();
   }, [viewedProfileId]);
@@ -533,7 +453,7 @@ export const ProfileDetails = () => {
     fetchPlanId();
   }, []);
 
-  const fetchStatusHandlerNew = async () => {
+   const fetchStatusHandlerNew = async () => {
     const status = await fetchProfileStatus(viewedProfileId);
     if (status) {
       setStatus(status); // Update the state with the fetched status
@@ -548,7 +468,6 @@ export const ProfileDetails = () => {
       await AsyncStorage.setItem('chat_created', JSON.stringify(result.created));
       await AsyncStorage.setItem('chat_room_id_name', result.room_id_name);
       await AsyncStorage.setItem('chat_statue', JSON.stringify(result.statue));
-      console.log('API result:', result);
       navigation.navigate("ChatRoom", {
         room_name: result.room_id_name,
         username: profileData.basic_details.profile_name,
@@ -564,9 +483,7 @@ export const ProfileDetails = () => {
   const handleSendPhotoRequest = async () => {
     setLoading(true);
     try {
-      console.log("Sending photo request...");
       const response = await sendPhotoRequest(viewedProfileId);
-      console.log("Photo request sent successfully:", response);
       if (response.Status === 1) {
         Toast.show({
           type: 'success',
@@ -575,8 +492,7 @@ export const ProfileDetails = () => {
           position: "bottom",
         });
       } else if (response.Status === 0) {
-        console.log("Photo request failed:", response);
-        setResponseMsg(response.message)
+        setResponseMsg(response.message);
         setShowUpgradeModal(true);
         Toast.show({
           type: 'error',
@@ -592,10 +508,8 @@ export const ProfileDetails = () => {
           position: "bottom",
         });
       }
-      // Handle success notification here
     } catch (error) {
       console.error("Error in photo request:", error);
-      // Handle error notification here
     } finally {
       setLoading(false);
     }
@@ -606,10 +520,9 @@ export const ProfileDetails = () => {
       try {
         const data = await getPersonalNotes();
         if (data.length > 0) {
-          const profileNotes = data.find(profile => profile.notes_profileid === profileData?.basic_details?.profile_id); // Replace with actual profile ID
-          // const profileNotes = data.find(profile => profile.notes_profileid === "VY240001"); // Replace with actual profile ID
+          const profileNotes = data.find(profile => profile.notes_profileid === profileData?.basic_details?.profile_id);
           if (profileNotes && profileNotes.notes_details) {
-            setNotes(profileNotes.notes_details); // Set the initial notes details
+            setNotes(profileNotes.notes_details);
             setNotesData(profileNotes);
           }
         }
@@ -626,25 +539,18 @@ export const ProfileDetails = () => {
   };
 
   const handleSubmit = async () => {
-    console.log('Submitted Text:', notes);
-
-    // Example values, replace with actual ones from your context or state
     try {
-      // Call the API function with the entered notes
       const response = await savePersonalNotes(profileData?.basic_details?.profile_id, notes);
 
       if (response && response.Status === 1) {
-        console.log('Notes saved successfully:', response);
         Toast.show({
           type: 'success',
           text1: 'Success',
           text2: 'Notes saved successfully!',
           position: "top",
         });
-      }
-      else if (response.Status === 0) {
-        console.log('Failed to save notes:', response);
-        setResponseMsg(response.message)
+      } else if (response.Status === 0) {
+        setResponseMsg(response.message);
         setShowUpgradeModal(true);
         Toast.show({
           type: 'error',
@@ -668,11 +574,9 @@ export const ProfileDetails = () => {
       });
     }
 
-    toggleModal(); // Close the modal after submission
+    toggleModal();
   };
 
-  // Helper to clean HTML tags and get content
-  // Add this helper function at the top of your file or inside the component
   const extractGridData = (htmlString) => {
     if (!htmlString) return [];
 
@@ -684,13 +588,10 @@ export const ProfileDetails = () => {
       const cellMatches = rowHtml.match(/<td[^>]*>([\s\S]*?)<\/td>/g) || [];
 
       cellMatches.forEach(cellHtml => {
-        // Replace <br> with \n for vertical stacking
         let text = cellHtml.replace(/<br\s*\/?>/gi, '\n');
         text = text.replace(/<\/p>/gi, '\n');
         text = text.replace(/<[^>]+>/g, '').trim();
         text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
-
-        // Remove extra empty newlines to save space
         text = text.replace(/\n\s*\n/g, '\n').trim();
 
         cells.push(text);
@@ -724,6 +625,7 @@ export const ProfileDetails = () => {
         } else {
           setRasiGrid([]);
         }
+
         const amsaData = await fetchAmsamImage(viewedProfileId);
         if (amsaData && amsaData.status === 1) {
           const parsedGrid = extractGridData(amsaData.html);
@@ -731,18 +633,17 @@ export const ProfileDetails = () => {
         } else {
           setAmsaGrid([]);
         }
+
         const data = await fetchProfileData(viewedProfileId);
-        console.log("Fetched profile data: 1 ", data);
         if (data && data.encrypted_profile_id) {
           setProfileData(data);
           await AsyncStorage.setItem('encryptedId', data.encrypted_profile_id);
           await AsyncStorage.setItem('myId', data.My_profile_id);
         }
-        const response = await logProfileVisit(viewedProfileId);
+        await logProfileVisit(viewedProfileId);
+          const response = await logProfileVisit(viewedProfileId);
         console.log("Profile Details fully 2 ==>", data, response)
 
-
-        // 🧠 Check if profile exists or deleted
         if (
           !data ||
           !data.basic_details ||
@@ -756,30 +657,30 @@ export const ProfileDetails = () => {
             position: "bottom",
           });
 
-          // ✅ Go back to previous screen after showing toast
           setTimeout(() => {
             navigation.goBack();
           }, 1500);
 
-          console.warn("Profile data missing or deleted:", data);
-          return; // Stop further execution
+          return;
         }
+
         if (typeof data.user_images === 'string') {
-          // Convert the single image URL string into an object/map structure
           data.user_images = {
-            "0": data.user_images // Assign it to a key (e.g., "0" or "image1")
+            "0": data.user_images
           };
         }
-        // ✅ Continue with valid profile data
+
         setProfileData(data);
         if (data.hasOwnProperty('photo_protection')) {
           setPhotoProtection(data.photo_protection);
         } else {
-          setPhotoProtection(0); // Default to unlocked if missing
+          setPhotoProtection(0);
         }
+
         if (data?.basic_details?.personal_notes) {
           setNotes(data.basic_details.personal_notes);
         }
+
         if (data?.basic_details) {
           const profileId = data.basic_details.profile_id;
           if (data.basic_details.wish_list === 1) {
@@ -842,9 +743,7 @@ export const ProfileDetails = () => {
           text1: "Error loading profile data",
           position: "bottom",
         });
-      }
-      finally {
-        // Hide loading state after data is loaded
+      } finally {
         setIsInitialLoading(false);
       }
     };
@@ -852,24 +751,18 @@ export const ProfileDetails = () => {
     loadProfileData();
   }, [viewedProfileId]);
 
-
-
   useEffect(() => {
     const loadWishlistProfiles = async () => {
       try {
         const response = await getWishlistProfiles();
-        console.log("Wishlist response:", response);
-
-        if (!response || !Array.isArray(response)) {
+ if (!response || !Array.isArray(response)) {
           console.warn("Invalid wishlist response:", response);
           return;
-        }
-
-        const profileIds = response.map((p) => p.wishlist_profileid);
+        }        const profileIds = response.map((p) => p.wishlist_profileid);
         setBookmarkedProfiles(new Set(profileIds));
       } catch (error) {
         console.error("Error loading wishlist profiles:", error);
-        Toast.show({
+       Toast.show({
           type: "error",
           text1: "Error loading wishlist profiles",
           position: "bottom",
@@ -880,14 +773,11 @@ export const ProfileDetails = () => {
     loadWishlistProfiles();
   }, []);
 
-
-  // Handle slide press
   const handleSlidePress = (index) => {
     setSelectedSlideIndex(index);
     setZoomVisible(true);
   };
 
-  // Render carousel item
   const renderItem = ({ item, index }) => (
     <TouchableOpacity
       style={styles.imageWrapper}
@@ -901,9 +791,6 @@ export const ProfileDetails = () => {
     </TouchableOpacity>
   );
 
-  // Bookmark Wishlist Profile
-
-  // Handle save icon press
   const handleSavePress = async (profileId) => {
     const updatedBookmarkedProfiles = new Set(bookmarkedProfiles);
     const newStatus = updatedBookmarkedProfiles.has(profileId) ? "0" : "1";
@@ -917,31 +804,27 @@ export const ProfileDetails = () => {
       }
       setBookmarkedProfiles(updatedBookmarkedProfiles);
     } catch (error) {
-      // Error handling is done within the API function, so no need here
+      console.error(error);
     }
   };
 
-  // Handle Express Interest
   const handleExpressInterestPress = async () => {
     if (
       (!interestMessage || interestMessage.trim() === "") &&
       (!selectedCategory || selectedCategory.trim() === "")
     ) {
-      console.log("if else check ==>", viewedProfileId, expressInt, selectedCategory, interestMessage)
       setExpressInterestError("Please enter a message or select a category before submitting.");
       return;
     } else {
-      console.log("interest check ==>", viewedProfileId, expressInt, selectedCategory, interestMessage)
       try {
         const data = await handleExpressInterest(viewedProfileId, expressInt, interestMessage, selectedCategory);
-        console.log("express int response 1==>", JSON.stringify(data))
         if (data.Status === 0) {
-          setShowInterestModal(false)
+          setShowInterestModal(false);
           setIsPickerVisible(true);
           setInterestMessage('');
           setSelectedCategory('');
           setExpressInterestError('');
-          setExpressInt(true)
+          setExpressInt(true);
           Toast.show({
             type: 'success',
             text1: 'Success',
@@ -965,12 +848,10 @@ export const ProfileDetails = () => {
   };
 
   const handleExpressInterestPress1 = async () => {
-    console.log("interest check ==>", viewedProfileId, expressInt, selectedCategory, interestMessage)
     try {
       const data = await handleExpressInterest(viewedProfileId, expressInt, interestMessage, selectedCategory);
-      console.log("express int response 2==>", JSON.stringify(data))
       if (data.Status === 0) {
-        setExpressInt(false)
+        setExpressInt(false);
         Toast.show({
           type: 'success',
           text1: 'Success',
@@ -987,7 +868,7 @@ export const ProfileDetails = () => {
       }
     } catch (error) {
       console.error("Error updating express interest:", error);
-      Toast.show({
+     Toast.show({
         type: 'error',
         text1: 'error',
         text2: 'Failed to update express interest!',
@@ -996,32 +877,23 @@ export const ProfileDetails = () => {
     }
   };
 
-  // Check if data is available
   if (isInitialLoading || !profileData) {
     return <ProfileDetailsShimmer />;
   }
 
-  const {
-    basic_details,
-    user_images,
-  } = profileData;
+  const { basic_details, user_images } = profileData;
 
-  // Add this helper inside your ProfileDetails component
   const images = (fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))
     .map(url => ({
       url: getSafeImage(url),
-      // If locked and not yet bypassed by password, the UI will handle the overlay
     }));
-
 
   const handlePasswordSubmit = async () => {
     try {
       const photoData = await getPhotoByPassword(profileData?.basic_details?.profile_id, password);
       if (photoData) {
-        console.log('Photo data received:', photoData);
-        setFetchedUserImages(photoData.user_images); // Store fetched images
-        setIsProfileUnlocked(true); // Set profile to unlocked state
-        // Store unlock status and images in AsyncStorage
+        setFetchedUserImages(photoData.user_images);
+        setIsProfileUnlocked(true);
         await AsyncStorage.setItem(`profileUnlocked_${profileData?.basic_details?.profile_id}`, 'true');
         await AsyncStorage.setItem(`fetchedUserImages_${profileData?.basic_details?.profile_id}`, JSON.stringify(photoData.user_images));
         Toast.show({
@@ -1031,7 +903,6 @@ export const ProfileDetails = () => {
           position: "bottom",
         });
       } else {
-        console.log('Incorrect password or no data received');
         Toast.show({
           type: 'error',
           text1: 'Error',
@@ -1061,7 +932,6 @@ export const ProfileDetails = () => {
       const langParam = selectedPdfLanguage;
       const result = await Printhoroscopepdf(encryptedId, myId, langParam);
 
-      // Check for error response
       if (result && typeof result === 'object' && result.status === 'failure') {
         Toast.show({
           type: 'error',
@@ -1071,9 +941,7 @@ export const ProfileDetails = () => {
         return;
       }
 
-      // On success, result is a string (local URI)
       if (typeof result === 'string' && result.length > 0) {
-        // Open the PDF immediately (view-only)
         await openCachedPdf(result);
         Toast.show({
           type: 'success',
@@ -1085,7 +953,7 @@ export const ProfileDetails = () => {
       }
     } catch (error) {
       console.error('Download error:', error);
-      Toast.show({
+       Toast.show({
         type: 'error',
         text1: 'Error',
         text2: 'Failed to load horoscope. Please try again.',
@@ -1105,7 +973,6 @@ export const ProfileDetails = () => {
       const myId = profileData?.My_profile_id;
       const result = await downloadPdfPoruthamNew(encryptedId, myId);
 
-      // Check for error (upgrade required, etc.)
       if (typeof result === 'object' && result !== null && result.status === 'failure') {
         setResponseMsg(result.message || 'No access to see the compatibility report');
         setShowUpgradeModal(true);
@@ -1113,7 +980,6 @@ export const ProfileDetails = () => {
       }
 
       if (typeof result === 'string' && result.length > 0) {
-        // Open the cached PDF directly
         await openCachedPdf(result);
         Toast.show({
           type: 'success',
@@ -1135,20 +1001,18 @@ export const ProfileDetails = () => {
     }
   };
 
-
   const handleMatchingScoreUpgrade = (message) => {
     setResponseMsg(message);
     setShowUpgradeModal(true);
   };
 
   const openPopup = () => {
-    console.log("open pop up check ==>")
     setShowVysassist(!showVysassist);
   };
-
-  const closeVysassistpopup = () => {
+   const closeVysassistpopup = () => {
     setShowVysassist(false);
   };
+
 
   const closePopup = () => {
     setPopupVisible(false);
@@ -1157,7 +1021,7 @@ export const ProfileDetails = () => {
   };
 
   const closePopupnew = () => {
-    setShowVysassist(false)
+    setShowVysassist(false);
   };
 
   const handleCheckboxChange = (option) => {
@@ -1167,8 +1031,7 @@ export const ProfileDetails = () => {
       setSelectedOptions([...selectedOptions, option]);
     }
   };
-
-  const formDate = (isoString) => {
+   const formDate = (isoString) => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -1182,7 +1045,7 @@ export const ProfileDetails = () => {
     if (text) setSelectValue('');
   };
 
-  const handleSelectChange = (value) => {
+   const handleSelectChange = (value) => {
     setSelectValue(value);
     if (value) setNotes('');
   };
@@ -1202,7 +1065,6 @@ export const ProfileDetails = () => {
     closePopup();
   };
 
-  // Vys-ass api
   const handleSubmitVysassistPopup = async () => {
     if (selectedOptions.length === 0) {
       Toast.show({
@@ -1331,16 +1193,11 @@ export const ProfileDetails = () => {
     }
   };
 
-
   const handlePhoneCall = async () => {
     try {
-      setLoading(true); // Start loading indicator
-
-      // 1. Await the values from AsyncStorage first
+      setLoading(true);
       const storedLoginId = await AsyncStorage.getItem("loginuser_profileId");
       const storedNewId = await AsyncStorage.getItem("profile_id_new");
-
-      // Use whichever ID is available
       const myProfileId = storedLoginId || storedNewId;
 
       if (!myProfileId) {
@@ -1349,22 +1206,16 @@ export const ProfileDetails = () => {
         return;
       }
 
-      // 2. Create and append data properly
       const formdata = new FormData();
       formdata.append("profile_id", myProfileId);
       formdata.append("profile_to", viewedProfileId);
 
-      console.log("Sending Call Request from:", myProfileId, "to:", viewedProfileId);
-
-      // 3. Call the API
       const response = await callRequestDetails(formdata);
-      console.log("API Response:", response);
 
       if (response.Status === 1 && response.toprofile_mobile_no) {
         const phoneNumber = response.toprofile_mobile_no;
         Linking.openURL(`tel:${phoneNumber}`);
       } else {
-        // Handle logical errors (e.g., plan expired, limit reached)
         Toast.show({
           type: 'error',
           text1: 'Call Request Failed',
@@ -1372,14 +1223,13 @@ export const ProfileDetails = () => {
           position: "bottom",
         });
 
-        // Auto-navigate to membership if the message suggests an upgrade
         if (response.message?.toLowerCase().includes("upgrade")) {
           navigation.navigate('MembershipPlan');
         }
       }
     } catch (error) {
       console.error('Error opening dialer:', error);
-      Toast.show({
+       Toast.show({
         type: 'error',
         text1: 'Network Error',
         text2: 'Please check your internet connection',
@@ -1391,25 +1241,16 @@ export const ProfileDetails = () => {
     }
   };
 
-  // Add this new function to render thumbnails
   const renderThumbnails = () => {
-    // Use fetched images if available (after password unlock), otherwise use default images
     const imagesArray = fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images);
-
-    // Determine if we need to apply the blur/lock effect
-    // Logic: photoProtection is 1 (locked) AND it hasn't been bypassed by a password yet
     const isBlurNeeded = !isProfileUnlocked && photoProtection === 1;
-
-    // Logic for the "+X" overlay
     const remainingCount = imagesArray.length - 4;
 
     return (
       <View style={styles.thumbnailContainer}>
-        {/* Slice images to show positions 2, 3, and 4 in the row */}
         {imagesArray.slice(1, 4).map((image, index) => (
           <TouchableOpacity
             key={index}
-            // Prevent opening zoom viewer if locked
             onPress={() => !isBlurNeeded && handleSlidePress(index + 1)}
             style={styles.thumbnail}
             disabled={isBlurNeeded}
@@ -1424,7 +1265,6 @@ export const ProfileDetails = () => {
               }}
             />
 
-            {/* SMALL LOCK OVERLAY: Visual indicator that the image is protected */}
             {isBlurNeeded && (
               <View style={styles.lockOverlaySmall}>
                 <Ionicons name="lock-closed" size={16} color="#fff" />
@@ -1433,7 +1273,6 @@ export const ProfileDetails = () => {
           </TouchableOpacity>
         ))}
 
-        {/* RENDER THE "+X MORE" THUMBNAIL */}
         {remainingCount > 0 && (
           <TouchableOpacity
             style={[styles.thumbnail, styles.lastThumbnail]}
@@ -1450,8 +1289,6 @@ export const ProfileDetails = () => {
               }}
             />
 
-
-            {/* Overlay for count or lock */}
             <View style={isBlurNeeded ? styles.lockOverlaySmall : styles.countOverlay}>
               {isBlurNeeded ? (
                 <Ionicons name="lock-closed" size={16} color="#fff" />
@@ -1466,7 +1303,6 @@ export const ProfileDetails = () => {
   };
 
   const renderBottomSheetContent = () => {
-
     const options = [
       { icon: 'phone', text: 'Call', onPress: handlePhoneCall, type: 'MaterialCommunityIcons' },
       { icon: 'document-text', text: 'Personal Notes', onPress: toggleModal, type: 'Ionicons' },
@@ -1494,7 +1330,6 @@ export const ProfileDetails = () => {
       },
     ];
 
-
     return (
       <View style={styles.bottomSheetContent}>
         {options.map((option, index) => (
@@ -1519,16 +1354,6 @@ export const ProfileDetails = () => {
     );
   };
 
-  const handleShare = async () => {
-    try {
-      const result = await Share.share({
-        message: `Check out this profile: ${basic_details.profile_name} (${basic_details.profile_id})`,
-      });
-    } catch (error) {
-      console.error(error.message);
-    }
-  };
-
   const renderSuccessView = () => (
     <View style={{ alignItems: 'center', paddingVertical: 20 }}>
       <Ionicons name="checkmark-circle" size={80} color="#2ecc71" />
@@ -1542,8 +1367,8 @@ export const ProfileDetails = () => {
       <TouchableOpacity
         style={[styles.submitButtonpop, { width: '40%', marginTop: 20, borderRadius: 8, padding: 10 }]}
         onPress={async () => {
-          setIsSuccess(false);      // Reset for next time
-          setShowVysassist(false);  // NOW you close the modal
+          setIsSuccess(false);
+          setShowVysassist(false);
           setSelectedOptions([]);
           const refreshed = await fetchProfileData(viewedProfileId);
           setProfileData(refreshed);
@@ -1556,11 +1381,9 @@ export const ProfileDetails = () => {
     </View>
   );
 
-  // The primary display image (mirrors original main-image logic)
   const primaryImageUri = getSafeImage((fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0]);
   const isLocked = !isProfileUnlocked && photoProtection === 1;
 
-  // Sticky/collapsing hero interpolations
   const heroTranslateY = scrollY.interpolate({
     inputRange: [0, COLLAPSE_DISTANCE],
     outputRange: [0, -COLLAPSE_DISTANCE],
@@ -1619,7 +1442,7 @@ export const ProfileDetails = () => {
             <View
               style={{
                 flexDirection: 'row',
-                justifyContent: 'space-between'
+                justify: 'space-between'
               }}
             >
               <TouchableOpacity
@@ -1658,7 +1481,7 @@ export const ProfileDetails = () => {
         </View>
       </Modal>
 
-      {/* ===== Fixed top bar (always visible) ===== */}
+      {/* ===== Fixed top bar ===== */}
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#282C3F" />
@@ -1666,7 +1489,7 @@ export const ProfileDetails = () => {
         <Text style={styles.headerText} numberOfLines={1}>Profile Details</Text>
       </View>
 
-      {/* ===== Compact sticky profile bar - fades/slides in as hero collapses ===== */}
+      {/* ===== Compact sticky profile bar ===== */}
       <Animated.View
         pointerEvents={"box-none"}
         style={[
@@ -1707,9 +1530,8 @@ export const ProfileDetails = () => {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* ===== Sticky prev/next navigation arrows - pinned on screen, always visible while scrolling ===== */}
+      {/* ===== Sticky prev/next navigation arrows ===== */}
       <View style={styles.navigationContainer} pointerEvents="box-none">
-        {/* Left/Previous Button - Always show but disable when needed */}
         <TouchableOpacity
           onPress={currentProfileIndex > 0 && !isLoadingProfiles ? goToPreviousProfile : null}
           style={[
@@ -1726,7 +1548,6 @@ export const ProfileDetails = () => {
           />
         </TouchableOpacity>
 
-        {/* Right/Next Button - Show only if not last profile */}
         {profileIds.length > 0 && currentProfileIndex < profileIds.length - 1 && (
           <TouchableOpacity
             onPress={!isLoadingProfiles ? goToNextProfile : null}
@@ -1780,7 +1601,6 @@ export const ProfileDetails = () => {
                       blurRadius={20}
                     />
 
-                    {/* Overlay Lock Symbol */}
                     <View style={styles.lockOverlayLarge}>
                       <MaterialCommunityIcons name="lock" size={60} color="#FF6666" />
                       <Text style={styles.lockOverlayText}>
@@ -1790,7 +1610,6 @@ export const ProfileDetails = () => {
                   </TouchableOpacity>
                 ) : (
                   <View>
-                    {/* Swipeable image carousel, matches uploaded reference style */}
                     <ScrollView
                       horizontal
                       pagingEnabled
@@ -1815,7 +1634,6 @@ export const ProfileDetails = () => {
                       ))}
                     </ScrollView>
 
-                    {/* 3-dot style pagination indicator overlay, matching reference style */}
                     {images.length > 1 && (
                       <View style={styles.dotsOverlayContainer} pointerEvents="none">
                         {images.map((_, idx) => (
@@ -1830,7 +1648,6 @@ export const ProfileDetails = () => {
                       </View>
                     )}
 
-                    {/* Counter badge e.g. "1/4" like the reference screenshot */}
                     {images.length > 1 && (
                       <View style={styles.imageCounterBadge} pointerEvents="none">
                         <Text style={styles.imageCounterText}>
@@ -1888,7 +1705,7 @@ export const ProfileDetails = () => {
                     style={styles.submitBtnRed}
                     onPress={() => {
                       handlePasswordSubmit();
-                      setIsPasswordModalVisible(false); // Close after submit
+                      setIsPasswordModalVisible(false);
                     }}
                   >
                     <Text style={styles.submitBtnText}>Submit</Text>
@@ -1928,7 +1745,6 @@ export const ProfileDetails = () => {
               </View>
 
               <View style={{ flexDirection: 'row' }}>
-
                 <TouchableOpacity onPress={() => handleSavePress(profileData?.basic_details?.profile_id)}>
                   <MaterialIcons
                     name={bookmarkedProfiles.has(profileData?.basic_details?.profile_id) ? 'bookmark' : 'bookmark-border'}
@@ -1954,14 +1770,9 @@ export const ProfileDetails = () => {
 
             <Text style={styles.profileNumber}>{basic_details.profile_id}</Text>
 
-
-
+            {/* Profile Content Details & Progress Bar Row */}
             <View style={styles.detailsMeterFlex}>
-
-
-              {/* Main profile details shown as a single bullet/bar-separated line
-                  (no field labels), matching the reference profile-card style */}
-              <View style={{ flex: 1, marginRight: 150 }}>
+              <View style={styles.bulletTextContainer}>
                 <Text style={styles.bulletDetailsText}>
                   {[
                     basic_details.age ? `${basic_details.age} yrs` : null,
@@ -1974,24 +1785,18 @@ export const ProfileDetails = () => {
                   ].filter(Boolean).join('  |  ')}
                 </Text>
               </View>
-              {basic_details?.matching_score !== undefined &&
-                basic_details.matching_score > 50 &&
-                basic_details.matching_score !== 100 && (
-                  <TouchableOpacity
-                    style={{ position: 'absolute', top: 0, right: 10 }}
-                    onPress={handleDownloadMatchingReport}
-                    activeOpacity={0.7}
-                  >
-                    <View style={{ position: 'absolute', top: 0, right: 10 }}>
-                      <MatchingScore
-                        scorePercentage={parseInt(basic_details.matching_score)}
-                        viewedProfileId={viewedProfileId}
-                        onUpgradeRequired={handleMatchingScoreUpgrade} // Correctly wired up
-                      />
-                    </View>
-                  </TouchableOpacity>
-                )}
             </View>
+
+            {/* Matching Score Horizontal Progress Bar */}
+            {basic_details?.matching_score !== undefined &&
+              basic_details.matching_score > 0 &&
+              basic_details.matching_score !== 100 && (
+                <HorizontalMatchingScore
+                  score={basic_details.matching_score}
+                  onPress={handleDownloadMatchingReport}
+                />
+              )}
+
             <View style={styles.detailsMeterFlex1}>
               <View style={styles.filterTag}>
                 <Image
@@ -2130,6 +1935,7 @@ export const ProfileDetails = () => {
                 </KeyboardAvoidingView>
               </TouchableWithoutFeedback>
             </Modal>
+
             <Modal visible={isPopupVisible} transparent animationType="fade">
               <View style={styles.overlay}>
                 <View style={styles.popupContainer}>
@@ -2205,7 +2011,7 @@ export const ProfileDetails = () => {
                       numberOfLines={4}
                       placeholder="Enter your message"
                       value={interestMessage}
-                      onChangeText={setInterestMessage} // Directly set the message
+                      onChangeText={setInterestMessage}
                     />
                   )}
 
@@ -2240,7 +2046,7 @@ export const ProfileDetails = () => {
                   <View style={styles.modalButtons}>
                     <TouchableOpacity
                       style={[styles.modalButton, styles.submitButtonpop]}
-                      onPress={handleExpressInterestPress} // This function already checks both fields
+                      onPress={handleExpressInterestPress}
                     >
                       <Text style={styles.buttonText}>Submit</Text>
                     </TouchableOpacity>
@@ -2262,12 +2068,11 @@ export const ProfileDetails = () => {
             </Modal>
           </View>
 
-          {/* ===== Section jump-icons row (sticky at top once reached) ===== */}
+          {/* ===== Details Sections ===== */}
           <View
             style={styles.scrollViewContentContainer}
             onLayout={(e) => { sectionOffsetsRef.current.detailsTop = e.nativeEvent.layout.y; }}
           >
-
             {/* Personal Details */}
             <View
               style={styles.menuChanges}
@@ -2327,12 +2132,12 @@ export const ProfileDetails = () => {
               </View>
             </View>
 
-            {/* Education & Profession Details */}
+            {/* Education Details */}
             <View
               style={styles.menuChanges}
               onLayout={(e) => { sectionOffsetsRef.current.education = e.nativeEvent.layout.y; }}
             >
-              <View style={styles.editOptions}>
+               <View style={styles.editOptions}>
                 <Text style={styles.titleNew}>Education & Profession Details</Text>
                 <View style={styles.line} />
                 {profileData.education_details?.education_level && profileData.education_details.education_level !== "" && profileData.education_details.education_level !== null && (
@@ -2463,6 +2268,7 @@ export const ProfileDetails = () => {
                 {profileData.horoscope_details?.sarpadosham && profileData.horoscope_details.sarpadosham !== "" && profileData.horoscope_details.sarpadosham !== null && (
                   <Text style={styles.labelNew}>Ragu/Kethu Dhosham: : <Text style={styles.valueNew}>{profileData.horoscope_details.sarpadosham}</Text></Text>
                 )}
+
                 {/* RASI CHART - SOUTH INDIAN LAYOUT */}
                 {rasiGrid.length >= 4 && (
                   <View style={styles.horoscopeSection}>
@@ -3025,7 +2831,6 @@ export const ProfileDetails = () => {
           </View>
         </View>
       </Modal>
-      {/* Language Selection Modal */}
       <Modal
         visible={showLanguagePopup}
         transparent={true}
@@ -3044,7 +2849,6 @@ export const ProfileDetails = () => {
             <Text style={[styles.title, { textAlign: 'center' }]}>Select Language</Text>
 
             <View style={{ marginVertical: 20 }}>
-              {/* English Option */}
               <TouchableOpacity
                 style={styles.checkboxContainerNew2}
                 onPress={() => setSelectedPdfLanguage("english")}
@@ -3057,7 +2861,6 @@ export const ProfileDetails = () => {
                 <Text style={{ fontSize: 16, marginLeft: 10 }}>English</Text>
               </TouchableOpacity>
 
-              {/* Tamil Option */}
               <TouchableOpacity
                 style={styles.checkboxContainerNew2}
                 onPress={() => setSelectedPdfLanguage("tamil")}
@@ -3103,13 +2906,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: "#fff",
     zIndex: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 30, // adjust as needed
-
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
   },
-  // ===== New: compact sticky profile bar shown once hero collapses =====
   compactProfileBar: {
     position: 'absolute',
-    top: 60, // sits directly under the fixed top bar
+    top: 60,
     left: 0,
     right: 0,
     zIndex: 15,
@@ -3142,18 +2943,12 @@ const styles = StyleSheet.create({
   heroWrapper: {
     zIndex: 1,
   },
-
   headerText: {
     color: "#282C3F",
     fontSize: 18,
     fontWeight: "bold",
     flex: 1,
     textAlign: "center",
-  },
-
-  navigationButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   navButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
@@ -3162,45 +2957,13 @@ const styles = StyleSheet.create({
     minWidth: 50,
     alignItems: 'center',
   },
-  leftNavButton: {
-    // left: 10,
-  },
-  rightNavButton: {
-    // right: 10,
-  },
   contentWrapper: {
     position: 'relative',
   },
-  itemContainer: {
-    justifyContent: 'center',
-  },
-
   image: {
     width: "100%",
     height: "100%",
   },
-
-  indexText: {
-    textAlign: 'center',
-    fontSize: 30,
-  },
-
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 10,
-    backgroundColor: 'transparent',
-  },
-
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginHorizontal: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.92)',
-  },
-
   contentContainer: {
     width: "100%",
     paddingHorizontal: 16,
@@ -3212,7 +2975,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginRight: 6,
   },
-
   nameIconFlex: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -3220,65 +2982,85 @@ const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 2,
   },
-
   nameVerifyFlex: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   iconFlex: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   saveIcon: {
     margin: 5
   },
-
   profileNumber: {
     fontSize: 14,
     fontWeight: "600",
     color: "#85878C",
-    marginBottom: 12,
+    marginBottom: 8,
   },
-
   detailsMeterFlex: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 12,
     width: "100%",
   },
-  detailsMeterFlex1: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 10, top: -20, left: -5,
-    marginTop: 20, top: -20, left: -5,
+  bulletTextContainer: {
+    flex: 1,
   },
-
-  label: {
-    color: "#85878C",
-    fontSize: 14,
-    fontWeight: "600",
-    fontFamily: "inter",
-    marginBottom: 9,
-  },
-
-  value: {
-    color: "#282C3F",
-    fontSize: 14,
-    fontWeight: "700",
-    fontFamily: "inter",
-  },
-
-  // ===== New: bullet/bar-separated single-line profile summary (no field labels) =====
   bulletDetailsText: {
     color: "#4F515D",
     fontSize: 14,
     fontWeight: "600",
     lineHeight: 22,
   },
-
+  /* Matching Score Bar Styles */
+  scoreBarWrapper: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 10,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#EFEFEF',
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  scoreHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  scoreLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#282C3F',
+  },
+  scorePercentText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#282C3F',
+  },
+  scoreTrack: {
+    height: 10,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 5,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  scoreFill: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  detailsMeterFlex1: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "flex-start",
@@ -3287,110 +3069,25 @@ const styles = StyleSheet.create({
     width: "100%",
     marginVertical: 10,
   },
-
   btn: {
     alignSelf: "flex-start",
     borderRadius: 6,
     overflow: "hidden",
   },
-
   loginContainer: {
     justifyContent: "center",
     alignItems: "center",
   },
-
-  cancel: {
-    color: "#ED1E24",
-    fontSize: 14,
-    fontWeight: "600",
-    fontFamily: "inter",
-    borderWidth: 2,
-    borderColor: "#ED1E24",
-    borderRadius: 5,
-    paddingHorizontal: 15,
-    paddingVertical: 8.5,
-    letterSpacing: 1,
-  },
-
   login: {
     color: "#ffffff",
     fontWeight: "700",
     fontSize: 14,
     letterSpacing: 0.5,
   },
-
   linearGradient: {
     borderRadius: 6,
     paddingVertical: 10,
     paddingHorizontal: 20,
-  },
-  fiveIconFlex: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 20,
-  },
-
-  details: {
-    fontSize: 16,
-    fontWeight: "700",
-    fontFamily: "inter",
-    color: "#282C3F",
-    alignSelf: "flex-start",
-    marginVertical: 10,
-  },
-
-  passwordContainer: {
-    margin: 20,
-  },
-  lockedMessage: {
-    marginBottom: 10,
-    color: 'red',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 20,
-  },
-  textInput: {
-    flex: 1,
-    height: 40,
-    paddingHorizontal: 10,
-  },
-  eyeIcon: {
-    marginLeft: 10,
-  },
-  submitButton: {
-    backgroundColor: 'red',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    alignSelf: 'center',
-  },
-  submitTextNew: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 15
-  },
-  submitButtonNew: {
-    backgroundColor: 'red',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignSelf: 'center',
-    borderColor: 'black',
-    borderWidth: 2,
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
   modalOverlay: {
     flex: 1,
@@ -3417,18 +3114,12 @@ const styles = StyleSheet.create({
     color: '#4F515D',
     marginBottom: 10,
   },
-  titleNewnote: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#4F515D',
-    marginBottom: 10,
-  },
   filterTag: {
     backgroundColor: "#F4F4F4",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 14,
-    marginRight: 12,
+    marginRight: 10,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -3438,7 +3129,6 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     tintColor: "#535665",
   },
-
   filterTagText: {
     color: "#535665",
     fontSize: 12.5,
@@ -3489,25 +3179,13 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 5,
   },
-
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
   },
-  modalButtonsNew: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   modalButton: {
     flex: 1,
-    padding: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
-  },
-  modalButtonNew: {
-    flex: 0.5,
     padding: 10,
     borderRadius: 5,
     marginHorizontal: 5,
@@ -3528,21 +3206,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 10,
   },
-
   imageWrapper: {
     height: 400,
   },
-
-  image: {
-    height: 400,
-  },
-
   mainImage: {
     width: '100%',
     height: HERO_IMAGE_HEIGHT,
   },
-
-  // ===== New: 3-dot pagination indicator overlay for image carousel =====
   dotsOverlayContainer: {
     position: 'absolute',
     bottom: 14,
@@ -3565,7 +3235,6 @@ const styles = StyleSheet.create({
     height: 9,
     borderRadius: 4.5,
   },
-  // ===== New: "1/4" style counter badge shown top-right of the image =====
   imageCounterBadge: {
     position: 'absolute',
     top: 12,
@@ -3580,28 +3249,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-
   thumbnailContainer: {
     flexDirection: 'row',
     padding: 5,
   },
-
   thumbnail: {
     width: '24%',
     aspectRatio: 1,
     marginHorizontal: 2,
   },
-
-  thumbnailImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 5,
-  },
-
   lastThumbnail: {
     position: 'relative',
   },
-
   countOverlay: {
     position: 'absolute',
     top: 0,
@@ -3613,7 +3272,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 5,
   },
-
   countText: {
     color: 'white',
     fontSize: 16,
@@ -3634,21 +3292,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#4F515D',
   },
-  modalBody: {
-    marginBottom: 15,
-  },
-  subTitle: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 10,
-  },
   checkboxContainerNew: {
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-  },
-  checkboxContainerNew1: {
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
@@ -3665,61 +3309,15 @@ const styles = StyleSheet.create({
     color: "#333",
     marginTop: 5
   },
-  gaugeContainer: {
-    width: 110,
-    height: 110,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   tagsRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
     flexWrap: "wrap",
   },
-  textInputnew: {
-    width: "100%",
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 5,
-    backgroundColor: "#F5F5F5",
-    marginTop: 10
-  },
-  description: {
-    fontSize: 15,
-    color: "black",
-    marginBottom: 10,
-  },
-  processTitle: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "black",
-    marginBottom: 5,
-  },
-  listContainer: {
-    marginVertical: 10,
-    paddingHorizontal: 10,
-  },
-  listItem: {
-    fontSize: 15,
-    color: "#333",
-    marginBottom: 15,
-    lineHeight: 20,
-  },
-  buttonContainerpopup: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
-  },
-  footerNew: {
-    flexDirection: "row",
-    justifyContent: 'center',
     marginTop: 10,
   },
   cancelButton: {
@@ -3730,31 +3328,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#007bff",
   },
-  payButton: {
-    backgroundColor: "#007bff",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  payText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  checkboxItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
   checkboxChecked: {
     backgroundColor: "#e0e0e0",
   },
-  // ===== Updated: navigation arrows now positioned fixed on screen (sticky while scrolling) =====
   navigationContainer: {
     position: 'absolute',
     top: HERO_IMAGE_HEIGHT / 1 - 20,
@@ -3800,53 +3376,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
   },
-  popupContainernew: {
-    backgroundColor: 'white',
-    width: '90%',
-    borderRadius: 8,
-    padding: 15,
-    maxHeight: '80%',
-  },
-  headernew: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 10,
-    paddingHorizontal: 10,
-    width: '100%',
-  },
-  titlenew: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    flex: 1,
-    marginRight: 10,
-  },
   scrollViewContentContainer: {
     width: '100%',
-  },
-  iconsRowContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: 16,
-    backgroundColor: '#BD1225',
-    paddingVertical: 12,
-    borderBottomWidth: 0,
-  },
-  iconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconText: {
-    fontSize: 11.5,
-    marginTop: 4,
-    marginBottom: 0,
-    textAlign: 'center',
-    fontWeight: '600',
   },
   menuChanges: {
     width: '100%', backgroundColor: '#F4F4F4',
@@ -3878,14 +3409,6 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 4,
   },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingVertical: 9,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F2',
-  },
   labelNew: {
     color: '#8A8D95',
     fontSize: 14,
@@ -3899,23 +3422,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  iconStyle: {
-    marginHorizontal: 8,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-  },
-  loadingIndicator: {
-    marginTop: 20,
-  },
-  lockOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-  },
   lockOverlayText: {
     color: '#fff',
     marginTop: 10,
@@ -3923,23 +3429,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 20,
   },
-  thumbnailImageBlurred: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 5,
-    opacity: 0.3,
-  },
   lockOverlaySmall: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 5,
-  },
-  mainImageWrapper: {
-    position: 'relative',
-    height: 400,
-    width: '100%',
   },
   lockOverlayLarge: {
     ...StyleSheet.absoluteFillObject,
@@ -3954,10 +3449,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 20,
     paddingHorizontal: 10,
-  },
-  bulletTextContainer: {
-    flex: 1,
-    paddingRight: 10,
   },
   cardInputTransparent: {
     flex: 1,
@@ -3990,14 +3481,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: '#282C3F',
   },
-  cardInput: {
-    backgroundColor: '#E9EAEC',
-    borderRadius: 5,
-    paddingHorizontal: 15,
-    height: 45,
-    fontSize: 15,
-    marginBottom: 20,
-  },
   cardActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -4019,18 +3502,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
-  },
-
-  rasiImage: {
-    width: '100%',
-    height: 300,
-    marginTop: 10,
-    backgroundColor: '#f9f9f9'
-  },
-  rasiContainer: {
-    padding: 10,
-    backgroundColor: '#fff',
-    alignItems: 'center',
   },
   horoscopeSection: {
     padding: 10,
@@ -4103,5 +3574,4 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     alignSelf: "flex-start",
   },
-
 });
