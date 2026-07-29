@@ -9,83 +9,147 @@ import {
   Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
+import { useNavigation } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import axios from "axios"; // Import axios
 import config from "../API/Apiurl";
-import Toast from "react-native-toast-message";
 
-export const OtpVerifyLogin = () => {
+
+export const OtpVerify = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const otpRefs = useRef([]);
-  const hiddenInputRef = useRef(null);
   const [MobileNo, setMobileNo] = useState("");
+  const [ProfileId, setProfileId] = useState("");
+  const [ProfileOwner, setProfileOwner] = useState("");
+  const [countryCode, setCountryCode] = useState("");
+  const [email, setEmail] = useState("");
+  const [resendDisabled, setResendDisabled] = useState(true);
+  const [resendMessage, setResendMessage] = useState("");
+  const [timer, setTimer] = useState(60); // Add timer state
+  const [isEditing, setIsEditing] = useState(false); // State to track if we are editing the number/email
+  const [fullNumber, setFullNumber] = useState(""); // State to store the entered mobile number or email
+  const [mobileError, setMobileError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [submitting, setSubmitting] = useState(false); // Add state to track submission
+
 
   useEffect(() => {
     retrieveDataFromSession();
-    // Auto-focus the hidden input so the OS autofill suggestion bar
-    // (iOS) / SMS Retriever (Android) can attach to it immediately.
-    const t = setTimeout(() => hiddenInputRef.current?.focus(), 300);
-    return () => clearTimeout(t);
+    startResendTimer(60); // Initially disable resend for 60 seconds
+  }, []);
+
+  useEffect(() => {
+    if (resendDisabled) {
+      const interval = setInterval(() => {
+        setTimer((prev) => {
+          if (prev > 0) {
+            return prev - 1;
+          } else {
+            clearInterval(interval);
+            setResendDisabled(false);
+            return 0;
+          }
+        });
+      }, 1000);
+    }
+  }, [resendDisabled]);
+
+
+  const getMaskedMobileNo = (mobile) => {
+    if (!mobile) return ""; // Handle null or undefined values
+    if (mobile.length <= 5) return mobile; // No masking if length <= 5
+    const visiblePart = mobile.slice(-5); // Last 5 digits
+    const maskedPart = "x".repeat(mobile.length - 5); // Mask the rest
+    return maskedPart + visiblePart;
+  };
+
+  const [state, setState] = useState({
+    password: '',
+    countryCode: '',
+    email: '',
+    gender: '',
+    profileFor: '',
+  });
+
+  // Function to fetch data from AsyncStorage
+  const fetchData = async () => {
+    try {
+      const password = await AsyncStorage.getItem('passwordnNew');
+      const countryCode = await AsyncStorage.getItem('ccodenew');
+      const email = await AsyncStorage.getItem('emailnew');
+      const gender = await AsyncStorage.getItem('gendernew');
+      const mobile = await AsyncStorage.getItem('Mobile_no');
+      setFullNumber(mobile);
+      const profileFor = JSON.parse(await AsyncStorage.getItem('profilefornew')); // Parse back to original type
+
+      // Update state
+      setState({
+        password: password || '', // Fallback to empty string if null
+        countryCode: countryCode || '',
+        email: email || '',
+        gender: gender || '',
+        profileFor: profileFor || '',
+      });
+    } catch (error) {
+      console.error('Error fetching data from AsyncStorage:', error);
+    }
+  };
+
+  // Fetch data when the component mounts
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const retrieveDataFromSession = async () => {
     try {
-      const mobileno = await AsyncStorage.getItem("Mobile_no_Login");
-      setMobileNo(mobileno);
+      const profileValue = await AsyncStorage.getItem("profile_owner");
+      const profileId = await AsyncStorage.getItem("profile_id");
+      const mobileno = await AsyncStorage.getItem("Mobile_no");
+      const countrycode = await AsyncStorage.getItem("countrycode");
+      const email = await AsyncStorage.getItem("email");
 
-      // DEV/TESTING ONLY: if the backend returned the OTP directly in the
-      // send-OTP response, it was stashed under this key — auto-fill the
-      // boxes with it. Remove this once the backend stops returning Otp
-      // in the API response (production should rely on real SMS entry).
-      const devOtp = await AsyncStorage.getItem("Dev_otp_autofill");
-      if (devOtp && /^\d{6}$/.test(devOtp)) {
-        setOtp(devOtp.split(""));
-        await AsyncStorage.removeItem("Dev_otp_autofill"); // one-time use
-      }
+      setMobileNo(mobileno);
+      setProfileId(profileId);
+      setProfileOwner(profileValue);
+      setCountryCode(countrycode);
+      setEmail(email);
+
+      console.log("Retrieved Profile Value:", profileValue);
+      console.log("Retrieved Profile ID:", profileId);
+      console.log("Retrieved Mobile No:", mobileno);
+      console.log("Retrieved country code:", countrycode);
     } catch (error) {
       console.error("Error retrieving data from session:", error);
     }
   };
 
-  // Called whenever the hidden input changes — either by the user typing
-  // there, or by the OS autofilling the full 6-digit code into it.
-  const handleHiddenChange = (text) => {
-    const digitsOnly = text.replace(/[^0-9]/g, "").slice(0, 6);
-    const newOtp = ["", "", "", "", "", ""];
-    digitsOnly.split("").forEach((d, i) => (newOtp[i] = d));
-    setOtp(newOtp);
-
-    if (digitsOnly.length === 6) {
-      // Autofilled or fully typed — move focus off keyboard.
-      hiddenInputRef.current?.blur();
-    } else {
-      // Keep visual focus ring on the box the user is "at".
-      const nextIndex = Math.min(digitsOnly.length, 5);
-      otpRefs.current[nextIndex]?.focus?.();
-    }
-  };
-
-  // Manual per-box editing still works; it forwards into the same
-  // hidden input's value so both paths stay in sync.
   const handleOtpChange = (text, index) => {
     const newOtp = [...otp];
-    newOtp[index] = text.replace(/[^0-9]/g, "").slice(-1);
-    setOtp(newOtp);
+    newOtp[index] = text;
 
-    if (text && index < otp.length - 1) {
-      otpRefs.current[index + 1]?.focus();
+    if (text === "") {
+      if (index > 0) {
+        otpRefs.current[index - 1].focus();
+      } else {
+        newOtp[index] = "";
+      }
+    } else if (text.length === 1 && index < otp.length - 1) {
+      otpRefs.current[index + 1].focus();
     }
+
+    setOtp(newOtp);
   };
 
   const handleBackspace = (index) => {
-    if (index === 0) return;
     const newOtp = [...otp];
-    if (newOtp[index] === "") {
-      newOtp[index - 1] = "";
-      otpRefs.current[index - 1]?.focus();
+    newOtp[index - 1] = "";
+    const prevRef = otpRefs.current[index - 1];
+    if (prevRef) {
+      prevRef.focus();
     }
     setOtp(newOtp);
   };
@@ -98,91 +162,166 @@ export const OtpVerifyLogin = () => {
       return;
     }
 
+    console.log(enteredOtp);
+    console.log(ProfileId);
+
     try {
+      setSubmitting(true); // Set submitting state to true
+
       const response = await axios.post(
-        `${config.apiUrl}/auth/Login_verifyotp/`,
+        `${config.apiUrl}/auth/Otp_verify/`,
         {
-          Mobile_no: MobileNo,
           Otp: enteredOtp,
+          ProfileId: ProfileId,
         },
-        { headers: { "Content-Type": "application/json" } }
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
 
-      if (response.data.status === 1) {
-        const {
-          token,
-          profile_id,
-          notification_count,
-          cur_plan_id,
-          profile_image,
-          profile_completion,
-          gender,
-          height,
-          marital_status,
-          custom_message,
-          birth_star_id,
-          birth_rasi_id,
-          profile_owner,
-          quick_reg,
-          plan_limits,
-          valid_till,
-        } = response.data;
+      const jsonResponse = response.data;
+      console.log("JSON Response:", JSON.stringify(jsonResponse));
+      console.log(jsonResponse.message);
 
-        await AsyncStorage.setItem("auth_token", token || "");
-        await AsyncStorage.setItem("loginuser_profileId", profile_id || "");
-        await AsyncStorage.setItem(
-          "notification_count",
-          String(notification_count ?? 0)
-        );
-        await AsyncStorage.setItem("cur_plan_id", cur_plan_id || "");
-        await AsyncStorage.setItem("profile_image", profile_image || "");
-        await AsyncStorage.setItem(
-          "profile_completion",
-          String(profile_completion ?? "")
-        );
-        await AsyncStorage.setItem("gender", gender || "");
-        await AsyncStorage.setItem("height", height || "");
-        await AsyncStorage.setItem("marital_status", marital_status || "");
-        await AsyncStorage.setItem(
-          "custom_message",
-          String(custom_message ?? "")
-        );
-        await AsyncStorage.setItem("birth_star_id", birth_star_id || "");
-        await AsyncStorage.setItem("birth_rasi_id", birth_rasi_id || "");
-        await AsyncStorage.setItem("profile_owner", profile_owner || "");
-        await AsyncStorage.setItem("quick_reg", String(quick_reg ?? ""));
-        await AsyncStorage.setItem("valid_till", valid_till || "");
-        await AsyncStorage.setItem(
-          "plan_limits",
-          JSON.stringify(plan_limits || [])
-        );
-
-        Toast.show({
-          type: "success",
-          text1: "Login Successful",
-          text2: "You have successfully logged in.",
-          position: "bottom",
-          visibilityTime: 4000,
-        });
-
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "HomeWithToast" }],
-        });
+      if (jsonResponse.message === "OTP verified successfully.") {
+        Alert.alert("Success", "OTP verified successfully.");
+        navigation.navigate("BasicDetails");
+        // navigation.navigate("ContactInfo");
       } else {
-        Alert.alert("Login Failed", response.data.message);
+        Alert.alert("Error", jsonResponse.message || "OTP verification failed.");
       }
     } catch (error) {
-      console.error(
-        "OTP Verify Error:",
-        error.response?.data || error.message
-      );
-      Alert.alert(
-        "Error",
-        error.response?.data?.message ||
-          "An error occurred while logging in. Please try again."
-      );
+      console.error("OTP verification error:", error);
+      Alert.alert("Error", "An error occurred during OTP verification.");
+    } finally {
+      setSubmitting(false); // Reset submitting state after API call
     }
+  };
+
+  const startResendTimer = (seconds) => {
+    setResendDisabled(true);
+    setTimer(seconds);
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      const response = await axios.post(
+        `${config.apiUrl}/auth/Get_resend_otp/`,
+        {
+          ProfileId: ProfileId,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        setResendMessage("OTP resent successfully.");
+        setTimeout(() => {
+          setResendMessage("");
+        }, 3000);
+        startResendTimer(60);
+      } else {
+        Alert.alert("Error", response.data.message || "Failed to resend OTP.");
+      }
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      Alert.alert("Error", "An error occurred while resending OTP.");
+    }
+  };
+
+  const handleEditNumber = () => {
+    setIsEditing(true); // Start editing
+  };
+  const handleEditNumber1 = () => {
+    setIsEditing(false); // Start editing
+  };
+
+  const validateMobileNumber = () => {
+    if (fullNumber.length !== 10 || !/^\d+$/.test(fullNumber)) {
+      setMobileError("Mobile number must be exactly 10 digits.");
+      return false; // Validation fails
+    } else {
+      setMobileError("");
+      return true; // Validation passes
+
+    }
+  };
+
+  const validateEmail = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailError("Please enter a valid email address.");
+      return false; // Validation fails
+    } else {
+      setEmailError("");
+      return true; // Validation passes
+
+    }
+  };
+
+  const handleSendOtp = async () => {
+    if (countryCode === "91") {
+      // Validate mobile number if countryCode is "91"
+      const isMobileValid = validateMobileNumber();
+      if (!isMobileValid) {
+        return; // If mobile number is invalid, stop further execution
+      }
+    } else {
+      // Validate email if countryCode is not "91"
+      const isEmailValid = validateEmail();
+      if (!isEmailValid) {
+        return; // If email is invalid, stop further execution
+      }
+    }
+
+
+    try {
+
+      const registrationData = {
+        Mobile_no: fullNumber,
+        EmailId: email, // If it's a mobile number, it won't be used, and if it's an email, this will be used.
+        Profile_for: state.profileFor, // Assuming this is the profile owner
+        Gender: state.gender, // Assuming gender value, you can adjust as per your state
+        Password: state.password, // Example password, adjust accordingly
+        mobile_country: state.countryCode,
+      };
+
+      console.log("Registration Data:", registrationData);
+
+      const response = await axios.post(`${config.apiUrl}/auth/Registrationstep1/`, registrationData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.data.Status === 1) {
+        const jsonResponse = response.data;
+        console.log("Registration successful:", jsonResponse);
+
+        const proid = await AsyncStorage.setItem('profile_id', jsonResponse.profile_id.toString());
+        setProfileId(proid);
+        await AsyncStorage.setItem('profile_owner', jsonResponse.profile_owner);
+        await AsyncStorage.setItem('Mobile_no', jsonResponse.Mobile_no);
+        await AsyncStorage.setItem('countrycode', countryCode);
+        // await AsyncStorage.setItem('email', jsonResponse.EmailId);
+
+        // Navigate to OTP verification page after registration
+        //navigation.navigate("OtpVerify");
+        setIsEditing(false); // Start editing
+
+      } else {
+        Alert.alert("Error", "Registration failed");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      Alert.alert("Error", "An error occurred during registration.");
+    }
+
   };
 
   return (
@@ -190,79 +329,134 @@ export const OtpVerifyLogin = () => {
       <View style={styles.textContainer}>
         <Text style={styles.mobile}>Mobile Verification</Text>
         <Text style={styles.mobileText}>
-          Please verify your mobile number and say why we need mobile
-          verification
+          Please verify your mobile number and say why we need mobile verification
         </Text>
       </View>
 
       <View style={styles.otpContainer}>
         <Text style={styles.otp}>OTP Verification</Text>
         <Text style={styles.otpText}>
-          We have sent a verification code to {MobileNo}
+          {countryCode === "91"
+            ? `We have sent a verification code to your mobile number ${getMaskedMobileNo(fullNumber)}`
+            : `We have sent a verification code to your email ${email}`}
         </Text>
+        <TouchableOpacity onPress={handleEditNumber}>
+          <Text style={styles.otpTextEdit}>
+            {!isEditing
+              ? `Edit ${countryCode === "91" ? "Number" : "Email"}`
+              : ""}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleEditNumber1}>
+          <Text style={styles.otpTextEdit}>
+            {isEditing ? "Cancel Edit" : ""}
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.otpInputContainer}>
-        {/*
-          Hidden input that actually receives the OS-level autofill.
-          - Android: autoComplete="sms-otp" + textContentType="oneTimeCode"
-            triggers the SMS Retriever API automatically (no permissions,
-            no native linking, works out of the box in Expo/bare RN).
-          - iOS: textContentType="oneTimeCode" makes the code that arrives
-            in Messages show up in the QuickType bar above the keyboard.
-          It sits at position 0 and is visually invisible but focusable.
-        */}
-        <TextInput
-          ref={hiddenInputRef}
-          value={otp.join("")}
-          onChangeText={handleHiddenChange}
-          keyboardType="number-pad"
-          autoComplete="sms-otp"
-          textContentType="oneTimeCode"
-          maxLength={6}
-          style={styles.hiddenInput}
-        />
-
-        {otp.map((value, index) => (
-          <TouchableOpacity
-            key={index}
-            activeOpacity={1}
-            onPress={() => hiddenInputRef.current?.focus()}
-          >
+      {isEditing ? (
+        <View>
+          {/* Render Mobile Number Input if countryCode is "91" */}
+          {countryCode === "91" && (
             <TextInput
-              style={styles.otpInput}
+              style={[styles.input, mobileError && styles.inputError]}
+              placeholder="Enter number"
+              value={fullNumber}
+              onChangeText={setFullNumber}
+              onBlur={validateMobileNumber} // Validate on blur
+              keyboardType="numeric"
+            />
+          )}
+          {mobileError ? <Text style={styles.errorText}>{mobileError}</Text> : null}
+
+          {/* Render Email Input if countryCode is not "91" */}
+          {countryCode !== "91" && (
+            <View>
+              <TextInput
+                style={[styles.input, emailError && styles.inputError]}
+                placeholder="Enter your email"
+                value={email}
+                onChangeText={setEmail}
+                onBlur={validateEmail} // Validate on blur
+                keyboardType="email-address"
+              />
+              {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+            </View>
+          )}
+        </View>
+
+      ) : (
+        <View style={styles.otpInputContainer}>
+          {otp.map((value, index) => (
+            <TextInput
+              key={index}
+              style={[
+                styles.otpInput,
+                index === focusedIndex && styles.focusedOtpInput,
+              ]}
               value={value}
               onChangeText={(text) => handleOtpChange(text, index)}
-              onKeyPress={({ nativeEvent }) => {
-                if (nativeEvent.key === "Backspace") handleBackspace(index);
-              }}
               maxLength={1}
               keyboardType="numeric"
               ref={(el) => (otpRefs.current[index] = el)}
-              showSoftInputOnFocus={false}
-              caretHidden
+              onFocus={() => setFocusedIndex(index)}
+              onKeyPress={({ nativeEvent }) => {
+                if (nativeEvent.key === "Backspace" && value === "") {
+                  handleBackspace(index);
+                }
+              }}
             />
-          </TouchableOpacity>
-        ))}
-      </View>
+          ))}
+        </View>
+      )}
 
-      <Text style={styles.existing}>
-        Didn't receive OTP? <Text style={styles.redText}>Resend OTP</Text>
-      </Text>
 
-      <TouchableOpacity style={styles.btn} onPress={handleVerify}>
-        <LinearGradient
-          colors={["#BD1225", "#FF4050"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          useAngle={true}
-          angle={92.08}
-          angleCenter={{ x: 0.5, y: 0.5 }}
-          style={styles.linearGradient}
+      {resendMessage ? (
+        <Text style={styles.successMessage}>{resendMessage}</Text>
+      ) : (
+        <Text style={styles.existing}>
+          Didn't receive OTP?{" "}
+          <Text
+            style={resendDisabled ? styles.redText : styles.redText}
+            onPress={!resendDisabled ? handleResendOtp : null}
+          >
+            Resend OTP {resendDisabled && <Text style={styles.redText}>({timer}s)</Text>}
+          </Text>
+        </Text>
+      )}
+
+      {isEditing ? (
+        <TouchableOpacity style={styles.btn} onPress={handleSendOtp}>
+          <LinearGradient
+            colors={["#BD1225", "#FF4050"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            useAngle={true}
+            angle={92.08}
+            angleCenter={{ x: 0.5, y: 0.5 }}
+            style={styles.linearGradient}
+          >
+            <Text style={styles.verify}>Send OTP</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity style={styles.btn} onPress={handleVerify} disabled={submitting} // Disable button when submitting
         >
-          <Text style={styles.verify}>Verify</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+          <LinearGradient
+            colors={["#BD1225", "#FF4050"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            useAngle={true}
+            angle={92.08}
+            angleCenter={{ x: 0.5, y: 0.5 }}
+            style={styles.linearGradient}
+          >
+            {/* <Text style={styles.verify}>Verify</Text> */}
+            <Text style={styles.verify}>{submitting ? "Submitting..." : "Verify"}</Text>
+
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 };
@@ -274,10 +468,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  input: {
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    marginVertical: 20,
+    fontSize: 16,
+  },
+
   textContainer: {
     width: "100%",
     paddingHorizontal: 20,
   },
+
   mobile: {
     color: "#535665",
     fontFamily: "inter",
@@ -285,18 +488,21 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 10,
   },
+
   mobileText: {
     color: "#535665",
     fontFamily: "inter",
     fontSize: 16,
     marginBottom: 50,
   },
+
   otpContainer: {
     width: "100%",
     textAlign: "center",
     alignSelf: "center",
     paddingHorizontal: 20,
   },
+
   otp: {
     color: "#535665",
     fontFamily: "inter",
@@ -305,6 +511,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 10,
   },
+
   otpText: {
     color: "#535665",
     fontFamily: "inter",
@@ -312,17 +519,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 10,
   },
+
   otpInputContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
-  },
-  hiddenInput: {
-    position: "absolute",
-    width: 1,
-    height: 1,
-    opacity: 0.01,
   },
   otpInput: {
     width: 40,
@@ -339,10 +541,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     marginVertical: 20,
   },
+
   focusedOtpInput: {
-    borderColor: "#BD1225",
-    borderWidth: 2,
+    borderColor: "#BD1225", // Highlight color
+    borderWidth: 2, // Highlight border width
   },
+
   existing: {
     fontSize: 14,
     color: "#000",
@@ -350,11 +554,27 @@ const styles = StyleSheet.create({
     fontFamily: "inter",
     marginBottom: 50,
   },
+
   redText: {
     color: "#ED1E24",
     fontFamily: "inter",
     fontWeight: "700",
   },
+
+  disabledResendText: {
+    color: "#D4D5D9",
+    fontFamily: "inter",
+    fontWeight: "700",
+  },
+
+  successMessage: {
+    fontSize: 14,
+    color: "green",
+    textAlign: "center",
+    fontFamily: "inter",
+    marginBottom: 50,
+  },
+
   btn: {
     width: "100%",
     alignSelf: "center",
@@ -367,6 +587,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     paddingHorizontal: 20,
   },
+
   verify: {
     textAlign: "center",
     color: "white",
@@ -375,11 +596,19 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     fontFamily: "inter",
   },
+
   linearGradient: {
     borderRadius: 5,
     justifyContent: "center",
     padding: 15,
   },
+
+  otpTextEdit: {
+    fontSize: 16,
+    textAlign: "center",
+    color: '#0000FF', // Change to your desired style
+    textDecorationLine: 'underline', // To make it look like a link
+  },
 });
 
-export default OtpVerifyLogin;
+export default OtpVerify;
