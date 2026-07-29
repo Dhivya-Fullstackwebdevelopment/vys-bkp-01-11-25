@@ -2148,7 +2148,7 @@ export const ProfileDetails = () => {
             >
               <View style={styles.editOptions}>
                 <View style={styles.sectionTitleRow}>
-                  <MaterialCommunityIcons 
+                  <MaterialIcons  
                     name="work"
                     size={22}
                     color="#BD1225"   // Static theme color – matches other section icons
