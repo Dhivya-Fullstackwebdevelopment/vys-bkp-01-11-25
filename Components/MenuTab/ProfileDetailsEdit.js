@@ -12,7 +12,7 @@ import {
     Ionicons,
     MaterialIcons,
     FontAwesome5,
-    MaterialCommunityIcons,
+    MaterialCommunityIcons
 } from "@expo/vector-icons";
 import { getProfileDetailsMatch, getMyProfilePersonal, updateProfilePersonal } from '../../CommonApiCall/CommonApiCall';
 import RNPickerSelect from 'react-native-picker-select';
@@ -39,7 +39,7 @@ export const ProfileIconsBar = ({ onSelectSection }) => {
 
             <View style={styles.iconContainer}>
                 <TouchableOpacity onPress={() => onSelectSection && onSelectSection('education')}>
-                    <MaterialIcons name="work" size={22} color={'#FFFFFF'} style={styles.iconStyle} />
+                    <Ionicons name="briefcase" size={22} color={'#FFFFFF'} style={styles.iconStyle} />
                 </TouchableOpacity>
                 <Text style={[styles.iconText, { color: '#FFFFFF' }]}>Work</Text>
             </View>
@@ -657,7 +657,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                         </View>
                     ) : (
                         <View style={styles.editOptionsInner}>
-                            {personalDetails && (
+                            {personalDetails ? (
                                 <>
                                     <Text style={styles.labelNew}>Name : <Text style={styles.valueNew}>{personalDetails.personal_profile_name || "N/A"}</Text></Text>
                                     <Text style={styles.labelNew}>Gender : <Text style={styles.valueNew}>{personalDetails.personal_gender || "N/A"}</Text></Text>
@@ -677,7 +677,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                     <Text style={styles.labelNew}>Physical Status : <Text style={styles.valueNew}>{personalDetails.personal_pysically_changed || "N/A"}</Text></Text>
                                     <Text style={styles.labelNew}>Registered Mobile : <Text style={styles.valueNew}>{personalDetails.mobile_no || "N/A"}</Text></Text>
                                 </>
-                            )}
+                            ) : null}
                         </View>
                     )}
                 </View>

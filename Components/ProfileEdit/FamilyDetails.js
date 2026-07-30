@@ -562,7 +562,7 @@ export const FamilyDetails = ({ setLoading }) => {
                     </View>
                 ) : (
                     <View style={styles.editOptionsInner}>
-                        {familyDetails && (
+                        {familyDetails ? (
                             <>
                                 <Text style={styles.labelNew}>About My Family : <Text style={styles.valueNew}>{familyDetails.personal_about_fam || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Father Name : <Text style={styles.valueNew}>{familyDetails.personal_father_name || "N/A"}</Text></Text>
@@ -584,7 +584,7 @@ export const FamilyDetails = ({ setLoading }) => {
                                 <Text style={styles.labelNew}>Father Alive : <Text style={styles.valueNew}>{familyDetails.father_alive || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Mother Alive : <Text style={styles.valueNew}>{familyDetails.mother_alive || "N/A"}</Text></Text>
                             </>
-                        )}
+                        ) : null}
                     </View>
                 )}
             </View>

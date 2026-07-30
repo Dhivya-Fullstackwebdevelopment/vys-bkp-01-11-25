@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import {
     Ionicons,
-    MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { getMyHoroscopeDetails, updateProfileHoroscope, fetchRasiImage, fetchAmsamImage } from '../../CommonApiCall/CommonApiCall';
 import RNPickerSelect from 'react-native-picker-select';
@@ -383,7 +382,7 @@ export const HoroscopeDetails = ({ setLoading }) => {
         <View style={styles.menuChanges}>
             <View style={styles.editOptions}>
                 <View style={styles.sectionHeaderRow}>
-                    <MaterialCommunityIcons name="zodiac-libra" size={20} color="#BD1225" style={{ marginRight: 8 }} />
+                    <Ionicons name="sparkles" size={20} color="#BD1225" style={{ marginRight: 8 }} />
                     <Text style={styles.sectionHeaderTitle}>Horoscope Details</Text>
                 </View>
                 <View style={styles.sectionDivider} />
@@ -670,7 +669,7 @@ export const HoroscopeDetails = ({ setLoading }) => {
                     </View>
                 ) : (
                     <View style={styles.editOptionsInner}>
-                        {horoscopeDetails && (
+                        {horoscopeDetails ? (
                             <>
                                 <Text style={styles.labelNew}>Birth Star : <Text style={styles.valueNew}>{horoscopeDetails.personal_bthstar_name || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Padham : <Text style={styles.valueNew}>{horoscopeDetails.personal_padham || "N/A"}</Text></Text>
@@ -770,7 +769,7 @@ export const HoroscopeDetails = ({ setLoading }) => {
                                     </View>
                                 )}
                             </>
-                        )}
+                        ) : null}
                     </View>
                 )}
             </View>

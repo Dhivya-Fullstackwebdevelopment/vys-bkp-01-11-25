@@ -819,7 +819,12 @@ export const MyProfile = () => {
                                 </View>
                             </>
                         ) : (
-                            <Text>Loading profile details...</Text>
+                            <View style={{ paddingVertical: 10 }}>
+                                <View style={[styles.shimmerBar, { width: '60%', height: 22, marginBottom: 8 }]} />
+                                <View style={[styles.shimmerBar, { width: '35%', height: 16, marginBottom: 12 }]} />
+                                <View style={[styles.shimmerBar, { width: '80%', height: 16, marginBottom: 8 }]} />
+                                <View style={[styles.shimmerBar, { width: '70%', height: 16 }]} />
+                            </View>
                         )}
                     </View>
                 </View>

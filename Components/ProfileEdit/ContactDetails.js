@@ -634,7 +634,7 @@ export const ContactDetails = ({ setLoading }) => {
                     </View>
                 ) : (
                     <View style={styles.editOptionsInner}>
-                        {contactDetails && (
+                        {contactDetails ? (
                             <>
                                 <Text style={styles.labelNew}>Address : <Text style={styles.valueNew}>{contactDetails.personal_prof_addr || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Country : <Text style={styles.valueNew}>{contactDetails.personal_prof_count_name || "N/A"}</Text></Text>
@@ -648,7 +648,7 @@ export const ContactDetails = ({ setLoading }) => {
                                 <Text style={styles.labelNew}>Profile Email ID : <Text style={styles.valueNew}>{contactDetails.admin_use_email || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Profile Mobile No : <Text style={styles.valueNew}>{contactDetails.personal_prof_mob_no || "N/A"}</Text></Text>
                             </>
-                        )}
+                        ) : null}
                     </View>
                 )}
             </View>

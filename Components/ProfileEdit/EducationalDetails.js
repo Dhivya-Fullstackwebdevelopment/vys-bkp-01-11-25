@@ -1059,7 +1059,7 @@ export const EducationalDetails = ({ setLoading }) => {
                     </View>
                 ) : (
                     <View style={styles.editOptionsInner}>
-                        {educationalDetails && (
+                        {educationalDetails ? (
                             <>
                                 <Text style={styles.labelNew}>Education Level : <Text style={styles.valueNew}>{educationalDetails.personal_edu_name || "N/A"}</Text></Text>
                                 {educationalDetails.persoanl_field_ofstudy_name && (
@@ -1101,7 +1101,7 @@ export const EducationalDetails = ({ setLoading }) => {
                                 <Text style={styles.labelNew}>Work Pincode : <Text style={styles.valueNew}>{educationalDetails.personal_work_pin || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Career Plans : <Text style={styles.valueNew}>{educationalDetails.personal_career_plans || "N/A"}</Text></Text>
                             </>
-                        )}
+                        ) : null}
                     </View>
                 )}
             </View>
