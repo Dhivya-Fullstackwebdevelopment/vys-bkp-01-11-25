@@ -628,7 +628,7 @@ export const FamilyDetails = () => {
 
 const styles = StyleSheet.create({
     menuChanges: {
-        width: 380,
+        width: 370,
         backgroundColor: '#F4F4F4',
         justifyContent: 'center',
         alignItems: 'center'
