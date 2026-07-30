@@ -1,31 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     Text,
     View,
-    Switch,
-    SafeAreaView,
-    ImageBackground,
-    Image,
-    ScrollView,
     TouchableOpacity,
-    Pressable,
-    Animated,
     TouchableWithoutFeedback,
-    TouchableHighlight,
-    Dimensions,
-    Modal,
     TextInput,
-    Button,
 } from "react-native";
 import {
-    AntDesign,
     Ionicons,
-    MaterialIcons,
-    FontAwesome,
     FontAwesome5,
-    FontAwesome6,
-    MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { getMyFamilyDetails, updateProfileFamily } from '../../CommonApiCall/CommonApiCall';
 import RNPickerSelect from 'react-native-picker-select';
@@ -35,7 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 
-export const FamilyDetails = () => {
+export const FamilyDetails = ({ setLoading }) => {
     const [familyDetails, setFamilyDetails] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
@@ -237,6 +221,7 @@ export const FamilyDetails = () => {
 
             try {
                 setSubmitting(true);
+                if (setLoading) setLoading(true);
                 const response = await updateProfileFamily(familyData);
 
                 if (response && response.status === 'success') {
@@ -263,6 +248,7 @@ export const FamilyDetails = () => {
                 });
             } finally {
                 setSubmitting(false);
+                if (setLoading) setLoading(false);
             }
         }
     };
@@ -270,21 +256,18 @@ export const FamilyDetails = () => {
     return (
         <View style={styles.menuChanges}>
             <View style={styles.editOptions}>
-                {/* Unified Section Header */}
                 <View style={styles.sectionHeaderRow}>
                     <FontAwesome5 name="users" size={20} color="#BD1225" style={{ marginRight: 8 }} />
                     <Text style={styles.sectionHeaderTitle}>Family Details</Text>
                 </View>
                 <View style={styles.sectionDivider} />
 
-                {/* Edit / View Link */}
                 <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
                     <Text style={styles.redText}>{isEditMode ? 'View' : 'Edit'}</Text>
                 </TouchableWithoutFeedback>
 
                 {isEditMode ? (
                     <View style={styles.editOptionsInner}>
-                        {/* About Family */}
                         <Text style={styles.labelNew}>About My Family</Text>
                         <TextInput
                             style={styles.input}
@@ -294,7 +277,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.personal_about_fam && <Text style={styles.error}>{validationErrors.personal_about_fam}</Text>}
 
-                        {/* Father Name */}
                         <Text style={styles.labelNew}>Father Name</Text>
                         <TextInput
                             style={styles.input}
@@ -304,7 +286,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.personal_father_name && <Text style={styles.error}>{validationErrors.personal_father_name}</Text>}
 
-                        {/* Father Occupation */}
                         <Text style={styles.labelNew}>Father Occupation</Text>
                         <TextInput
                             style={styles.input}
@@ -314,7 +295,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.personal_father_occu_name && <Text style={styles.error}>{validationErrors.personal_father_occu_name}</Text>}
 
-                        {/* Mother Name */}
                         <Text style={styles.labelNew}>Mother Name</Text>
                         <TextInput
                             style={styles.input}
@@ -324,7 +304,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.personal_mother_name && <Text style={styles.error}>{validationErrors.personal_mother_name}</Text>}
 
-                        {/* Mother Occupation */}
                         <Text style={styles.labelNew}>Mother Occupation</Text>
                         <TextInput
                             style={styles.input}
@@ -334,7 +313,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.personal_mother_occu_name && <Text style={styles.error}>{validationErrors.personal_mother_occu_name}</Text>}
 
-                        {/* Family Status */}
                         <Text style={styles.labelNew}>Family Status</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('personal_fam_sta_id', value)}
@@ -354,7 +332,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.personal_fam_sta_id && <Text style={styles.error}>{validationErrors.personal_fam_sta_id}</Text>}
 
-                        {/* Number of Sisters */}
                         <Text style={styles.labelNew}>Number of Sisters</Text>
                         <RNPickerSelect
                             onValueChange={(value) => {
@@ -389,7 +366,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.selectedValue && <Text style={styles.error}>{validationErrors.selectedValue}</Text>}
 
-                        {/* Number of Sisters Married */}
                         {selectedValue !== null && parseInt(selectedValue) >= 1 && (
                             <>
                                 <Text style={styles.labelNew}>Number of Sisters Married</Text>
@@ -415,7 +391,6 @@ export const FamilyDetails = () => {
                             </>
                         )}
 
-                        {/* Number of Brothers */}
                         <Text style={styles.labelNew}>Number of Brothers</Text>
                         <RNPickerSelect
                             onValueChange={(value) => {
@@ -450,7 +425,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.SelectedValueBro && <Text style={styles.error}>{validationErrors.SelectedValueBro}</Text>}
 
-                        {/* Number of Brothers Married */}
                         {SelectedValueBro !== null && parseInt(SelectedValueBro) >= 1 && (
                             <>
                                 <Text style={styles.labelNew}>Number of Brothers Married</Text>
@@ -476,7 +450,6 @@ export const FamilyDetails = () => {
                             </>
                         )}
 
-                        {/* Property Details */}
                         <Text style={styles.labelNew}>Property Details</Text>
                         <TextInput
                             style={styles.input}
@@ -486,7 +459,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.personal_prope_det && <Text style={styles.error}>{validationErrors.personal_prope_det}</Text>}
 
-                        {/* Property Worth */}
                         <Text style={styles.labelNew}>Property Worth</Text>
                         <TextInput
                             style={styles.input}
@@ -526,7 +498,6 @@ export const FamilyDetails = () => {
                             </>
                         )}
 
-                        {/* Father Alive */}
                         <Text style={styles.labelNew}>Father Alive</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('father_alive', value)}
@@ -549,7 +520,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.father_alive && <Text style={styles.error}>{validationErrors.father_alive}</Text>}
 
-                        {/* Mother Alive */}
                         <Text style={styles.labelNew}>Mother Alive</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('mother_alive', value)}
@@ -572,7 +542,6 @@ export const FamilyDetails = () => {
                         />
                         {validationErrors.mother_alive && <Text style={styles.error}>{validationErrors.mother_alive}</Text>}
 
-                        {/* Save Button */}
                         <View style={styles.formContainer1}>
                             <TouchableOpacity
                                 style={styles.btn}
@@ -582,9 +551,6 @@ export const FamilyDetails = () => {
                                     colors={["#BD1225", "#FF4050"]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
-                                    useAngle={true}
-                                    angle={92.08}
-                                    angleCenter={{ x: 0.5, y: 0.5 }}
                                     style={styles.linearGradient}
                                 >
                                     <View style={styles.loginContainer}>
@@ -623,15 +589,15 @@ export const FamilyDetails = () => {
                 )}
             </View>
         </View>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     menuChanges: {
-        width: 370,
+        width: '100%',
         backgroundColor: '#F4F4F4',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     editOptions: {
         width: '92%',
@@ -669,7 +635,6 @@ const styles = StyleSheet.create({
         color: "#ED1E24",
         fontSize: 14,
         fontWeight: "700",
-        fontFamily: "inter",
         marginVertical: 10,
         alignSelf: "flex-end",
     },
@@ -678,7 +643,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: 'bold',
         marginBottom: 5,
-        marginTop: 7
+        marginTop: 7,
     },
     valueNew: {
         color: '#282C3F',
@@ -712,7 +677,6 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         fontSize: 16,
         letterSpacing: 1,
-        fontFamily: "inter",
         marginRight: 5,
     },
     formContainer1: {

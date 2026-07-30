@@ -1,31 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     Text,
     View,
-    Switch,
-    SafeAreaView,
-    ImageBackground,
-    Image,
-    ScrollView,
     TouchableOpacity,
-    Pressable,
-    Animated,
     TouchableWithoutFeedback,
-    TouchableHighlight,
-    Dimensions,
-    Modal,
     TextInput,
-    Button,
 } from "react-native";
 import {
-    AntDesign,
     Ionicons,
     MaterialIcons,
-    FontAwesome,
-    FontAwesome5,
-    FontAwesome6,
-    MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { getMyContactDetails, updateProfileContact } from '../../CommonApiCall/CommonApiCall';
 import RNPickerSelect from 'react-native-picker-select';
@@ -34,8 +18,7 @@ import axios from "axios";
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
 
-export const ContactDetails = () => {
-
+export const ContactDetails = ({ setLoading }) => {
     const [contactDetails, setContactDetails] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
@@ -396,6 +379,7 @@ export const ContactDetails = () => {
             };
 
             try {
+                if (setLoading) setLoading(true);
                 const response = await updateProfileContact(profileData);
                 Toast.show({
                     type: 'success',
@@ -411,6 +395,8 @@ export const ContactDetails = () => {
                     text1: 'Error',
                     text2: 'Failed to update contact details. Please try again.',
                 });
+            } finally {
+                if (setLoading) setLoading(false);
             }
         }
     };
@@ -418,21 +404,18 @@ export const ContactDetails = () => {
     return (
         <View style={styles.menuChanges}>
             <View style={styles.editOptions}>
-                {/* Unified Section Header */}
                 <View style={styles.sectionHeaderRow}>
                     <MaterialIcons name="phone" size={20} color="#BD1225" style={{ marginRight: 8 }} />
                     <Text style={styles.sectionHeaderTitle}>Contact Details</Text>
                 </View>
                 <View style={styles.sectionDivider} />
 
-                {/* Edit / View Link */}
                 <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
                     <Text style={styles.redText}>{isEditMode ? 'View' : 'Edit'}</Text>
                 </TouchableWithoutFeedback>
 
                 {isEditMode ? (
                     <View style={styles.editOptionsInner}>
-                        {/* Address */}
                         <Text style={styles.labelNew}>Address</Text>
                         <TextInput
                             style={styles.input}
@@ -444,7 +427,6 @@ export const ContactDetails = () => {
                         />
                         {validationErrors.personal_prof_addr && <Text style={styles.error}>{validationErrors.personal_prof_addr}</Text>}
 
-                        {/* Country Selector */}
                         <Text style={styles.labelNew}>Country</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('personal_prof_count_id', value)}
@@ -466,7 +448,6 @@ export const ContactDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_prof_count_id}</Text>
                         )}
 
-                        {/* State Selector or Input */}
                         <Text style={styles.labelNew}>State</Text>
                         {formValues.personal_prof_count_id === "1" ? (
                             <RNPickerSelect
@@ -503,7 +484,6 @@ export const ContactDetails = () => {
                             )
                         )}
 
-                        {/* District Selector or Input */}
                         <Text style={styles.labelNew}>District</Text>
                         {formValues.personal_prof_count_id === "1" ? (
                             <RNPickerSelect
@@ -540,7 +520,6 @@ export const ContactDetails = () => {
                             )
                         )}
 
-                        {/* City Selector or Input */}
                         <Text style={styles.labelNew}>City</Text>
                         {formValues.personal_prof_count_id === "1" ? (
                             <RNPickerSelect
@@ -577,7 +556,6 @@ export const ContactDetails = () => {
                             )
                         )}
 
-                        {/* Alternate Mobile */}
                         <Text style={styles.labelNew}>Alternate Mobile</Text>
                         <TextInput
                             style={[styles.input, validationErrors.personal_prof_phone && styles.inputError]}
@@ -590,7 +568,6 @@ export const ContactDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_prof_phone}</Text>
                         )}
 
-                        {/* WhatsApp */}
                         <Text style={styles.labelNew}>WhatsApp</Text>
                         <TextInput
                             style={[styles.input, validationErrors.personal_prof_whats && styles.inputError]}
@@ -603,7 +580,6 @@ export const ContactDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_prof_whats}</Text>
                         )}
 
-                        {/* Email */}
                         <Text style={styles.labelNew}>Email</Text>
                         <TextInput
                             style={[styles.input, validationErrors.personal_email && styles.inputError]}
@@ -615,7 +591,6 @@ export const ContactDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_email}</Text>
                         )}
 
-                        {/* Profile Email ID */}
                         <Text style={styles.labelNew}>Profile Email ID</Text>
                         <TextInput
                             style={[styles.input, validationErrors.admin_use_email && styles.inputError]}
@@ -627,7 +602,6 @@ export const ContactDetails = () => {
                             <Text style={styles.error}>{validationErrors.admin_use_email}</Text>
                         )}
 
-                        {/* Profile Mobile No */}
                         <Text style={styles.labelNew}>Profile Mobile No</Text>
                         <TextInput
                             style={[styles.input, validationErrors.personal_prof_mob_no && styles.inputError]}
@@ -640,7 +614,6 @@ export const ContactDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_prof_mob_no}</Text>
                         )}
 
-                        {/* Save Button */}
                         <View style={styles.formContainer1}>
                             <TouchableOpacity
                                 style={styles.btn}
@@ -650,9 +623,6 @@ export const ContactDetails = () => {
                                     colors={["#BD1225", "#FF4050"]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
-                                    useAngle={true}
-                                    angle={92.08}
-                                    angleCenter={{ x: 0.5, y: 0.5 }}
                                     style={styles.linearGradient}
                                 >
                                     <View style={styles.loginContainer}>
@@ -683,12 +653,12 @@ export const ContactDetails = () => {
                 )}
             </View>
         </View>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     menuChanges: {
-        width: 370,
+        width: '100%',
         backgroundColor: '#F4F4F4',
         justifyContent: 'center',
         alignItems: 'center',
@@ -729,7 +699,6 @@ const styles = StyleSheet.create({
         color: "#ED1E24",
         fontSize: 14,
         fontWeight: "700",
-        fontFamily: "inter",
         marginVertical: 10,
         alignSelf: "flex-end",
     },
@@ -776,7 +745,6 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         fontSize: 16,
         letterSpacing: 1,
-        fontFamily: "inter",
         marginRight: 5,
     },
     formContainer1: {

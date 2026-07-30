@@ -35,7 +35,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from "react-native-toast-message";
 import { getMyEducationalDetails } from '../../CommonApiCall/CommonApiCall';
 import { TopAlignedImage } from '../../Components/ReuseImageAlign/TopAlignedImage';
-import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation"
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 
 // Responsive helpers
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -50,7 +50,7 @@ const NAV_BAR_HEIGHT = 50;
 const TOTAL_STICKY_TOP = HEADER_HEIGHT;
 const COLLAPSE_DISTANCE = HERO_IMAGE_HEIGHT - COMPACT_HEADER_HEIGHT;
 
-// Section metadata used for the sticky quick-nav + active-section highlighting.
+// Section metadata used for sticky quick-nav
 const PROFILE_SECTIONS = [
     { key: 'personal', label: 'Personal', icon: 'account', lib: 'MCI' },
     { key: 'education', label: 'Education', icon: 'school', lib: 'MCI' },
@@ -60,7 +60,7 @@ const PROFILE_SECTIONS = [
     { key: 'contact', label: 'Contact', icon: 'phone', lib: 'MCI' },
 ];
 
-// Shimmer Component for loading state
+// Shimmer Loader for smooth initial page skeleton state
 const ShimmerLoader = () => {
     const animatedValue = useRef(new Animated.Value(0)).current;
 
@@ -91,18 +91,27 @@ const ShimmerLoader = () => {
     return (
         <View style={styles.shimmerContainer}>
             <Animated.View style={[styles.shimmerHero, { opacity }]} />
-            <View style={styles.shimmerContent}>
-                <Animated.View style={[styles.shimmerBar, { opacity, width: '60%', height: 24 }]} />
-                <Animated.View style={[styles.shimmerBar, { opacity, width: '40%', height: 18, marginTop: 12 }]} />
-                <Animated.View style={[styles.shimmerBar, { opacity, width: '80%', height: 16, marginTop: 12 }]} />
-                <Animated.View style={[styles.shimmerBar, { opacity, width: '90%', height: 16, marginTop: 8 }]} />
-                <Animated.View style={[styles.shimmerBar, { opacity, width: '70%', height: 16, marginTop: 8 }]} />
+            <View style={styles.shimmerCard}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                    <Animated.View style={[styles.shimmerCircle, { opacity }]} />
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                        <Animated.View style={[styles.shimmerBar, { opacity, width: '70%', height: 20 }]} />
+                        <Animated.View style={[styles.shimmerBar, { opacity, width: '40%', height: 14, marginTop: 8 }]} />
+                    </View>
+                </View>
+                <Animated.View style={[styles.shimmerBar, { opacity, width: '100%', height: 16, marginTop: 12 }]} />
+                <Animated.View style={[styles.shimmerBar, { opacity, width: '85%', height: 16, marginTop: 8 }]} />
+            </View>
+            <View style={styles.shimmerCard}>
+                <Animated.View style={[styles.shimmerBar, { opacity, width: '50%', height: 20, marginBottom: 12 }]} />
+                <Animated.View style={[styles.shimmerBar, { opacity, width: '100%', height: 45, marginBottom: 10 }]} />
+                <Animated.View style={[styles.shimmerBar, { opacity, width: '100%', height: 45, marginBottom: 10 }]} />
             </View>
         </View>
     );
 };
 
-// Small presentational helper for the "Age | Height | Star" style pill row.
+// Presentational helper for pill indicators
 const InfoPillRow = ({ items }) => {
     const visible = items.filter((it) => it.value !== undefined && it.value !== null && it.value !== '');
     if (visible.length === 0) return null;
@@ -141,12 +150,9 @@ export const MyProfile = () => {
     const activeSectionRef = useRef('personal');
     const scrollContainerYRef = useRef(0);
 
-    // Scroll directly to the selected section position
     const scrollToProfileSection = (key) => {
         const offsets = sectionOffsetsRef.current;
         const targetOffset = (offsets.iconBarTop || 0) + (offsets[key] || 0);
-
-        // Adjust for fixed top headers height
         const adjustedY = Math.max(0, targetOffset - (HEADER_HEIGHT + COMPACT_HEADER_HEIGHT));
 
         scrollViewRef.current?.scrollTo({ y: adjustedY, animated: true });
@@ -191,12 +197,12 @@ export const MyProfile = () => {
     const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
     const [selectedPdfLanguage, setSelectedPdfLanguage] = useState("english");
     const [showLanguagePopup, setShowLanguagePopup] = useState(false);
+
     const navPaddingTop = scrollY.interpolate({
         inputRange: [0, COLLAPSE_DISTANCE],
         outputRange: [0, 60],
         extrapolate: 'clamp',
     });
-
 
     const handleAddOnPackagePress = () => {
         if (profileDetails?.package_name === "Free") {
@@ -210,7 +216,6 @@ export const MyProfile = () => {
         fetchAndSetImages();
     }, []);
 
-    // Auto-scroll pagination dots horizontal bar to keep current image dot focused
     useEffect(() => {
         if (dotsScrollViewRef.current && data.length > 1) {
             const dotWidth = 16;
@@ -257,8 +262,7 @@ export const MyProfile = () => {
             mediaType: 'photo',
             quality: 1,
         }, async (response) => {
-            if (response.didCancel) return;
-            if (response.error) return;
+            if (response.didCancel || response.error) return;
 
             if (response.assets && response.assets[0]) {
                 const file = response.assets[0];
@@ -528,7 +532,6 @@ export const MyProfile = () => {
         }
     };
 
-    // Interpolations for Header Animations
     const heroTranslateY = scrollY.interpolate({
         inputRange: [0, COLLAPSE_DISTANCE],
         outputRange: [0, -COLLAPSE_DISTANCE],
@@ -552,7 +555,6 @@ export const MyProfile = () => {
 
     const primaryImageUri = data.length > 0 ? (data[0]?.url || 'https://via.placeholder.com/150') : null;
 
-
     if (pageLoading) {
         return (
             <SafeAreaView style={styles.mainContainer}>
@@ -563,7 +565,6 @@ export const MyProfile = () => {
 
     return (
         <SafeAreaView style={styles.mainContainer}>
-            {/* TOP HEADER: Primary Title & Navigation Bar */}
             <View style={styles.headerContainer}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIconBtn}>
                     <Ionicons name="arrow-back" size={24} color="#ED1E24" />
@@ -572,7 +573,6 @@ export const MyProfile = () => {
                 <View style={{ width: 32 }} />
             </View>
 
-            {/* COMPACT PROFILE OVERLAY BAR */}
             <Animated.View
                 pointerEvents={"box-none"}
                 style={[
@@ -606,13 +606,12 @@ export const MyProfile = () => {
                 </TouchableOpacity>
             </Animated.View>
 
-            {/* MAIN SCROLLABLE CONTENT */}
             <Animated.ScrollView
                 ref={scrollViewRef}
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
                     {
-                        useNativeDriver: false,   // ← FIX: allows paddingTop animation
+                        useNativeDriver: false,
                         listener: (e) => {
                             const y = e.nativeEvent.contentOffset.y;
                             scrollContainerYRef.current = y;
@@ -625,7 +624,6 @@ export const MyProfile = () => {
                 contentContainerStyle={{ paddingBottom: 30 }}
                 stickyHeaderIndices={[1]}
             >
-                {/* Index 0: Hero Carousel + Top Summary Card */}
                 <View style={{ backgroundColor: '#F4F4F4' }}>
                     <Animated.View
                         style={[
@@ -649,7 +647,6 @@ export const MyProfile = () => {
                                             renderItem={renderItem}
                                         />
 
-                                        {/* Visible Horizontal Scrollable Image Dots */}
                                         <View style={styles.paginationOuterWrapper}>
                                             <ScrollView
                                                 ref={dotsScrollViewRef}
@@ -698,13 +695,11 @@ export const MyProfile = () => {
                         </Animated.View>
                     </Animated.View>
 
-                    {/* Profile Summary Card */}
                     <View style={styles.summaryCard}>
                         {profileDetails ? (
                             <>
                                 <View style={styles.nameIconFlex}>
                                     <Text style={styles.name} numberOfLines={1}>{profileDetails.personal_profile_name}</Text>
-
                                     <TouchableOpacity>
                                         <Ionicons
                                             name="shield-checkmark"
@@ -713,7 +708,6 @@ export const MyProfile = () => {
                                             style={styles.verificationIcon}
                                         />
                                     </TouchableOpacity>
-
                                     <TouchableOpacity
                                         style={styles.actionButton}
                                         onPress={() => setShareModalVisible(true)}
@@ -816,12 +810,10 @@ export const MyProfile = () => {
                                 <View style={styles.detailBlock}>
                                     <View style={styles.detailRow}>
                                         <FontAwesome5 name="briefcase" size={13} color="#85878C" style={styles.detailIcon} />
-                                        
                                         <Text style={styles.value} numberOfLines={1}>{profileDetails.prosession || '—'}</Text>
                                     </View>
                                     <View style={styles.detailRow}>
                                         <MaterialCommunityIcons name="school-outline" size={15} color="#85878C" style={styles.detailIcon} />
-                                        
                                         <Text style={styles.value} numberOfLines={1}>{profileDetails.heightest_education || '—'}</Text>
                                     </View>
                                 </View>
@@ -832,11 +824,10 @@ export const MyProfile = () => {
                     </View>
                 </View>
 
-                {/* Index 1: SECONDARY SUBTITLE HEADER (Sticky Quick-Nav Bar) */}
                 <Animated.View
                     style={[
                         styles.stickyNavWrapper,
-                        { paddingTop: navPaddingTop }   // now works because useNativeDriver: false
+                        { paddingTop: navPaddingTop }
                     ]}
                     onLayout={(e) => {
                         sectionOffsetsRef.current.iconBarTop = e.nativeEvent.layout.y;
@@ -849,13 +840,11 @@ export const MyProfile = () => {
                     />
                 </Animated.View>
 
-                {/* Index 2: Profile Content Sections */}
                 <View style={styles.sectionsBody}>
-                    <ProfileSectionsContent sectionOffsetsRef={sectionOffsetsRef} />
+                    <ProfileSectionsContent sectionOffsetsRef={sectionOffsetsRef} setLoading={setLoading} />
                 </View>
             </Animated.ScrollView>
 
-            {/* Share Profile Modal */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -889,7 +878,6 @@ export const MyProfile = () => {
                 </View>
             </Modal>
 
-            {/* PDF Language Modal */}
             <Modal
                 visible={showLanguagePopup}
                 transparent={true}
@@ -941,16 +929,15 @@ export const MyProfile = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-
             </Modal>
+
             <BottomTabBarComponent />
-            {/* Global Loader Overlay */}
+
             {loading && (
                 <View style={styles.loadingOverlay}>
                     <ActivityIndicator size="large" color="#ED1E24" />
                 </View>
             )}
-
         </SafeAreaView>
     );
 };
@@ -962,9 +949,6 @@ const styles = StyleSheet.create({
     },
     headerContainer: {
         position: 'relative',
-        top: 0,
-        left: 0,
-        right: 0,
         paddingHorizontal: 15,
         borderBottomWidth: 1,
         borderBottomColor: "#E5E5E5",
@@ -1168,12 +1152,6 @@ const styles = StyleSheet.create({
     detailIcon: {
         width: 20,
     },
-    label: {
-        color: "#85878C",
-        fontSize: fs(13.5),
-        fontWeight: "600",
-        width: 90,
-    },
     value: {
         color: "#282C3F",
         fontSize: fs(14),
@@ -1196,8 +1174,6 @@ const styles = StyleSheet.create({
         height: "100%",
         resizeMode: "cover",
     },
-
-    /* --- Scrollable Pagination Dots Styles --- */
     paginationOuterWrapper: {
         position: 'absolute',
         bottom: 25,
@@ -1227,7 +1203,6 @@ const styles = StyleSheet.create({
         shadowRadius: 1,
         elevation: 2,
     },
-
     iconContainer: {
         position: 'absolute',
         bottom: 12,
@@ -1302,8 +1277,18 @@ const styles = StyleSheet.create({
         height: HERO_IMAGE_HEIGHT,
         backgroundColor: '#E0E0E0',
     },
-    shimmerContent: {
+    shimmerCard: {
+        backgroundColor: '#FFF',
+        borderRadius: 12,
         padding: 16,
+        marginHorizontal: 16,
+        marginTop: 16,
+    },
+    shimmerCircle: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#E0E0E0',
     },
     shimmerBar: {
         backgroundColor: '#E0E0E0',
@@ -1351,8 +1336,6 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 20,
     },
-
-    /* --- Secondary Sticky Subtitle Nav Wrapper --- */
     stickyNavWrapper: {
         backgroundColor: '#FFFFFF',
         zIndex: 100,

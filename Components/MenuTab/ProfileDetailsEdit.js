@@ -1,30 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react';
 import {
     StyleSheet,
     Text,
     View,
-    ScrollView,
     TouchableOpacity,
-    Animated,
     TouchableWithoutFeedback,
-    TouchableHighlight,
-    Dimensions,
-    Modal,
     TextInput,
-    Button,
-    Platform, Pressable
-
+    Pressable
 } from "react-native";
 import {
-    AntDesign,
     Ionicons,
     MaterialIcons,
-    FontAwesome,
     FontAwesome5,
-    FontAwesome6,
     MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { Rasi } from '../Rasi';
 import { getProfileDetailsMatch, getMyProfilePersonal, updateProfilePersonal } from '../../CommonApiCall/CommonApiCall';
 import RNPickerSelect from 'react-native-picker-select';
 import config from "../../API/Apiurl";
@@ -38,11 +27,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// =====================================================================================
-// ✅ Sticky icon row — solid background + zIndex/elevation so it's always clearly
-//    visible once stuck (this was the "sticky not visible" bug — combined with the
-//    header no longer reserving blank space, the bar now sits flush at the top).
-// =====================================================================================
 export const ProfileIconsBar = ({ onSelectSection }) => {
     return (
         <View style={styles.iconsRowContainer}>
@@ -84,14 +68,7 @@ export const ProfileIconsBar = ({ onSelectSection }) => {
     );
 };
 
-// =====================================================================================
-// ✅ All sections stacked together. Personal Details header now matches Image 3's
-//    style exactly: icon + bold title + divider line, same card container
-//    (rounded corners + shadow) used consistently in BOTH Edit and View modes.
-//    All state/handlers/validation/API logic is UNCHANGED from before.
-// =====================================================================================
-export const ProfileSectionsContent = ({ sectionOffsetsRef }) => {
-
+export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
     const [personalDetails, setPersonalDetails] = useState(null);
     const [hour, setHour] = useState('');
     const [minute, setMinute] = useState('');
@@ -122,7 +99,6 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef }) => {
     });
     const [isFetched, setIsFetched] = useState(false);
     const [showDatepicker, setShowDatepicker] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(null);
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
 
@@ -387,6 +363,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef }) => {
                 Mobile_no: formValues.Mobile_no
             };
             try {
+                if (setLoading) setLoading(true);
                 const response = await updateProfilePersonal(profileData);
                 Toast.show({
                     type: 'success',
@@ -405,11 +382,12 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef }) => {
                     text1: 'Error',
                     text2: 'Failed to update profile details' || error.message,
                 });
+            } finally {
+                if (setLoading) setLoading(false);
             }
         }
     };
 
-    // ---- helper to write layout offsets onto the ref passed from MyProfile ----
     const setOffset = (key) => (e) => {
         if (sectionOffsetsRef && sectionOffsetsRef.current) {
             sectionOffsetsRef.current[key] = e.nativeEvent.layout.y;
@@ -418,13 +396,8 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef }) => {
 
     return (
         <View style={styles.scrollViewContentContainer}>
-
-            {/* ===== Personal Details — card header matches Image 3: icon + title + divider,
-                     same for both Edit and View so all sections look visually equal ===== */}
             <View style={styles.menuChanges} onLayout={setOffset('personal')}>
                 <View style={styles.editOptions}>
-
-                    {/* ✅ Consistent section header row (icon + title + divider) */}
                     <View style={styles.sectionHeaderRow}>
                         <FontAwesome5 name="user-circle" size={20} color="#BD1225" style={{ marginRight: 8 }} />
                         <Text style={styles.sectionHeaderTitle}>Personal Details</Text>
@@ -660,7 +633,6 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef }) => {
                                 style={styles.input}
                                 placeholder="Registered Mobile"
                                 value={formValues.Mobile_no}
-                                useNativeAndroidPickerStyle={false}
                                 onChangeText={(text) => handleChange('Mobile_no', text)}
                                 keyboardType="numeric"
                             />
@@ -674,9 +646,6 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef }) => {
                                         colors={["#BD1225", "#FF4050"]}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 1 }}
-                                        useAngle={true}
-                                        angle={92.08}
-                                        angleCenter={{ x: 0.5, y: 0.5 }}
                                         style={styles.linearGradient}
                                     >
                                         <View style={styles.loginContainer}>
@@ -714,69 +683,48 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef }) => {
                 </View>
             </View>
 
-            {/* ===== Education — always visible ===== */}
-            <View onLayout={setOffset('education')}>
-                <EducationalDetails />
+            <View onLayout={setOffset('education')} style={{ width: '100%' }}>
+                <EducationalDetails setLoading={setLoading} />
             </View>
 
-            {/* ===== Family — always visible ===== */}
-            <View onLayout={setOffset('family')}>
-                <FamilyDetails />
+            <View onLayout={setOffset('family')} style={{ width: '100%' }}>
+                <FamilyDetails setLoading={setLoading} />
             </View>
 
-            {/* ===== Horoscope — always visible ===== */}
-            <View onLayout={setOffset('horoscope')}>
-                <HoroscopeDetails />
+            <View onLayout={setOffset('horoscope')} style={{ width: '100%' }}>
+                <HoroscopeDetails setLoading={setLoading} />
             </View>
 
-            {/* ===== Contact — always visible ===== */}
-            <View onLayout={setOffset('contact')}  style={{ marginBottom: 100 }} >
-                <ContactDetails />
+            <View onLayout={setOffset('contact')} style={{ width: '100%', marginBottom: 100 }}>
+                <ContactDetails setLoading={setLoading} />
             </View>
-
         </View>
-    )
+    );
 };
 
-// Default export kept for backward compatibility with any other screen still
-// importing `{ ProfileDetailsEdit }` directly (non-sticky fallback usage).
 export const ProfileDetailsEdit = () => {
     const localOffsetsRef = useRef({});
     return (
         <>
-            <ProfileIconsBar onSelectSection={() => {}} />
+            <ProfileIconsBar onSelectSection={() => { }} />
             <ProfileSectionsContent sectionOffsetsRef={localOffsetsRef} />
         </>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#fff",
-        alignItems: "center",
-        justifyContent: "flex-start",
-    },
-    detailsMenu: {
-        width: "100%",
-        backgroundColor: "#4F515D",
-        paddingHorizontal: 10,
-        paddingVertical: 20,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        alignSelf: "center",
+    iconsRowContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        paddingHorizontal: 16,
+        backgroundColor: '#4F515D',
+        paddingVertical: 16,
         borderBottomWidth: 0.5,
-        borderColor: "#fff",
+        borderColor: '#fff',
+        zIndex: 12,
+        elevation: 8,
     },
-    menuName: {
-        color: "#fff",
-        fontSize: 15,
-        fontWeight: "500",
-        fontFamily: "inter",
-        marginLeft: 5,
-    },
-    // ✅ Sticky bar container — solid bg + shadow/elevation to always be visible
     iconContainer: {
         alignItems: 'center',
         justifyContent: 'center',
@@ -797,11 +745,6 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
         fontWeight: 'bold',
     },
-    iconMenuFlex: {
-        flexDirection: "row",
-        justifyContent: "flex-start",
-        alignItems: "center",
-    },
     menuChanges: {
         width: '100%',
         backgroundColor: '#F4F4F4',
@@ -812,13 +755,9 @@ const styles = StyleSheet.create({
         color: "#ED1E24",
         fontSize: 14,
         fontWeight: "700",
-        fontFamily: "inter",
         marginVertical: 10,
         alignSelf: "flex-end",
     },
-
-    // ✅ Consistent card container for ALL sections — rounded corners + soft shadow,
-    //    matches Image 3's card look. Used the same way in Edit & View.
     editOptions: {
         width: '92%',
         backgroundColor: '#ffffff',
@@ -832,11 +771,9 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
-    // ✅ Inner wrapper for form/view content beneath the header row
     editOptionsInner: {
         width: '100%',
     },
-    // ✅ Icon + Title row (matches Image 3's "Personal Details" style)
     sectionHeaderRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -853,7 +790,6 @@ const styles = StyleSheet.create({
         width: '100%',
         marginBottom: 4,
     },
-
     labelNew: {
         color: '#282C3F',
         fontSize: 15,
@@ -866,22 +802,11 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '500',
     },
-    menuContainer: {
-        width: "100%",
-        overflow: 'hidden',
-    },
     label: {
         color: "#535665",
         fontSize: 14,
         fontWeight: "700",
-        fontFamily: "inter",
         marginBottom: 10,
-    },
-    value: {
-        color: "#535665",
-        fontSize: 14,
-        fontWeight: "500",
-        fontFamily: "inter",
     },
     input: {
         height: 50,
@@ -892,43 +817,11 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         fontSize: 16,
     },
-    pickerSelect: {
-        inputIOS: {
-            height: 50,
-            borderWidth: 1,
-            borderColor: '#ccc',
-            borderRadius: 5,
-            paddingHorizontal: 10,
-            marginBottom: 15,
-            fontSize: 16,
-        },
-        inputAndroid: {
-            height: 50,
-            borderWidth: 1,
-            borderColor: '#ccc',
-            borderRadius: 5,
-            paddingHorizontal: 10,
-            marginBottom: 15,
-            fontSize: 16,
-        },
-    },
     scrollViewContentContainer: {
         flexGrow: 1,
+        width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    // ✅ FIXED sticky icon bar: solid bg, clear elevation so nothing hides it
-    iconsRowContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        paddingHorizontal: 16,
-        backgroundColor: '#4F515D',
-        paddingVertical: 16,
-        borderBottomWidth: 0.5,
-        borderColor: '#fff',
-        zIndex: 12,
-        elevation: 8,
     },
     loginContainer: {
         flexDirection: "row",
@@ -941,7 +834,6 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         fontSize: 16,
         letterSpacing: 1,
-        fontFamily: "inter",
         marginRight: 5,
     },
     formContainer1: {
@@ -959,18 +851,6 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         borderRadius: 6,
         marginBottom: 10,
-    },
-    titleNew: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 10,
-    },
-    line: {
-        height: 1,
-        backgroundColor: '#E0E0E0',
-        marginVertical: 10,
-        width: '100%',
     },
     timeContainer: {
         flexDirection: 'row',

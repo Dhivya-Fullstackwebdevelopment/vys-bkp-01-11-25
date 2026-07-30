@@ -1,31 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     Text,
     View,
-    Switch,
-    SafeAreaView,
-    ImageBackground,
-    Image,
-    ScrollView,
     TouchableOpacity,
-    Pressable,
-    Animated,
     TouchableWithoutFeedback,
-    TouchableHighlight,
-    Dimensions,
-    Modal,
     TextInput,
-    Button,
-    Platform
+    Platform,
 } from "react-native";
 import {
-    AntDesign,
     Ionicons,
-    MaterialIcons,
-    FontAwesome,
-    FontAwesome5,
-    FontAwesome6,
     MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { getMyHoroscopeDetails, updateProfileHoroscope, fetchRasiImage, fetchAmsamImage } from '../../CommonApiCall/CommonApiCall';
@@ -36,15 +20,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const HoroscopeDetails = () => {
-
+export const HoroscopeDetails = ({ setLoading }) => {
     const [horoscopeDetails, setHoroscopeDetails] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [birthStars, setBirthStars] = useState([]);
     const [validationErrors, setValidationErrors] = useState({});
     const [rasiList, setRasiList] = useState([]);
     const [lagnams, setLagnams] = useState([]);
-    const [selectedLagnam, setSelectedLagnam] = useState(null);
     const [isFetched, setIsFetched] = useState(false);
     const [dayOptions, setDayOptions] = useState([]);
     const [monthOptions, setMonthOptions] = useState([]);
@@ -319,6 +301,8 @@ export const HoroscopeDetails = () => {
     const handleSave = async () => {
         if (validateForm()) {
             try {
+                if (setLoading) setLoading(true);
+
                 const yearVal = formValues.personal_dasa_bal_year;
                 const monthVal = formValues.personal_dasa_bal_month;
                 const dayVal = formValues.personal_dasa_bal_day;
@@ -389,6 +373,8 @@ export const HoroscopeDetails = () => {
                 setValidationErrors({
                     submit: errorMessage
                 });
+            } finally {
+                if (setLoading) setLoading(false);
             }
         }
     };
@@ -396,21 +382,18 @@ export const HoroscopeDetails = () => {
     return (
         <View style={styles.menuChanges}>
             <View style={styles.editOptions}>
-                {/* Unified Section Header */}
                 <View style={styles.sectionHeaderRow}>
                     <MaterialCommunityIcons name="zodiac-libra" size={20} color="#BD1225" style={{ marginRight: 8 }} />
                     <Text style={styles.sectionHeaderTitle}>Horoscope Details</Text>
                 </View>
                 <View style={styles.sectionDivider} />
 
-                {/* Edit / View Toggle Link */}
                 <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
                     <Text style={styles.redText}>{isEditMode ? 'View' : 'Edit'}</Text>
                 </TouchableWithoutFeedback>
 
                 {isEditMode ? (
                     <View style={styles.editOptionsInner}>
-                        {/* Birth Star */}
                         <Text style={styles.labelNew}>Birth Star</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('personal_bthstar_id', value)}
@@ -432,7 +415,6 @@ export const HoroscopeDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_bthstar_id}</Text>
                         )}
 
-                        {/* Padham */}
                         <Text style={styles.labelNew}>Padham</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('personal_padham', value)}
@@ -454,7 +436,6 @@ export const HoroscopeDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_padham}</Text>
                         )}
 
-                        {/* Rasi */}
                         <Text style={styles.labelNew}>Rasi</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('personal_bth_rasi_id', value)}
@@ -476,7 +457,6 @@ export const HoroscopeDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_bth_rasi_id}</Text>
                         )}
 
-                        {/* Lagnam */}
                         <Text style={styles.labelNew}>Lagnam</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('personal_lagnam_didi_id', value)}
@@ -498,7 +478,6 @@ export const HoroscopeDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_lagnam_didi_id}</Text>
                         )}
 
-                        {/* Dasa Name */}
                         <Text style={styles.labelNew}>Dasa Name</Text>
                         <TextInput
                             style={styles.input}
@@ -510,10 +489,8 @@ export const HoroscopeDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_dasa}</Text>
                         )}
 
-                        {/* Dasa Balance */}
                         <Text style={styles.labelNew}>Dasa Balance</Text>
                         <View style={styles.dropdownFlex}>
-                            {/* Year Dropdown */}
                             <View style={styles.dropdownFit}>
                                 <RNPickerSelect
                                     onValueChange={(value) => handleChange('personal_dasa_bal_year', value)}
@@ -536,7 +513,6 @@ export const HoroscopeDetails = () => {
                                 )}
                             </View>
 
-                            {/* Month Dropdown */}
                             <View style={styles.dropdownFit}>
                                 <RNPickerSelect
                                     onValueChange={(value) => handleChange('personal_dasa_bal_month', value)}
@@ -559,7 +535,6 @@ export const HoroscopeDetails = () => {
                                 )}
                             </View>
 
-                            {/* Day Dropdown */}
                             <View style={styles.dropdownFit}>
                                 <RNPickerSelect
                                     onValueChange={(value) => handleChange('personal_dasa_bal_day', value)}
@@ -583,7 +558,6 @@ export const HoroscopeDetails = () => {
                             </View>
                         </View>
 
-                        {/* Nallikai */}
                         <Text style={styles.labelNew}>Nallikai</Text>
                         <TextInput
                             style={styles.input}
@@ -595,7 +569,6 @@ export const HoroscopeDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_nalikai}</Text>
                         )}
 
-                        {/* Didi */}
                         <Text style={styles.labelNew}>Didi</Text>
                         <TextInput
                             style={styles.input}
@@ -605,7 +578,6 @@ export const HoroscopeDetails = () => {
                         />
                         {validationErrors.personal_didi && <Text style={styles.error}>{validationErrors.personal_didi}</Text>}
 
-                        {/* Surya Gothram */}
                         <Text style={styles.labelNew}>Surya Gothram</Text>
                         <TextInput
                             style={styles.input}
@@ -617,7 +589,6 @@ export const HoroscopeDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_surya_goth}</Text>
                         )}
 
-                        {/* Madhulam */}
                         <Text style={styles.labelNew}>Madhulam</Text>
                         <TextInput
                             style={styles.input}
@@ -626,7 +597,6 @@ export const HoroscopeDetails = () => {
                             onChangeText={(text) => handleChange('personal_madulamn', text)}
                         />
 
-                        {/* Chevvai Dosham */}
                         <Text style={styles.labelNew}>Chevvai Dosham</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('personal_chevvai_dos', value)}
@@ -648,7 +618,6 @@ export const HoroscopeDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_chevvai_dos}</Text>
                         )}
 
-                        {/* Rahu Dosham */}
                         <Text style={styles.labelNew}>Rahu Dosham</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('personal_ragu_dos', value)}
@@ -670,7 +639,6 @@ export const HoroscopeDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_ragu_dos}</Text>
                         )}
 
-                        {/* Horoscope Hints */}
                         <Text style={styles.labelNew}>Horoscope Hints</Text>
                         <TextInput
                             style={styles.input}
@@ -682,7 +650,6 @@ export const HoroscopeDetails = () => {
                             <Text style={styles.error}>{validationErrors.personal_horoscope_hints}</Text>
                         )}
 
-                        {/* Save Button */}
                         <View style={styles.formContainer1}>
                             <TouchableOpacity
                                 style={styles.btn}
@@ -692,9 +659,6 @@ export const HoroscopeDetails = () => {
                                     colors={["#BD1225", "#FF4050"]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
-                                    useAngle={true}
-                                    angle={92.08}
-                                    angleCenter={{ x: 0.5, y: 0.5 }}
                                     style={styles.linearGradient}
                                 >
                                     <View style={styles.loginContainer}>
@@ -722,19 +686,16 @@ export const HoroscopeDetails = () => {
                                 <Text style={styles.labelNew}>Chevvai Dosham : <Text style={styles.valueNew}>{horoscopeDetails.personal_chevvai_dos || "N/A"}</Text></Text>
                                 <Text style={styles.labelNew}>Horoscope Hints : <Text style={styles.valueNew}>{horoscopeDetails.personal_horoscope_hints || "N/A"}</Text></Text>
 
-                                {/* RASI CHART */}
                                 {rasiGrid.length >= 4 && (
                                     <View style={styles.horoscopeSection}>
-                                        <Text style={styles.chartTitle}>Rasi & Amsam Grid</Text>
+                                        <Text style={styles.chartTitle}>Rasi Grid</Text>
                                         <View style={styles.chartBorder}>
-                                            {/* Top Row */}
                                             <View style={styles.chartRow}>
                                                 <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][0]}</Text></View>
                                                 <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][1]}</Text></View>
                                                 <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][2]}</Text></View>
                                                 <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[0][3]}</Text></View>
                                             </View>
-                                            {/* Middle Section */}
                                             <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
                                                 <View style={styles.sideColumn}>
                                                     <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
@@ -757,7 +718,6 @@ export const HoroscopeDetails = () => {
                                                     </View>
                                                 </View>
                                             </View>
-                                            {/* Bottom Row */}
                                             <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
                                                 <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][0]}</Text></View>
                                                 <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][1]}</Text></View>
@@ -768,18 +728,16 @@ export const HoroscopeDetails = () => {
                                     </View>
                                 )}
 
-                                {/* AMSAM CHART */}
                                 {amsaGrid.length >= 4 && (
                                     <View style={styles.horoscopeSection}>
+                                        <Text style={styles.chartTitle}>Amsam Grid</Text>
                                         <View style={styles.chartBorder}>
-                                            {/* Top Row */}
                                             <View style={styles.chartRow}>
                                                 <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][0]}</Text></View>
                                                 <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][1]}</Text></View>
                                                 <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][2]}</Text></View>
                                                 <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[0][3]}</Text></View>
                                             </View>
-                                            {/* Middle Section */}
                                             <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
                                                 <View style={styles.sideColumn}>
                                                     <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}>
@@ -802,7 +760,6 @@ export const HoroscopeDetails = () => {
                                                     </View>
                                                 </View>
                                             </View>
-                                            {/* Bottom Row */}
                                             <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
                                                 <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][0]}</Text></View>
                                                 <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][1]}</Text></View>
@@ -818,8 +775,8 @@ export const HoroscopeDetails = () => {
                 )}
             </View>
         </View>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     menuChanges: {
@@ -864,7 +821,6 @@ const styles = StyleSheet.create({
         color: "#ED1E24",
         fontSize: 14,
         fontWeight: "700",
-        fontFamily: "inter",
         marginVertical: 10,
         alignSelf: "flex-end",
     },
@@ -907,7 +863,6 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         fontSize: 16,
         letterSpacing: 1,
-        fontFamily: "inter",
         marginRight: 5,
     },
     formContainer1: {
@@ -935,7 +890,6 @@ const styles = StyleSheet.create({
     },
     dropdownFit: {
         width: "31%",
-        fontFamily: "inter",
     },
     horoscopeSection: {
         paddingVertical: 10,

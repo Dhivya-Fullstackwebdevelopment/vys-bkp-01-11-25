@@ -1,31 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     Text,
     View,
-    Switch,
-    SafeAreaView,
-    ImageBackground,
-    Image,
-    ScrollView,
     TouchableOpacity,
-    Pressable,
-    Animated,
     TouchableWithoutFeedback,
-    TouchableHighlight,
-    Dimensions,
-    Modal,
     TextInput,
-    Button,
 } from "react-native";
 import {
-    AntDesign,
     Ionicons,
     MaterialIcons,
-    FontAwesome,
-    FontAwesome5,
-    FontAwesome6,
-    MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { getMyEducationalDetails, updateProfileEducation } from '../../CommonApiCall/CommonApiCall';
 import RNPickerSelect from 'react-native-picker-select';
@@ -34,8 +18,7 @@ import axios from "axios";
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
 
-export const EducationalDetails = () => {
-
+export const EducationalDetails = ({ setLoading }) => {
     const [educationalDetails, setEducationalDetails] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
@@ -368,7 +351,7 @@ export const EducationalDetails = () => {
 
             setIsFetched(true);
         }
-    }, [educationalDetails, isFetched, cityList]);
+    }, [educationalDetails, isFetched]);
 
     useEffect(() => {
         if (educationalDetails && cityList.length > 0) {
@@ -590,6 +573,8 @@ export const EducationalDetails = () => {
                 return;
             }
 
+            if (setLoading) setLoading(true);
+
             const profileData = {
                 education_level: formValues.personal_edu_id,
                 about_edu: formValues.personal_about_edu?.trim(),
@@ -661,6 +646,8 @@ export const EducationalDetails = () => {
                 visibilityTime: 4000,
                 autoHide: true,
             });
+        } finally {
+            if (setLoading) setLoading(false);
         }
     };
 
@@ -670,14 +657,12 @@ export const EducationalDetails = () => {
     return (
         <View style={styles.menuChanges}>
             <View style={styles.editOptions}>
-                {/* Unified Section Header (Icon + Title + Divider) */}
                 <View style={styles.sectionHeaderRow}>
                     <MaterialIcons name="work" size={20} color="#BD1225" style={{ marginRight: 8 }} />
                     <Text style={styles.sectionHeaderTitle}>Education & Profession Details</Text>
                 </View>
                 <View style={styles.sectionDivider} />
 
-                {/* Edit / View Toggle Link */}
                 <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
                     <Text style={styles.redText}>{isEditMode ? 'View' : 'Edit'}</Text>
                 </TouchableWithoutFeedback>
@@ -1063,9 +1048,6 @@ export const EducationalDetails = () => {
                                     colors={["#BD1225", "#FF4050"]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
-                                    useAngle={true}
-                                    angle={92.08}
-                                    angleCenter={{ x: 0.5, y: 0.5 }}
                                     style={styles.linearGradient}
                                 >
                                     <View style={styles.loginContainer}>
@@ -1124,8 +1106,8 @@ export const EducationalDetails = () => {
                 )}
             </View>
         </View>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     menuChanges: {
@@ -1170,7 +1152,6 @@ const styles = StyleSheet.create({
         color: "#ED1E24",
         fontSize: 14,
         fontWeight: "700",
-        fontFamily: "inter",
         marginVertical: 10,
         alignSelf: "flex-end",
     },
@@ -1213,7 +1194,6 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         fontSize: 16,
         letterSpacing: 1,
-        fontFamily: "inter",
         marginRight: 5,
     },
     formContainer1: {
