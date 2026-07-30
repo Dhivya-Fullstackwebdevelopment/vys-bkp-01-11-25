@@ -17,7 +17,6 @@ import {
     Modal,
     TextInput,
     Button,
-
 } from "react-native";
 import {
     AntDesign,
@@ -28,7 +27,7 @@ import {
     FontAwesome6,
     MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { getMyEducationalDetails, updateProfileEducation } from '../../CommonApiCall/CommonApiCall'; // Import the API function
+import { getMyEducationalDetails, updateProfileEducation } from '../../CommonApiCall/CommonApiCall';
 import RNPickerSelect from 'react-native-picker-select';
 import config from "../../API/Apiurl";
 import axios from "axios";
@@ -37,10 +36,10 @@ import Toast from 'react-native-toast-message';
 
 export const EducationalDetails = () => {
 
-    const [educationalDetails, setEducationalDetails] = useState(null); // State for profile details
-    const [isEditMode, setIsEditMode] = useState(false); // Toggle between view and edit mode
+    const [educationalDetails, setEducationalDetails] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
-    const [highestEduOptions, setHighestEduOptions] = useState([]); // State for education options
+    const [highestEduOptions, setHighestEduOptions] = useState([]);
     const [annualIncomeOptions, setAnnualIncomeOptions] = useState([]);
     const [countryList, setCountryList] = useState([]);
     const [stateList, setStateList] = useState([]);
@@ -52,12 +51,11 @@ export const EducationalDetails = () => {
     const [isOthersSelected, setIsOthersSelected] = useState(false);
     const [districtList, setDistrictList] = useState([]);
     const [cityList, setCityList] = useState([]);
-    const [workDistrictInput, setWorkDistrictInput] = useState(""); // For district textbox
+    const [workDistrictInput, setWorkDistrictInput] = useState("");
     const [customCity, setCustomCity] = useState("");
-    const [showStateTextbox, setShowStateTextbox] = useState(false); // For conditionally rendering
+    const [showStateTextbox, setShowStateTextbox] = useState(false);
     const [isCityDropdown, setIsCityDropdown] = useState(true);
 
-    // Fetch Field of Study options
     const fetchFieldOfStudy = async () => {
         try {
             const response = await axios.post(`${config.apiUrl}/auth/Get_Field_ofstudy/`);
@@ -71,7 +69,6 @@ export const EducationalDetails = () => {
         }
     };
 
-    // Fetch Degree options based on education level and field of study
     const fetchDegreeOptions = async (eduLevel, fieldOfStudy) => {
         if (!eduLevel || !fieldOfStudy) return;
 
@@ -93,7 +90,7 @@ export const EducationalDetails = () => {
 
     const fetchDistrictList = async (stateId) => {
         if (!stateId) {
-            setDistrictList([]); // Clear districts if no state selected
+            setDistrictList([]);
             return;
         }
 
@@ -111,14 +108,13 @@ export const EducationalDetails = () => {
             setDistrictList(formattedDistrictList);
         } catch (error) {
             console.error("Error fetching district list:", error);
-            setDistrictList([]); // Clear districts on error
+            setDistrictList([]);
         }
     };
 
-    // Fetch cities when district changes
     const fetchCityList = async (districtId) => {
         if (!districtId) {
-            setCityList([]); // Clear cities if no district selected
+            setCityList([]);
             return;
         }
 
@@ -134,10 +130,10 @@ export const EducationalDetails = () => {
             }));
 
             setCityList(formattedCityList);
-            setIsCityDropdown(true); // Ensure dropdown is shown when cities are fetched
+            setIsCityDropdown(true);
         } catch (error) {
             console.error("Error fetching city list:", error);
-            setCityList([]); // Clear cities on error
+            setCityList([]);
         }
     };
 
@@ -173,7 +169,7 @@ export const EducationalDetails = () => {
     useEffect(() => {
         fetchCountryList();
         fetchAnnualIncomeOptions();
-        fetchFieldOfStudy(); // Fetch field of study options
+        fetchFieldOfStudy();
     }, []);
 
     useEffect(() => {
@@ -262,7 +258,6 @@ export const EducationalDetails = () => {
     const fetchProfileData = async () => {
         try {
             const data = await getMyEducationalDetails();
-            console.log("data educational details ===>", data);
             setEducationalDetails(data.data);
         } catch (error) {
             console.error('Failed to load profile data', error);
@@ -306,12 +301,9 @@ export const EducationalDetails = () => {
                 personal_work_city_id: educationalDetails.personal_work_city_id || null,
             });
 
-            // Initialize selected degrees if available
             if (educationalDetails.persoanl_degree) {
                 const degreeIds = educationalDetails.persoanl_degree.split(',').map(id => id.trim());
                 setSelectedDegrees(degreeIds);
-
-                // Check if "Others" is selected (assuming 86 is the ID for "Others")
                 if (degreeIds.includes("86")) {
                     setIsOthersSelected(true);
                 }
@@ -330,34 +322,16 @@ export const EducationalDetails = () => {
                 setWorkDistrictInput(educationalDetails.personal_work_district);
             }
 
-            // if (educationalDetails.personal_work_city_id) {
-            //     setFormValues(prev => ({
-            //         ...prev,
-            //         personal_work_city_id: educationalDetails.personal_work_city_id
-            //     }));
-            //     setIsCityDropdown(true);
-            // } else if (educationalDetails.personal_work_city_name) {
-            //     setCustomCity(educationalDetails.personal_work_city_name);
-            //     setIsCityDropdown(false);
-            //     setFormValues(prev => ({
-            //         ...prev,
-            //         personal_work_city_id: "others"
-            //     }));
-            // }
-
             if (educationalDetails.personal_work_city_id) {
-                // Check if it's a valid ID (number) or a city name (string)
                 const isNumericId = !isNaN(educationalDetails.personal_work_city_id);
 
                 if (isNumericId) {
-                    // It's a valid city ID
                     setFormValues(prev => ({
                         ...prev,
                         personal_work_city_id: educationalDetails.personal_work_city_id
                     }));
                     setIsCityDropdown(true);
                 } else {
-                    // It's a city name stored as ID - treat as custom city
                     setCustomCity(educationalDetails.personal_work_city_id);
                     setIsCityDropdown(false);
                     setFormValues(prev => ({
@@ -367,7 +341,6 @@ export const EducationalDetails = () => {
                     }));
                 }
             } else if (educationalDetails.personal_work_city_name) {
-                // No ID but has city name - will match against dropdown once loaded
                 setCustomCity(educationalDetails.personal_work_city_name);
                 setFormValues(prev => ({
                     ...prev,
@@ -375,8 +348,6 @@ export const EducationalDetails = () => {
                 }));
             }
 
-
-            // Check if country is India (ID: "1") to show appropriate state input
             if (educationalDetails.personal_work_coun_id === "1") {
                 setShowStateTextbox(false);
             } else {
@@ -399,20 +370,17 @@ export const EducationalDetails = () => {
         }
     }, [educationalDetails, isFetched, cityList]);
 
-    // Add this new useEffect after the existing one
     useEffect(() => {
         if (educationalDetails && cityList.length > 0) {
             const cityIdOrName = educationalDetails.personal_work_city_id;
             const cityName = educationalDetails.personal_work_city_name;
 
-            // If city_id is actually a city name (string), try to find it in the dropdown
             if (cityIdOrName && isNaN(cityIdOrName)) {
                 const matchingCity = cityList.find(
                     city => city.label.toLowerCase().trim() === cityIdOrName.toLowerCase().trim()
                 );
 
                 if (matchingCity) {
-                    // Found in dropdown - use the proper ID
                     setFormValues(prev => ({
                         ...prev,
                         personal_work_city_id: matchingCity.value,
@@ -421,13 +389,10 @@ export const EducationalDetails = () => {
                     setIsCityDropdown(true);
                     setCustomCity("");
                 } else {
-                    // Not found - keep as custom city
                     setIsCityDropdown(false);
                     setCustomCity(cityIdOrName);
                 }
-            }
-            // If we have a city name but no ID, try to match it
-            else if (cityName && !cityIdOrName) {
+            } else if (cityName && !cityIdOrName) {
                 const matchingCity = cityList.find(
                     city => city.label.toLowerCase().trim() === cityName.toLowerCase().trim()
                 );
@@ -472,17 +437,16 @@ export const EducationalDetails = () => {
 
             if (field === 'personal_work_coun_id') {
                 updates.personal_work_sta_id = "";
-                updates.personal_work_sta_name = '';  // Add this
+                updates.personal_work_sta_name = '';
                 updates.personal_work_district_id = "";
-                updates.personal_work_district = '';  // Add this
+                updates.personal_work_district = '';
                 updates.personal_work_city_id = "";
-                updates.personal_work_city = '';  // Add this
+                updates.personal_work_city = '';
                 setDistrictList([]);
                 setCityList([]);
                 setWorkDistrictInput("");
                 setCustomCity("");
 
-                // Check if selected country is India
                 if (value === "1") {
                     setShowStateTextbox(false);
                 } else {
@@ -492,12 +456,11 @@ export const EducationalDetails = () => {
 
             if (field === 'personal_work_sta_id') {
                 updates.personal_work_district_id = "";
-                updates.personal_work_district = '';  // Add this
+                updates.personal_work_district = '';
                 updates.personal_work_city_id = "";
-                updates.personal_work_city = '';  // Add this
+                updates.personal_work_city = '';
                 setCityList([]);
                 setCustomCity("");
-                // Fetch districts when state changes
                 if (value) {
                     fetchDistrictList(value);
                 }
@@ -505,15 +468,13 @@ export const EducationalDetails = () => {
 
             if (field === 'personal_work_district_id') {
                 updates.personal_work_city_id = "";
-                updates.personal_work_city = '';  // Add this
+                updates.personal_work_city = '';
                 setCustomCity("");
-                // Fetch cities when district changes
                 if (value) {
                     fetchCityList(value);
                 }
             }
 
-            // When education level changes, reset field of study and degree
             if (field === 'personal_edu_id') {
                 updates.persoanl_field_ofstudy = '';
                 updates.persoanl_degree = '';
@@ -522,14 +483,12 @@ export const EducationalDetails = () => {
                 setIsOthersSelected(false);
             }
 
-            // When field of study changes, reset degrees
             if (field === 'persoanl_field_ofstudy') {
                 updates.persoanl_degree = '';
                 setSelectedDegrees([]);
                 setDegreeOptions([]);
                 setIsOthersSelected(false);
 
-                // Fetch degrees based on education level and field of study
                 if (updates.personal_edu_id && value) {
                     fetchDegreeOptions(updates.personal_edu_id, value);
                 }
@@ -548,7 +507,6 @@ export const EducationalDetails = () => {
         }));
     };
 
-    // Handle degree selection (multi-select)
     const handleDegreeSelection = (degreeId) => {
         setSelectedDegrees(prev => {
             let newSelectedDegrees;
@@ -558,13 +516,11 @@ export const EducationalDetails = () => {
                 newSelectedDegrees = [...prev, degreeId];
             }
 
-            // Update form values
             setFormValues(prevValues => ({
                 ...prevValues,
                 persoanl_degree: newSelectedDegrees.join(',')
             }));
 
-            // Check if "Others" is selected (assuming 86 is the ID for "Others")
             setIsOthersSelected(newSelectedDegrees.includes("86"));
 
             return newSelectedDegrees;
@@ -574,7 +530,7 @@ export const EducationalDetails = () => {
     const handleCityChange = (value) => {
         if (value === "others") {
             setIsCityDropdown(false);
-            setCustomCity(""); // Clear previous value
+            setCustomCity("");
             setFormValues(prev => ({
                 ...prev,
                 personal_work_city_id: "others",
@@ -591,7 +547,6 @@ export const EducationalDetails = () => {
         }
     };
 
-    // Handle custom city input
     const handleCustomCityInput = (text) => {
         setCustomCity(text);
         setFormValues(prev => ({
@@ -613,46 +568,8 @@ export const EducationalDetails = () => {
             return true;
         };
 
-        // Validate required fields
         validateField(formValues.personal_edu_id, 'personal_edu_id', 'Education Level is required');
-        // validateField(formValues.personal_about_edu, 'personal_about_edu', 'About Education is required');
         validateField(formValues.personal_profession, 'personal_profession', 'Profession is required');
-        // validateField(formValues.personal_ann_inc_id, 'personal_ann_inc_id', 'Annual Income is required');
-        // validateField(formValues.personal_gross_ann_inc, 'personal_gross_ann_inc', 'Gross Annual Income is required');
-        // validateField(formValues.personal_work_coun_id, 'personal_work_coun_id', 'Work Country is required');
-        // validateField(formValues.personal_work_sta_id, 'personal_work_sta_id', 'Work State is required');
-        // validateField(formValues.personal_work_pin, 'personal_work_pin', 'Work Pin Code is required');
-        // validateField(formValues.personal_career_plans, 'personal_career_plans', 'Career Plans is required');
-        // validateField(formValues.personal_work_place, 'personal_work_place', 'Work Place is required');
-
-        // // Validate field of study and degree for certain education levels
-        // const educationLevelsRequiringFieldOfStudy = ["1", "2", "3", "4"];
-        // if (educationLevelsRequiringFieldOfStudy.includes(formValues.personal_edu_id)) {
-        //     validateField(formValues.persoanl_field_ofstudy, 'persoanl_field_ofstudy', 'Field of Study is required');
-        //     validateField(formValues.persoanl_degree, 'persoanl_degree', 'Specific Field is required');
-
-        //     // Validate other degree if "Others" is selected
-        //     if (isOthersSelected && (!formValues.persoanl_edu_other || formValues.persoanl_edu_other.trim() === '')) {
-        //         errors.persoanl_edu_other = 'Other Education is required when "Others" is selected';
-        //         hasErrors = true;
-        //     }
-        // }
-
-        // // Additional validations for specific professions
-        // if (formValues.personal_profession === "1" ||
-        //     formValues.personal_profession === "7" ||
-        //     formValues.personal_profession === "6") {
-        //     validateField(formValues.personal_company_name, 'personal_company_name', 'Company Name is required');
-        //     validateField(formValues.personal_designation, 'personal_designation', 'Designation is required');
-        //     validateField(formValues.personal_profess_details, 'personal_profess_details', 'Profession Details is required');
-        // }
-
-        // if (formValues.personal_profession === "6" ||
-        //     formValues.personal_profession === "2") {
-        //     validateField(formValues.personal_business_name, 'personal_business_name', 'Business Name is required');
-        //     validateField(formValues.personal_business_addresss, 'personal_business_addresss', 'Business Address is required');
-        //     validateField(formValues.personal_nature_of_business, 'personal_nature_of_business', 'Nature of Business is required');
-        // }
 
         setValidationErrors(errors);
         return !hasErrors;
@@ -660,8 +577,6 @@ export const EducationalDetails = () => {
 
     const handleSave = async () => {
         try {
-            console.log('Form Values:', formValues);
-
             const isValid = validateForm();
             if (!isValid) {
                 const errorMessages = Object.values(validationErrors).join('\n');
@@ -686,12 +601,6 @@ export const EducationalDetails = () => {
                 work_pincode: formValues.personal_work_pin?.trim(),
                 career_plans: formValues.personal_career_plans?.trim(),
                 work_place: formValues.personal_work_place?.trim(),
-                // company_name: formValues.personal_company_name?.trim() || '',
-                // designation: formValues.personal_designation?.trim() || '',
-                // profession_details: formValues.personal_profess_details?.trim() || '',
-                // business_name: formValues.personal_business_name?.trim() || '',
-                // business_address: formValues.personal_business_addresss?.trim() || '',
-                // nature_of_business: formValues.personal_nature_of_business?.trim() || '',
                 field_ofstudy: formValues.persoanl_field_ofstudy,
                 degree: formValues.persoanl_degree,
                 other_degree: formValues.persoanl_edu_other?.trim() || '',
@@ -701,19 +610,17 @@ export const EducationalDetails = () => {
                 business_name: "",
                 business_address: "",
                 nature_of_business: "",
-                // District and City fields
                 work_district: formValues.personal_work_coun_id === "1"
                     ? (formValues.personal_work_district_id || workDistrictInput || formValues.personal_work_district || "")
                     : "",
                 work_city: formValues.personal_work_coun_id === "1"
                     ? (formValues.personal_work_city_id === "others"
-                        ? customCity  // Custom city name
-                        : (formValues.personal_work_city || ""))  // Selected city NAME from dropdown
+                        ? customCity
+                        : (formValues.personal_work_city || ""))
                     : "",
             };
 
             if (formValues.personal_profession === "6") {
-                // For profession 6: Set both employment AND business fields
                 profileData.company_name = formValues.personal_company_name?.trim() || "";
                 profileData.designation = formValues.personal_designation?.trim() || "";
                 profileData.profession_details = formValues.personal_profess_details?.trim() || "";
@@ -721,22 +628,18 @@ export const EducationalDetails = () => {
                 profileData.business_address = formValues.personal_business_addresss?.trim() || "";
                 profileData.nature_of_business = formValues.personal_nature_of_business?.trim() || "";
             } else if (formValues.personal_profession === "1" || formValues.personal_profession === "7") {
-                // Employment only
                 profileData.company_name = formValues.personal_company_name?.trim() || "";
                 profileData.designation = formValues.personal_designation?.trim() || "";
                 profileData.profession_details = formValues.personal_profess_details?.trim() || "";
             } else if (formValues.personal_profession === "2") {
-                // Business only
                 profileData.business_name = formValues.personal_business_name?.trim() || "";
                 profileData.business_address = formValues.personal_business_addresss?.trim() || "";
                 profileData.nature_of_business = formValues.personal_nature_of_business?.trim() || "";
             }
 
             const response = await updateProfileEducation(profileData);
-            console.log('API Response:', response);
 
             if (response && response.status === "success") {
-                console.log('Profile updated successfully:', response);
                 Toast.show({
                     type: 'success',
                     text1: 'Success',
@@ -761,19 +664,26 @@ export const EducationalDetails = () => {
         }
     };
 
-    // Check if education level requires field of study and degree
     const educationLevelsRequiringFieldOfStudy = ["1", "2", "3", "4"];
     const showFieldOfStudy = educationLevelsRequiringFieldOfStudy.includes(formValues.personal_edu_id);
 
     return (
         <View style={styles.menuChanges}>
             <View style={styles.editOptions}>
-                <Text style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 15 }}>Education & Profession Details</Text>
+                {/* Unified Section Header (Icon + Title + Divider) */}
+                <View style={styles.sectionHeaderRow}>
+                    <MaterialIcons name="work" size={20} color="#BD1225" style={{ marginRight: 8 }} />
+                    <Text style={styles.sectionHeaderTitle}>Education & Profession Details</Text>
+                </View>
+                <View style={styles.sectionDivider} />
+
+                {/* Edit / View Toggle Link */}
                 <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
                     <Text style={styles.redText}>{isEditMode ? 'View' : 'Edit'}</Text>
                 </TouchableWithoutFeedback>
+
                 {isEditMode ? (
-                    <View style={styles.editOptions}>
+                    <View style={styles.editOptionsInner}>
                         <Text style={styles.labelNew}>Highest Education</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('personal_edu_id', value)}
@@ -793,7 +703,6 @@ export const EducationalDetails = () => {
                         />
                         {validationErrors.personal_edu_id && <Text style={styles.error}>{validationErrors.personal_edu_id}</Text>}
 
-                        {/* Field of Study - Conditionally rendered */}
                         {showFieldOfStudy && (
                             <>
                                 <Text style={styles.labelNew}>Field of Study</Text>
@@ -815,12 +724,9 @@ export const EducationalDetails = () => {
                                 />
                                 {validationErrors.persoanl_field_ofstudy && <Text style={styles.error}>{validationErrors.persoanl_field_ofstudy}</Text>}
 
-                                {/* Specific Field (Degree) - Multi-select */}
                                 {formValues.persoanl_field_ofstudy && (
                                     <>
                                         <Text style={styles.labelNew}>Specific Field</Text>
-
-                                        {/* Dropdown */}
                                         <View style={styles.dropdownContainer}>
                                             <RNPickerSelect
                                                 onValueChange={(value) => {
@@ -842,7 +748,7 @@ export const EducationalDetails = () => {
                                                 style={pickerSelectStyles}
                                             />
                                         </View>
-                                        {/* Selected Chips Display */}
+
                                         {selectedDegrees.length > 0 && (
                                             <View style={styles.selectedChipsContainer}>
                                                 {selectedDegrees.map((degreeId) => {
@@ -864,7 +770,6 @@ export const EducationalDetails = () => {
 
                                         {validationErrors.persoanl_degree && <Text style={styles.error}>{validationErrors.persoanl_degree}</Text>}
 
-                                        {/* Other Education Field - Conditionally rendered */}
                                         {isOthersSelected && (
                                             <>
                                                 <Text style={styles.labelNew}>Other Education</Text>
@@ -891,7 +796,6 @@ export const EducationalDetails = () => {
                         />
                         {validationErrors.personal_about_edu && <Text style={styles.error}>{validationErrors.personal_about_edu}</Text>}
 
-                        {/* Rest of your existing form fields */}
                         <Text style={styles.labelNew}>Profession</Text>
                         <RNPickerSelect
                             onValueChange={(value) => handleChange('personal_profession', value)}
@@ -1023,6 +927,7 @@ export const EducationalDetails = () => {
                             style={pickerSelectStyles}
                         />
                         {validationErrors.personal_work_coun_id && <Text style={styles.error}>{validationErrors.personal_work_coun_id}</Text>}
+
                         {formValues.personal_work_coun_id === "1" && (
                             <>
                                 <Text style={styles.labelNew}>Work State</Text>
@@ -1053,7 +958,7 @@ export const EducationalDetails = () => {
                                     <RNPickerSelect
                                         onValueChange={(value) => {
                                             handleChange('personal_work_district_id', value);
-                                            setWorkDistrictInput(""); // Clear text input when dropdown is used
+                                            setWorkDistrictInput("");
                                         }}
                                         items={districtList}
                                         value={formValues.personal_work_district_id}
@@ -1086,7 +991,6 @@ export const EducationalDetails = () => {
                             </>
                         )}
 
-                        {/* City Field - Only show for India and when district is selected */}
                         {formValues.personal_work_coun_id === "1" && (formValues.personal_work_district_id || workDistrictInput) && (
                             <>
                                 <Text style={styles.labelNew}>Work City</Text>
@@ -1172,20 +1076,16 @@ export const EducationalDetails = () => {
                         </View>
                     </View>
                 ) : (
-                    <View style={styles.editOptions}>
-                        {/* View Mode */}
+                    <View style={styles.editOptionsInner}>
                         {educationalDetails && (
                             <>
                                 <Text style={styles.labelNew}>Education Level : <Text style={styles.valueNew}>{educationalDetails.personal_edu_name || "N/A"}</Text></Text>
-                                {/* New fields for view mode */}
                                 {educationalDetails.persoanl_field_ofstudy_name && (
                                     <Text style={styles.labelNew}>Field of Study : <Text style={styles.valueNew}>{educationalDetails.persoanl_field_ofstudy_name || "N/A"}</Text></Text>
                                 )}
-
                                 {educationalDetails.persoanl_degree_name && (
                                     <Text style={styles.labelNew}>Specific Field : <Text style={styles.valueNew}>{educationalDetails.persoanl_degree_name || "N/A"}</Text></Text>
                                 )}
-
                                 {educationalDetails.persoanl_edu_other && (
                                     <Text style={styles.labelNew}>Other Education : <Text style={styles.valueNew}>{educationalDetails.persoanl_edu_other || "N/A"}</Text></Text>
                                 )}
@@ -1228,69 +1128,63 @@ export const EducationalDetails = () => {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#fff",
-        alignItems: "center",
-        justifyContent: "flex-start",
+    menuChanges: {
+        width: '100%',
+        backgroundColor: '#F4F4F4',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    detailsMenu: {
-        width: "100%",
-        backgroundColor: "#4F515D",
-        paddingHorizontal: 10,
-        paddingVertical: 20,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        alignSelf: "center",
-        borderBottomWidth: 0.5,
-        borderColor: "#fff",
+    editOptions: {
+        width: '92%',
+        backgroundColor: '#ffffff',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 12,
+        marginTop: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 4,
+        elevation: 2,
     },
-    menuName: {
-        color: "#fff",
-        fontSize: 15,
-        fontWeight: "500",
-        fontFamily: "inter",
-        marginLeft: 5,
+    editOptionsInner: {
+        width: '100%',
     },
-    iconMenuFlex: {
-        flexDirection: "row",
-        justifyContent: "flex-start",
-        alignItems: "center",
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    sectionHeaderTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#282C3F',
+    },
+    sectionDivider: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#EDEDED',
+        width: '100%',
+        marginBottom: 4,
     },
     redText: {
         color: "#ED1E24",
         fontSize: 14,
         fontWeight: "700",
         fontFamily: "inter",
-        marginVertical: 15,
-        alignSelf: "flex-start",
-        paddingHorizontal: 10,
+        marginVertical: 10,
+        alignSelf: "flex-end",
     },
-    editOptions: {
-        width: '90%',
-        backgroundColor: '#ffffff',
-        padding: 10,
-        borderRadius: 8,
-        marginBottom: 2,
-        marginTop: 10
+    labelNew: {
+        color: '#282C3F',
+        fontSize: 15,
+        fontWeight: 'bold',
+        marginBottom: 5,
+        marginTop: 7,
     },
-    menuContainer: {
-        width: "100%",
-        overflow: 'hidden',
-    },
-    label: {
-        color: "#535665",
-        fontSize: 14,
-        fontWeight: "700",
-        fontFamily: "inter",
-        marginBottom: 10,
-    },
-    value: {
-        color: "#535665",
-        fontSize: 14,
-        fontWeight: "500",
-        fontFamily: "inter",
+    valueNew: {
+        color: '#282C3F',
+        fontSize: 15,
+        fontWeight: '500',
     },
     input: {
         height: 50,
@@ -1301,28 +1195,12 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         fontSize: 16,
     },
-    pickerSelect: {
-        inputIOS: {
-            height: 50,
-            borderWidth: 1,
-            borderColor: '#ccc',
-            borderRadius: 5,
-            paddingHorizontal: 10,
-            marginBottom: 15,
-            fontSize: 16,
-        },
-        inputAndroid: {
-            height: 50,
-            borderWidth: 1,
-            borderColor: '#ccc',
-            borderRadius: 5,
-            paddingHorizontal: 10,
-            marginBottom: 15,
-            fontSize: 16,
-        },
-    },
-    container: {
-        marginBottom: 15,
+    error: {
+        color: 'red',
+        fontSize: 12,
+        marginTop: 4,
+        alignSelf: 'flex-start',
+        fontWeight: 'bold',
     },
     loginContainer: {
         flexDirection: "row",
@@ -1340,7 +1218,8 @@ const styles = StyleSheet.create({
     },
     formContainer1: {
         width: "100%",
-        paddingHorizontal: 20,
+        paddingHorizontal: 0,
+        marginTop: 10,
     },
     linearGradient: {
         borderRadius: 5,
@@ -1351,59 +1230,7 @@ const styles = StyleSheet.create({
         width: "100%",
         alignSelf: "center",
         borderRadius: 6,
-        marginBottom: 30,
-    },
-    menuChanges: {
-        width: '100%',
-        backgroundColor: '#4F515D',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    labelNew: {
-        color: '#282C3F',
-        fontSize: 15,
-        fontWeight: 'bold',
-        marginBottom: 5,
-        marginTop: 7
-    },
-    error: {
-        color: 'red',
-        fontSize: 12,
-        marginTop: 4,
-        alignSelf: 'flex-start',
-        fontWeight: 'bold',
-    },
-    valueNew: {
-        color: '#282C3F',
-        fontSize: 15,
-        fontWeight: '500',
-    },
-    multiSelectContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        marginBottom: 15,
-    },
-    degreeOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 10,
-        margin: 4,
-        borderRadius: 5,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        backgroundColor: '#f9f9f9',
-    },
-    degreeOptionSelected: {
-        backgroundColor: '#BD1225',
-        borderColor: '#BD1225',
-    },
-    degreeText: {
-        fontSize: 14,
-        marginRight: 5,
-    },
-    degreeTextSelected: {
-        color: '#fff',
-        fontWeight: 'bold',
+        marginBottom: 10,
     },
     selectedChipsContainer: {
         flexDirection: 'row',
