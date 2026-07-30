@@ -730,7 +730,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef }) => {
             </View>
 
             {/* ===== Contact — always visible ===== */}
-            <View onLayout={setOffset('contact')}>
+            <View onLayout={setOffset('contact')}  style={{ marginBottom: 100 }} >
                 <ContactDetails />
             </View>
 
