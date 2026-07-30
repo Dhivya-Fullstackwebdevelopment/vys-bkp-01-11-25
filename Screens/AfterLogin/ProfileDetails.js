@@ -1777,7 +1777,12 @@ export const ProfileDetails = () => {
                   {[
                     basic_details.age ? `${basic_details.age} yrs` : null,
                     basic_details.height?.height_desc,
-                    (basic_details.weight && basic_details.weight !== 0) ? `${basic_details.weight} kg` : null,
+                    (Number(basic_details.weight) !== 0 &&
+                      basic_details.weight !== null &&
+                      basic_details.weight !== undefined
+                    )
+                      ? `${basic_details.weight} kg`
+                      : null,
                     basic_details.star,
                     basic_details.profession,
                     basic_details.education,
@@ -2148,7 +2153,7 @@ export const ProfileDetails = () => {
             >
               <View style={styles.editOptions}>
                 <View style={styles.sectionTitleRow}>
-                  <MaterialIcons  
+                  <MaterialIcons
                     name="work"
                     size={22}
                     color="#BD1225"   // Static theme color – matches other section icons
@@ -2424,7 +2429,7 @@ export const ProfileDetails = () => {
                   <MaterialIcons
                     name="phone"
                     size={22}
-                    color="#BD1225"   
+                    color="#BD1225"
                     style={{ marginRight: 8, paddingBottom: 10 }}
                   />
                   <Text style={styles.titleNew}>Contact Details</Text>
