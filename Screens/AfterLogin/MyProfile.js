@@ -35,6 +35,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from "react-native-toast-message";
 import { getMyEducationalDetails } from '../../CommonApiCall/CommonApiCall';
 import { TopAlignedImage } from '../../Components/ReuseImageAlign/TopAlignedImage';
+import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation"
 
 // Responsive helpers
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -190,6 +191,12 @@ export const MyProfile = () => {
     const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
     const [selectedPdfLanguage, setSelectedPdfLanguage] = useState("english");
     const [showLanguagePopup, setShowLanguagePopup] = useState(false);
+    const navPaddingTop = scrollY.interpolate({
+        inputRange: [0, COLLAPSE_DISTANCE],
+        outputRange: [0, 60],
+        extrapolate: 'clamp',
+    });
+
 
     const handleAddOnPackagePress = () => {
         if (profileDetails?.package_name === "Free") {
@@ -545,12 +552,6 @@ export const MyProfile = () => {
 
     const primaryImageUri = data.length > 0 ? (data[0]?.url || 'https://via.placeholder.com/150') : null;
 
-    const navPaddingTop = scrollY.interpolate({
-        inputRange: [0, COLLAPSE_DISTANCE],
-        outputRange: [0, 60],
-        extrapolate: 'clamp',
-    });
-
 
     if (pageLoading) {
         return (
@@ -611,7 +612,7 @@ export const MyProfile = () => {
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
                     {
-                        useNativeDriver: true,
+                        useNativeDriver: false,   // ← FIX: allows paddingTop animation
                         listener: (e) => {
                             const y = e.nativeEvent.contentOffset.y;
                             scrollContainerYRef.current = y;
@@ -815,12 +816,12 @@ export const MyProfile = () => {
                                 <View style={styles.detailBlock}>
                                     <View style={styles.detailRow}>
                                         <FontAwesome5 name="briefcase" size={13} color="#85878C" style={styles.detailIcon} />
-                                        <Text style={styles.label}>Profession</Text>
+                                        
                                         <Text style={styles.value} numberOfLines={1}>{profileDetails.prosession || '—'}</Text>
                                     </View>
                                     <View style={styles.detailRow}>
                                         <MaterialCommunityIcons name="school-outline" size={15} color="#85878C" style={styles.detailIcon} />
-                                        <Text style={styles.label}>Education</Text>
+                                        
                                         <Text style={styles.value} numberOfLines={1}>{profileDetails.heightest_education || '—'}</Text>
                                     </View>
                                 </View>
@@ -835,7 +836,7 @@ export const MyProfile = () => {
                 <Animated.View
                     style={[
                         styles.stickyNavWrapper,
-                        { paddingTop: navPaddingTop }   // dynamic padding
+                        { paddingTop: navPaddingTop }   // now works because useNativeDriver: false
                     ]}
                     onLayout={(e) => {
                         sectionOffsetsRef.current.iconBarTop = e.nativeEvent.layout.y;
@@ -847,7 +848,6 @@ export const MyProfile = () => {
                         sections={PROFILE_SECTIONS}
                     />
                 </Animated.View>
-
 
                 {/* Index 2: Profile Content Sections */}
                 <View style={styles.sectionsBody}>
@@ -941,14 +941,16 @@ export const MyProfile = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </Modal>
 
+            </Modal>
+            <BottomTabBarComponent />
             {/* Global Loader Overlay */}
             {loading && (
                 <View style={styles.loadingOverlay}>
                     <ActivityIndicator size="large" color="#ED1E24" />
                 </View>
             )}
+
         </SafeAreaView>
     );
 };
