@@ -117,6 +117,7 @@ export const OtpVerifyLogin = () => {
           profile_completion,
           gender,
           height,
+          age,
           marital_status,
           custom_message,
           birth_star_id,
@@ -127,37 +128,31 @@ export const OtpVerifyLogin = () => {
           valid_till,
         } = response.data;
 
-        // Store all login details
-        await AsyncStorage.setItem("auth_token", token || "");
+        // --- Standardized AsyncStorage Key Mapping ---
         await AsyncStorage.setItem("loginuser_profileId", profile_id || "");
-        await AsyncStorage.setItem(
-          "notification_count",
-          String(notification_count ?? 0)
-        );
-        await AsyncStorage.setItem("cur_plan_id", cur_plan_id || "");
+        await AsyncStorage.setItem("profile_id_new", profile_id || "");
+        await AsyncStorage.setItem("auth_token", token || "");
+        await AsyncStorage.setItem("selectedPlanId", plan_limits?.[0]?.plan_id?.toString() || "");
+        await AsyncStorage.setItem("martial_status", marital_status?.toString() || "");
+        await AsyncStorage.setItem("current_plan_id", cur_plan_id?.toString() || "");
+        await AsyncStorage.setItem("valid_till_date", valid_till?.toString() || "");
+        await AsyncStorage.setItem("gender", gender?.toString() || "");
+        await AsyncStorage.setItem("birthStarValue", birth_star_id?.toString() || "");
+        await AsyncStorage.setItem("birthStaridValue", birth_rasi_id?.toString() || "");
+        await AsyncStorage.setItem("custom_message", custom_message?.toString() || "");
+        await AsyncStorage.setItem("age", age?.toString() || "");
+        await AsyncStorage.setItem("height", height?.toString() || "");
         await AsyncStorage.setItem("profile_image", profile_image || "");
-        await AsyncStorage.setItem(
-          "profile_completion",
-          String(profile_completion ?? "")
-        );
-        await AsyncStorage.setItem("gender", gender || "");
-        await AsyncStorage.setItem("height", height || "");
-        await AsyncStorage.setItem("marital_status", marital_status || "");
-        await AsyncStorage.setItem(
-          "custom_message",
-          String(custom_message ?? "")
-        );
-        await AsyncStorage.setItem("birth_star_id", birth_star_id || "");
-        await AsyncStorage.setItem("birth_rasi_id", birth_rasi_id || "");
+
+        // Auxiliary values
+        await AsyncStorage.setItem("notification_count", String(notification_count ?? 0));
+        await AsyncStorage.setItem("profile_completion", String(profile_completion ?? ""));
         await AsyncStorage.setItem("profile_owner", profile_owner || "");
         await AsyncStorage.setItem("quick_reg", String(quick_reg ?? ""));
-        await AsyncStorage.setItem("valid_till", valid_till || "");
+        await AsyncStorage.setItem("plan_limits", JSON.stringify(plan_limits || []));
 
-        // Store plan limits array
-        await AsyncStorage.setItem(
-          "plan_limits",
-          JSON.stringify(plan_limits || [])
-        );
+        // Clean up temporary Dev OTP key
+        await AsyncStorage.removeItem("Dev_otp_autofill");
 
         console.log("Login data stored successfully.");
 
@@ -174,7 +169,7 @@ export const OtpVerifyLogin = () => {
           routes: [{ name: "HomeWithToast" }],
         });
       } else {
-        Alert.alert("Login Failed", response.data.message);
+        Alert.alert("Login Failed", response.data.message || "Invalid OTP.");
       }
     } catch (error) {
       console.error(
