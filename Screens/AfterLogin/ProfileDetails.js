@@ -1794,13 +1794,14 @@ export const ProfileDetails = () => {
 
             {/* Matching Score Horizontal Progress Bar */}
             {basic_details?.matching_score !== undefined &&
-              basic_details.matching_score > 0 &&
+              basic_details.matching_score > 50 &&
               basic_details.matching_score !== 100 && (
+                
                 <HorizontalMatchingScore
                   score={basic_details.matching_score}
                   onPress={handleDownloadMatchingReport}
                 />
-              )}
+            )}
 
             <View style={styles.detailsMeterFlex1}>
               <View style={styles.filterTag}>
