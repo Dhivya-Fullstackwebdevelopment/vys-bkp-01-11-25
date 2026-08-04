@@ -2,64 +2,107 @@ import React from "react";
 import {
   StyleSheet,
   View,
-  SafeAreaView,
   TouchableOpacity,
   Text,
+  StatusBar,
+  Platform,
 } from "react-native";
-import { SearchCard } from "../../Components/DashBoardTab/Search/SearchCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import { SearchCard } from "../../Components/DashBoardTab/Search/SearchCard";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
+import { Colors, rs } from "../../Reusable/Theme";
+
 export const SearchResults = ({ route }) => {
   const navigation = useNavigation();
   const { results = [], totalCount = 0 } = route.params || {};
-  // Provide a default value and handle missing params
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#ED1E24" />
+    <View style={styles.rootContainer}>
+      {/* Configure StatusBar to match header theme */}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={Colors.primary}
+        translucent={false}
+      />
+
+      {/* Styled Header with LinearGradient */}
+      <LinearGradient
+        colors={[
+          Colors.primaryGradientStart || "#A00014",
+          Colors.primaryGradientEnd || "#4A000A",
+        ]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={styles.header}
+      >
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+        >
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerText}>{"Search Results"}</Text>
-        <Text style={styles.matchNumber}>({totalCount})</Text>
+
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Search</Text>
+          <Text style={styles.headerSubtitle}>{totalCount} profiles found</Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.filterIconBtn}
+          onPress={() => navigation.navigate("Search")}
+        >
+          <Ionicons name="options-outline" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
+      </LinearGradient>
+
+      {/* Search Cards Body */}
+      <View style={styles.searchResultsContainer}>
+        <SearchCard initialResults={results} initialTotalCount={totalCount} />
       </View>
 
-      <View style={styles.searchResultsContainer}>
-        <SearchCard />
-      </View>
       <BottomTabBarComponent />
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  rootContainer: {
     flex: 1,
-    backgroundColor: "#F4F4F4",
-    paddingBottom: 80,
-    // alignItems: "center",
-    // justifyContent: "center",
+    backgroundColor: Colors.primary,
   },
-  headerContainer: {
-    padding: 3,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 15,
-    marginLeft: 10,
+    paddingHorizontal: rs(12, 16, 20),
+    paddingTop: Platform.OS === "ios" ? rs(48, 52, 56) : rs(14, 16, 18),
+    paddingBottom: rs(14, 16, 18),
   },
-  headerText: {
-    color: "#000000",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 10,
+  backBtn: {
+    padding: 4,
+  },
+  headerCenter: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  headerTitle: {
+    fontSize: rs(20, 22, 24),
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  headerSubtitle: {
+    fontSize: rs(12, 13, 14),
+    color: "rgba(255,255,255,0.80)",
+    marginTop: 2,
+  },
+  filterIconBtn: {
+    backgroundColor: "rgba(255,255,255,0.18)",
+    borderRadius: 10,
+    padding: 9,
   },
   searchResultsContainer: {
-    width: "100%",
-    justifyContent: "flex-start", // Align to top
-    flexGrow: 1, // Takes full available space
-    // paddingHorizontal: 10,
+    flex: 1,
+    backgroundColor: Colors.selectedBg ?? "#FAF6F0",
   },
 });
