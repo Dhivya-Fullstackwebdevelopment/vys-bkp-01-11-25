@@ -673,52 +673,66 @@ export const savePersonalNotes = async (profileTo, notes) => {
 };
 
 export const getAdvanceSearchResults = async (perPage, pageNumber) => {
-    try {
-        // Retrieve the parameters from AsyncStorage
-        const paramsString = await AsyncStorage.getItem('searchParams');
-        if (!paramsString) {
-            console.warn('Search parameters are empty, skipping API call.');
-            return null;
-        }
-
-        const params = JSON.parse(paramsString);
-
-        // Retrieve profile ID
-        const profileId = await retrieveProfileId();
-        if (!profileId) {
-            console.warn('Profile ID is empty, skipping API call.');
-            return null;
-        }
-
-        // Include profile_id, per_page, and page_number in the params object
-        const requestData = {
-            profile_id: profileId,
-            per_page: perPage,
-            page_number: pageNumber,
-            ...params,
-        };
-        console.log("requestData response all data==>", requestData)
-        // Make the API call
-        const response = await axios.post(`${BASE_URL}/Get_advance_search/`, requestData);
-        console.log("Api response ==>", response)
-        if (response.data.status === "failure") {
-            console.log('response.data.status:', response.data.status);
-            Toast.show({
-                type: "error",
-                text1: "Error",
-                text2: response.data.message,
-            });
-            return response.data;
-        } else {
-            return response.data;
-        }
-        // return response.data;
-    } catch (error) {
-        console.error('Error fetching search results:', error);
-        throw error;
+  try {
+    const paramsString = await AsyncStorage.getItem("searchParams");
+    if (!paramsString) {
+      console.warn("Search parameters are empty, skipping API call.");
+      return null;
     }
-};
 
+    const params = JSON.parse(paramsString);
+    const profileId = await retrieveProfileId();
+    if (!profileId) {
+      console.warn("Profile ID is empty, skipping API call.");
+      return null;
+    }
+
+    const requestData = {
+      profile_id: profileId,
+      per_page: perPage,
+      page_number: pageNumber,
+      ...params,
+    };
+
+    const response = await axios.post(`${BASE_URL}/Get_advance_search/`, requestData);
+
+    if (response.data.status === "failure") {
+      Toast.show({
+        type: "error",
+        text1: "No Results",
+        text2: response.data.message || "No records found.",
+        position: "bottom",
+      });
+      return response.data;
+    }
+
+    return response.data;
+  } catch (error) {
+    // Check if backend responded with a 404 or other error status code
+    if (error.response) {
+      const errorMessage = error.response.data?.message || "No records found matching your criteria.";
+      
+      Toast.show({
+        type: "error",
+        text1: "No Results",
+        text2: errorMessage,
+        position: "bottom",
+      });
+
+      // Return structured response instead of throwing
+      return error.response.data || { status: "failure", message: errorMessage };
+    }
+
+    console.error("Error fetching search results:", error);
+    Toast.show({
+      type: "error",
+      text1: "Network Error",
+      text2: "Something went wrong. Please try again.",
+      position: "bottom",
+    });
+    return null;
+  }
+};
 
 export const Search_By_profileId = async (searchProfileId) => {
 
