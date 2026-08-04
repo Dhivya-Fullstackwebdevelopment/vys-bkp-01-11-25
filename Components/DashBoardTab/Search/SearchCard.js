@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions, // ← added for screen height
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
@@ -24,7 +25,7 @@ import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
 import { Colors } from "../../../Reusable/Theme";
 
 // ─── Constants ────────────────────────────────────────────────────────────
-const PER_PAGE = 10; // matches API's received_per_page
+const PER_PAGE = 10;
 const MARRIAGE_BADGE_URI =
   "https://vysyamat.blob.core.windows.net/vysyamala/marriage_settled.jpeg";
 Image.prefetch(MARRIAGE_BADGE_URI).catch(() => {});
@@ -94,7 +95,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
       const response = await getAdvanceSearchResults(PER_PAGE, page);
 
       if (response && response.status !== "failure") {
-        const newData = response.data || [];
+        const newData = Array.isArray(response.data) ? response.data : [];
 
         // Update profiles: replace on page 1, append otherwise
         setProfiles((prev) =>
@@ -107,7 +108,9 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
         }
 
         // Update total pages
-        setTotalPages(Math.ceil(response.total_count / PER_PAGE));
+        if (response.total_count !== undefined) {
+          setTotalPages(Math.ceil(response.total_count / PER_PAGE));
+        }
 
         // Merge bookmarks from this page
         setBookmarkedProfiles((prevSet) => {
@@ -132,15 +135,14 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
 
   // ─── Effect: load initial data or fetch next pages ──────────────────
   useEffect(() => {
-    // If initialResults were provided and we are on page 1, we already have data.
-    // Just set bookmarks and totalPages (already set in useState, but ensure bookmarks).
+    // If we have initial results and we are on page 1, we already have data.
+    // Only set bookmarks and skip API call.
     if (initialResults.length > 0 && currentPage === 1) {
       const initialBookmarks = new Set();
       initialResults.forEach((p) => {
         if (p.wish_list === 1) initialBookmarks.add(p.profile_id);
       });
       setBookmarkedProfiles((prev) => new Set([...prev, ...initialBookmarks]));
-      // totalPages already set via useState
       return;
     }
 
@@ -153,10 +155,20 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
     const loadWishlist = async () => {
       try {
         const response = await getWishlistProfiles();
-        if (response) {
-          const ids = response.map((p) => p.wishlist_profileid);
-          setBookmarkedProfiles((prev) => new Set([...prev, ...ids]));
+        let wishlistData = [];
+        if (Array.isArray(response)) {
+          wishlistData = response;
+        } else if (response && typeof response === 'object') {
+          if (Array.isArray(response.data)) {
+            wishlistData = response.data;
+          } else if (Array.isArray(response.wishlist)) {
+            wishlistData = response.wishlist;
+          } else {
+            wishlistData = Object.values(response).filter(Array.isArray).flat() || [];
+          }
         }
+        const ids = wishlistData.map((p) => p.wishlist_profileid);
+        setBookmarkedProfiles((prev) => new Set([...prev, ...ids]));
       } catch (error) {
         console.error("Error loading wishlist:", error);
       }
@@ -188,7 +200,6 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
         });
       }
       setBookmarkedProfiles(updated);
-      // Update local list to keep wish_list in sync
       setProfiles((prev) =>
         prev.map((p) =>
           p.profile_id === viewedProfileId
@@ -249,7 +260,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
     }
   };
 
-  // ─── Render each profile card (FilterScreen style) ──────────────────
+  // ─── Render each profile card ──────────────────────────────────────────
   const renderProfileCard = ({ item: profile }) => {
     const isSaved = bookmarkedProfiles.has(profile.profile_id);
     const rawImage = Array.isArray(profile.profile_img)
@@ -267,7 +278,6 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
         style={styles.card}
       >
         <View style={styles.cardBody}>
-          {/* Image */}
           <View style={styles.imageWrapper}>
             <TopAlignedImage
               uri={rawImage}
@@ -284,7 +294,6 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
             {showMarriageBadge && <MarriageBadge />}
           </View>
 
-          {/* Info Column */}
           <View style={styles.infoCol}>
             <View style={styles.nameRow}>
               <Text style={styles.profileName} numberOfLines={1}>
@@ -339,18 +348,10 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
                   <Text style={styles.tagText}>{profile.star}</Text>
                 </View>
               )}
-              
-              {/* {profile.gothram && (
-                <View style={styles.tag}><Text style={styles.tagText}>{profile.gothram}</Text></View>
-              )}
-              {profile.dosham === "No dosham" && (
-                <View style={styles.tag}><Text style={styles.tagText}>No dosham</Text></View>
-              )} */}
             </View>
           </View>
         </View>
 
-        {/* Footer */}
         <View style={styles.cardFooter}>
           <Text style={styles.lastActiveText}>{lastActive || ""}</Text>
           <View style={styles.btnGroup}>
@@ -381,6 +382,39 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
     );
   };
 
+  // ─── Footer component ──────────────────────────────────────────────────
+  const renderFooter = () => {
+    if (isLoading && currentPage > 1) {
+      // ★ Half‑screen loader while paginating
+      return (
+        <View style={styles.largeFooterLoader}>
+          <ActivityIndicator size="large" color={Colors.primary || "#007AFF"} />
+          <Text style={styles.loadingMoreText}>Loading more profiles…</Text>
+        </View>
+      );
+    }
+    if (!isLoading && currentPage >= totalPages && profiles.length > 0) {
+      // All profiles loaded
+      return (
+        <View style={styles.footerLoader}>
+          <Text style={styles.endMessage}>No more profiles</Text>
+        </View>
+      );
+    }
+    // Empty footer (minimal height)
+    return <View style={styles.footerLoader} />;
+  };
+
+  // ─── Full‑screen loading state (initial load with no data) ────────────
+  if (isLoading && profiles.length === 0 && currentPage === 1) {
+    return (
+      <View style={styles.initialLoaderContainer}>
+        <ActivityIndicator size="large" color={Colors.primary || "#007AFF"} />
+        <Text style={styles.initialLoaderText}>Loading profiles…</Text>
+      </View>
+    );
+  }
+
   // ─── Render ────────────────────────────────────────────────────────────
   return (
     <>
@@ -390,18 +424,20 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
         renderItem={renderProfileCard}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          <View style={{ paddingBottom: 20 }}>
-            {isLoading && (
-              <ActivityIndicator size="large" color={Colors.primary} />
-            )}
-          </View>
-        }
+        ListFooterComponent={renderFooter}
         contentContainerStyle={styles.profileScrollView}
         showsVerticalScrollIndicator={true}
         initialNumToRender={PER_PAGE}
-        maxToRenderPerBatch={PER_PAGE}
-        windowSize={5}
+        maxToRenderPerBatch={5}
+        windowSize={10}
+        removeClippedSubviews={true}
+        ListEmptyComponent={
+          !isLoading && profiles.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No profiles found</Text>
+            </View>
+          ) : null
+        }
       />
       <PlatinumModalPopup
         visible={isPlatinumModalVisible}
@@ -416,6 +452,49 @@ const styles = StyleSheet.create({
   profileScrollView: {
     paddingVertical: 12,
     paddingHorizontal: 12,
+    paddingBottom: 40,
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: "center",
+    minHeight: 60,
+  },
+  // ★ New style for half‑screen loader
+  largeFooterLoader: {
+    height: Dimensions.get('window').height * 0.5, // 50% of screen height
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  loadingMoreText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: Colors.textMuted || '#888',
+    fontWeight: '500',
+  },
+  endMessage: {
+    fontSize: 14,
+    color: Colors.textMuted || "#888",
+    fontStyle: "italic",
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 16,
+    color: Colors.textMuted || "#888",
+  },
+  initialLoaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  initialLoaderText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: Colors.textMuted || "#888",
   },
   card: {
     backgroundColor: "#FFFFFF",

@@ -10,6 +10,7 @@ import {
     Image,
     StatusBar,
     Platform,
+    Dimensions,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -34,14 +35,10 @@ const DEFAULT_BRIDE =
 const DEFAULT_GROOM =
     "https://vysyamat.blob.core.windows.net/vysyamala/default_groom.png";
 
-// Pre-fetch badge once at module level — hits device cache on every card render
+// Pre-fetch badge once at module level
 const MARRIAGE_BADGE_URI =
     "https://vysyamat.blob.core.windows.net/vysyamala/marriage_settled.jpeg";
 Image.prefetch(MARRIAGE_BADGE_URI).catch(() => { });
-
-// Android status-bar height helper
-const STATUSBAR_HEIGHT =
-    Platform.OS === "android" ? StatusBar.currentHeight ?? 24 : 0;
 
 export const FilterScreen = () => {
     const navigation = useNavigation();
@@ -184,7 +181,7 @@ export const FilterScreen = () => {
                     const newData = searchResults.data || [];
                     setProfiles(newData);
                     setTotalCount(newData.length);
-                    setHasMorePages(false);
+                    setHasMorePages(false); // no pagination for profile ID search
                 } else {
                     Toast.show({
                         type: "info",
@@ -204,15 +201,21 @@ export const FilterScreen = () => {
                     if (newData.length === 0) {
                         setHasMorePages(false);
                     } else {
-                        setProfiles((prev) =>
-                            isLoadMore ? [...prev, ...newData] : newData
-                        );
+                        // FIX: compute loadedCount from the functional setState
+                        // callback instead of the stale `profiles` closure value,
+                        // so hasMorePages is calculated from the true current list.
+                        setProfiles((prev) => {
+                            const updated = isLoadMore ? [...prev, ...newData] : newData;
+
+                            if (total > 0 && updated.length >= total) {
+                                setHasMorePages(false);
+                            } else {
+                                setHasMorePages(true);
+                            }
+
+                            return updated;
+                        });
                         setPage(pageNum);
-                        // Check if we've loaded everything
-                        const loadedCount = isLoadMore
-                            ? (profiles.length + newData.length)
-                            : newData.length;
-                        if (loadedCount >= total) setHasMorePages(false);
                     }
 
                     await AsyncStorage.setItem("totalcount", total.toString());
@@ -247,6 +250,8 @@ export const FilterScreen = () => {
                 text2: "An error occurred while fetching results.",
                 position: "bottom",
             });
+            // On error, prevent further load attempts
+            setHasMorePages(false);
         } finally {
             setLoading(false);
             setLoadingMore(false);
@@ -301,7 +306,6 @@ export const FilterScreen = () => {
         );
     };
 
-    // ─── Card renderer ────────────────────────────────────────────────────────
     const renderProfileCard = ({ item: profile }) => {
         const isSaved = bookmarkedProfiles.has(profile.profile_id);
         const rawImage = Array.isArray(profile.profile_img)
@@ -311,7 +315,13 @@ export const FilterScreen = () => {
         const matchScore = profile.matching_score ?? profile.matchScore ?? 0;
         const lastActive = formatLastActive(profile.viewed_date);
         const showMarriageBadge =
-            profile.visited_marriage_check && !!profile.visited_marriage_badge;
+            profile.visited_marriage_check && Boolean(profile.visited_marriage_badge);
+
+        const ageHeightText = `${profile.profile_id || ''} · ${profile.profile_age || ''} yrs · ${profile.height?.height_desc || profile.profile_height?.height_desc || 'N/A'}`;
+
+        const degreeProfession = [profile.degree, profile.profession]
+            .filter((v) => v && v !== "Not mentioned" && v !== "Not working")
+            .join(" · ") || profile.profession || "N/A";
 
         return (
             <TouchableOpacity
@@ -320,7 +330,6 @@ export const FilterScreen = () => {
                 style={styles.card}
             >
                 <View style={styles.cardBody}>
-                    {/* ── Profile Image ── */}
                     <View style={styles.imageWrapper}>
                         <TopAlignedImage
                             uri={imageUri}
@@ -331,19 +340,16 @@ export const FilterScreen = () => {
                             style={{ borderRadius: 14 }}
                         />
 
-                        {/* Lock overlay */}
                         {profile.photo_protection === 1 && (
                             <View style={styles.lockOverlay}>
                                 <MaterialIcons name="lock" size={22} color="#FFFFFF" />
                             </View>
                         )}
 
-                        {showMarriageBadge && <MarriageBadge />}
+                        {showMarriageBadge ? <MarriageBadge /> : null}
                     </View>
 
-                    {/* ── Info Column ── */}
                     <View style={styles.infoCol}>
-                        {/* Name row */}
                         <View style={styles.nameRow}>
                             <Text style={styles.profileName} numberOfLines={1}>
                                 {profile.profile_name || "N/A"}
@@ -356,7 +362,6 @@ export const FilterScreen = () => {
                                     style={{ marginLeft: 4 }}
                                 />
                             )}
-                            {/* Match chip — only when score > 50 */}
                             {Number(matchScore) > 50 && (
                                 <View style={styles.matchChip}>
                                     <Text style={styles.matchChipText}>{matchScore}% match</Text>
@@ -364,27 +369,12 @@ export const FilterScreen = () => {
                             )}
                         </View>
 
-                        {/* ID · Age · Height */}
-                        <Text style={styles.subtext}>
-                            {profile.profile_id} · {profile.profile_age} yrs ·{" "}
-                            {profile.height?.height_desc ||
-                                profile.profile_height?.height_desc ||
-                                "N/A"}
-                        </Text>
+                        <Text style={styles.subtext}>{ageHeightText}</Text>
 
-                        {/* Degree · Profession */}
                         <Text style={styles.professionText} numberOfLines={1}>
-                            {[profile.degree, profile.profession]
-                                .filter(
-                                    (v) =>
-                                        v && v !== "Not mentioned" && v !== "Not working"
-                                )
-                                .join(" · ") ||
-                                profile.profession ||
-                                "N/A"}
+                            {degreeProfession}
                         </Text>
 
-                        {/* Location */}
                         {(profile.location || profile.city) ? (
                             <View style={styles.locationRow}>
                                 <Ionicons
@@ -398,7 +388,6 @@ export const FilterScreen = () => {
                             </View>
                         ) : null}
 
-                        {/* Tags */}
                         <View style={styles.tagsRow}>
                             {profile.star ? (
                                 <View style={styles.tag}>
@@ -419,13 +408,12 @@ export const FilterScreen = () => {
                     </View>
                 </View>
 
-                {/* ── Card Footer ── */}
                 <View style={styles.cardFooter}>
                     <Text style={styles.lastActiveText}>{lastActive || ""}</Text>
                     <View style={styles.btnGroup}>
                         <TouchableOpacity
                             onPress={(e) => {
-                                e.stopPropagation?.();
+                                e?.stopPropagation?.();
                                 handleSavePress(profile.profile_id);
                             }}
                             style={[
@@ -447,7 +435,6 @@ export const FilterScreen = () => {
                                 {isSaved ? "Saved" : "Shortlist"}
                             </Text>
                         </TouchableOpacity>
-
                         {/* <TouchableOpacity
                             onPress={() => handleProfileClick(profile.profile_id)}
                             style={styles.interestBtn}
@@ -462,29 +449,34 @@ export const FilterScreen = () => {
     };
 
     const renderFooter = () => {
-        if (!loadingMore) return null;
-        return (
-            <View style={styles.paginationLoader}>
-                <ActivityIndicator size="small" color={Colors.primary} />
-                <Text style={styles.paginationText}>Loading more profiles...</Text>
-            </View>
-        );
+        if (loadingMore) {
+            return (
+                <View style={styles.footerLoader}>
+                    <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
+                    <Text style={styles.loadingMoreText}>Loading more profiles…</Text>
+                </View>
+            );
+        }
+        if (!hasMorePages && profiles.length > 0 && !isProfileIdSearch) {
+            return (
+                <View style={styles.footerLoader}>
+                    <Text style={styles.endMessage}>No more profiles</Text>
+                </View>
+            );
+        }
+        return <View style={styles.footerLoader} />;
     };
 
     const displayCount = profileCount ?? totalCount ?? profiles.length;
 
-    // ─── Render ───────────────────────────────────────────────────────────────
     return (
         <View style={styles.rootContainer}>
-            {/* Force light-content status bar and colour it to match the header */}
             <StatusBar
                 barStyle="light-content"
                 backgroundColor={Colors.primary}
                 translucent={false}
             />
 
-            {/* Header — sits directly below the status bar, no gap */}
-            {/* <View style={styles.header}> */}
             <LinearGradient
                 colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
                 start={{ x: 0, y: 0.5 }}
@@ -511,7 +503,6 @@ export const FilterScreen = () => {
                 </TouchableOpacity>
             </LinearGradient>
 
-            {/* Body */}
             <View style={styles.bodyContainer}>
                 {loading ? (
                     <View style={styles.centerContainer}>
@@ -520,7 +511,7 @@ export const FilterScreen = () => {
                 ) : profiles.length > 0 ? (
                     <FlatList
                         data={profiles}
-                        keyExtractor={(item) => item.profile_id}
+                        keyExtractor={(item) => String(item.profile_id)}
                         renderItem={renderProfileCard}
                         contentContainerStyle={styles.scrollContent}
                         showsVerticalScrollIndicator={false}
@@ -529,7 +520,7 @@ export const FilterScreen = () => {
                         windowSize={5}
                         removeClippedSubviews={true}
                         onEndReached={handleLoadMore}
-                        onEndReachedThreshold={0.5}
+                        onEndReachedThreshold={0.2} // Trigger earlier
                         ListFooterComponent={renderFooter}
                     />
                 ) : (
@@ -544,25 +535,19 @@ export const FilterScreen = () => {
                 visible={showPlatinumModal}
                 onClose={() => setShowPlatinumModal(false)}
             />
-        </View >
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-    /* ─── Root — replaces SafeAreaView so we control padding manually ─── */
     rootContainer: {
         flex: 1,
-        backgroundColor: Colors.primary, // matches header so status bar blends
+        backgroundColor: Colors.primary,
     },
-
-    /* ─── Header ─── */
     header: {
-        // backgroundColor: Colors.primary,
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: rs(12, 16, 20),
-        // On Android the status bar is opaque (translucent=false) so no extra top pad needed.
-        // On iOS SafeAreaView handles the notch; we add a small top pad for visual breathing room.
         paddingTop: Platform.OS === "ios" ? rs(48, 52, 56) : rs(14, 16, 18),
         paddingBottom: rs(14, 16, 18),
     },
@@ -583,20 +568,15 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 9,
     },
-
-    /* ─── Body — white background beneath header ─── */
     bodyContainer: {
         flex: 1,
         backgroundColor: Colors.selectedBg ?? "#FAF6F0",
     },
-
-    /* ─── Scroll ─── */
     scrollContent: {
         paddingVertical: 12,
         paddingHorizontal: rs(12, 14, 16),
+        paddingBottom: 20,
     },
-
-    /* ─── Card ─── */
     card: {
         backgroundColor: Colors.cardBackground,
         borderRadius: 20,
@@ -613,29 +593,26 @@ const styles = StyleSheet.create({
         padding: 12,
         gap: 12,
     },
-
     imageWrapper: {
         borderRadius: 14,
         overflow: "hidden",
         position: "relative",
         alignSelf: "flex-start",
     },
-
     marriageBadgeOverlay: {
-        ...StyleSheet.absoluteFillObject,   // covers the full imageWrapper
+        ...StyleSheet.absoluteFillObject,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "rgba(160,160,160,0.45)", // gray tint like uploaded image bg
+        backgroundColor: "rgba(160,160,160,0.45)",
         borderRadius: 14,
     },
-
     marriageBadgeCircle: {
         width: 72,
         height: 72,
         borderRadius: 36,
-        backgroundColor: "#F0EFEB",   // cream/off-white circle (matches badge bg)
+        backgroundColor: "#F0EFEB",
         borderWidth: 2.5,
-        borderColor: "#E2B13C",       // gold ring
+        borderColor: "#E2B13C",
         justifyContent: "center",
         alignItems: "center",
         shadowColor: "#000",
@@ -644,50 +621,17 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 6,
     },
-
     lockOverlay: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: "rgba(0,0,0,0.45)",
         justifyContent: "center",
         alignItems: "center",
     },
-
-    /* ─── Marriage badge — top-right corner, stamp style like uploaded image ─── */
-    marriageBadgeCorner: {
-        position: "absolute",
-        top: 4,
-        right: 4,
-        width: 46,
-        height: 46,
-        borderRadius: 23,           // perfect circle container
-        // NO overflow:hidden — so the stamp JPEG is never cropped
-        backgroundColor: "#F8EFE0", // matches the cream background of the stamp
-        borderWidth: 2,
-        borderColor: "#E2B13C",     // gold ring that matches the stamp border
-        justifyContent: "center",
-        alignItems: "center",
-        // Drop shadow so it pops off the profile photo
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.28,
-        shadowRadius: 4,
-        elevation: 6,
-    },
-    marriageBadgePlaceholder: {
-        ...StyleSheet.absoluteFillObject,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#F8EFE0",
-        borderRadius: 23,
-    },
-
     marriageBadgeImg: {
         width: 66,
         height: 66,
         borderRadius: 33,
     },
-
-    /* ─── Info column ─── */
     infoCol: { flex: 1 },
     nameRow: {
         flexDirection: "row",
@@ -695,7 +639,7 @@ const styles = StyleSheet.create({
         flexWrap: "nowrap",
     },
     profileName: {
-        fontSize: rs(15, 16, 17),   // +1 from before
+        fontSize: rs(15, 16, 17),
         fontWeight: "700",
         color: Colors.textDark,
         flexShrink: 1,
@@ -711,15 +655,15 @@ const styles = StyleSheet.create({
     matchChipText: {
         color: "#FFFFFF",
         fontWeight: "700",
-        fontSize: 11,               // +1
+        fontSize: 11,
     },
     subtext: {
-        fontSize: 12,               // +1
+        fontSize: 12,
         color: Colors.textMuted,
         marginTop: 3,
     },
     professionText: {
-        fontSize: 13,               // +1
+        fontSize: 13,
         color: Colors.textDark,
         fontWeight: "500",
         marginTop: 4,
@@ -731,7 +675,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     locationText: {
-        fontSize: 12,               // +1
+        fontSize: 12,
         color: Colors.textMuted,
     },
     tagsRow: {
@@ -747,12 +691,10 @@ const styles = StyleSheet.create({
         paddingVertical: 3,
     },
     tagText: {
-        fontSize: 11,               // +1
+        fontSize: 11,
         color: Colors.textMuted,
         fontWeight: "500",
     },
-
-    /* ─── Card footer ─── */
     cardFooter: {
         flexDirection: "row",
         alignItems: "center",
@@ -763,7 +705,7 @@ const styles = StyleSheet.create({
         paddingVertical: 9,
     },
     lastActiveText: {
-        fontSize: 12,               // +1
+        fontSize: 12,
         color: Colors.textMuted,
     },
     btnGroup: {
@@ -785,41 +727,29 @@ const styles = StyleSheet.create({
         borderColor: "transparent",
     },
     shortlistBtnText: {
-        fontSize: 12,               // +1
+        fontSize: 12,
         fontWeight: "600",
         color: Colors.textDark,
     },
     shortlistBtnTextSaved: {
         color: Colors.chipActiveText,
     },
-    interestBtn: {
-        flexDirection: "row",
+    footerLoader: {
+        paddingVertical: 20,
         alignItems: "center",
-        gap: 4,
-        backgroundColor: Colors.primary,
-        borderRadius: 16,
-        paddingHorizontal: 13,
-        paddingVertical: 6,
+        minHeight: 60,
     },
-    interestBtnText: {
-        fontSize: 12,               // +1
-        fontWeight: "700",
-        color: "#FFFFFF",
+    loadingMoreText: {
+        marginTop: 10,
+        fontSize: 13,
+        color: Colors.textMuted || "#71717A",
+        fontWeight: "600",
     },
-
-    paginationLoader: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
-        paddingVertical: 16,
-    },
-    paginationText: {
+    endMessage: {
         fontSize: 13,
         color: Colors.textMuted,
-        fontWeight: "500",
+        fontStyle: "italic",
     },
-
     centerContainer: {
         flex: 1,
         justifyContent: "center",
