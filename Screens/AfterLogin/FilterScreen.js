@@ -15,7 +15,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
-
+import { LinearGradient } from "expo-linear-gradient";
 import {
     getAdvanceSearchResults,
     fetchProfileDataCheck,
@@ -324,10 +324,11 @@ export const FilterScreen = () => {
                     <View style={styles.imageWrapper}>
                         <TopAlignedImage
                             uri={imageUri}
-                            width={rs(82, 94, 104)}
-                            height={rs(95, 108, 118)}
+                            width={rs(110, 120, 130)}
+                            height={rs(120, 130, 140)}
                             blurRadius={profile.photo_protection === 1 ? 15 : 0}
-                            onError={() => { }}
+                            fallbackUri={getDefaultImage()}
+                            style={{ borderRadius: 14 }}
                         />
 
                         {/* Lock overlay */}
@@ -337,7 +338,6 @@ export const FilterScreen = () => {
                             </View>
                         )}
 
-                        {/* Marriage badge — top-right corner, round */}
                         {showMarriageBadge && <MarriageBadge />}
                     </View>
 
@@ -405,7 +405,7 @@ export const FilterScreen = () => {
                                     <Text style={styles.tagText}>{profile.star}</Text>
                                 </View>
                             ) : null}
-                            {profile.gothram ? (
+                            {/* {profile.gothram ? (
                                 <View style={styles.tag}>
                                     <Text style={styles.tagText}>{profile.gothram}</Text>
                                 </View>
@@ -414,7 +414,7 @@ export const FilterScreen = () => {
                                 <View style={styles.tag}>
                                     <Text style={styles.tagText}>No dosham</Text>
                                 </View>
-                            ) : null}
+                            ) : null} */}
                         </View>
                     </View>
                 </View>
@@ -448,13 +448,13 @@ export const FilterScreen = () => {
                             </Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                             onPress={() => handleProfileClick(profile.profile_id)}
                             style={styles.interestBtn}
                         >
                             <Ionicons name="heart" size={14} color="#FFFFFF" />
                             <Text style={styles.interestBtnText}>Interest</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
                 </View>
             </TouchableOpacity>
@@ -484,7 +484,13 @@ export const FilterScreen = () => {
             />
 
             {/* Header — sits directly below the status bar, no gap */}
-            <View style={styles.header}>
+            {/* <View style={styles.header}> */}
+            <LinearGradient
+                colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.header}
+            >
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     style={styles.backBtn}
@@ -497,10 +503,13 @@ export const FilterScreen = () => {
                         {displayCount} profiles found
                     </Text>
                 </View>
-                <TouchableOpacity style={styles.filterIconBtn}>
+                <TouchableOpacity
+                    style={styles.filterIconBtn}
+                    onPress={() => navigation.navigate("Search")}
+                >
                     <Ionicons name="options-outline" size={22} color="#FFFFFF" />
                 </TouchableOpacity>
-            </View>
+            </LinearGradient>
 
             {/* Body */}
             <View style={styles.bodyContainer}>
@@ -535,7 +544,7 @@ export const FilterScreen = () => {
                 visible={showPlatinumModal}
                 onClose={() => setShowPlatinumModal(false)}
             />
-        </View>
+        </View >
     );
 };
 
@@ -548,7 +557,7 @@ const styles = StyleSheet.create({
 
     /* ─── Header ─── */
     header: {
-        backgroundColor: Colors.primary,
+        // backgroundColor: Colors.primary,
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: rs(12, 16, 20),
@@ -609,6 +618,7 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         overflow: "hidden",
         position: "relative",
+        alignSelf: "flex-start",
     },
 
     marriageBadgeOverlay: {
@@ -620,20 +630,20 @@ const styles = StyleSheet.create({
     },
 
     marriageBadgeCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "#F0EFEB",   // cream/off-white circle (matches badge bg)
-    borderWidth: 2.5,
-    borderColor: "#E2B13C",       // gold ring
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 6,
-},
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        backgroundColor: "#F0EFEB",   // cream/off-white circle (matches badge bg)
+        borderWidth: 2.5,
+        borderColor: "#E2B13C",       // gold ring
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 6,
+    },
 
     lockOverlay: {
         ...StyleSheet.absoluteFillObject,
@@ -670,12 +680,12 @@ const styles = StyleSheet.create({
         backgroundColor: "#F8EFE0",
         borderRadius: 23,
     },
-    
+
     marriageBadgeImg: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
-},
+        width: 66,
+        height: 66,
+        borderRadius: 33,
+    },
 
     /* ─── Info column ─── */
     infoCol: { flex: 1 },
@@ -731,7 +741,7 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     tag: {
-        backgroundColor: Colors.chipInactiveBg,
+        backgroundColor: Colors.selectedBg ?? "#E8E0D5",
         borderRadius: 10,
         paddingHorizontal: 8,
         paddingVertical: 3,

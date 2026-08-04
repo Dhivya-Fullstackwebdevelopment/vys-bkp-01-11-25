@@ -1,60 +1,58 @@
 import React, { useEffect, useState } from "react";
 import { View, Image, ActivityIndicator } from "react-native";
 
-export const TopAlignedImage = ({ uri, width = 100, height = 100, style }) => {
-  const [scaledHeight, setScaledHeight] = useState(null);
-  const [loading, setLoading] = useState(true);
+const DEFAULT_FALLBACK = null; // pass via prop or set a module-level default
 
+export const TopAlignedImage = ({
+  uri,
+  width = 100,
+  height = 150,       // ← this is now the FIXED height used always
+  style,
+  blurRadius = 0,
+  fallbackUri = null, // pass DEFAULT_BRIDE / DEFAULT_GROOM from parent
+}) => {
+  const [imgUri, setImgUri] = useState(uri);
+  const [hasError, setHasError] = useState(false);
+
+  // Reset when uri prop changes
   useEffect(() => {
-    let isMounted = true;
-    if (!uri) {
-      setScaledHeight(height);
-      setLoading(false);
-      return;
-    }
+    setImgUri(uri);
+    setHasError(false);
+  }, [uri]);
 
-    // For remote images
-    Image.getSize(
-      uri,
-      (origWidth, origHeight) => {
-        if (!isMounted) return;
-        const scale = width / origWidth;
-        const newHeight = Math.round(origHeight * scale);
-        setScaledHeight(newHeight);
-        setLoading(false);
-      },
-      (error) => {
-        // Fallback: keep wrapper height and stop loading
-        if (!isMounted) return;
-        console.warn("Image.getSize failed", error);
-        setScaledHeight(height);
-        setLoading(false);
-      }
-    );
-
-    return () => { isMounted = false; };
-  }, [uri, width, height]);
-
-  // while measuring show a small loader or placeholder
-  if (loading) {
-    return (
-      <View style={[{ width, height, justifyContent: "center", alignItems: "center" }, style]}>
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  const effectiveUri = hasError || !imgUri ? fallbackUri : imgUri;
 
   return (
-    <View style={{ width, height, overflow: "hidden",borderRadius: style?.borderRadius || 10, }}>
-      <Image
-        source={{ uri }}
-        style={{
-          width,                    // fit wrapper width exactly
-          height: scaledHeight,     // possibly taller than wrapper
-          resizeMode: "cover",
-          // no marginTop/transform — we want the top of the image visible => marginTop: 0
-        }}
-      />
+    <View
+      style={{
+        width,
+        height,                          // fixed height — no dynamic scaling
+        overflow: "hidden",
+        borderRadius: style?.borderRadius ?? 14,
+      }}
+    >
+      {effectiveUri ? (
+        <Image
+          source={{ uri: effectiveUri }}
+          style={{ width, height }}
+          resizeMode="cover"
+          blurRadius={blurRadius}
+          onError={() => {
+            if (!hasError) setHasError(true); // show fallback, no warning
+          }}
+        />
+      ) : (
+        // No uri and no fallback — show neutral placeholder
+        <View
+          style={{
+            width,
+            height,
+            backgroundColor: "#E8E0D5",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        />
+      )}
     </View>
   );
 };
