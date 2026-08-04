@@ -21,14 +21,15 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { TopAlignedImage } from "../../ReuseImageAlign/TopAlignedImage";
 import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
-import { Colors } from "../../../Reusable/Theme"; // adjust path
+import { Colors } from "../../../Reusable/Theme";
 
-// Prefetch marriage badge image
+// ─── Constants ────────────────────────────────────────────────────────────
+const PER_PAGE = 10; // matches API's received_per_page
 const MARRIAGE_BADGE_URI =
   "https://vysyamat.blob.core.windows.net/vysyamala/marriage_settled.jpeg";
 Image.prefetch(MARRIAGE_BADGE_URI).catch(() => {});
 
-// Helper to format last active
+// ─── Helpers ──────────────────────────────────────────────────────────────
 const formatLastActive = (viewed_date) => {
   if (!viewed_date) return null;
   const date = new Date(viewed_date);
@@ -41,13 +42,15 @@ const formatLastActive = (viewed_date) => {
   return null;
 };
 
-// Marriage badge component
+// ─── Marriage Badge Component ────────────────────────────────────────────
 const MarriageBadge = () => {
   const [badgeLoaded, setBadgeLoaded] = useState(false);
   return (
     <View style={styles.marriageBadgeOverlay}>
       <View style={styles.marriageBadgeCircle}>
-        {!badgeLoaded && <ActivityIndicator size="small" color={Colors.secondaryGold} />}
+        {!badgeLoaded && (
+          <ActivityIndicator size="small" color={Colors.secondaryGold} />
+        )}
         <Image
           source={{ uri: MARRIAGE_BADGE_URI }}
           style={[styles.marriageBadgeImg, !badgeLoaded && { opacity: 0 }]}
@@ -60,74 +63,92 @@ const MarriageBadge = () => {
   );
 };
 
+// ─── Main Component ──────────────────────────────────────────────────────
 export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
   const [profiles, setProfiles] = useState(initialResults);
   const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(
+    Math.ceil(initialTotalCount / PER_PAGE) || 1
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [allProfileIds, setAllProfileIds] = useState({});
   const [isPlatinumModalVisible, setIsPlatinumModalVisible] = useState(false);
   const navigation = useNavigation();
   const isFetchingRef = useRef(false);
 
-  // Pagination logic (same as before)
+  // ─── Pagination handler ────────────────────────────────────────────────
   const handleEndReached = () => {
     if (currentPage < totalPages && !isLoading) {
-      setCurrentPage((prevPage) => prevPage + 1);
+      setCurrentPage((prev) => prev + 1);
     }
   };
 
-  useEffect(() => {
-    // Only load if initialResults are not provided (or you want to fetch on mount)
-    // Adjust this logic based on how you want to handle initial data.
-    const loadProfiles = async () => {
-      if (isFetchingRef.current) return;
-      isFetchingRef.current = true;
-      setIsLoading(true);
-      try {
-        const perPage = 6;
-        const response = await getAdvanceSearchResults(perPage, currentPage);
-        if (response && response.status !== "failure") {
-          setProfiles((prev) =>
-            currentPage === 1 ? response.data || [] : [...prev, ...(response.data || [])]
-          );
-          setTotalPages(Math.ceil(response.total_count / perPage));
-          if (currentPage === 1 && response.all_profile_ids) {
-            setAllProfileIds(response.all_profile_ids);
-          }
-          setBookmarkedProfiles((prevSet) => {
-            const newSet = new Set(prevSet);
-            response.data.forEach((profile) => {
-              if (profile.wish_list === 1) newSet.add(profile.profile_id);
-            });
-            return newSet;
-          });
-        } else {
-          console.warn("No profiles found or API failure.");
+  // ─── Fetch function ────────────────────────────────────────────────────
+  const loadProfiles = async (page) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    setIsLoading(true);
+
+    try {
+      const response = await getAdvanceSearchResults(PER_PAGE, page);
+
+      if (response && response.status !== "failure") {
+        const newData = response.data || [];
+
+        // Update profiles: replace on page 1, append otherwise
+        setProfiles((prev) =>
+          page === 1 ? newData : [...prev, ...newData]
+        );
+
+        // Store all_profile_ids from first page
+        if (page === 1 && response.all_profile_ids) {
+          setAllProfileIds(response.all_profile_ids);
         }
-      } catch (error) {
-        console.error("Error loading profiles:", error);
-      } finally {
-        setIsLoading(false);
-        isFetchingRef.current = false;
+
+        // Update total pages
+        setTotalPages(Math.ceil(response.total_count / PER_PAGE));
+
+        // Merge bookmarks from this page
+        setBookmarkedProfiles((prevSet) => {
+          const newSet = new Set(prevSet);
+          newData.forEach((profile) => {
+            if (profile.wish_list === 1) {
+              newSet.add(profile.profile_id);
+            }
+          });
+          return newSet;
+        });
+      } else {
+        console.warn("No profiles found or API failure.");
       }
-    };
-
-    if (initialResults.length === 0) {
-      loadProfiles();
-    } else {
-      // If initialResults are provided, set bookmarks from them
-      const newBookmarks = new Set();
-      initialResults.forEach((p) => {
-        if (p.wish_list === 1) newBookmarks.add(p.profile_id);
-      });
-      setBookmarkedProfiles(newBookmarks);
-      setTotalPages(Math.ceil(initialTotalCount / 6));
+    } catch (error) {
+      console.error("Error loading profiles:", error);
+    } finally {
+      setIsLoading(false);
+      isFetchingRef.current = false;
     }
-  }, [currentPage, initialResults, initialTotalCount]);
+  };
 
-  // Load wishlist profiles on mount (merge with existing)
+  // ─── Effect: load initial data or fetch next pages ──────────────────
+  useEffect(() => {
+    // If initialResults were provided and we are on page 1, we already have data.
+    // Just set bookmarks and totalPages (already set in useState, but ensure bookmarks).
+    if (initialResults.length > 0 && currentPage === 1) {
+      const initialBookmarks = new Set();
+      initialResults.forEach((p) => {
+        if (p.wish_list === 1) initialBookmarks.add(p.profile_id);
+      });
+      setBookmarkedProfiles((prev) => new Set([...prev, ...initialBookmarks]));
+      // totalPages already set via useState
+      return;
+    }
+
+    // For any other page (or if initialResults was empty), fetch from API
+    loadProfiles(currentPage);
+  }, [currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Load wishlist (for previously bookmarked profiles) ──────────────
   useEffect(() => {
     const loadWishlist = async () => {
       try {
@@ -143,7 +164,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
     loadWishlist();
   }, []);
 
-  // Bookmark handler (same)
+  // ─── Bookmark handler ─────────────────────────────────────────────────
   const handleSavePress = async (viewedProfileId) => {
     const newStatus = bookmarkedProfiles.has(viewedProfileId) ? "0" : "1";
     const success = await handleBookmark(viewedProfileId, newStatus);
@@ -151,24 +172,41 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
       const updated = new Set(bookmarkedProfiles);
       if (newStatus === "1") {
         updated.add(viewedProfileId);
-        Toast.show({ type: "success", text1: "Saved", text2: "Profile saved to bookmarks.", position: "bottom" });
+        Toast.show({
+          type: "success",
+          text1: "Saved",
+          text2: "Profile saved to bookmarks.",
+          position: "bottom",
+        });
       } else {
         updated.delete(viewedProfileId);
-        Toast.show({ type: "info", text1: "Unsaved", text2: "Profile removed from bookmarks.", position: "bottom" });
+        Toast.show({
+          type: "info",
+          text1: "Unsaved",
+          text2: "Profile removed from bookmarks.",
+          position: "bottom",
+        });
       }
       setBookmarkedProfiles(updated);
-      // Optionally update local profile list
+      // Update local list to keep wish_list in sync
       setProfiles((prev) =>
         prev.map((p) =>
-          p.profile_id === viewedProfileId ? { ...p, wish_list: newStatus === "1" ? 1 : 0 } : p
+          p.profile_id === viewedProfileId
+            ? { ...p, wish_list: newStatus === "1" ? 1 : 0 }
+            : p
         )
       );
     } else {
-      Toast.show({ type: "error", text1: "Error", text2: "Failed to update bookmark.", position: "bottom" });
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to update bookmark.",
+        position: "bottom",
+      });
     }
   };
 
-  // Profile click handler (same as your latest version)
+  // ─── Profile click handler ────────────────────────────────────────────
   const handleProfileClick = async (viewedProfileId) => {
     if (isLoading) return;
     try {
@@ -190,7 +228,10 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
       }
       const success = await logProfileVisit(viewedProfileId);
       if (success) {
-        navigation.navigate("ProfileDetails", { viewedProfileId, allProfileIds });
+        navigation.navigate("ProfileDetails", {
+          viewedProfileId,
+          allProfileIds,
+        });
       } else {
         throw new Error("Failed to log profile visit.");
       }
@@ -208,7 +249,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
     }
   };
 
-  // ─── Render Profile Card (from FilterScreen) ──────────────────────────
+  // ─── Render each profile card (FilterScreen style) ──────────────────
   const renderProfileCard = ({ item: profile }) => {
     const isSaved = bookmarkedProfiles.has(profile.profile_id);
     const rawImage = Array.isArray(profile.profile_img)
@@ -226,14 +267,13 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
         style={styles.card}
       >
         <View style={styles.cardBody}>
-          {/* ── Profile Image ── */}
+          {/* Image */}
           <View style={styles.imageWrapper}>
             <TopAlignedImage
               uri={rawImage}
-              width={110}   // you can use rs() if available
+              width={110}
               height={130}
               blurRadius={profile.photo_protection === 1 ? 15 : 0}
-              // fallbackUri={getDefaultImage()} // if you have gender-based default
               style={{ borderRadius: 14 }}
             />
             {profile.photo_protection === 1 && (
@@ -244,7 +284,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
             {showMarriageBadge && <MarriageBadge />}
           </View>
 
-          {/* ── Info Column ── */}
+          {/* Info Column */}
           <View style={styles.infoCol}>
             <View style={styles.nameRow}>
               <Text style={styles.profileName} numberOfLines={1}>
@@ -282,7 +322,11 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
 
             {(profile.location || profile.city) && (
               <View style={styles.locationRow}>
-                <Ionicons name="location-outline" size={13} color={Colors.textMuted} />
+                <Ionicons
+                  name="location-outline"
+                  size={13}
+                  color={Colors.textMuted}
+                />
                 <Text style={styles.locationText}>
                   {profile.location || profile.city}
                 </Text>
@@ -295,7 +339,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
                   <Text style={styles.tagText}>{profile.star}</Text>
                 </View>
               )}
-              {/* Uncomment if API provides these fields */}
+              
               {/* {profile.gothram && (
                 <View style={styles.tag}><Text style={styles.tagText}>{profile.gothram}</Text></View>
               )}
@@ -306,7 +350,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
           </View>
         </View>
 
-        {/* ── Card Footer ── */}
+        {/* Footer */}
         <View style={styles.cardFooter}>
           <Text style={styles.lastActiveText}>{lastActive || ""}</Text>
           <View style={styles.btnGroup}>
@@ -322,7 +366,12 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
                 size={16}
                 color={isSaved ? Colors.chipActiveText : Colors.textDark}
               />
-              <Text style={[styles.shortlistBtnText, isSaved && styles.shortlistBtnTextSaved]}>
+              <Text
+                style={[
+                  styles.shortlistBtnText,
+                  isSaved && styles.shortlistBtnTextSaved,
+                ]}
+              >
                 {isSaved ? "Saved" : "Shortlist"}
               </Text>
             </TouchableOpacity>
@@ -332,7 +381,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
     );
   };
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ─── Render ────────────────────────────────────────────────────────────
   return (
     <>
       <FlatList
@@ -343,13 +392,15 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
         onEndReachedThreshold={0.5}
         ListFooterComponent={
           <View style={{ paddingBottom: 20 }}>
-            {isLoading && <ActivityIndicator size="large" color={Colors.primary} />}
+            {isLoading && (
+              <ActivityIndicator size="large" color={Colors.primary} />
+            )}
           </View>
         }
         contentContainerStyle={styles.profileScrollView}
         showsVerticalScrollIndicator={true}
-        initialNumToRender={6}
-        maxToRenderPerBatch={6}
+        initialNumToRender={PER_PAGE}
+        maxToRenderPerBatch={PER_PAGE}
         windowSize={5}
       />
       <PlatinumModalPopup
@@ -360,14 +411,12 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
   );
 };
 
-// ─── Styles (copied from FilterScreen, adjusted for this component) ────
+// ─── Styles ──────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   profileScrollView: {
     paddingVertical: 12,
     paddingHorizontal: 12,
   },
-
-  // Card
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
@@ -384,8 +433,6 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 12,
   },
-
-  // Image wrapper
   imageWrapper: {
     borderRadius: 14,
     overflow: "hidden",
@@ -398,8 +445,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
-  // Marriage badge overlay
   marriageBadgeOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
@@ -427,8 +472,6 @@ const styles = StyleSheet.create({
     height: 66,
     borderRadius: 33,
   },
-
-  // Info column
   infoCol: { flex: 1 },
   nameRow: {
     flexDirection: "row",
@@ -492,8 +535,6 @@ const styles = StyleSheet.create({
     color: Colors.textMuted || "#888888",
     fontWeight: "500",
   },
-
-  // Card footer
   cardFooter: {
     flexDirection: "row",
     alignItems: "center",
