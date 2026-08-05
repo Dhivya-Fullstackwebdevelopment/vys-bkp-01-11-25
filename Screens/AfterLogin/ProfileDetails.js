@@ -1018,7 +1018,7 @@ export const ProfileDetails = () => {
 
   const renderBottomSheetContent = () => {
     const options = [
-      { icon: 'phone', text: 'Call', onPress: handlePhoneCall, type: 'MaterialCommunityIcons' },
+      // { icon: 'phone', text: 'Call', onPress: handlePhoneCall, type: 'MaterialCommunityIcons' },
       { icon: 'document-text', text: 'Personal Notes', onPress: toggleModal, type: 'Ionicons' },
       ...(!isPlan16
         ? [{ icon: "account-voice", text: "Vys Assist", onPress: openPopup, type: "MaterialCommunityIcons" }]
@@ -1031,11 +1031,11 @@ export const ProfileDetails = () => {
         },
         type: 'Ionicons'
       },
-      {
-        icon: 'star', text: 'Show Matching Report',
-        onPress: handleDownloadMatchingReport,
-        type: 'MaterialIcons'
-      },
+      // {
+      //   icon: 'star', text: 'Show Matching Report',
+      //   onPress: handleDownloadMatchingReport,
+      //   type: 'MaterialIcons'
+      // },
       {
         icon: 'block', text: 'Block Profile', onPress: () => {
           bottomSheetRef.current.close();
@@ -1351,7 +1351,7 @@ export const ProfileDetails = () => {
               <Text style={styles.heroName}>{basic_details.profile_name}</Text>
               {basic_details.verified === 1 && (
                 <View style={styles.verifiedBadge}>
-                  <Ionicons name="checkmark-circle" size={12} color={Colors.secondaryGold} />
+                  <Ionicons name="checkmark-circle" size={12} color={Colors.primaryGradientEnd} />
                   <Text style={styles.verifiedText}>Verified</Text>
                 </View>
               )}
@@ -2315,7 +2315,7 @@ const styles = StyleSheet.create({
     minWidth: '47%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
+    backgroundColor: '#F6EFE5',
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 14,

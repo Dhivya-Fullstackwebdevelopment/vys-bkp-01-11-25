@@ -56,7 +56,7 @@ export const Colors = {
   // Containers
   iconContainerBg: "#E8D5D6",
   goldContainer: "#F2DEAC",
-  selectedBg: "#F6EFE5",
+  selectedBg: "#FBF5ED",
   
   // Status colors
   success: "#22C55E",
