@@ -8,7 +8,7 @@ export const isLarge = width >= 414;
 export const rs = (small, medium, large) => (isSmall ? small : isMedium ? medium : large);
 
 export const Colors = {
-  primary: "#8B0000",
+  primary: "#B72024",
   primaryGradientStart: "#A00014",
   primaryGradientEnd: "#4A000A",
   primaryLight: "#FF4050",

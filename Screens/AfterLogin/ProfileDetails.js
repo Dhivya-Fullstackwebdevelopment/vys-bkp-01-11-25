@@ -1267,21 +1267,33 @@ export const ProfileDetails = () => {
 
           {/* Top Bar Actions Over Image */}
           <View style={styles.heroTopBar}>
-            <TouchableOpacity
-              style={styles.iconCircleBtn}
+            {/* Back button */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.iconCircleBtn,
+                pressed && styles.iconCircleBtnPressed,
+              ]}
               onPress={() => navigation.goBack()}
             >
               <Ionicons name="chevron-back" size={20} color={Colors.textDark} />
-            </TouchableOpacity>
+            </Pressable>
 
-            <View style={styles.codeBadge}>
+            {/* Profile ID badge */}
+            <Pressable style={({ pressed }) => [
+              styles.codeBadge,
+              pressed && styles.codeBadgePressed,
+            ]}>
               <Text style={styles.codeBadgeText}>{basic_details.profile_id}</Text>
-            </View>
+            </Pressable>
 
             <View style={{ flex: 1 }} />
 
-            <TouchableOpacity
-              style={styles.iconCircleBtn}
+            {/* Bookmark */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.iconCircleBtn,
+                pressed && styles.iconCircleBtnPressed,
+              ]}
               onPress={() => handleSavePress(basic_details?.profile_id)}
             >
               <Ionicons
@@ -1289,16 +1301,19 @@ export const ProfileDetails = () => {
                 size={18}
                 color={isBookmarked ? Colors.primary : Colors.textDark}
               />
-            </TouchableOpacity>
+            </Pressable>
 
-            <TouchableOpacity
-              style={styles.iconCircleBtn}
+            {/* Three-dot more */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.iconCircleBtn,
+                pressed && styles.iconCircleBtnPressed,
+              ]}
               onPress={() => bottomSheetRef.current.open()}
             >
               <Ionicons name="ellipsis-vertical" size={18} color={Colors.textDark} />
-            </TouchableOpacity>
+            </Pressable>
           </View>
-
           {/* Identity Overlay on Image */}
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.85)']}
@@ -2099,24 +2114,36 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: "#000",
+    backgroundColor: "#FBF5ED",   // ← your default color
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#3D2820",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 3,
   },
+  iconCircleBtnPressed: {
+    backgroundColor: "#FDF9F4",   // ← your "hover" color
+  },
   codeBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: "#FBF5ED",   // ← default
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    shadowColor: "#3D2820",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.10,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  codeBadgePressed: {
+    backgroundColor: "#FDF9F4",
   },
   codeBadgeText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textDark,
   },
   identityOverlay: {
