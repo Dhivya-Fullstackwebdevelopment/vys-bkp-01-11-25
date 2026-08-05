@@ -1720,121 +1720,115 @@ export const ProfileDetails = () => {
         </View>
       </ScrollView>
 
-      {/* ===== STICKY BOTTOM ACTION BAR ===== */}
-      {/* ===== STICKY BOTTOM ACTION BAR ===== */}
-      {/* ===== STICKY BOTTOM ACTION BAR ===== */}
       <View style={styles.stickyBottomBar}>
         <View style={styles.bottomBarCard}>
 
-          {/* Express / Interest Action Area */}
-          <View style={styles.buttonContainerExpress}>
-            {/* Pending Sent Interest State */}
-            {(status === 1 || status === "1" || expressInt) && (
-              <TouchableOpacity
-                style={styles.btn}
-                activeOpacity={0.8}
-                onPress={handleExpressInterestPress1}
-              >
-                <LinearGradient
-                  colors={["#0D9488", "#0F766E"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.linearGradient}
-                >
-                  <View style={styles.loginContainer}>
-                    <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
-                    <Text style={styles.expressInterestBtnText}>
-                      Interest Sent
-                    </Text>
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
-
-            {/* Express Interest Action Button */}
-            {!isPlan16 &&
-              interestParam !== 1 &&
-              status !== 1 &&
-              status !== "1" &&
-              status !== 2 &&
-              status !== 3 &&
-              !expressInt && (
-                <TouchableOpacity
-                  style={styles.btn}
-                  activeOpacity={0.8}
-                  onPress={() => setShowInterestModal(true)}
-                >
-                  <LinearGradient
-                    colors={["#F43F5E", "#E11D48", "#DB2777"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.linearGradient}
+          {/* Connected State -> Show Message Button */}
+          {status === 2 ? (
+            <TouchableOpacity
+              style={styles.messageButton}
+              activeOpacity={0.8}
+              onPress={handlePressMessage}
+            >
+              <FontAwesome name="comments" size={16} color="#fff" />
+              <Text style={styles.messageText}>Message</Text>
+            </TouchableOpacity>
+          ) : interestParam === 1 && status !== 3 && status !== 2 ? (
+            /* Incoming Interest Request -> Show Accept & Decline */
+            <View style={styles.buttonContainer}>
+              {hideExpressButton && (
+                <>
+                  <TouchableOpacity
+                    style={styles.acceptButton}
+                    activeOpacity={0.8}
+                    onPress={() => handleUpdateInterest(viewedProfileId, "2")}
                   >
-                    <View style={styles.loginContainer}>
-                      <Ionicons name="heart" size={18} color="#FFFFFF" />
-                      <Text style={styles.expressInterestBtnText}>
-                        Express Interest
-                      </Text>
-                      <Ionicons name="sparkles" size={14} color="rgba(255,255,255,0.8)" />
-                    </View>
-                  </LinearGradient>
+                    <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" style={{ marginRight: 4 }} />
+                    <Text style={styles.buttonText}>Accept</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.declineButton}
+                    activeOpacity={0.8}
+                    onPress={() => handleUpdateInterest(viewedProfileId, "3")}
+                  >
+                    <Ionicons name="close-circle-outline" size={18} color="#a32d2d" style={{ marginRight: 4 }} />
+                    <Text style={styles.declineText}>Decline</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          ) : (
+            /* Main Express Interest Container (Fills full left side) */
+            <View style={styles.buttonContainerExpress}>
+              {/* Image 2: Interest Sent State */}
+              {(status === 1 || status === "1" || expressInt) && status !== 3 && (
+                <TouchableOpacity
+                  style={styles.sentBtnPill}
+                  activeOpacity={0.8}
+                  onPress={handleExpressInterestPress1}
+                >
+                  <Ionicons name="heart" size={18} color="#70121e" />
+                  <Text style={styles.sentBtnText}>Interest sent</Text>
                 </TouchableOpacity>
               )}
-          </View>
 
-          {/* Secondary Action Area (Message / Accept / Decline / Rejected) */}
-          <View style={{ flex: 1 }}>
-            {status === 2 ? (
-              <TouchableOpacity style={styles.messageButton} onPress={handlePressMessage}>
-                <FontAwesome style={styles.icon} name="comments" size={16} color="#fff" />
-                <Text style={styles.messageText}>Message</Text>
-              </TouchableOpacity>
-            ) : (
-              interestParam === 1 &&
-              status !== 3 &&
-              status !== 2 && (
-                <View style={styles.buttonContainer}>
-                  {hideExpressButton && (
-                    <>
-                      <TouchableOpacity
-                        style={styles.acceptButton}
-                        onPress={() => handleUpdateInterest(viewedProfileId, "2")}
-                      >
-                        <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-                        <Text style={styles.buttonText}>Accept</Text>
-                      </TouchableOpacity>
+              {/* Image 3: Default Express Interest Button */}
+              {!isPlan16 &&
+                interestParam !== 1 &&
+                status !== 1 &&
+                status !== "1" &&
+                status !== 2 &&
+                status !== 3 &&
+                !expressInt && (
+                  <TouchableOpacity
+                    style={styles.expressInterestBtn}
+                    activeOpacity={0.8}
+                    onPress={() => setShowInterestModal(true)}
+                  >
+                    <LinearGradient
+                      colors={["#BE3639", "#BE3639"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.linearGradient}
+                    >
+                      <View style={styles.loginContainer}>
+                        <Ionicons name="heart-outline" size={18} color="#FFFFFF" />
+                        <Text style={styles.expressInterestBtnText}>Express Interest</Text>
+                      </View>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                )}
 
-                      <TouchableOpacity
-                        style={styles.declineButton}
-                        onPress={() => handleUpdateInterest(viewedProfileId, "3")}
-                      >
-                        <Ionicons name="close-circle-outline" size={18} color="#FF3B30" style={{ marginRight: 6 }} />
-                        <Text style={styles.declineText}>Decline</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
+              {/* Image 1: Interest Declined State */}
+              {status === 3 && (
+                <View style={styles.rejectedPill}>
+                  <Ionicons name="close-circle" size={18} color="#a32d2d" />
+                  <Text style={styles.rejectedPillText}>Interest Declined</Text>
                 </View>
-              )
-            )}
-            {status === 3 && (
-              <Text style={styles.rejectedText}>Your Interest has been rejected</Text>
-            )}
-          </View>
+              )}
+            </View>
+          )}
 
-          {/* Quick Action Icons */}
+          {/* Quick Action Icons (Bookmark & Call) */}
           <TouchableOpacity
-            style={[styles.bottomCircleBtn, isBookmarked && { borderColor: Colors.primary }]}
+            style={[styles.bottomCircleBtn, isBookmarked && styles.bottomCircleBtnActive]}
+            activeOpacity={0.8}
             onPress={() => handleSavePress(basic_details?.profile_id)}
           >
             <Ionicons
               name={isBookmarked ? "bookmark" : "bookmark-outline"}
               size={18}
-              color={Colors.primary}
+              color={isBookmarked ? "#5c3d00" : Colors.primary}
             />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.bottomCircleBtn} onPress={handlePhoneCall}>
-            <Ionicons name="call-outline" size={18} color={Colors.primary} />
+          <TouchableOpacity
+            style={styles.bottomCircleBtn}
+            activeOpacity={0.8}
+            onPress={handlePhoneCall}
+          >
+            <Ionicons name="call-outline" size={18} color="#b82332" />
           </TouchableOpacity>
 
         </View>
@@ -2447,44 +2441,39 @@ const styles = StyleSheet.create({
   },
   stickyBottomBar: {
     position: 'absolute',
-    bottom: 110,
-    left: 16,
-    right: 16,
+    bottom: Platform.OS === 'ios' ? 140 : 120,
+    left: 14,
+    right: 14,
     zIndex: 99,
   },
   bottomBarCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 30,
-    padding: 6,
+    padding: 5,
     gap: 8,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
   },
   expressInterestBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.primary,
     height: 48,
     borderRadius: 24,
-    paddingHorizontal: 16,
+    overflow: "hidden",
   },
   expressInterestBtnActive: {
     backgroundColor: '#2e7d32',
   },
- expressInterestBtnText: {
+  expressInterestBtnText: {
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
-    letterSpacing: 0.2,
   },
   messageButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -2494,12 +2483,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     gap: 6,
   },
+
   bottomCircleBtn: {
     width: 48,
     height: 48,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: "#e0e0e0",
+    backgroundColor: "#ffffff",
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -2767,17 +2758,61 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   buttonContainerExpress: {
-    flex: 1.5,
+    flex: 1,
   },
-  btn: {
+  expressInterestBtn: {
     height: 48,
     borderRadius: 24,
     overflow: "hidden",
-    elevation: 3,
-    shadowColor: "#F43F5E",
+    backgroundColor: "#d4f0e4", // fallback background for sent state
+    elevation: 2,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+  },
+  expressInterestBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  sentContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  sentBtnPill: {
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#fde8e8",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  sentBtnText: {
+    color: "#70121e",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  rejectedPill: {
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#fcebeb",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+  },
+  rejectedPillText: {
+    color: "#a32d2d",
+    fontSize: 14,
+    fontWeight: "700",
   },
   linearGradient: {
     flex: 1,
@@ -2790,6 +2825,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 12,
+    gap: 8,
+  },
+  messageButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#28a745",
+    height: 48,
+    borderRadius: 24,
+    paddingHorizontal: 14,
     gap: 6,
   },
   messageText: {
@@ -2798,6 +2843,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   buttonContainer: {
+    flex: 1,
     flexDirection: "row",
     gap: 6,
   },
@@ -2809,29 +2855,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#10B981",
     height: 48,
     borderRadius: 24,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
   declineButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#EF4444",
-    backgroundColor: "#FEF2F2",
+    borderWidth: 1.5,
+    borderColor: "#a32d2d",
+    backgroundColor: "#fff0f0",
     height: 48,
     borderRadius: 24,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
   declineText: {
-    color: "#EF4444",
+    color: "#a32d2d",
     fontWeight: "700",
     fontSize: 13,
   },
-  rejectedText: {
-    color: "#EF4444",
-    fontSize: 12,
-    fontWeight: "600",
-    textAlign: "center",
+  bottomCircleBtnActive: {
+    borderColor: "transparent",
+    backgroundColor: "#fef0d6",
   },
 });
