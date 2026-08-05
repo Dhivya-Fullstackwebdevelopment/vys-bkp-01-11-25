@@ -1337,27 +1337,29 @@ export const ProfileDetails = () => {
         <View style={styles.cardsContainer}>
 
           {/* ===== 1. COMPATIBILITY CARD ===== */}
-          {basic_details?.matching_score !== undefined && (
-            <View style={styles.card}>
-              <View style={styles.compatHeader}>
-                <View style={styles.ringContainer}>
-                  <Text style={styles.ringScoreText}>{basic_details.matching_score}%</Text>
+          {basic_details?.matching_score !== undefined &&
+            basic_details.matching_score > 50 &&
+            basic_details.matching_score !== 100 && (
+              <View style={styles.card}>
+                <View style={styles.compatHeader}>
+                  <View style={styles.ringContainer}>
+                    <Text style={styles.ringScoreText}>{basic_details.matching_score}%</Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <Text style={styles.compatTitle}>{matchLabel(basic_details.matching_score)}</Text>
+                    <Text style={styles.compatSubtitle}>Horoscope & preference compatibility</Text>
+                  </View>
                 </View>
-                <View style={{ flex: 1, marginLeft: 14 }}>
-                  <Text style={styles.compatTitle}>{matchLabel(basic_details.matching_score)}</Text>
-                  <Text style={styles.compatSubtitle}>Horoscope & preference compatibility</Text>
-                </View>
-              </View>
 
-              <TouchableOpacity
-                style={styles.outlineBtn}
-                onPress={handleDownloadMatchingReport}
-              >
-                <Ionicons name="sparkles" size={16} color={Colors.primary} style={{ marginRight: 6 }} />
-                <Text style={styles.outlineBtnText}>View Matching Details</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+                <TouchableOpacity
+                  style={styles.outlineBtn}
+                  onPress={handleDownloadMatchingReport}
+                >
+                  <Ionicons name="sparkles" size={16} color={Colors.primary} style={{ marginRight: 6 }} />
+                  <Text style={styles.outlineBtnText}>View Matching Details</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
           {/* ===== 2. STATUS CHIPS ===== */}
           <View style={styles.statusChipsGrid}>
@@ -2422,7 +2424,7 @@ const styles = StyleSheet.create({
   },
   stickyBottomBar: {
     position: 'absolute',
-    bottom: 120,
+    bottom: 110,
     left: 16,
     right: 16,
     zIndex: 99,

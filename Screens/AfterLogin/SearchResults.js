@@ -45,7 +45,7 @@ export const SearchResults = ({ route }) => {
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Search results</Text>
+          <Text style={styles.headerTitle}>Search</Text>
           <Text style={styles.headerSubtitle}>{totalCount} profiles found</Text>
         </View>
 
