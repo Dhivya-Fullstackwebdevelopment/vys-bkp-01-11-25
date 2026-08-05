@@ -61,7 +61,7 @@ import Timeline from "react-native-timeline-flatlist";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImage";
 import { openCachedPdf } from "../../Screens/AfterLogin/PdfViewerModal";
-import { Colors } from "../../Reusable/Theme";
+import { Colors, rs } from "../../Reusable/Theme";
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 const { width } = Dimensions.get('window');
@@ -1265,55 +1265,83 @@ export const ProfileDetails = () => {
             </View>
           )}
 
-          {/* Top Bar Actions Over Image */}
-          <View style={styles.heroTopBar}>
-            {/* Back button */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.iconCircleBtn,
-                pressed && styles.iconCircleBtnPressed,
-              ]}
-              onPress={() => navigation.goBack()}
-            >
-              <Ionicons name="chevron-back" size={20} color={Colors.textDark} />
-            </Pressable>
+          {/* ===== UPDATED TOP BAR ===== */}
+          <View style={styles.headerOverlay}>
+            {/* Left: Back button + Profile ID chip */}
+            <View style={styles.leftHeaderGroup}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.iconButton,
+                  pressed && styles.iconButtonPressed,
+                ]}
+                onPress={() => navigation.goBack()}
+                accessibilityLabel="Go back"
+              >
+                <Ionicons name="chevron-back" size={20} color={Colors.textDark} />
+              </Pressable>
 
-            {/* Profile ID badge */}
-            <Pressable style={({ pressed }) => [
-              styles.codeBadge,
-              pressed && styles.codeBadgePressed,
-            ]}>
-              <Text style={styles.codeBadgeText}>{basic_details.profile_id}</Text>
-            </Pressable>
+              <View style={styles.profileCodeChip}>
+                <Text style={styles.profileCodeText}>
+                  {basic_details?.profile_id}
+                </Text>
+              </View>
+            </View>
 
-            <View style={{ flex: 1 }} />
+            {/* Right: Bookmark and More buttons */}
+            <View style={styles.rightActionGroup}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.iconButton,
+                  pressed && styles.iconButtonPressed,
+                ]}
+                onPress={() => handleSavePress(basic_details?.profile_id)}
+                accessibilityLabel={
+                  bookmarkedProfiles.has(basic_details?.profile_id)
+                    ? "Remove bookmark"
+                    : "Bookmark profile"
+                }
+              >
+                <Ionicons
+                  name={
+                    bookmarkedProfiles.has(basic_details?.profile_id)
+                      ? "bookmark"
+                      : "bookmark-outline"
+                  }
+                  size={20}
+                  color={
+                    bookmarkedProfiles.has(basic_details?.profile_id)
+                      ? Colors.primary
+                      : Colors.textDark
+                  }
+                />
+              </Pressable>
 
-            {/* Bookmark */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.iconCircleBtn,
-                pressed && styles.iconCircleBtnPressed,
-              ]}
-              onPress={() => handleSavePress(basic_details?.profile_id)}
-            >
-              <Ionicons
-                name={isBookmarked ? "bookmark" : "bookmark-outline"}
-                size={18}
-                color={isBookmarked ? Colors.primary : Colors.textDark}
-              />
-            </Pressable>
+              {!isPlan16 && photoRequest === 1 && (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.iconButton,
+                    pressed && styles.iconButtonPressed,
+                  ]}
+                  onPress={handleSendPhotoRequest}
+                  accessibilityLabel="Request photo"
+                >
+                  <MaterialIcons name="insert-photo" size={20} color={Colors.textDark} />
+                </Pressable>
+              )}
 
-            {/* Three-dot more */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.iconCircleBtn,
-                pressed && styles.iconCircleBtnPressed,
-              ]}
-              onPress={() => bottomSheetRef.current.open()}
-            >
-              <Ionicons name="ellipsis-vertical" size={18} color={Colors.textDark} />
-            </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.iconButton,
+                  pressed && styles.iconButtonPressed,
+                ]}
+                onPress={() => bottomSheetRef.current?.open()}
+                accessibilityLabel="More options"
+              >
+                <Ionicons name="ellipsis-vertical" size={20} color={Colors.textDark} />
+              </Pressable>
+            </View>
           </View>
+
           {/* Identity Overlay on Image */}
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.85)']}
@@ -1342,9 +1370,9 @@ export const ProfileDetails = () => {
               </View>
             ) : null}
 
-            <Text style={styles.heroSubText}>
+            {/* <Text style={styles.heroSubText}>
               {[basic_details.profession, basic_details.education, basic_details.degeree].filter(Boolean).join(" · ")}
-            </Text>
+            </Text> */}
           </LinearGradient>
         </View>
 
@@ -1378,7 +1406,7 @@ export const ProfileDetails = () => {
 
           {/* ===== 2. STATUS CHIPS ===== */}
           <View style={styles.statusChipsGrid}>
-            <View style={[styles.statusChip, { backgroundColor: Colors.goldContainer }]}>
+            {/* <View style={[styles.statusChip, { backgroundColor: Colors.goldContainer }]}>
               <Ionicons name="star-outline" size={16} color={Colors.chipActiveText} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.statusChipTitle, { color: Colors.chipActiveText }]}>Available</Text>
@@ -1392,7 +1420,7 @@ export const ProfileDetails = () => {
                 <Text style={[styles.statusChipTitle, { color: Colors.primary }]}>{basic_details.user_status || "Newly"}</Text>
                 <Text style={[styles.statusChipSub, { color: Colors.primary }]}>Registered</Text>
               </View>
-            </View>
+            </View> */}
 
             <View style={styles.statusChip}>
               <Ionicons name="calendar-outline" size={16} color={Colors.textDark} />
@@ -1411,18 +1439,7 @@ export const ProfileDetails = () => {
             </View>
           </View>
 
-          {/* ===== 3. PROFILE COMPLETION ===== */}
-          {/* <View style={styles.card}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={styles.cardSectionTitle}>Profile Completion</Text>
-              <Text style={[styles.cardSectionTitle, { color: Colors.primary }]}>90%</Text>
-            </View>
-            <View style={styles.progressBarTrack}>
-              <View style={[styles.progressBarFill, { width: '90%' }]} />
-            </View>
-          </View> */}
-
-          {/* ===== 4. SNAPSHOT CARD ===== */}
+          {/* ===== 3. SNAPSHOT CARD ===== */}
           <View style={styles.card}>
             <View style={styles.cardHeaderRow}>
               <View style={styles.sectionIconCircle}>
@@ -1490,17 +1507,12 @@ export const ProfileDetails = () => {
                 </View>
 
                 {renderDetailRow("Profile ID", basic_details.profile_id)}
-                {/* Added: gender */}
                 {renderDetailRow("Gender", personal_details?.gender)}
                 {renderDetailRow("Age", personal_details?.age ? `${personal_details.age} Years` : null)}
-                {/* Added: DOB */}
                 {renderDetailRow("DOB", personal_details?.dob)}
                 {renderDetailRow("Height", personal_details?.height?.height_desc)}
-                {/* Added: weight */}
                 {renderDetailRow("Weight", personal_details?.weight ? `${personal_details.weight} kg` : null)}
-                {/* Added: body_type */}
                 {renderDetailRow("Body Type", personal_details?.body_type)}
-                {/* Added: eye_wear */}
                 {renderDetailRow("Eye Wear", personal_details?.eye_wear)}
                 {renderDetailRow("Marital status", personal_details?.marital_status)}
                 {renderDetailRow("Complexion", personal_details?.complexion)}
@@ -1533,7 +1545,6 @@ export const ProfileDetails = () => {
                   <Text style={styles.cardSectionTitle}>Education</Text>
                 </View>
 
-                {/* Added: education_level */}
                 {renderDetailRow("Education Level", education_details?.education_level)}
                 {renderDetailRow("Degree", education_details?.degeree || education_details?.education_level)}
                 {renderDetailRow("About Education", education_details?.about_education)}
@@ -1550,11 +1561,9 @@ export const ProfileDetails = () => {
                 {renderDetailRow("Occupation", education_details?.profession)}
                 {renderDetailRow("Company Name", education_details?.company_name || education_details?.business_name)}
                 {renderDetailRow("Designation", education_details?.designation)}
-                {/* Added: business_name, business_address */}
                 {renderDetailRow("Business Name", education_details?.business_name)}
                 {renderDetailRow("Business Address", education_details?.business_address)}
                 {renderDetailRow("Annual Income", education_details?.annual_income || education_details?.gross_annual_income)}
-                {/* Added: gross_annual_income */}
                 {renderDetailRow("Gross Annual Income", education_details?.gross_annual_income)}
                 {renderDetailRow("Work Location", education_details?.place_of_stay)}
               </View>
@@ -1575,13 +1584,10 @@ export const ProfileDetails = () => {
                 {renderDetailRow("Mother", family_details?.mother_name ? `${family_details.mother_name} · ${family_details.mother_occupation || ''}` : null)}
                 {renderDetailRow("Family Status", family_details?.family_status)}
                 {renderDetailRow("Sisters", family_details?.no_of_sisters)}
-                {/* Added: no_of_sis_married */}
                 {renderDetailRow("Sisters Married", family_details?.no_of_sis_married)}
                 {renderDetailRow("Brothers", family_details?.no_of_brothers)}
-                {/* Added: no_of_bro_married */}
                 {renderDetailRow("Brothers Married", family_details?.no_of_bro_married)}
                 {renderDetailRow("Property details", family_details?.property_details)}
-                {/* Added: father_alive, mother_alive */}
                 {renderDetailRow("Father Alive", family_details?.father_alive)}
                 {renderDetailRow("Mother Alive", family_details?.mother_alive)}
                 {renderDetailRow("About Family", family_details?.about_family)}
@@ -1607,7 +1613,6 @@ export const ProfileDetails = () => {
                 {renderDetailRow("Rasi", horoscope_details?.rasi)}
                 {renderDetailRow("Lagnam", horoscope_details?.lagnam)}
                 {renderDetailRow("Padham", horoscope_details?.padham)}
-                {/* Added: nallikai, didi, madulamn, dasa_name, dasa_balance */}
                 {renderDetailRow("Nallikai", horoscope_details?.nallikai)}
                 {renderDetailRow("Didi", horoscope_details?.didi)}
                 {renderDetailRow("Madhulam", horoscope_details?.madulamn)}
@@ -1704,14 +1709,8 @@ export const ProfileDetails = () => {
               {renderDetailRow("Country", contact_details?.country)}
               {renderDetailRow("Phone", contact_details?.phone)}
               {renderDetailRow("Mobile", contact_details?.mobile)}
-              {/* Added: whatsapp */}
               {renderDetailRow("WhatsApp", contact_details?.whatsapp)}
               {renderDetailRow("Email", contact_details?.email)}
-
-              {/* <TouchableOpacity style={styles.outlineBtn} onPress={handlePhoneCall}>
-                <Ionicons name="mail-outline" size={16} color={Colors.primary} style={{ marginRight: 6 }} />
-                <Text style={styles.outlineBtnText}>View contact details</Text>
-              </TouchableOpacity> */}
             </View>
           )}
 
@@ -1722,48 +1721,107 @@ export const ProfileDetails = () => {
       </ScrollView>
 
       {/* ===== STICKY BOTTOM ACTION BAR ===== */}
+      {/* ===== STICKY BOTTOM ACTION BAR ===== */}
+      {/* ===== STICKY BOTTOM ACTION BAR ===== */}
       <View style={styles.stickyBottomBar}>
         <View style={styles.bottomBarCard}>
-          {!isPlan16 && interestParam !== 1 && status !== 2 && status !== 3 && (
-            <TouchableOpacity
-              style={[
-                styles.expressInterestBtn,
-                expressInt && styles.expressInterestBtnActive
-              ]}
-              onPress={() => { expressInt ? handleExpressInterestPress1() : setShowInterestModal(true) }}
-            >
-              <Ionicons
-                name={expressInt ? "heart" : "heart-outline"}
-                size={18}
-                color="#FFFFFF"
-                style={{ marginRight: 6 }}
-              />
-              <Text style={styles.expressInterestBtnText}>
-                {expressInt ? "Interest Sent" : "Express Interest"}
-              </Text>
-            </TouchableOpacity>
-          )}
 
-          {status === 2 && (
-            <TouchableOpacity
-              style={styles.expressInterestBtn}
-              onPress={handlePressMessage}
-            >
-              <Ionicons name="chatbubble-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-              <Text style={styles.expressInterestBtnText}>Message</Text>
-            </TouchableOpacity>
-          )}
+          {/* Express / Interest Action Area */}
+          <View style={styles.buttonContainerExpress}>
+            {/* Pending Sent Interest State */}
+            {(status === 1 || status === "1" || expressInt) && (
+              <TouchableOpacity
+                style={styles.btn}
+                activeOpacity={0.8}
+                onPress={handleExpressInterestPress1}
+              >
+                <LinearGradient
+                  colors={["#0D9488", "#0F766E"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.linearGradient}
+                >
+                  <View style={styles.loginContainer}>
+                    <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
+                    <Text style={styles.expressInterestBtnText}>
+                      Interest Sent
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
 
-          {interestParam === 1 && status !== 3 && status !== 2 && hideExpressButton && (
-            <TouchableOpacity
-              style={styles.expressInterestBtn}
-              onPress={() => handleUpdateInterest(viewedProfileId, "2")}
-            >
-              <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-              <Text style={styles.expressInterestBtnText}>Accept Interest</Text>
-            </TouchableOpacity>
-          )}
+            {/* Express Interest Action Button */}
+            {!isPlan16 &&
+              interestParam !== 1 &&
+              status !== 1 &&
+              status !== "1" &&
+              status !== 2 &&
+              status !== 3 &&
+              !expressInt && (
+                <TouchableOpacity
+                  style={styles.btn}
+                  activeOpacity={0.8}
+                  onPress={() => setShowInterestModal(true)}
+                >
+                  <LinearGradient
+                    colors={["#F43F5E", "#E11D48", "#DB2777"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.linearGradient}
+                  >
+                    <View style={styles.loginContainer}>
+                      <Ionicons name="heart" size={18} color="#FFFFFF" />
+                      <Text style={styles.expressInterestBtnText}>
+                        Express Interest
+                      </Text>
+                      <Ionicons name="sparkles" size={14} color="rgba(255,255,255,0.8)" />
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
+          </View>
 
+          {/* Secondary Action Area (Message / Accept / Decline / Rejected) */}
+          <View style={{ flex: 1 }}>
+            {status === 2 ? (
+              <TouchableOpacity style={styles.messageButton} onPress={handlePressMessage}>
+                <FontAwesome style={styles.icon} name="comments" size={16} color="#fff" />
+                <Text style={styles.messageText}>Message</Text>
+              </TouchableOpacity>
+            ) : (
+              interestParam === 1 &&
+              status !== 3 &&
+              status !== 2 && (
+                <View style={styles.buttonContainer}>
+                  {hideExpressButton && (
+                    <>
+                      <TouchableOpacity
+                        style={styles.acceptButton}
+                        onPress={() => handleUpdateInterest(viewedProfileId, "2")}
+                      >
+                        <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+                        <Text style={styles.buttonText}>Accept</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.declineButton}
+                        onPress={() => handleUpdateInterest(viewedProfileId, "3")}
+                      >
+                        <Ionicons name="close-circle-outline" size={18} color="#FF3B30" style={{ marginRight: 6 }} />
+                        <Text style={styles.declineText}>Decline</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
+              )
+            )}
+            {status === 3 && (
+              <Text style={styles.rejectedText}>Your Interest has been rejected</Text>
+            )}
+          </View>
+
+          {/* Quick Action Icons */}
           <TouchableOpacity
             style={[styles.bottomCircleBtn, isBookmarked && { borderColor: Colors.primary }]}
             onPress={() => handleSavePress(basic_details?.profile_id)}
@@ -1771,13 +1829,14 @@ export const ProfileDetails = () => {
             <Ionicons
               name={isBookmarked ? "bookmark" : "bookmark-outline"}
               size={18}
-              color={isBookmarked ? Colors.primary : Colors.primary}
+              color={Colors.primary}
             />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.bottomCircleBtn} onPress={handlePhoneCall}>
             <Ionicons name="call-outline" size={18} color={Colors.primary} />
           </TouchableOpacity>
+
         </View>
       </View>
 
@@ -2100,52 +2159,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 420,
   },
-  heroTopBar: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 44 : 20,
-    left: 16,
-    right: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    zIndex: 10,
-  },
-  iconCircleBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "#FBF5ED",   // ← your default color
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#3D2820",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  iconCircleBtnPressed: {
-    backgroundColor: "#FDF9F4",   // ← your "hover" color
-  },
-  codeBadge: {
-    backgroundColor: "#FBF5ED",   // ← default
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    shadowColor: "#3D2820",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.10,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-
-  codeBadgePressed: {
-    backgroundColor: "#FDF9F4",
-  },
-  codeBadgeText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.textDark,
-  },
   identityOverlay: {
     position: 'absolute',
     bottom: 0,
@@ -2323,17 +2336,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textMuted,
   },
-  progressBarTrack: {
-    height: 8,
-    backgroundColor: Colors.chipInactiveBg,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: Colors.secondaryGold,
-    borderRadius: 4,
-  },
   cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2443,12 +2445,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.chipActiveText,
   },
-  contactNotice: {
-    fontSize: 12,
-    color: Colors.textMuted,
-    marginBottom: 10,
-    fontStyle: 'italic',
-  },
   stickyBottomBar: {
     position: 'absolute',
     bottom: 110,
@@ -2482,10 +2478,21 @@ const styles = StyleSheet.create({
   expressInterestBtnActive: {
     backgroundColor: '#2e7d32',
   },
-  expressInterestBtnText: {
+ expressInterestBtnText: {
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  messageButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#28a745",
+    height: 48,
+    borderRadius: 24,
+    paddingHorizontal: 14,
+    gap: 6,
   },
   bottomCircleBtn: {
     width: 48,
@@ -2699,5 +2706,132 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+  },
+  headerOverlay: {
+    position: "absolute",
+    top: Platform.OS === "android" ? 40 : 52,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: rs(12, 16, 20),
+    zIndex: 10,
+  },
+  leftHeaderGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  rightActionGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 9999, // fully rounded (pill)
+    backgroundColor: 'rgba(250, 246, 240, 0.75)', // matches bg-background/75
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.14,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  iconButtonPressed: {
+    backgroundColor: 'rgba(250, 246, 240, 0.5)',
+  },
+  profileCodeChip: {
+    paddingHorizontal: 14,
+    height: 40,
+    borderRadius: 9999, // fully rounded (pill)
+    backgroundColor: 'rgba(250, 246, 240, 0.75)', // matches bg-background/75
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.14,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  profileCodeChipPressed: {
+    backgroundColor: 'rgba(250, 246, 240, 0.5)',
+  },
+  profileCodeText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.textDark,
+    letterSpacing: 0.3,
+  },
+  buttonContainerExpress: {
+    flex: 1.5,
+  },
+  btn: {
+    height: 48,
+    borderRadius: 24,
+    overflow: "hidden",
+    elevation: 3,
+    shadowColor: "#F43F5E",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+  },
+  linearGradient: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 24,
+  },
+  loginContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    gap: 6,
+  },
+  messageText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  acceptButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#10B981",
+    height: 48,
+    borderRadius: 24,
+    paddingHorizontal: 8,
+  },
+  declineButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#EF4444",
+    backgroundColor: "#FEF2F2",
+    height: 48,
+    borderRadius: 24,
+    paddingHorizontal: 8,
+  },
+  declineText: {
+    color: "#EF4444",
+    fontWeight: "700",
+    fontSize: 13,
+  },
+  rejectedText: {
+    color: "#EF4444",
+    fontSize: 12,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });
