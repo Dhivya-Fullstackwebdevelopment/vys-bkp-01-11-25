@@ -2223,6 +2223,339 @@ export const ProfileDetails = () => {
         </View>
       </Modal>
 
+      {showVysassist &&
+        VysassistEnable === 1 && vysassits === false && (
+          <Modal visible={showVysassist} transparent animationType="fade">
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={styles.overlay}
+            >
+              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.popupContainer}>
+                  {isSuccess ? (
+                    renderSuccessView()
+                  ) : (
+                    <>
+
+                      <View style={styles.header}>
+                        <Text style={styles.title}>Vysassist Notes </Text>
+                        <MaterialCommunityIcons
+                          name="close"
+                          size={24}
+                          color="#4F515D"
+                          onPress={closePopupnew}
+                        />
+                      </View>
+                      <ScrollView>
+                        <View style={styles.modalBody}>
+                          <Text style={styles.subTitle}>
+                            Apply for Vysya Assist: ({selectedOptions.length}/{options.length})
+                          </Text>
+                          <View style={styles.checkboxContainerNew1}>
+                            {options.map((option, index) => (
+                              <Pressable
+                                key={index}
+                                style={[styles.checkboxContainerNew2]}
+                                onPress={() => handleCheckboxChange(option)}
+                              >
+                                <MaterialIcons
+                                  name={selectedOptions.includes(option) ? "check-box" : "check-box-outline-blank"}
+                                  size={22}
+                                  color={selectedOptions.includes(option) ? '#007AFF' : '#333'}
+                                />
+                                <Text style={{ fontSize: 16, marginLeft: 1 }}>
+                                  {option}
+                                </Text>
+                              </Pressable>
+                            ))}
+                          </View>
+                          <Text style={styles.label}>Add Your Notes/Instructions</Text>
+                          <TextInput
+                            style={styles.textInputnew}
+                            value={selectedOptions.join(", ")}
+                            placeholder="Selected options will appear here"
+                          />
+                        </View>
+                      </ScrollView>
+                      {expressInterestError ? (
+                        <Text style={styles.errorText}>{expressInterestError}</Text>
+                      ) : null}
+                      <View style={styles.modalButtons}>
+                        <TouchableOpacity
+                          style={[styles.modalButton, styles.submitButtonpop]}
+                          onPress={handleSubmitVysassistPopup}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.buttonText}>Submit</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={[styles.modalButton, styles.closeButton]}
+                          onPress={closePopupnew}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.buttonText}>Close</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
+          </Modal>
+
+        )}
+
+      {showVysassist &&
+        VysassistEnable === 1 && vysassits === true && data === null && (
+          <Modal visible={showVysassist} transparent animationType="fade">
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={styles.overlay}
+            >
+              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.popupContainer}>
+                  <View style={styles.header}>
+                    <Text style={styles.title}>Vysassist Notes</Text>
+                    <MaterialCommunityIcons
+                      name="close"
+                      size={24}
+                      color="#4F515D"
+                      onPress={closePopupnew}
+                    />
+                  </View>
+                  <ScrollView>
+                    <View style={styles.modalBody}>
+                      <Text style={styles.subTitle}>
+                        Apply for Vysya Assist: ({selectedOptions.length}/{options.length})
+                      </Text>
+                      <View style={styles.checkboxContainerNew1}>
+                        {options.map((option, index) => (
+                          <Pressable
+                            key={index}
+                            style={[styles.checkboxContainerNew2]}
+                            onPress={() => handleCheckboxChange(option)}
+                          >
+                            <MaterialIcons
+                              name={selectedOptions.includes(option) ? "check-box" : "check-box-outline-blank"}
+                              size={22}
+                              color={selectedOptions.includes(option) ? '#007AFF' : '#333'}
+                            />
+                            <Text style={{ fontSize: 16, marginLeft: 1 }}>
+                              {option}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                      <Text style={styles.label}>Add Your Notes/Instructions</Text>
+                      <TextInput
+                        style={styles.textInputnew}
+                        value={selectedOptions.join(", ")}
+                        placeholder="Selected options will appear here"
+                      />
+                    </View>
+                  </ScrollView>
+                  {expressInterestError ? (
+                    <Text style={styles.errorText}>{expressInterestError}</Text>
+                  ) : null}
+                  <View style={styles.footer}>
+                    <TouchableOpacity style={styles.cancelButton} onPress={closePopupnew}>
+                      <Text style={styles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.submitButton} onPress={handleSubmitVysassistPopup}>
+                      <Text style={styles.submitText}>Submit</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
+          </Modal>
+
+        )}
+
+      {showVysassist && VysassistEnable === 1 && vysassits === true && data !== null && (
+        <Modal visible={showVysassist} transparent animationType="fade">
+          <View style={styles.overlay}>
+            <View style={styles.popupContainer}>
+              <Text style={styles.titleNewnote}>Vysassist applied on 24th Dec 2024</Text>
+              <View style={styles.header}>
+                <Text style={styles.titleNewnote}>Here is the status of your Vysassist Request :</Text>
+              </View>
+              <ScrollView style={{ maxHeight: 400 }}>
+                <Timeline
+                  data={data}
+                  circleSize={16}
+                  circleColor="#4CAF50"
+                  lineColor="#E0E0E0"
+                  timeContainerStyle={{ minWidth: 72 }}
+                  timeStyle={{
+                    textAlign: 'left',
+                    backgroundColor: '#ff9797',
+                    color: '#fff',
+                    padding: 5,
+                    fontSize: 12,
+                    top: -2,
+                    fontWeight: 'bold',
+                    borderRadius: 13
+                  }}
+                  descriptionStyle={{
+                    color: '#333',
+                    fontSize: 16,
+                    paddingTop: 2,
+                    top: -47,
+                    fontWeight: 'bold',
+                    marginBottom: -20
+                  }}
+                  options={{
+                    style: { paddingTop: 5 }
+                  }}
+                />
+              </ScrollView>
+              <View style={styles.modalButtonsNew}>
+                <TouchableOpacity
+                  style={[styles.modalButtonNew, styles.submitButtonpop]}
+                  onPress={closePopupnew}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.buttonText}>OK</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+      )}
+
+      {showVysassist &&
+        VysassistEnable === 0 && (
+          <Modal visible={showVysassist} transparent animationType="fade">
+            <View style={styles.overlay}>
+              <View style={styles.popupContainer}>
+                <View style={styles.header}>
+                  <Text style={styles.title}>Apply for VysAssist</Text>
+                  <MaterialCommunityIcons
+                    name="close"
+                    size={24}
+                    color="#4F515D"
+                    onPress={closePopupnew}
+                  />
+                </View>
+                {/* Description */}
+                <Text style={styles.description}>
+                  You have not activated VysAssist for your plan. You can opt for 5
+                  matching profiles for Rs.900/-
+                </Text>
+
+                {/* Process List */}
+                <Text style={styles.processTitle}>VysAssist Process:</Text>
+                <View style={styles.listContainer}>
+                  <Text style={styles.listItem}>
+                    • Analyze your request and our relationship executive will share
+                    the profile with prospective matches.
+                  </Text>
+                  <Text style={styles.listItem}>
+                    • Follow-up (5 attempts) with prospective matches and update the
+                    status.
+                  </Text>
+                  <Text style={styles.listItem}>
+                    • Collect necessary family background information/photos (if
+                    available) and share it with you.
+                  </Text>
+                </View>
+                {/* Buttons */}
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.submitButtonpop]}
+                    onPress={() => {
+                      navigation.navigate("PayNow", { autoCheckId: "1" });
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.buttonText}>Pay Now</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.closeButton]}
+                    onPress={closePopupnew}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.buttonText}>Close</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+
+        )}
+
+      {/* Vysassist Error Modal */}
+      <Modal
+        visible={showVysassistErrorModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowVysassistErrorModal(false)}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0,0,0,0.5)'
+        }}>
+          <View style={{
+            backgroundColor: 'white',
+            borderRadius: 12,
+            padding: 24,
+            width: '80%',
+            alignItems: 'center',
+            elevation: 10,
+          }}>
+            {/* ✅ Close X button */}
+            <TouchableOpacity
+              onPress={() => setShowVysassistErrorModal(false)}
+              style={{ position: 'absolute', top: 12, right: 12 }}
+            >
+              <MaterialIcons name="warning" size={32} color="white" />
+            </TouchableOpacity>
+
+            {/* ✅ Info triangle icon like the image */}
+            <View style={{
+              backgroundColor: '#ED1E24',
+              borderRadius: 50,
+              padding: 14,
+              marginBottom: 16,
+              marginTop: 10,
+            }}>
+              <MaterialIcons name="info" size={32} color="white" />
+            </View>
+
+            {/* ✅ Message */}
+            <Text style={{
+              fontSize: 16,
+              fontWeight: 'bold',
+              color: '#282C3F',
+              textAlign: 'center',
+              marginBottom: 20,
+            }}>
+              {vysassistErrorMsg}
+            </Text>
+
+            {/* ✅ OK Button */}
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#ED1E24',
+                borderRadius: 8,
+                paddingVertical: 12,
+                paddingHorizontal: 40,
+              }}
+              onPress={() => setShowVysassistErrorModal(false)}
+            >
+              <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         visible={showLanguagePopup}
         transparent={true}
@@ -2925,7 +3258,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   closeButton: {
-    backgroundColor: Colors.chipInactiveBg,
+    backgroundColor: "#000000",
   },
   buttonText: {
     color: 'white',
