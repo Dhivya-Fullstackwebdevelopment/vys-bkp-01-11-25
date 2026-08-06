@@ -18,7 +18,8 @@ import {
   Linking,
   ActivityIndicator,
   Pressable,
-  Animated
+  Animated,
+    StatusBar
 } from "react-native";
 import { Ionicons, MaterialIcons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 import ImageViewer from 'react-native-image-zoom-viewer';
@@ -63,6 +64,7 @@ import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImag
 import { openCachedPdf } from "../../Screens/AfterLogin/PdfViewerModal";
 import { Colors, rs } from "../../Reusable/Theme";
 import Svg, { Circle } from 'react-native-svg';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 const { width } = Dimensions.get('window');
@@ -170,6 +172,7 @@ export const ProfileDetails = () => {
   const [activeTab, setActiveTab] = useState("Personal");
   const scrollY = useRef(new Animated.Value(0)).current;
   const isManualScroll = useRef(false);
+  const insets = useSafeAreaInsets();
   // ────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -1253,9 +1256,11 @@ export const ProfileDetails = () => {
   return (
     <View style={styles.mainContainer}>
 
-      {/* ─── STICKY TAB BAR (rendered above scroll, shown when sticky) ─── */}
+      <StatusBar backgroundColor="#FBF5ED" barStyle="dark-content" />
+      <View style={styles.safeAreaTopFill(insets.top)} />
+
       {isTabSticky && (
-        <View style={[styles.stickyTabBarWrapper, { top: Platform.OS === 'android' ? 0 : 44 }]}>
+        <View style={[styles.stickyTabBarWrapper, { top: insets.top }]}>
           {renderTabBar()}
         </View>
       )}
@@ -1597,7 +1602,7 @@ export const ProfileDetails = () => {
             </View>
           </View>
 
-          {/* ===== INLINE TAB BAR (measures its Y position for sticky) ===== */}
+          
           <View
             ref={tabBarRef}
             onLayout={(e) => {
@@ -1606,7 +1611,9 @@ export const ProfileDetails = () => {
             }}
             style={styles.tabsContainer}
           >
-            {renderTabBar()}
+            <View style={{ opacity: isTabSticky ? 0 : 1 }}>
+              {renderTabBar()}
+            </View>
           </View>
 
           {/* ===== TAB CONTENT SECTIONS ===== */}
@@ -2612,12 +2619,12 @@ const styles = StyleSheet.create({
   },
 
   // ─── NEW: sticky tab bar wrapper ────────────────────────────────────────────
-  stickyTabBarWrapper: {
+ stickyTabBarWrapper: {
     position: 'absolute',
     left: 0,
     right: 0,
     zIndex: 50,
-    backgroundColor: Colors.selectedBg,
+    backgroundColor: '#FBF5ED',
     paddingVertical: 8,
     paddingHorizontal: 16,
     shadowColor: '#000',
@@ -2626,6 +2633,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 6,
   },
+  safeAreaTopFill: (topInset) => ({
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: topInset,
+    backgroundColor: '#FBF5ED',
+    zIndex: 100,
+  }),
   // ────────────────────────────────────────────────────────────────────────────
 
   heroContainer: {
