@@ -198,6 +198,16 @@ export const ProfileDetails = () => {
     return imageUrl;
   };
 
+  const DEFAULT_IMAGE_URLS = [
+    "https://vysyamat.blob.core.windows.net/vysyamala/default_bride.png",
+    "https://vysyamat.blob.core.windows.net/vysyamala/default_groom.png",
+  ];
+
+  const isDefaultImageUrl = (url) => {
+    if (!url) return true;
+    return DEFAULT_IMAGE_URLS.some((defUrl) => url.trim() === defUrl);
+  };
+
   useEffect(() => {
     setImageLoadError(false);
   }, [viewedProfileId]);
@@ -881,7 +891,7 @@ export const ProfileDetails = () => {
   }));
 
   const hasRealPhoto = Object.values(fetchedUserImages || user_images || {})
-    .some(url => url && url.trim() !== "");
+    .some(url => url && url.trim() !== "" && !isDefaultImageUrl(url));
 
   const handlePasswordSubmit = async () => {
     try {
@@ -1481,7 +1491,10 @@ export const ProfileDetails = () => {
             //     </View>
             //   </View>
           ) : photoState === "none" ? (
-            <View style={styles.noPhotoContainer}>
+            <LinearGradient
+              colors={['#F6EFE5', '#FBF5ED', '#F0DFC4']}
+              style={styles.noPhotoContainer}
+            >
               <View style={styles.noPhotoIconCircle}>
                 <Ionicons name="camera-outline" size={28} color={Colors.primary} />
               </View>
@@ -1489,7 +1502,8 @@ export const ProfileDetails = () => {
               <Text style={styles.noPhotoSubtitle}>
                 This member has not uploaded a{"\n"}profile photo yet.
               </Text>
-            </View>
+              <View style={styles.noPhotoGoldRule} />
+            </LinearGradient>
           ) : (
             <View>
               <ScrollView
@@ -1617,12 +1631,12 @@ export const ProfileDetails = () => {
           </View>
 
 
-          {isNoPhoto && (
+          {/* {isNoPhoto && (
             <View style={styles.noPhotosBadge}>
               <Ionicons name="camera-outline" size={13} color={Colors.textDark} style={{ marginRight: 4 }} />
               <Text style={styles.noPhotosBadgeText}>No Photos</Text>
             </View>
-          )}
+          )} */}
           {/* Identity Overlay on Image */}
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.85)']}
@@ -3638,37 +3652,47 @@ const styles = StyleSheet.create({
   noPhotoContainer: {
     width: '100%',
     height: 420,
-    backgroundColor: '#3A3A3A',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 30,
+    paddingTop: 24,
   },
   noPhotoIconCircle: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255,255,255,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   noPhotoTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
+    color: Colors.textDark,
+    fontSize: 17,
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
     marginBottom: 6,
   },
   noPhotoSubtitle: {
-    color: '#D0D0D0',
-    fontSize: 13,
+    color: Colors.textMuted,
+    fontSize: 12.5,
     textAlign: 'center',
     lineHeight: 18,
   },
+  noPhotoGoldRule: {
+    marginTop: 10,
+    height: 2,
+    width: 64,
+    borderRadius: 2,
+    backgroundColor: '#F0C36D',
+  },
   noPhotosBadge: {
     position: 'absolute',
-    top: Platform.OS === 'android' ? 40 : 52,
-    right: 60, // sits left of the ⋮ / share / bookmark icons; adjust to taste
+    // top: Platform.OS === 'android' ? 40 : 52,
+    bottom: 20,
+    right: 16,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(250, 246, 240, 0.85)',
@@ -3691,10 +3715,12 @@ const styles = StyleSheet.create({
   stateCard: {
     width: '100%',
     maxWidth: 260,
-    backgroundColor: 'rgba(250,246,240,0.9)',
+    backgroundColor: 'rgba(251,245,237,0.45)',
     borderRadius: 20,
     padding: 14,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(251,245,237,0.5)',
   },
   stateCardHeaderRow: {
     flexDirection: 'row',
@@ -3776,8 +3802,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   stateSuccessPillText: {
-  color: Colors.success,
-  fontSize: 13,
-  fontWeight: '700',
-},
+    color: Colors.success,
+    fontSize: 13,
+    fontWeight: '700',
+  },
 });
