@@ -1501,7 +1501,7 @@ export const ProfileDetails = () => {
                 <View style={styles.stateCard}>
                   <View style={styles.stateCardHeaderRow}>
                     <View style={styles.stateGoldIcon}>
-                      <MaterialCommunityIcons name="lock" size={14} color="#5c3d00" />
+                      <MaterialCommunityIcons name="lock" size={14} color="#ffffff" />
                     </View>
                     <Text style={styles.stateCardTitle}>Photo Locked</Text>
                   </View>
@@ -3875,7 +3875,7 @@ const styles = StyleSheet.create({
   stateCardTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.textDark,
+    color: Colors.onPrimaryContainer,
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
   },
   stateCardBody: {

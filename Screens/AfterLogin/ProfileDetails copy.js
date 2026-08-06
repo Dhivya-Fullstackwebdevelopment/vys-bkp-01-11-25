@@ -685,6 +685,7 @@ export const ProfileDetails = () => {
           type: 'error',
           text1: 'Error',
           text2: 'Incorrect password, please try again.',
+          position: "top",
         });
       }
     } catch (error) {
@@ -693,6 +694,7 @@ export const ProfileDetails = () => {
         type: 'error',
         text1: 'Error',
         text2: 'Failed to submit password.',
+        position: "top",
       });
     }
   };
