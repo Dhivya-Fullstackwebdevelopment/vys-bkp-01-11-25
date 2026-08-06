@@ -26,7 +26,7 @@ export const ReportedProfilesCard = () => {
             text2: isBookmarked
                 ? "Profile has been removed from bookmarks."
                 : "Profile has been saved to bookmarks.",
-            position: "bottom",
+            position: "top",
         });
     };
 

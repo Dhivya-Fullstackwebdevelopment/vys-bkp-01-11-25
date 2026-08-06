@@ -175,7 +175,7 @@ export const PayNow = () => {
           type: "error",
           text1: "Error",
           text2: "Failed to load selected plan details",
-          position: "bottom",
+          position: "top",
         });
       }
     };
@@ -378,7 +378,7 @@ export const PayNow = () => {
           type: "success",
           text1: "Payment Success",
           text2: "Payment verified successfully",
-          position: "bottom",
+          position: "top",
         });
 
         await handleSavePlanPackage();
@@ -489,7 +489,7 @@ export const PayNow = () => {
                 Toast.show({
                   type: "success",
                   text1: "Plans and Packages updated successfully",
-                  position: "bottom",
+                  position: "top",
                   visibilityTime: 2000,
                 });
 

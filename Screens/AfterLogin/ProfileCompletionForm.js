@@ -86,7 +86,7 @@ export const ProfileCompletionForm = () => {
     });
 
     if (!isAnyFieldFilled) {
-      Toast.show({ type: "error", text1: "Please fill at least one field before submitting.", position: "bottom", visibilityTime: 3000 });
+      Toast.show({ type: "error", text1: "Please fill at least one field before submitting.", position: "top", visibilityTime: 3000 });
       return;
     }
 
@@ -119,7 +119,7 @@ export const ProfileCompletionForm = () => {
       const response = await ProfileCompletionFormAPI(formDataToSend);
 
       console.log("Success", "Form submitted successfully", JSON.stringify(response));
-      Toast.show({ type: "success", text1: "Profile updated successfully", position: "bottom", visibilityTime: 3000 });
+      Toast.show({ type: "success", text1: "Profile updated successfully", position: "top", visibilityTime: 3000 });
       navigation.navigate("Menu");
 
     } catch (err) {

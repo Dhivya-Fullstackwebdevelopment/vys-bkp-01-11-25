@@ -338,7 +338,7 @@ export const Search = () => {
           type: "error",
           text1: "Input Error",
           text2: "From Age cannot be greater than To Age",
-          position: "bottom",
+          position: "top",
         });
       }
 
@@ -349,7 +349,7 @@ export const Search = () => {
           type: "error",
           text1: "Height Range Error",
           text2: "'From Height' cannot be greater than 'To Height'",
-          position: "bottom",
+          position: "top",
         });
       }
 
@@ -361,7 +361,7 @@ export const Search = () => {
             type: "error",
             text1: "Validation Error",
             text2: "Your age preference does not match this profile.",
-            position: "bottom",
+            position: "top",
           });
         }
         if (toHeightNum > 0 && toHeightNum > myHeight + 2) {
@@ -370,7 +370,7 @@ export const Search = () => {
             type: "error",
             text1: "Validation Error",
             text2: "Your height preference does not match this profile.",
-            position: "bottom",
+            position: "top",
           });
         }
       }
@@ -383,7 +383,7 @@ export const Search = () => {
             type: "error",
             text1: "Validation Error",
             text2: "Your age preference does not match this profile.",
-            position: "bottom",
+            position: "top",
           });
         }
         if (fromHeightNum > 0 && fromHeightNum < myHeight - 2) {
@@ -392,7 +392,7 @@ export const Search = () => {
             type: "error",
             text1: "Validation Error",
             text2: "Your height preference does not match this profile.",
-            position: "bottom",
+            position: "top",
           });
         }
       }
@@ -436,7 +436,7 @@ export const Search = () => {
         type: "error",
         text1: "Search Error",
         text2: "Something went wrong while processing your request.",
-        position: "bottom",
+        position: "top",
       });
     } finally {
       setBtnLoading(false);
@@ -456,7 +456,7 @@ export const Search = () => {
         type: "error",
         text1: "Input Error",
         text2: `Please enter at least ${MIN_SEARCH_LENGTH} characters to search.`,
-        position: "bottom",
+        position: "top",
       });
       setBtnLoading(false);
       return;
@@ -476,7 +476,7 @@ export const Search = () => {
           type: "error",
           text1: "Validation Error",
           text2: "This profile does not match your gender preference.",
-          position: "bottom",
+          position: "top",
         });
         setBtnLoading(false);
         return;
@@ -501,7 +501,7 @@ export const Search = () => {
           type: "info",
           text1: "No Matches",
           text2: errorMessage,
-          position: "bottom",
+          position: "top",
         });
       }
     } catch (error) {
@@ -510,7 +510,7 @@ export const Search = () => {
         type: "error",
         text1: "Search Error",
         text2: "Failed to fetch profile data.",
-        position: "bottom",
+        position: "top",
       });
     } finally {
       setBtnLoading(false);

@@ -181,7 +181,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           type: "success",
           text1: "Saved",
           text2: "Profile has been saved to bookmarks.",
-          position: "bottom",
+          position: "top",
         });
       } else {
         updatedBookmarkedProfiles.delete(viewedProfileId);
@@ -189,7 +189,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           type: "info",
           text1: "Unsaved",
           text2: "Profile has been removed from bookmarks.",
-          position: "bottom",
+          position: "top",
         });
       }
       setBookmarkedProfiles(updatedBookmarkedProfiles);
@@ -198,7 +198,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
         type: "error",
         text1: "Error",
         text2: "Failed to update bookmark status.",
-        position: "bottom",
+        position: "top",
       });
     }
   };
@@ -213,7 +213,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           type: "error",
           // text1: "Profile Error", // You can keep this general
           text1: data.message, // <-- This displays the exact API message
-          position: "bottom",
+          position: "top",
         });
         return; // Stop the function
       }
@@ -225,7 +225,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           type: "error",
           text1: "Error",
           text2: data.data.Message || "Limit reached to view profile",
-          position: "bottom",
+          position: "top",
         });
       }
 
@@ -259,7 +259,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           type: "error",
           text1: "Error",
           text2: serverMessage || "Something went wrong.",
-          position: "bottom",
+          position: "top",
         });
         console.error("Profile click error:", error);
       }

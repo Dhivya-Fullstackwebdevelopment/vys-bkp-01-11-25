@@ -335,6 +335,7 @@ export const ProfileDetails = () => {
   const [blockLoading, setBlockLoading] = useState(false);
   const [photoRequestSent, setPhotoRequestSent] = useState(false);
   const [photoRequestAlreadySent, setPhotoRequestAlreadySent] = useState(false); // NEW
+  const [showAlreadyRequestedModal, setShowAlreadyRequestedModal] = useState(false); // NEW
 
   const handleBlockProfile = async () => {
     try {
@@ -367,7 +368,7 @@ export const ProfileDetails = () => {
               : "Profile Blocked",
           text2:
             response.data.message || "Profile blocked successfully.",
-          position: "bottom",
+          position: "top",
         });
 
         setTimeout(() => {
@@ -379,7 +380,7 @@ export const ProfileDetails = () => {
           type: "error",
           text1: "Error",
           text2: response.data.message || "Failed to block profile.",
-          position: "bottom",
+          position: "top",
         });
       }
     } catch (error) {
@@ -388,7 +389,7 @@ export const ProfileDetails = () => {
         type: "error",
         text1: "Error",
         text2: "Something went wrong.",
-        position: "bottom",
+        position: "top",
       });
     } finally {
       setBlockLoading(false);
@@ -474,17 +475,18 @@ export const ProfileDetails = () => {
           type: 'success',
           text1: 'Success',
           text2: 'Photo Request send successfully!',
-          position: "bottom",
+          position: "top",
         });
       } else if (response.Status === 0 && response.message === "Photo interests updated") {
         // NEW: this means request was already sent earlier — not a real error
         setPhotoRequestAlreadySent(true);
-        Toast.show({
-          type: 'info',
-          text1: 'Already Requested',
-          text2: 'You have already sent a photo request for this profile.',
-          position: "bottom",
-        });
+         setShowAlreadyRequestedModal(true);
+        // Toast.show({
+        //   type: 'info',
+        //   text1: 'Already Requested',
+        //   text2: 'You have already sent a photo request for this profile.',
+        //   position: "top",
+        // });
       } else if (response.Status === 0) {
         setResponseMsg(response.message);
         setShowUpgradeModal(true);
@@ -492,14 +494,14 @@ export const ProfileDetails = () => {
           type: 'error',
           text1: 'Error',
           text2: 'Failed to send photo request!',
-          position: "bottom",
+          position: "top",
         });
       } else {
         Toast.show({
           type: 'error',
           text1: 'Error',
           text2: 'Failed to send photo request!',
-          position: "bottom",
+          position: "top",
         });
       }
     } catch (error) {
@@ -646,7 +648,7 @@ export const ProfileDetails = () => {
             type: "info",
             text1: "The profile was deleted",
             visibilityTime: 2000,
-            position: "bottom",
+            position: "top",
           });
 
           setTimeout(() => {
@@ -731,7 +733,7 @@ export const ProfileDetails = () => {
         Toast.show({
           type: "error",
           text1: "Error loading profile data",
-          position: "bottom",
+          position: "top",
         });
       } finally {
         setIsInitialLoading(false);
@@ -801,14 +803,14 @@ export const ProfileDetails = () => {
             type: 'success',
             text1: 'Success',
             text2: 'Your express interest has been sent successfully!',
-            position: "bottom",
+            position: "top",
           });
         } else {
           Toast.show({
             type: 'error',
             text1: 'error',
             text2: 'Failed to update express interest!',
-            position: "bottom",
+            position: "top",
           });
         }
       } catch (error) {
@@ -828,14 +830,14 @@ export const ProfileDetails = () => {
           type: 'success',
           text1: 'Success',
           text2: 'Your express interest has been removed successfully!',
-          position: "bottom",
+          position: "top",
         });
       } else {
         Toast.show({
           type: 'error',
           text1: 'error',
           text2: 'Failed to update express interest!',
-          position: "bottom",
+          position: "top",
         });
       }
     } catch (error) {
@@ -905,7 +907,7 @@ export const ProfileDetails = () => {
           type: "success",
           text1: "Unlocked",
           text2: "Profile photos unlocked successfully.",
-          position: "bottom",
+          position: "top",
         });
       } else {
         Toast.show({
@@ -1144,7 +1146,7 @@ export const ProfileDetails = () => {
           type: 'error',
           text1: 'Call Request Failed',
           text2: response.message || 'Mobile number not available',
-          position: "bottom",
+          position: "top",
         });
 
         if (response.message?.toLowerCase().includes("upgrade")) {
@@ -1405,6 +1407,37 @@ export const ProfileDetails = () => {
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showAlreadyRequestedModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowAlreadyRequestedModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.alreadyReqCard}>
+            <View style={styles.alreadyReqIconRing}>
+              <View style={styles.alreadyReqIconCircle}>
+                <Ionicons name="heart" size={26} color="#FFFFFF" />
+              </View>
+            </View>
+
+            <Text style={styles.alreadyReqTitle}>Already Requested</Text>
+            <Text style={styles.alreadyReqBody}>
+              You have already sent a photo request for this profile.
+            </Text>
+            <View style={styles.alreadyReqGoldRule} />
+
+            <TouchableOpacity
+              style={styles.alreadyReqBtn}
+              onPress={() => setShowAlreadyRequestedModal(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.alreadyReqBtnText}>Got it</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -3796,6 +3829,80 @@ const styles = StyleSheet.create({
   stateSuccessPillText: {
     color: Colors.success,
     fontSize: 13,
+    fontWeight: '700',
+  },
+  alreadyReqCard: {
+    backgroundColor: '#FFFFFF',
+    width: '85%',
+    maxWidth: 320,
+    borderRadius: 24,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  alreadyReqIconRing: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: 'rgba(240,195,109,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+  },
+  alreadyReqIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  alreadyReqTitle: {
+    fontSize: 19,
+    fontWeight: '700',
+    color: Colors.textDark,
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  alreadyReqBody: {
+    fontSize: 14,
+    color: Colors.textDark,
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 8,
+  },
+  alreadyReqGoldRule: {
+    marginTop: 14,
+    height: 2,
+    width: 48,
+    borderRadius: 2,
+    backgroundColor: '#F0C36D',
+  },
+  alreadyReqSubtext: {
+    marginTop: 14,
+    fontSize: 12.5,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  alreadyReqBtn: {
+    marginTop: 22,
+    height: 46,
+    width: '100%',
+    borderRadius: 23,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  alreadyReqBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '700',
   },
 });

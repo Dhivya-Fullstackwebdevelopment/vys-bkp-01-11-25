@@ -273,7 +273,7 @@ export const MyProfile = () => {
                         type: "error",
                         text1: "Error",
                         text2: "Profile ID not found",
-                        position: "bottom",
+                        position: "top",
                     });
                     return;
                 }
@@ -303,7 +303,7 @@ export const MyProfile = () => {
                         type: "success",
                         text1: "Success",
                         text2: id ? "Image replaced successfully" : "Image uploaded successfully",
-                        position: "bottom",
+                        position: "top",
                     });
                     await fetchAndSetImages();
                 } catch (error) {
@@ -312,7 +312,7 @@ export const MyProfile = () => {
                             type: "error",
                             text1: "Upload Error",
                             text2: error.message || "Failed to upload image",
-                            position: "bottom",
+                            position: "top",
                         });
                     }
                 } finally {
@@ -338,7 +338,7 @@ export const MyProfile = () => {
                     type: "success",
                     text1: "Success",
                     text2: "Image removed successfully",
-                    position: "bottom",
+                    position: "top",
                 });
             }
             await fetchAndSetImages();
@@ -347,7 +347,7 @@ export const MyProfile = () => {
                 type: "error",
                 text1: "Error",
                 text2: error.message || "Failed to remove image",
-                position: "bottom",
+                position: "top",
             });
         } finally {
             setLoading(false);
@@ -434,7 +434,7 @@ export const MyProfile = () => {
                     type: 'success',
                     text1: 'Success',
                     text2: 'Horoscope downloaded successfully',
-                    position: "bottom",
+                    position: "top",
                 });
             }
         } catch (error) {

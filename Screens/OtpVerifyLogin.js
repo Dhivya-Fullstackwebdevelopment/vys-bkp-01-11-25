@@ -160,7 +160,7 @@ export const OtpVerifyLogin = () => {
           type: "success",
           text1: "Login Successful",
           text2: "You have successfully logged in.",
-          position: "bottom",
+          position: "top",
           visibilityTime: 4000,
         });
 

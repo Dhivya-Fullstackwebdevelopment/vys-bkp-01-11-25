@@ -131,7 +131,7 @@ export const Menu = () => {
           type: "error",
           text1: "Error",
           text2: error.message || "Failed to fetch data.",
-          position: "bottom",
+          position: "top",
         });
       } finally {
         setLoading(false);

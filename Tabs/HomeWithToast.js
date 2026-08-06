@@ -127,7 +127,7 @@
 //         type: "error",
 //         text1: "Error",
 //         text2: error.message || "Failed to fetch data.",
-//         position: "bottom",
+//         position: "top",
 //       });
 //     } finally {
 //       setIsInterestsLoading(false);
@@ -205,7 +205,7 @@
 //         type: "error",
 //         text1: "Search Error",
 //         text2: "Failed to fetch search results",
-//         position: "bottom",
+//         position: "top",
 //       });
 //     } finally {
 //       setIsSearching(false);
@@ -241,7 +241,7 @@
 //         type: "error",
 //         text1: "Error",
 //         text2: "Failed to log profile visit.",
-//         position: "bottom",
+//         position: "top",
 //       });
 //     }
 //   };
@@ -1029,7 +1029,7 @@ export const HomeWithToast = () => {
         type: "error",
         text1: "Error",
         text2: error.message || "Failed to fetch data.",
-        position: "bottom",
+        position: "top",
       });
     } finally {
       setIsInterestsLoading(false);
@@ -1108,7 +1108,7 @@ export const HomeWithToast = () => {
         type: "error",
         text1: "Search Error",
         text2: "Failed to fetch search results",
-        position: "bottom",
+        position: "top",
       });
     } finally {
       setIsSearching(false);
@@ -1145,7 +1145,7 @@ export const HomeWithToast = () => {
         type: "error",
         text1: "Error",
         text2: "Failed to log profile visit.",
-        position: "bottom",
+        position: "top",
       });
     }
   };

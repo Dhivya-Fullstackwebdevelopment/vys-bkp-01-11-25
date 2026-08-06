@@ -209,7 +209,7 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
                     type: "error",
                     // text1: "Profile Error", // You can keep this general
                     text1: profileCheckResponse.message, // <-- This displays the exact API message
-                    position: "bottom",
+                    position: "top",
                 });
                 return; // Stop the function
             }
@@ -221,7 +221,7 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
                 //     type: "success",
                 //     text1: "Profile Viewed",
                 //     text2: `You have viewed profile ${viewedProfileId}.`,
-                //     position: "bottom",
+                //     position: "top",
                 // });
                 // navigation.navigate("ProfileDetails", { id });
                 navigation.navigate("ProfileDetails", {
@@ -233,7 +233,7 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
                     type: "error",
                     text1: "Error",
                     text2: "Failed to log profile visit.",
-                    position: "bottom",
+                    position: "top",
                 });
             }
         } catch (error) {
@@ -252,7 +252,7 @@ export const ViewedProfileCard = ({ sortBy = "datetime" }) => {
                     type: "error",
                     text1: "Error",
                     text2: "Unable to open profile. Please check your connection.",
-                    position: "bottom",
+                    position: "top",
                 });
             }
         }

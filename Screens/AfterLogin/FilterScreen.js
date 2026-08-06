@@ -85,7 +85,7 @@ export const FilterScreen = () => {
                     type: "success",
                     text1: "Saved",
                     text2: "Profile has been saved to bookmarks.",
-                    position: "bottom",
+                    position: "top",
                 });
             } else {
                 updatedBookmarkedProfiles.delete(viewedProfileId);
@@ -93,7 +93,7 @@ export const FilterScreen = () => {
                     type: "info",
                     text1: "Unsaved",
                     text2: "Profile has been removed from bookmarks.",
-                    position: "bottom",
+                    position: "top",
                 });
             }
             setBookmarkedProfiles(updatedBookmarkedProfiles);
@@ -109,7 +109,7 @@ export const FilterScreen = () => {
                 type: "error",
                 text1: "Error",
                 text2: "Failed to update bookmark status.",
-                position: "bottom",
+                position: "top",
             });
         }
     };
@@ -130,7 +130,7 @@ export const FilterScreen = () => {
                 Toast.show({
                     type: "error",
                     text1: profileCheckResponse.message || "Unable to view profile",
-                    position: "bottom",
+                    position: "top",
                 });
                 return;
             }
@@ -144,7 +144,7 @@ export const FilterScreen = () => {
                     type: "error",
                     text1: "Error",
                     text2: "Failed to log profile visit.",
-                    position: "bottom",
+                    position: "top",
                 });
             }
         } catch (error) {
@@ -158,7 +158,7 @@ export const FilterScreen = () => {
                     type: "error",
                     text1: "Error",
                     text2: serverMessage || "Something went wrong.",
-                    position: "bottom",
+                    position: "top",
                 });
             }
         }
@@ -187,7 +187,7 @@ export const FilterScreen = () => {
                         type: "info",
                         text1: "Not Found",
                         text2: searchResults?.message || "Profile ID/Name not found.",
-                        position: "bottom",
+                        position: "top",
                     });
                     setHasMorePages(false);
                 }
@@ -226,7 +226,7 @@ export const FilterScreen = () => {
                             type: "info",
                             text1: "No Matches",
                             text2: "No profiles matched your filter criteria.",
-                            position: "bottom",
+                            position: "top",
                         });
                     }
                 }
@@ -248,7 +248,7 @@ export const FilterScreen = () => {
                 type: "error",
                 text1: "Search Error",
                 text2: "An error occurred while fetching results.",
-                position: "bottom",
+                position: "top",
             });
             // On error, prevent further load attempts
             setHasMorePages(false);

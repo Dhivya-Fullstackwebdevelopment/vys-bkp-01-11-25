@@ -360,7 +360,7 @@ export const ProfileDetails = () => {
           type: 'success',
           text1: 'Success',
           text2: 'Photo Request send successfully!',
-          position: "bottom",
+          position: "top",
         });
       } else if (response.Status === 0) {
         console.log("Photo request failed:", response);
@@ -370,14 +370,14 @@ export const ProfileDetails = () => {
           type: 'error',
           text1: 'Error',
           text2: 'Failed to send photo request!',
-          position: "bottom",
+          position: "top",
         });
       } else {
         Toast.show({
           type: 'error',
           text1: 'Error',
           text2: 'Failed to send photo request!',
-          position: "bottom",
+          position: "top",
         });
       }
       // Handle success notification here
@@ -607,14 +607,14 @@ export const ProfileDetails = () => {
             type: 'success',
             text1: 'Success',
             text2: 'Your express interest has been sent successfully!',
-            position: "bottom",
+            position: "top",
           });
         } else {
           Toast.show({
             type: 'error',
             text1: 'error',
             text2: 'Failed to update express interest!',
-            position: "bottom",
+            position: "top",
           });
         }
       } catch (error) {
@@ -636,14 +636,14 @@ export const ProfileDetails = () => {
           type: 'success',
           text1: 'Success',
           text2: 'Your express interest has been removed successfully!',
-          position: "bottom",
+          position: "top",
         });
       } else {
         Toast.show({
           type: 'error',
           text1: 'error',
           text2: 'Failed to update express interest!',
-          position: "bottom",
+          position: "top",
         });
       }
     } catch (error) {
@@ -652,7 +652,7 @@ export const ProfileDetails = () => {
         type: 'error',
         text1: 'error',
         text2: 'Failed to update express interest!',
-        position: "bottom",
+        position: "top",
       });
     }
   };

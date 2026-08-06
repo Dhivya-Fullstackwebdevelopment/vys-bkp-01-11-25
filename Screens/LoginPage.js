@@ -77,7 +77,7 @@ export const LoginPage = () => {
   //         type: "success",
   //         text1: "Login Successful",
   //         text2: "You have successfully logged in.",
-  //         position: "bottom",
+  //         position: "top",
   //         visibilityTime: 4000,
   //       });
 
@@ -155,7 +155,7 @@ export const LoginPage = () => {
           type: "success",
           text1: "Login Successful",
           text2: "You have successfully logged in.",
-          position: "bottom",
+          position: "top",
           visibilityTime: 4000,
         });
 

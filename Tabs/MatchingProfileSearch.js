@@ -171,7 +171,7 @@ const MatchingProfileSearch = () => {
           type: "success",
           text1: "Saved",
           text2: "Profile has been saved to bookmarks.",
-          position: "bottom",
+          position: "top",
         });
       } else {
         updatedBookmarkedProfiles.delete(profileId);
@@ -179,7 +179,7 @@ const MatchingProfileSearch = () => {
           type: "info",
           text1: "Unsaved",
           text2: "Profile has been removed from bookmarks.",
-          position: "bottom",
+          position: "top",
         });
       }
 
@@ -197,7 +197,7 @@ const MatchingProfileSearch = () => {
         type: "error",
         text1: "Error",
         text2: "Failed to update bookmark status.",
-        position: "bottom",
+        position: "top",
       });
     }
   };

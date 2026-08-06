@@ -56,7 +56,7 @@ export const DashBoard = () => {
         type: "error",
         text1: "Error",
         text2: error.message || "Failed to fetch data.",
-        position: "bottom",
+        position: "top",
       });
     } finally {
       setLoading(false);
@@ -104,14 +104,14 @@ export const DashBoard = () => {
             type: "success",
             text1: "Accepted",
             text2: "Interest Accepted.",
-            position: "bottom",
+            position: "top",
           });
         } else if (status === "3") {
           Toast.show({
             type: "error",
             text1: "Rejected",
             text2: "Interest Rejected.",
-            position: "bottom",
+            position: "top",
           });
         }
       } else {
@@ -121,7 +121,7 @@ export const DashBoard = () => {
           type: "error",
           text1: "Error",
           text2: "Failed to update profile interest.",
-          position: "bottom",
+          position: "top",
         });
       }
     } catch (error) {
@@ -131,7 +131,7 @@ export const DashBoard = () => {
         type: "error",
         text1: "Error",
         text2: "Something went wrong. Please try again.",
-        position: "bottom",
+        position: "top",
       });
     } finally {
       setLoading(false); // Re-enable buttons

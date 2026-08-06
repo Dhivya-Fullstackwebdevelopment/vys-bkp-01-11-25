@@ -410,14 +410,14 @@ export const markProfileWishlist = async (profilebookmark_to, newStatus) => {
                 type: "success",
                 text1: "Saved",
                 text2: "Profile has been saved to bookmarks.",
-                position: "bottom",
+                position: "top",
             });
         } else {
             Toast.show({
                 type: "info",
                 text1: "Unsaved",
                 text2: "Profile has been removed from bookmarks.",
-                position: "bottom",
+                position: "top",
             });
         }
     } catch (error) {
@@ -426,7 +426,7 @@ export const markProfileWishlist = async (profilebookmark_to, newStatus) => {
             type: "error",
             text1: "Error",
             text2: "Failed to update bookmark status.",
-            position: "bottom",
+            position: "top",
         });
         throw error;
     }
@@ -701,7 +701,7 @@ export const getAdvanceSearchResults = async (perPage, pageNumber) => {
         type: "error",
         text1: "No Results",
         text2: response.data.message || "No records found.",
-        position: "bottom",
+        position: "top",
       });
       return response.data;
     }
@@ -716,7 +716,7 @@ export const getAdvanceSearchResults = async (perPage, pageNumber) => {
         type: "error",
         text1: "No Results",
         text2: errorMessage,
-        position: "bottom",
+        position: "top",
       });
 
       // Return structured response instead of throwing
@@ -728,7 +728,7 @@ export const getAdvanceSearchResults = async (perPage, pageNumber) => {
       type: "error",
       text1: "Network Error",
       text2: "Something went wrong. Please try again.",
-      position: "bottom",
+      position: "top",
     });
     return null;
   }

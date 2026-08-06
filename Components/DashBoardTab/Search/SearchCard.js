@@ -188,7 +188,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
           type: "success",
           text1: "Saved",
           text2: "Profile saved to bookmarks.",
-          position: "bottom",
+          position: "top",
         });
       } else {
         updated.delete(viewedProfileId);
@@ -196,7 +196,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
           type: "info",
           text1: "Unsaved",
           text2: "Profile removed from bookmarks.",
-          position: "bottom",
+          position: "top",
         });
       }
       setBookmarkedProfiles(updated);
@@ -212,7 +212,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
         type: "error",
         text1: "Error",
         text2: "Failed to update bookmark.",
-        position: "bottom",
+        position: "top",
       });
     }
   };
@@ -233,7 +233,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
         Toast.show({
           type: "error",
           text1: profileCheckResponse.message || "Access Denied",
-          position: "bottom",
+          position: "top",
         });
         return;
       }
@@ -254,7 +254,7 @@ export const SearchCard = ({ initialResults = [], initialTotalCount = 0 }) => {
           type: "error",
           text1: "Error",
           text2: "Unable to open profile. Please check your connection.",
-          position: "bottom",
+          position: "top",
         });
       }
     }

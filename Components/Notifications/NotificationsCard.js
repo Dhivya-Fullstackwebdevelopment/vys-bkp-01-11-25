@@ -48,7 +48,7 @@ export const NotificationsCard = () => {
           type: "success",
           text1: "All notifications cleared.",
           // text2: "Profile has been saved to bookmarks.",
-          position: "bottom",
+          position: "top",
         });
       } else {
         // Alert.alert("Info", response.data.message || "No unread notifications found");

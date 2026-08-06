@@ -150,7 +150,7 @@ export const MembershipPlan = ({ navigation, route }) => {
           type: "success",
           text1: "Success",
           text2: "Free packages updated successfully",
-          position: "bottom",
+          position: "top",
           visibilityTime: 4000,
         });
 

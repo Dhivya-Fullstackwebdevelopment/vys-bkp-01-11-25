@@ -100,7 +100,7 @@ export const OtherSettings = () => {
     //             Toast.show({
     //                 type: "error",
     //                 text1: "Hide Reason is required",
-    //                 position: "bottom",
+    //                 position: "top",
     //             });
     //             return;
     //         }
@@ -109,7 +109,7 @@ export const OtherSettings = () => {
     //             Toast.show({
     //                 type: "error",
     //                 text1: "Profile ID is required",
-    //                 position: "bottom",
+    //                 position: "top",
     //             });
     //             return;
     //         }
@@ -118,7 +118,7 @@ export const OtherSettings = () => {
     //             Toast.show({
     //                 type: "error",
     //                 text1: "Engagement Date is required",
-    //                 position: "bottom",
+    //                 position: "top",
     //             });
     //             return;
     //         }
@@ -127,7 +127,7 @@ export const OtherSettings = () => {
     //             Toast.show({
     //                 type: "error",
     //                 text1: "Please enter reason",
-    //                 position: "bottom",
+    //                 position: "top",
     //             });
     //             return;
     //         }
@@ -258,7 +258,7 @@ export const OtherSettings = () => {
     //                 text2:
     //                     response?.data?.message ||
     //                     "Failed to hide profile",
-    //                 position: "bottom",
+    //                 position: "top",
     //             });
     //         }
     //     } catch (error) {
@@ -273,7 +273,7 @@ export const OtherSettings = () => {
     //             text2:
     //                 error?.response?.data?.message ||
     //                 "Something went wrong",
-    //             position: "bottom",
+    //             position: "top",
     //         });
     //     } finally {
     //         setHideLoading(false);
@@ -300,7 +300,7 @@ export const OtherSettings = () => {
                 Toast.show({
                     type: "error",
                     text1: "Hide Reason is required",
-                    position: "bottom",
+                    position: "top",
                 });
                 return;
             }
@@ -309,7 +309,7 @@ export const OtherSettings = () => {
                 Toast.show({
                     type: "error",
                     text1: "Profile ID is required",
-                    position: "bottom",
+                    position: "top",
                 });
                 return;
             }
@@ -318,7 +318,7 @@ export const OtherSettings = () => {
                 Toast.show({
                     type: "error",
                     text1: "Engagement Date is required",
-                    position: "bottom",
+                    position: "top",
                 });
                 return;
             }
@@ -327,7 +327,7 @@ export const OtherSettings = () => {
                 Toast.show({
                     type: "error",
                     text1: "Please enter reason",
-                    position: "bottom",
+                    position: "top",
                 });
                 return;
             }
@@ -439,7 +439,7 @@ export const OtherSettings = () => {
                     type: "error",
                     text1: "Error",
                     text2: response?.data?.message || "Failed to hide profile",
-                    position: "bottom",
+                    position: "top",
                 });
             }
         } catch (error) {
@@ -448,7 +448,7 @@ export const OtherSettings = () => {
                 type: "error",
                 text1: "Error",
                 text2: error?.response?.data?.message || "Something went wrong",
-                position: "bottom",
+                position: "top",
             });
         } finally {
             setHideLoading(false);
@@ -1172,7 +1172,7 @@ export const OtherSettings = () => {
                     type: "success",
                     text1: "Account Deleted",
                     text2: "Your account has been deleted successfully.",
-                    position: "bottom",
+                    position: "top",
                 });
 
                 setTimeout(async () => {
@@ -1188,7 +1188,7 @@ export const OtherSettings = () => {
                     type: "error",
                     text1: "Error",
                     text2: message || "Failed to delete account",
-                    position: "bottom",
+                    position: "top",
                 });
             }
         } catch (error) {
@@ -1216,7 +1216,7 @@ export const OtherSettings = () => {
                         type: "success",
                         text1: "Account Status",
                         text2: "Account is already processed or removed.",
-                        position: "bottom",
+                        position: "top",
                     });
 
                     setTimeout(async () => {
@@ -1242,7 +1242,7 @@ export const OtherSettings = () => {
                 type: "error",
                 text1: "Backend Error",
                 text2: errorMsg,
-                position: "bottom",
+                position: "top",
             });
         } finally {
             setDeleteLoading(false);
