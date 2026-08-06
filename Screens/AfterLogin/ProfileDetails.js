@@ -1580,7 +1580,7 @@ export const ProfileDetails = () => {
           <View style={styles.card}>
             <View style={styles.cardHeaderRow}>
               <View style={styles.sectionIconCircle}>
-                <Ionicons name="sparkles" size={16} color={Colors.primary} />
+                <Ionicons name="sparkles" size={16} color={Colors.matchingcirclecolor} />
               </View>
               <Text style={styles.cardSectionTitle}>Snapshot</Text>
             </View>
@@ -1633,7 +1633,7 @@ export const ProfileDetails = () => {
             <View style={styles.card}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.sectionIconCircle}>
-                  <Ionicons name="person-outline" size={16} color={Colors.primary} />
+                  <Ionicons name="person-outline" size={16} color={Colors.matchingcirclecolor} />
                 </View>
                 <Text style={styles.cardSectionTitle}>Basic Information</Text>
               </View>
@@ -1655,7 +1655,7 @@ export const ProfileDetails = () => {
             <View style={styles.card}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.sectionIconCircle}>
-                  <Ionicons name="heart-outline" size={16} color={Colors.primary} />
+                  <Ionicons name="heart-outline" size={16} color={Colors.matchingcirclecolor} />
                 </View>
                 <Text style={styles.cardSectionTitle}>Lifestyle</Text>
               </View>
@@ -1676,7 +1676,7 @@ export const ProfileDetails = () => {
             <View style={styles.card}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.sectionIconCircle}>
-                  <Ionicons name="school-outline" size={16} color={Colors.primary} />
+                  <Ionicons name="school-outline" size={16} color={Colors.matchingcirclecolor} />
                 </View>
                 <Text style={styles.cardSectionTitle}>Education</Text>
               </View>
@@ -1689,7 +1689,7 @@ export const ProfileDetails = () => {
             <View style={styles.card}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.sectionIconCircle}>
-                  <Ionicons name="briefcase-outline" size={16} color={Colors.primary} />
+                  <Ionicons name="briefcase-outline" size={16} color={Colors.matchingcirclecolor} />
                 </View>
                 <Text style={styles.cardSectionTitle}>Career</Text>
               </View>
@@ -1715,7 +1715,7 @@ export const ProfileDetails = () => {
             <View style={styles.card}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.sectionIconCircle}>
-                  <Ionicons name="people-outline" size={16} color={Colors.primary} />
+                  <Ionicons name="people-outline" size={16} color={Colors.matchingcirclecolor} />
                 </View>
                 <Text style={styles.cardSectionTitle}>Family Details</Text>
               </View>
@@ -1744,7 +1744,7 @@ export const ProfileDetails = () => {
             <View style={styles.card}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.sectionIconCircle}>
-                  <Ionicons name="star-outline" size={16} color={Colors.primary} />
+                  <Ionicons name="star-outline" size={16} color={Colors.matchingcirclecolor} />
                 </View>
                 <Text style={styles.cardSectionTitle}>Horoscope</Text>
                 <View style={styles.availableBadge}>
@@ -2845,9 +2845,9 @@ const styles = StyleSheet.create({
     width: '48.5%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.selectedBg,
+    backgroundColor: Colors.snapshotbg,
     padding: 10,
-    borderRadius: 14,
+    borderRadius: 25,
     gap: 8,
   },
   factIconBg: {
@@ -2911,7 +2911,7 @@ const styles = StyleSheet.create({
   },
   rowValue: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textDark,
     flex: 1.2,
     textAlign: 'right',
