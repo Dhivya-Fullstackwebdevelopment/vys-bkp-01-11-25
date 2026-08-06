@@ -54,7 +54,7 @@ export const Colors = {
   chipInactiveText: "#71717A",
   
   // Containers
-  iconContainerBg: "#E8D5D6",
+  iconContainerBg: "#FFDBD6",
   goldContainer: "#F2DEAC",
   selectedBg: "#FBF5ED",
   
