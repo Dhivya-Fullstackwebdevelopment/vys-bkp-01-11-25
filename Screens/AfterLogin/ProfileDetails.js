@@ -3164,7 +3164,7 @@ const styles = StyleSheet.create({
   },
   factValue: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textDark,
     marginTop: 1,
   },
