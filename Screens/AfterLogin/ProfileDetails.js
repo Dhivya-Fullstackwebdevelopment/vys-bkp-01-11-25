@@ -2974,7 +2974,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6EFE5',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 14,
+    borderRadius: 25,
     gap: 10,
   },
   statusChipTitle: {
