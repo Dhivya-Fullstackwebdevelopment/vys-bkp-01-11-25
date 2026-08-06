@@ -70,7 +70,7 @@ const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 const { width } = Dimensions.get('window');
 
 // ─── TAB DEFINITIONS ──────────────────────────────────────────────────────────
-const TABS = ["Personal", "Work", "Family", "Horoscope", "Contact"];
+const TABS = ["Personal", "Work & Education", "Family", "Horoscope", "Contact"];
 
 function matchLabel(score) {
   const num = parseInt(score, 10) || 0;
@@ -159,7 +159,7 @@ export const ProfileDetails = () => {
   const mainScrollRef = useRef(null);
   const sectionRefs = {
     Personal: useRef(null),
-    Work: useRef(null),
+    "Work & Education": useRef(null),
     Family: useRef(null),
     Horoscope: useRef(null),
     Contact: useRef(null),
@@ -531,6 +531,7 @@ export const ProfileDetails = () => {
   }, []);
 
   const toggleModal = () => {
+     bottomSheetRef.current?.close();
     setModalVisible(!isModalVisible);
   };
 
@@ -993,6 +994,7 @@ export const ProfileDetails = () => {
   };
 
   const openPopup = () => {
+    bottomSheetRef.current?.close();
     setShowVysassist(!showVysassist);
   };
 
@@ -1853,9 +1855,9 @@ export const ProfileDetails = () => {
 
           {/* ── Work ── */}
           <View
-            ref={sectionRefs.Work}
+            ref={sectionRefs['Work & Education']}
             onLayout={(e) => {
-              sectionOffsets.current['Work'] = e.nativeEvent.layout.y;
+              sectionOffsets.current['Work & Education'] = e.nativeEvent.layout.y;
             }}
           >
             <View style={styles.card}>
