@@ -1333,8 +1333,6 @@ export const ProfileDetails = () => {
 
   const isBookmarked = bookmarkedProfiles.has(basic_details?.profile_id);
 
-  // ─── TAB BAR (shared between inline and sticky) ──────────────────────────────
-// ─── TAB BAR (shared between inline and sticky) ──────────────────────────────
   const renderTabBar = (scrollRef) => (
     <ScrollView
       ref={scrollRef}
@@ -2296,7 +2294,7 @@ export const ProfileDetails = () => {
                   onPress={toggleModal}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.buttonText}>Close</Text>
+                  <Text style={styles.closebuttonText}>Close</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -2375,7 +2373,7 @@ export const ProfileDetails = () => {
                   setExpressInterestError('');
                 }}
               >
-                <Text style={styles.buttonText}>Close</Text>
+                <Text style={styles.closebuttonText}>Close</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -2514,7 +2512,7 @@ export const ProfileDetails = () => {
                           onPress={closePopupnew}
                           activeOpacity={0.7}
                         >
-                          <Text style={styles.buttonText}>Close</Text>
+                          <Text style={styles.closebuttonText}>Close</Text>
                         </TouchableOpacity>
                       </View>
                     </>
@@ -2700,7 +2698,7 @@ export const ProfileDetails = () => {
                     onPress={closePopupnew}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.buttonText}>Close</Text>
+                    <Text style={styles.closebuttonText}>Close</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -2774,7 +2772,15 @@ export const ProfileDetails = () => {
         onRequestClose={() => setShowLanguagePopup(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.passwordCard}>
+          <View style={{
+            backgroundColor: '#fff',
+            width: '85%',
+            borderRadius: 16,
+            padding: 20,
+            paddingBottom: 24,
+            elevation: 5,
+          }}>
+            {/* Close button */}
             <TouchableOpacity
               style={{ alignSelf: 'flex-end' }}
               onPress={() => setShowLanguagePopup(false)}
@@ -2782,39 +2788,49 @@ export const ProfileDetails = () => {
               <Ionicons name="close" size={24} color={Colors.textMuted} />
             </TouchableOpacity>
 
-            <Text style={[styles.title, { textAlign: 'center' }]}>Select Language</Text>
+            {/* Title */}
+            <Text style={[styles.title, { textAlign: 'center', marginBottom: 16 }]}>
+              Select Language
+            </Text>
 
-            <View style={{ marginVertical: 20 }}>
-              <TouchableOpacity
-                style={styles.checkboxContainerNew2}
-                onPress={() => setSelectedPdfLanguage("english")}
-              >
-                <MaterialIcons
-                  name={selectedPdfLanguage === "english" ? "radio-button-checked" : "radio-button-unchecked"}
-                  size={24}
-                  color={Colors.primary}
-                />
-                <Text style={{ fontSize: 16, marginLeft: 10, color: Colors.textDark }}>English</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.checkboxContainerNew2}
-                onPress={() => setSelectedPdfLanguage("tamil")}
-              >
-                <MaterialIcons
-                  name={selectedPdfLanguage === "tamil" ? "radio-button-checked" : "radio-button-unchecked"}
-                  size={24}
-                  color={Colors.primary}
-                />
-                <Text style={{ fontSize: 16, marginLeft: 10, color: Colors.textDark }}>Tamil</Text>
-              </TouchableOpacity>
-            </View>
-
+            {/* English option */}
             <TouchableOpacity
-              style={[styles.submitButtonpop, { borderRadius: 20, padding: 12 }]}
+              style={[styles.checkboxContainerNew2, { marginBottom: 16 }]}
+              onPress={() => setSelectedPdfLanguage("english")}
+            >
+              <MaterialIcons
+                name={selectedPdfLanguage === "english" ? "radio-button-checked" : "radio-button-unchecked"}
+                size={24}
+                color={Colors.primary}
+              />
+              <Text style={{ fontSize: 16, marginLeft: 10, color: Colors.textDark }}>English</Text>
+            </TouchableOpacity>
+
+            {/* Tamil option */}
+            <TouchableOpacity
+              style={[styles.checkboxContainerNew2, { marginBottom: 24 }]}
+              onPress={() => setSelectedPdfLanguage("tamil")}
+            >
+              <MaterialIcons
+                name={selectedPdfLanguage === "tamil" ? "radio-button-checked" : "radio-button-unchecked"}
+                size={24}
+                color={Colors.primary}
+              />
+              <Text style={{ fontSize: 16, marginLeft: 10, color: Colors.textDark }}>Tamil</Text>
+            </TouchableOpacity>
+
+            {/* Submit — inline styles avoid the flex:1 collapse */}
+            <TouchableOpacity
+              style={{
+                backgroundColor: Colors.primary,
+                borderRadius: 20,
+                paddingVertical: 12,
+                alignItems: 'center',
+                width: '100%',
+              }}
               onPress={handleDownloadPdf}
             >
-              <Text style={styles.buttonText}>Submit</Text>
+              <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 }}>Submit</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -3699,6 +3715,11 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  closebuttonText: {
+    color: '#000000',
     fontWeight: 'bold',
     fontSize: 14,
   },
