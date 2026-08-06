@@ -1932,7 +1932,7 @@ export const ProfileDetails = () => {
                     onPress={() => setShowInterestModal(true)}
                   >
                     <LinearGradient
-                      colors={["#BE3639", "#BE3639"]}
+                      colors={[Colors.primary, Colors.primary]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.linearGradient}
@@ -2242,7 +2242,7 @@ export const ProfileDetails = () => {
                         <MaterialCommunityIcons
                           name="close"
                           size={24}
-                          color="#4F515D"
+                          color={Colors.textMuted}   // was "#4F515D"
                           onPress={closePopupnew}
                         />
                       </View>
@@ -2496,31 +2496,24 @@ export const ProfileDetails = () => {
         animationType="fade"
         onRequestClose={() => setShowVysassistErrorModal(false)}
       >
-        <View style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: 'rgba(0,0,0,0.5)'
-        }}>
+        <View style={styles.modalOverlay}>
           <View style={{
-            backgroundColor: 'white',
+            backgroundColor: Colors.card,
             borderRadius: 12,
             padding: 24,
             width: '80%',
             alignItems: 'center',
             elevation: 10,
           }}>
-            {/* ✅ Close X button */}
             <TouchableOpacity
               onPress={() => setShowVysassistErrorModal(false)}
               style={{ position: 'absolute', top: 12, right: 12 }}
             >
-              <MaterialIcons name="warning" size={32} color="white" />
+              <MaterialIcons name="warning" size={32} color={Colors.destructive} />
             </TouchableOpacity>
 
-            {/* ✅ Info triangle icon like the image */}
             <View style={{
-              backgroundColor: '#ED1E24',
+              backgroundColor: Colors.destructive,   // was '#ED1E24'
               borderRadius: 50,
               padding: 14,
               marginBottom: 16,
@@ -2529,21 +2522,19 @@ export const ProfileDetails = () => {
               <MaterialIcons name="info" size={32} color="white" />
             </View>
 
-            {/* ✅ Message */}
             <Text style={{
               fontSize: 16,
               fontWeight: 'bold',
-              color: '#282C3F',
+              color: Colors.textDark,   // was '#282C3F'
               textAlign: 'center',
               marginBottom: 20,
             }}>
               {vysassistErrorMsg}
             </Text>
 
-            {/* ✅ OK Button */}
             <TouchableOpacity
               style={{
-                backgroundColor: '#ED1E24',
+                backgroundColor: Colors.destructive,   // was '#ED1E24'
                 borderRadius: 8,
                 paddingVertical: 12,
                 paddingHorizontal: 40,
