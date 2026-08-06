@@ -2097,6 +2097,51 @@ export const ProfileDetails = () => {
         </View>
       </ScrollView>
 
+      <View style={styles.navigationContainer} pointerEvents="box-none">
+        {/* Previous */}
+        <TouchableOpacity
+          onPress={goToPreviousProfile}
+          disabled={currentProfileIndex === 0 || isLoadingProfiles}
+          style={[
+            styles.navButton,
+            (currentProfileIndex === 0 || isLoadingProfiles) && styles.disabledButton,
+          ]}
+        >
+          <Ionicons
+            name="chevron-back-circle"
+            size={42}
+            color={
+              currentProfileIndex === 0 || isLoadingProfiles
+                ? "#D3D3D3"
+                : Colors.primary
+            }
+          />
+        </TouchableOpacity>
+
+        {/* Next */}
+        <TouchableOpacity
+          onPress={goToNextProfile}
+          disabled={
+            currentProfileIndex === profileIds.length - 1 || isLoadingProfiles
+          }
+          style={[
+            styles.navButton,
+            (currentProfileIndex === profileIds.length - 1 || isLoadingProfiles) &&
+            styles.disabledButton,
+          ]}
+        >
+          <Ionicons
+            name="chevron-forward-circle"
+            size={42}
+            color={
+              currentProfileIndex === profileIds.length - 1 || isLoadingProfiles
+                ? "#D3D3D3"
+                : Colors.primary
+            }
+          />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.stickyBottomBar}>
         <View style={styles.bottomBarCard}>
 
@@ -3970,5 +4015,27 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
+  },
+  navigationContainer: {
+    position: "absolute",
+    top: "50%",
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    zIndex: 1000,
+  },
+
+  navButton: {
+    width: 44,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  disabledButton: {
+    opacity: 0.5,
   },
 });
