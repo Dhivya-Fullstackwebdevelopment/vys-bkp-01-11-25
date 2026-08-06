@@ -66,12 +66,31 @@ import { Colors, rs } from "../../Reusable/Theme";
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 const { width } = Dimensions.get('window');
 
+// ─── TAB DEFINITIONS ──────────────────────────────────────────────────────────
+const TABS = ["Personal", "Work", "Family", "Horoscope", "Contact"];
+
 function matchLabel(score) {
   const num = parseInt(score, 10) || 0;
   if (num >= 85) return "Excellent Match";
   if (num >= 70) return "Good Match";
   return "Average Match";
 }
+
+// ─── ACTIVE TAB INDICATOR (partial circle arc) ────────────────────────────────
+const TabProgressCircle = ({ active }) => {
+  const size = 6;
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: active ? '#FFFFFF' : 'transparent',
+        marginTop: 4,
+      }}
+    />
+  );
+};
 
 const ProfileDetailsShimmer = () => {
   return (
@@ -100,7 +119,24 @@ export const ProfileDetails = () => {
   const [amsaGrid, setAmsaGrid] = useState([]);
   const [storedPlanId, setStoredPlanId] = useState(null);
 
+  // ─── NEW: refs for scroll-to-section ────────────────────────────────────────
+  const mainScrollRef = useRef(null);
+  const sectionRefs = {
+    Personal: useRef(null),
+    Work: useRef(null),
+    Family: useRef(null),
+    Horoscope: useRef(null),
+    Contact: useRef(null),
+  };
+  const sectionOffsets = useRef({});
+  const tabBarRef = useRef(null);
+  const tabBarOffset = useRef(0);
+  const [stickyTabTop, setStickyTabTop] = useState(0);
+  const [isTabSticky, setIsTabSticky] = useState(false);
   const [activeTab, setActiveTab] = useState("Personal");
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const isManualScroll = useRef(false);
+  // ────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -739,6 +775,41 @@ export const ProfileDetails = () => {
     }
   };
 
+  // ─── TAB CLICK → SCROLL TO SECTION ─────────────────────────────────────────
+  const handleTabPress = (tab) => {
+    setActiveTab(tab);
+    isManualScroll.current = true;
+    const offset = sectionOffsets.current[tab];
+    if (offset !== undefined && mainScrollRef.current) {
+      mainScrollRef.current.scrollTo({ y: offset, animated: true });
+      // release manual lock after animation
+      setTimeout(() => { isManualScroll.current = false; }, 600);
+    }
+  };
+
+  // ─── SCROLL HANDLER: sticky tab + active section detection ──────────────────
+  const handleScroll = (event) => {
+    const y = event.nativeEvent.contentOffset.y;
+
+    // Sticky detection
+    if (tabBarOffset.current > 0) {
+      setIsTabSticky(y >= tabBarOffset.current);
+    }
+
+    // Active tab detection (only when user scrolls, not on tab click)
+    if (!isManualScroll.current) {
+      let detected = TABS[0];
+      for (const tab of TABS) {
+        const off = sectionOffsets.current[tab];
+        if (off !== undefined && y >= off - 80) {
+          detected = tab;
+        }
+      }
+      setActiveTab(detected);
+    }
+  };
+  // ────────────────────────────────────────────────────────────────────────────
+
   if (isInitialLoading || !profileData) {
     return <ProfileDetailsShimmer />;
   }
@@ -1018,7 +1089,6 @@ export const ProfileDetails = () => {
 
   const renderBottomSheetContent = () => {
     const options = [
-      // { icon: 'phone', text: 'Call', onPress: handlePhoneCall, type: 'MaterialCommunityIcons' },
       { icon: 'document-text', text: 'Personal Notes', onPress: toggleModal, type: 'Ionicons' },
       ...(!isPlan16
         ? [{ icon: "account-voice", text: "Vys Assist", onPress: openPopup, type: "MaterialCommunityIcons" }]
@@ -1031,11 +1101,6 @@ export const ProfileDetails = () => {
         },
         type: 'Ionicons'
       },
-      // {
-      //   icon: 'star', text: 'Show Matching Report',
-      //   onPress: handleDownloadMatchingReport,
-      //   type: 'MaterialIcons'
-      // },
       {
         icon: 'block', text: 'Block Profile', onPress: () => {
           bottomSheetRef.current.close();
@@ -1098,7 +1163,6 @@ export const ProfileDetails = () => {
   const primaryImageUri = getSafeImage((fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0]);
   const isLocked = !isProfileUnlocked && photoProtection === 1;
 
-  // Helper to render a detail row – now also skips "0" values (like old code)
   const renderDetailRow = (label, value) => {
     if (!value || value === "" || value === "0") return null;
     return (
@@ -1126,8 +1190,42 @@ export const ProfileDetails = () => {
 
   const isBookmarked = bookmarkedProfiles.has(basic_details?.profile_id);
 
+  // ─── TAB BAR (shared between inline and sticky) ──────────────────────────────
+  const renderTabBar = () => (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{ paddingRight: 10, paddingLeft: 2 }}
+    >
+      {TABS.map((tab) => {
+        const isActive = activeTab === tab;
+        return (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.tabPill, isActive && styles.tabPillActive]}
+            onPress={() => handleTabPress(tab)}
+          >
+            <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>
+              {tab}
+            </Text>
+            {/* <TabProgressCircle active={isActive} /> */}
+          </TouchableOpacity>
+        );
+      })}
+    </ScrollView>
+  );
+  // ────────────────────────────────────────────────────────────────────────────
+
   return (
     <View style={styles.mainContainer}>
+
+      {/* ─── STICKY TAB BAR (rendered above scroll, shown when sticky) ─── */}
+      {isTabSticky && (
+        <View style={[styles.stickyTabBarWrapper, { top: Platform.OS === 'android' ? 0 : 44 }]}>
+          {renderTabBar()}
+        </View>
+      )}
+
       <Modal
         transparent={true}
         visible={blockModalVisible}
@@ -1192,7 +1290,13 @@ export const ProfileDetails = () => {
         </View>
       </Modal>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 110 }}>
+      <ScrollView
+        ref={mainScrollRef}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 110 }}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
         {/* ===== HERO IMAGE HEADER ===== */}
         <View style={styles.heroContainer}>
           {isLocked ? (
@@ -1265,9 +1369,8 @@ export const ProfileDetails = () => {
             </View>
           )}
 
-          {/* ===== UPDATED TOP BAR ===== */}
+          {/* ===== TOP BAR ===== */}
           <View style={styles.headerOverlay}>
-            {/* Left: Back button + Profile ID chip */}
             <View style={styles.leftHeaderGroup}>
               <Pressable
                 style={({ pressed }) => [
@@ -1287,7 +1390,6 @@ export const ProfileDetails = () => {
               </View>
             </View>
 
-            {/* Right: Bookmark and More buttons */}
             <View style={styles.rightActionGroup}>
               <Pressable
                 style={({ pressed }) => [
@@ -1370,10 +1472,7 @@ export const ProfileDetails = () => {
               </View>
             ) : null}
 
-            {/* <Text style={styles.heroSubText}>
-              {[basic_details.profession, basic_details.education, basic_details.degeree].filter(Boolean).join(" · ")}
-            </Text> */}
-              <Text style={styles.heroSubText}>
+            <Text style={styles.heroSubText}>
               {basic_details.profession}
             </Text>
           </LinearGradient>
@@ -1409,22 +1508,6 @@ export const ProfileDetails = () => {
 
           {/* ===== 2. STATUS CHIPS ===== */}
           <View style={styles.statusChipsGrid}>
-            {/* <View style={[styles.statusChip, { backgroundColor: Colors.goldContainer }]}>
-              <Ionicons name="star-outline" size={16} color={Colors.chipActiveText} />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.statusChipTitle, { color: Colors.chipActiveText }]}>Available</Text>
-                <Text style={[styles.statusChipSub, { color: Colors.chipActiveText }]}>Horoscope</Text>
-              </View>
-            </View>
-
-            <View style={[styles.statusChip, { backgroundColor: Colors.iconContainerBg }]}>
-              <Ionicons name="sparkles-outline" size={16} color={Colors.primary} />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.statusChipTitle, { color: Colors.primary }]}>{basic_details.user_status || "Newly"}</Text>
-                <Text style={[styles.statusChipSub, { color: Colors.primary }]}>Registered</Text>
-              </View>
-            </View> */}
-
             <View style={styles.statusChip}>
               <Ionicons name="calendar-outline" size={16} color={Colors.textDark} />
               <View style={{ flex: 1 }}>
@@ -1463,241 +1546,253 @@ export const ProfileDetails = () => {
             </View>
           </View>
 
-          {/* ===== TABS NAV ===== */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
+          {/* ===== INLINE TAB BAR (measures its Y position for sticky) ===== */}
+          <View
+            ref={tabBarRef}
+            onLayout={(e) => {
+              // store the layout Y so we know when to go sticky
+              tabBarOffset.current = e.nativeEvent.layout.y;
+            }}
             style={styles.tabsContainer}
-            contentContainerStyle={{ paddingRight: 10 }}
           >
-            {["Personal", "Work", "Family", "Horoscope", "Contact"].map((tab) => {
-              const isActive = activeTab === tab;
-              return (
-                <TouchableOpacity
-                  key={tab}
-                  style={[styles.tabPill, isActive && styles.tabPillActive]}
-                  onPress={() => setActiveTab(tab)}
-                >
-                  <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>
-                    {tab}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+            {renderTabBar()}
+          </View>
 
           {/* ===== TAB CONTENT SECTIONS ===== */}
-          {activeTab === "Personal" && (
-            <View>
-              {personal_details?.about_self ? (
-                <View style={styles.card}>
-                  <View style={styles.cardHeaderRow}>
-                    <View style={styles.sectionIconCircle}>
-                      <Ionicons name="chatbubble-ellipses-outline" size={16} color={Colors.primary} />
-                    </View>
-                    <Text style={styles.cardSectionTitle}>About</Text>
-                  </View>
-                  <Text style={styles.aboutBodyText}>{personal_details.about_self}</Text>
-                </View>
-              ) : null}
 
+          {/* ── Personal ── */}
+          <View
+            ref={sectionRefs.Personal}
+            onLayout={(e) => {
+              sectionOffsets.current['Personal'] = e.nativeEvent.layout.y;
+            }}
+          >
+            {personal_details?.about_self ? (
               <View style={styles.card}>
                 <View style={styles.cardHeaderRow}>
                   <View style={styles.sectionIconCircle}>
-                    <Ionicons name="person-outline" size={16} color={Colors.primary} />
+                    <Ionicons name="chatbubble-ellipses-outline" size={16} color={Colors.primary} />
                   </View>
-                  <Text style={styles.cardSectionTitle}>Basic Information</Text>
+                  <Text style={styles.cardSectionTitle}>About</Text>
                 </View>
+                <Text style={styles.aboutBodyText}>{personal_details.about_self}</Text>
+              </View>
+            ) : null}
 
-                {renderDetailRow("Profile ID", basic_details.profile_id)}
-                {renderDetailRow("Gender", personal_details?.gender)}
-                {renderDetailRow("Age", personal_details?.age ? `${personal_details.age} Years` : null)}
-                {renderDetailRow("DOB", personal_details?.dob)}
-                {renderDetailRow("Height", personal_details?.height?.height_desc)}
-                {renderDetailRow("Weight", personal_details?.weight ? `${personal_details.weight} kg` : null)}
-                {renderDetailRow("Body Type", personal_details?.body_type)}
-                {renderDetailRow("Eye Wear", personal_details?.eye_wear)}
-                {renderDetailRow("Marital status", personal_details?.marital_status)}
-                {renderDetailRow("Complexion", personal_details?.complexion)}
-                {renderDetailRow("Physical status", personal_details?.physical_status)}
-                {renderDetailRow("Blood Group", personal_details?.blood_group)}
+            <View style={styles.card}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.sectionIconCircle}>
+                  <Ionicons name="person-outline" size={16} color={Colors.primary} />
+                </View>
+                <Text style={styles.cardSectionTitle}>Basic Information</Text>
               </View>
 
-              <View style={styles.card}>
-                <View style={styles.cardHeaderRow}>
-                  <View style={styles.sectionIconCircle}>
-                    <Ionicons name="heart-outline" size={16} color={Colors.primary} />
-                  </View>
-                  <Text style={styles.cardSectionTitle}>Lifestyle</Text>
-                </View>
-
-                {renderDetailRow("Place of Birth", personal_details?.place_of_birth)}
-                {renderDetailRow("Time of Birth", personal_details?.time_of_birth)}
-                {renderDetailRow("Hobbies", personal_details?.hobbies)}
-              </View>
+              {renderDetailRow("Profile ID", basic_details.profile_id)}
+              {renderDetailRow("Gender", personal_details?.gender)}
+              {renderDetailRow("Age", personal_details?.age ? `${personal_details.age} Years` : null)}
+              {renderDetailRow("DOB", personal_details?.dob)}
+              {renderDetailRow("Height", personal_details?.height?.height_desc)}
+              {renderDetailRow("Weight", personal_details?.weight ? `${personal_details.weight} kg` : null)}
+              {renderDetailRow("Body Type", personal_details?.body_type)}
+              {renderDetailRow("Eye Wear", personal_details?.eye_wear)}
+              {renderDetailRow("Marital status", personal_details?.marital_status)}
+              {renderDetailRow("Complexion", personal_details?.complexion)}
+              {renderDetailRow("Physical status", personal_details?.physical_status)}
+              {renderDetailRow("Blood Group", personal_details?.blood_group)}
             </View>
-          )}
 
-          {activeTab === "Work" && (
-            <View>
-              <View style={styles.card}>
-                <View style={styles.cardHeaderRow}>
-                  <View style={styles.sectionIconCircle}>
-                    <Ionicons name="school-outline" size={16} color={Colors.primary} />
-                  </View>
-                  <Text style={styles.cardSectionTitle}>Education</Text>
+            <View style={styles.card}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.sectionIconCircle}>
+                  <Ionicons name="heart-outline" size={16} color={Colors.primary} />
                 </View>
-
-                {renderDetailRow("Education Level", education_details?.education_level)}
-                {renderDetailRow("Degree", education_details?.degeree || education_details?.education_level)}
-                {renderDetailRow("About Education", education_details?.about_education)}
+                <Text style={styles.cardSectionTitle}>Lifestyle</Text>
               </View>
 
-              <View style={styles.card}>
-                <View style={styles.cardHeaderRow}>
-                  <View style={styles.sectionIconCircle}>
-                    <Ionicons name="briefcase-outline" size={16} color={Colors.primary} />
-                  </View>
-                  <Text style={styles.cardSectionTitle}>Career</Text>
-                </View>
-
-                {renderDetailRow("Occupation", education_details?.profession)}
-                {renderDetailRow("Company Name", education_details?.company_name || education_details?.business_name)}
-                {renderDetailRow("Designation", education_details?.designation)}
-                {renderDetailRow("Business Name", education_details?.business_name)}
-                {renderDetailRow("Business Address", education_details?.business_address)}
-                {renderDetailRow("Annual Income", education_details?.annual_income || education_details?.gross_annual_income)}
-                {renderDetailRow("Gross Annual Income", education_details?.gross_annual_income)}
-                {renderDetailRow("Work Location", education_details?.place_of_stay)}
-              </View>
+              {renderDetailRow("Place of Birth", personal_details?.place_of_birth)}
+              {renderDetailRow("Time of Birth", personal_details?.time_of_birth)}
+              {renderDetailRow("Hobbies", personal_details?.hobbies)}
             </View>
-          )}
+          </View>
 
-          {activeTab === "Family" && (
-            <View>
-              <View style={styles.card}>
-                <View style={styles.cardHeaderRow}>
-                  <View style={styles.sectionIconCircle}>
-                    <Ionicons name="people-outline" size={16} color={Colors.primary} />
-                  </View>
-                  <Text style={styles.cardSectionTitle}>Family Details</Text>
+          {/* ── Work ── */}
+          <View
+            ref={sectionRefs.Work}
+            onLayout={(e) => {
+              sectionOffsets.current['Work'] = e.nativeEvent.layout.y;
+            }}
+          >
+            <View style={styles.card}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.sectionIconCircle}>
+                  <Ionicons name="school-outline" size={16} color={Colors.primary} />
                 </View>
-
-                {renderDetailRow("Father", family_details?.father_name ? `${family_details.father_name} · ${family_details.father_occupation || ''}` : null)}
-                {renderDetailRow("Mother", family_details?.mother_name ? `${family_details.mother_name} · ${family_details.mother_occupation || ''}` : null)}
-                {renderDetailRow("Family Status", family_details?.family_status)}
-                {renderDetailRow("Sisters", family_details?.no_of_sisters)}
-                {renderDetailRow("Sisters Married", family_details?.no_of_sis_married)}
-                {renderDetailRow("Brothers", family_details?.no_of_brothers)}
-                {renderDetailRow("Brothers Married", family_details?.no_of_bro_married)}
-                {renderDetailRow("Property details", family_details?.property_details)}
-                {renderDetailRow("Father Alive", family_details?.father_alive)}
-                {renderDetailRow("Mother Alive", family_details?.mother_alive)}
-                {renderDetailRow("About Family", family_details?.about_family)}
-              </View>
-            </View>
-          )}
-
-          {activeTab === "Horoscope" && (
-            <View>
-              <View style={styles.card}>
-                <View style={styles.cardHeaderRow}>
-                  <View style={styles.sectionIconCircle}>
-                    <Ionicons name="star-outline" size={16} color={Colors.primary} />
-                  </View>
-                  <Text style={styles.cardSectionTitle}>Horoscope</Text>
-                  <View style={styles.availableBadge}>
-                    <Text style={styles.availableBadgeText}>Available</Text>
-                  </View>
-                </View>
-
-                {renderDetailRow("Gothram", horoscope_details?.surya_gothram)}
-                {renderDetailRow("Star", horoscope_details?.star_name)}
-                {renderDetailRow("Rasi", horoscope_details?.rasi)}
-                {renderDetailRow("Lagnam", horoscope_details?.lagnam)}
-                {renderDetailRow("Padham", horoscope_details?.padham)}
-                {renderDetailRow("Nallikai", horoscope_details?.nallikai)}
-                {renderDetailRow("Didi", horoscope_details?.didi)}
-                {renderDetailRow("Madhulam", horoscope_details?.madulamn)}
-                {renderDetailRow("Dasa Name", horoscope_details?.dasa_name)}
-                {renderDetailRow("Dasa Balance", horoscope_details?.dasa_balance)}
-                {renderDetailRow("Chevvai Dosham", horoscope_details?.chevvai_dosham)}
-                {renderDetailRow("Ragu/Kethu Dhosham", horoscope_details?.sarpadosham)}
+                <Text style={styles.cardSectionTitle}>Education</Text>
               </View>
 
-              {/* RASI CHART */}
-              {rasiGrid.length >= 4 && (
-                <View style={styles.card}>
-                  <Text style={[styles.cardSectionTitle, { marginBottom: 12 }]}>Rasi Grid</Text>
-                  <View style={styles.chartBorder}>
-                    <View style={styles.chartRow}>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][0]}</Text></View>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][1]}</Text></View>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][2]}</Text></View>
-                      <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[0][3]}</Text></View>
-                    </View>
-                    <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
-                      <View style={styles.sideColumn}>
-                        <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}><Text style={styles.chartText}>{rasiGrid[1][0]}</Text></View>
-                        <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[2][0]}</Text></View>
-                      </View>
-                      <View style={styles.centerBox}>
-                        <Text style={styles.centerLabel}>Rasi</Text>
-                        <Text style={styles.centerDomain}>vysyamala.com</Text>
-                      </View>
-                      <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
-                        <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}><Text style={styles.chartText}>{rasiGrid[1][rasiGrid[1].length - 1]}</Text></View>
-                        <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[2][rasiGrid[2].length - 1]}</Text></View>
-                      </View>
-                    </View>
-                    <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][0]}</Text></View>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][1]}</Text></View>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][2]}</Text></View>
-                      <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[3][3]}</Text></View>
-                    </View>
-                  </View>
-                </View>
-              )}
-
-              {/* AMSAM CHART */}
-              {amsaGrid.length >= 4 && (
-                <View style={styles.card}>
-                  <Text style={[styles.cardSectionTitle, { marginBottom: 12 }]}>Amsam Grid</Text>
-                  <View style={styles.chartBorder}>
-                    <View style={styles.chartRow}>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][0]}</Text></View>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][1]}</Text></View>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][2]}</Text></View>
-                      <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[0][3]}</Text></View>
-                    </View>
-                    <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
-                      <View style={styles.sideColumn}>
-                        <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}><Text style={styles.chartText}>{amsaGrid[1][0]}</Text></View>
-                        <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[2][0]}</Text></View>
-                      </View>
-                      <View style={styles.centerBox}>
-                        <Text style={styles.centerLabel}>Amsam</Text>
-                        <Text style={styles.centerDomain}>vysyamala.com</Text>
-                      </View>
-                      <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
-                        <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}><Text style={styles.chartText}>{amsaGrid[1][amsaGrid[1].length - 1]}</Text></View>
-                        <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[2][amsaGrid[2].length - 1]}</Text></View>
-                      </View>
-                    </View>
-                    <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][0]}</Text></View>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][1]}</Text></View>
-                      <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][2]}</Text></View>
-                      <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[3][3]}</Text></View>
-                    </View>
-                  </View>
-                </View>
-              )}
+              {renderDetailRow("Education Level", education_details?.education_level)}
+              {renderDetailRow("Degree", education_details?.degeree || education_details?.education_level)}
+              {renderDetailRow("About Education", education_details?.about_education)}
             </View>
-          )}
 
-          {activeTab === "Contact" && (
+            <View style={styles.card}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.sectionIconCircle}>
+                  <Ionicons name="briefcase-outline" size={16} color={Colors.primary} />
+                </View>
+                <Text style={styles.cardSectionTitle}>Career</Text>
+              </View>
+
+              {renderDetailRow("Occupation", education_details?.profession)}
+              {renderDetailRow("Company Name", education_details?.company_name || education_details?.business_name)}
+              {renderDetailRow("Designation", education_details?.designation)}
+              {renderDetailRow("Business Name", education_details?.business_name)}
+              {renderDetailRow("Business Address", education_details?.business_address)}
+              {renderDetailRow("Annual Income", education_details?.annual_income || education_details?.gross_annual_income)}
+              {renderDetailRow("Gross Annual Income", education_details?.gross_annual_income)}
+              {renderDetailRow("Work Location", education_details?.place_of_stay)}
+            </View>
+          </View>
+
+          {/* ── Family ── */}
+          <View
+            ref={sectionRefs.Family}
+            onLayout={(e) => {
+              sectionOffsets.current['Family'] = e.nativeEvent.layout.y;
+            }}
+          >
+            <View style={styles.card}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.sectionIconCircle}>
+                  <Ionicons name="people-outline" size={16} color={Colors.primary} />
+                </View>
+                <Text style={styles.cardSectionTitle}>Family Details</Text>
+              </View>
+
+              {renderDetailRow("Father", family_details?.father_name ? `${family_details.father_name} · ${family_details.father_occupation || ''}` : null)}
+              {renderDetailRow("Mother", family_details?.mother_name ? `${family_details.mother_name} · ${family_details.mother_occupation || ''}` : null)}
+              {renderDetailRow("Family Status", family_details?.family_status)}
+              {renderDetailRow("Sisters", family_details?.no_of_sisters)}
+              {renderDetailRow("Sisters Married", family_details?.no_of_sis_married)}
+              {renderDetailRow("Brothers", family_details?.no_of_brothers)}
+              {renderDetailRow("Brothers Married", family_details?.no_of_bro_married)}
+              {renderDetailRow("Property details", family_details?.property_details)}
+              {renderDetailRow("Father Alive", family_details?.father_alive)}
+              {renderDetailRow("Mother Alive", family_details?.mother_alive)}
+              {renderDetailRow("About Family", family_details?.about_family)}
+            </View>
+          </View>
+
+          {/* ── Horoscope ── */}
+          <View
+            ref={sectionRefs.Horoscope}
+            onLayout={(e) => {
+              sectionOffsets.current['Horoscope'] = e.nativeEvent.layout.y;
+            }}
+          >
+            <View style={styles.card}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.sectionIconCircle}>
+                  <Ionicons name="star-outline" size={16} color={Colors.primary} />
+                </View>
+                <Text style={styles.cardSectionTitle}>Horoscope</Text>
+                <View style={styles.availableBadge}>
+                  <Text style={styles.availableBadgeText}>Available</Text>
+                </View>
+              </View>
+
+              {renderDetailRow("Gothram", horoscope_details?.surya_gothram)}
+              {renderDetailRow("Star", horoscope_details?.star_name)}
+              {renderDetailRow("Rasi", horoscope_details?.rasi)}
+              {renderDetailRow("Lagnam", horoscope_details?.lagnam)}
+              {renderDetailRow("Padham", horoscope_details?.padham)}
+              {renderDetailRow("Nallikai", horoscope_details?.nallikai)}
+              {renderDetailRow("Didi", horoscope_details?.didi)}
+              {renderDetailRow("Madhulam", horoscope_details?.madulamn)}
+              {renderDetailRow("Dasa Name", horoscope_details?.dasa_name)}
+              {renderDetailRow("Dasa Balance", horoscope_details?.dasa_balance)}
+              {renderDetailRow("Chevvai Dosham", horoscope_details?.chevvai_dosham)}
+              {renderDetailRow("Ragu/Kethu Dhosham", horoscope_details?.sarpadosham)}
+            </View>
+
+            {/* RASI CHART */}
+            {rasiGrid.length >= 4 && (
+              <View style={styles.card}>
+                <Text style={[styles.cardSectionTitle, { marginBottom: 12 }]}>Rasi Grid</Text>
+                <View style={styles.chartBorder}>
+                  <View style={styles.chartRow}>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][0]}</Text></View>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][1]}</Text></View>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[0][2]}</Text></View>
+                    <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[0][3]}</Text></View>
+                  </View>
+                  <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
+                    <View style={styles.sideColumn}>
+                      <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}><Text style={styles.chartText}>{rasiGrid[1][0]}</Text></View>
+                      <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[2][0]}</Text></View>
+                    </View>
+                    <View style={styles.centerBox}>
+                      <Text style={styles.centerLabel}>Rasi</Text>
+                      <Text style={styles.centerDomain}>vysyamala.com</Text>
+                    </View>
+                    <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
+                      <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}><Text style={styles.chartText}>{rasiGrid[1][rasiGrid[1].length - 1]}</Text></View>
+                      <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[2][rasiGrid[2].length - 1]}</Text></View>
+                    </View>
+                  </View>
+                  <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][0]}</Text></View>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][1]}</Text></View>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{rasiGrid[3][2]}</Text></View>
+                    <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{rasiGrid[3][3]}</Text></View>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* AMSAM CHART */}
+            {amsaGrid.length >= 4 && (
+              <View style={styles.card}>
+                <Text style={[styles.cardSectionTitle, { marginBottom: 12 }]}>Amsam Grid</Text>
+                <View style={styles.chartBorder}>
+                  <View style={styles.chartRow}>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][0]}</Text></View>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][1]}</Text></View>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[0][2]}</Text></View>
+                    <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[0][3]}</Text></View>
+                  </View>
+                  <View style={[styles.chartRow, { flex: 2, borderBottomWidth: 1 }]}>
+                    <View style={styles.sideColumn}>
+                      <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}><Text style={styles.chartText}>{amsaGrid[1][0]}</Text></View>
+                      <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[2][0]}</Text></View>
+                    </View>
+                    <View style={styles.centerBox}>
+                      <Text style={styles.centerLabel}>Amsam</Text>
+                      <Text style={styles.centerDomain}>vysyamala.com</Text>
+                    </View>
+                    <View style={[styles.sideColumn, { borderRightWidth: 0 }]}>
+                      <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 1 }]}><Text style={styles.chartText}>{amsaGrid[1][amsaGrid[1].length - 1]}</Text></View>
+                      <View style={[styles.chartCell, { flex: 1, borderBottomWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[2][amsaGrid[2].length - 1]}</Text></View>
+                    </View>
+                  </View>
+                  <View style={[styles.chartRow, { borderBottomWidth: 0 }]}>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][0]}</Text></View>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][1]}</Text></View>
+                    <View style={styles.chartCell}><Text style={styles.chartText}>{amsaGrid[3][2]}</Text></View>
+                    <View style={[styles.chartCell, { borderRightWidth: 0 }]}><Text style={styles.chartText}>{amsaGrid[3][3]}</Text></View>
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* ── Contact ── */}
+          <View
+            ref={sectionRefs.Contact}
+            onLayout={(e) => {
+              sectionOffsets.current['Contact'] = e.nativeEvent.layout.y;
+            }}
+          >
             <View style={styles.card}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.sectionIconCircle}>
@@ -1715,7 +1810,7 @@ export const ProfileDetails = () => {
               {renderDetailRow("WhatsApp", contact_details?.whatsapp)}
               {renderDetailRow("Email", contact_details?.email)}
             </View>
-          )}
+          </View>
 
           <FeaturedProfiles />
           <SuggestedProfiles />
@@ -1737,7 +1832,6 @@ export const ProfileDetails = () => {
               <Text style={styles.messageText}>Message</Text>
             </TouchableOpacity>
           ) : interestParam === 1 && status !== 3 && status !== 2 ? (
-            /* Incoming Interest Request -> Show Accept & Decline */
             <View style={styles.buttonContainer}>
               {hideExpressButton && (
                 <>
@@ -1762,9 +1856,7 @@ export const ProfileDetails = () => {
               )}
             </View>
           ) : (
-            /* Main Express Interest Container (Fills full left side) */
             <View style={styles.buttonContainerExpress}>
-              {/* Image 2: Interest Sent State */}
               {(status === 1 || status === "1" || expressInt) && status !== 3 && (
                 <TouchableOpacity
                   style={styles.sentBtnPill}
@@ -1776,7 +1868,6 @@ export const ProfileDetails = () => {
                 </TouchableOpacity>
               )}
 
-              {/* Image 3: Default Express Interest Button */}
               {!isPlan16 &&
                 interestParam !== 1 &&
                 status !== 1 &&
@@ -1803,7 +1894,6 @@ export const ProfileDetails = () => {
                   </TouchableOpacity>
                 )}
 
-              {/* Image 1: Interest Declined State */}
               {status === 3 && (
                 <View style={styles.rejectedPill}>
                   <Ionicons name="close-circle" size={18} color="#a32d2d" />
@@ -1813,7 +1903,6 @@ export const ProfileDetails = () => {
             </View>
           )}
 
-          {/* Quick Action Icons (Bookmark & Call) */}
           <TouchableOpacity
             style={[styles.bottomCircleBtn, isBookmarked && styles.bottomCircleBtnActive]}
             activeOpacity={0.8}
@@ -2146,6 +2235,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.selectedBg,
   },
+
+  // ─── NEW: sticky tab bar wrapper ────────────────────────────────────────────
+  stickyTabBarWrapper: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 50,
+    backgroundColor: Colors.selectedBg,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  // ────────────────────────────────────────────────────────────────────────────
+
   heroContainer: {
     position: 'relative',
     height: 420,
@@ -2386,15 +2493,17 @@ const styles = StyleSheet.create({
     color: Colors.textDark,
     marginTop: 1,
   },
+  // ─── UPDATED tab styles (keep same look, add dot space) ──────────────────
   tabsContainer: {
     marginVertical: 4,
   },
   tabPill: {
     paddingHorizontal: 18,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: Colors.cardBackground,
     marginRight: 8,
+    alignItems: 'center',
   },
   tabPillActive: {
     backgroundColor: Colors.primary,
@@ -2407,6 +2516,7 @@ const styles = StyleSheet.create({
   tabPillTextActive: {
     color: '#FFFFFF',
   },
+  // ────────────────────────────────────────────────────────────────────────────
   aboutBodyText: {
     fontSize: 14,
     color: Colors.textDark,
@@ -2467,17 +2577,70 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     overflow: "hidden",
-  },
-  expressInterestBtnActive: {
-    backgroundColor: '#2e7d32',
+    backgroundColor: "#d4f0e4",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
   },
   expressInterestBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  sentContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  sentBtnPill: {
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#fde8e8",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  sentBtnText: {
+    color: "#70121e",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  rejectedPill: {
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#fcebeb",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+  },
+  rejectedPillText: {
+    color: "#a32d2d",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  linearGradient: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 24,
+  },
+  loginContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    gap: 8,
   },
   messageButton: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -2487,7 +2650,43 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     gap: 6,
   },
-
+  messageText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  buttonContainer: {
+    flex: 1,
+    flexDirection: "row",
+    gap: 6,
+  },
+  acceptButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#10B981",
+    height: 48,
+    borderRadius: 24,
+    paddingHorizontal: 6,
+  },
+  declineButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#a32d2d",
+    backgroundColor: "#fff0f0",
+    height: 48,
+    borderRadius: 24,
+    paddingHorizontal: 6,
+  },
+  declineText: {
+    color: "#a32d2d",
+    fontWeight: "700",
+    fontSize: 13,
+  },
   bottomCircleBtn: {
     width: 48,
     height: 48,
@@ -2497,6 +2696,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  bottomCircleBtnActive: {
+    borderColor: "transparent",
+    backgroundColor: "#fef0d6",
   },
   modalOverlay: {
     flex: 1,
@@ -2726,8 +2929,8 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 40,
     height: 40,
-    borderRadius: 9999, // fully rounded (pill)
-    backgroundColor: 'rgba(250, 246, 240, 0.75)', // matches bg-background/75
+    borderRadius: 9999,
+    backgroundColor: 'rgba(250, 246, 240, 0.75)',
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -2742,8 +2945,8 @@ const styles = StyleSheet.create({
   profileCodeChip: {
     paddingHorizontal: 14,
     height: 40,
-    borderRadius: 9999, // fully rounded (pill)
-    backgroundColor: 'rgba(250, 246, 240, 0.75)', // matches bg-background/75
+    borderRadius: 9999,
+    backgroundColor: 'rgba(250, 246, 240, 0.75)',
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -2763,123 +2966,5 @@ const styles = StyleSheet.create({
   },
   buttonContainerExpress: {
     flex: 1,
-  },
-  expressInterestBtn: {
-    height: 48,
-    borderRadius: 24,
-    overflow: "hidden",
-    backgroundColor: "#d4f0e4", // fallback background for sent state
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-  },
-  expressInterestBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-  sentContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-  },
-  sentBtnPill: {
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#fde8e8",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-  },
-  sentBtnText: {
-    color: "#70121e",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  rejectedPill: {
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#fcebeb",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingHorizontal: 16,
-  },
-  rejectedPillText: {
-    color: "#a32d2d",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  linearGradient: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 24,
-  },
-  loginContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 12,
-    gap: 8,
-  },
-  messageButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#28a745",
-    height: 48,
-    borderRadius: 24,
-    paddingHorizontal: 14,
-    gap: 6,
-  },
-  messageText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  buttonContainer: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 6,
-  },
-  acceptButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#10B981",
-    height: 48,
-    borderRadius: 24,
-    paddingHorizontal: 6,
-  },
-  declineButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: "#a32d2d",
-    backgroundColor: "#fff0f0",
-    height: 48,
-    borderRadius: 24,
-    paddingHorizontal: 6,
-  },
-  declineText: {
-    color: "#a32d2d",
-    fontWeight: "700",
-    fontSize: 13,
-  },
-  bottomCircleBtnActive: {
-    borderColor: "transparent",
-    backgroundColor: "#fef0d6",
   },
 });
