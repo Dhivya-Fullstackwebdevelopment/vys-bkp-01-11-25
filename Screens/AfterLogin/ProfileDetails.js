@@ -1169,11 +1169,11 @@ export const ProfileDetails = () => {
 
   const renderSuccessView = () => (
     <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-      <Ionicons name="checkmark-circle" size={80} color="#2ecc71" />
-      <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1E1E1E', marginTop: 10 }}>
+      <Ionicons name="checkmark-circle" size={80} color={Colors.success} />
+      <Text style={{ fontSize: 20, fontWeight: 'bold', color: Colors.textDark, marginTop: 10 }}>
         Vysassist sent successfully
       </Text>
-      <Text style={{ fontSize: 16, color: '#1E1E1E', marginVertical: 10 }}>
+      <Text style={{ fontSize: 16, color: Colors.textDark, marginVertical: 10 }}>
         Remaining VysAssist Count:
         <Text style={{ color: Colors.primary, fontWeight: 'bold' }}> {remainCount}</Text>
       </Text>
@@ -2385,29 +2385,29 @@ export const ProfileDetails = () => {
                 <Timeline
                   data={data}
                   circleSize={16}
-                  circleColor="#4CAF50"
-                  lineColor="#E0E0E0"
+                  circleColor={Colors.primary}        // was '#4CAF50'
+                  lineColor={Colors.border}           // was '#E0E0E0'
                   timeContainerStyle={{ minWidth: 72 }}
                   timeStyle={{
                     textAlign: 'left',
-                    backgroundColor: '#ff9797',
+                    backgroundColor: Colors.primary,  // was '#ff9797'
                     color: '#fff',
                     padding: 5,
                     fontSize: 12,
                     top: -2,
                     fontWeight: 'bold',
-                    borderRadius: 13
+                    borderRadius: 13,
                   }}
                   descriptionStyle={{
-                    color: '#333',
+                    color: Colors.textDark,           // was '#333'
                     fontSize: 16,
                     paddingTop: 2,
                     top: -47,
                     fontWeight: 'bold',
-                    marginBottom: -20
+                    marginBottom: -20,
                   }}
                   options={{
-                    style: { paddingTop: 5 }
+                    style: { paddingTop: 5 },
                   }}
                 />
               </ScrollView>
@@ -3076,7 +3076,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#5c3d00",
+    borderColor: Colors.primary,
     backgroundColor: "#ffffff",
     justifyContent: 'center',
     alignItems: 'center',
@@ -3254,28 +3254,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
   },
-  submitButtonpop: {
-    backgroundColor: Colors.primary,
-  },
-  closeButton: {
-    backgroundColor: "#000000",
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  errorText: {
-    color: "red",
-    textAlign: "center",
-    marginBottom: 8,
-    fontSize: 12,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.textDark,
-    marginBottom: 12,
-  },
+
+
+
+
+
   textArea: {
     borderWidth: 1,
     borderColor: Colors.border,
@@ -3284,11 +3267,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlignVertical: 'top',
   },
-  checkboxContainerNew2: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
+
   headerOverlay: {
     position: "absolute",
     top: Platform.OS === "android" ? 40 : 52,
@@ -3350,5 +3329,163 @@ const styles = StyleSheet.create({
   },
   buttonContainerExpress: {
     flex: 1,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  popupContainer: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 18,
+    padding: 20,
+    width: '92%',
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.textDark,
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
+  titleNewnote: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textDark,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textMuted,
+    marginBottom: 10,
+  },
+  modalBody: {
+    marginVertical: 4,
+  },
+  checkboxContainerNew1: {
+    marginBottom: 12,
+  },
+  checkboxContainerNew2: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  textInputnew: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 8,
+    padding: 10,
+    minHeight: 60,
+    textAlignVertical: 'top',
+    color: Colors.textDark,
+    backgroundColor: Colors.surface,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textDark,
+    marginBottom: 6,
+  },
+  description: {
+    fontSize: 14,
+    color: Colors.textMuted,
+    lineHeight: 20,
+    marginVertical: 12,
+  },
+  processTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.textDark,
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  listContainer: {
+    marginBottom: 12,
+  },
+  listItem: {
+    fontSize: 13,
+    color: Colors.textMuted,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    gap: 10,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  cancelText: {
+    color: Colors.textMuted,
+    fontWeight: '600',
+  },
+  submitButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+  },
+  submitText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  modalButtonsNew: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  modalButtonNew: {
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  // Override for submit buttons that use primary
+  submitButtonpop: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    borderRadius: 20,
+    alignItems: 'center',
+    flex: 1,
+  },
+  closeButton: {
+    backgroundColor: Colors.border,
+    paddingVertical: 10,
+    borderRadius: 20,
+    alignItems: 'center',
+    flex: 1,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  errorText: {
+    color: Colors.destructive,
+    textAlign: 'center',
+    marginVertical: 8,
+    fontSize: 13,
   },
 });
