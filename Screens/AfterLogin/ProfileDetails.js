@@ -2457,15 +2457,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.matchingcirclecolor,
+    borderColor: Colors.primary,
     borderRadius: 22,
     paddingVertical: 10,
     marginTop: 4,
   },
   outlineBtnText: {
-    color: Colors.matchingcirclecolor,
+    color: Colors.primary,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '400',
   },
   statusChipsGrid: {
     flexDirection: 'row',
