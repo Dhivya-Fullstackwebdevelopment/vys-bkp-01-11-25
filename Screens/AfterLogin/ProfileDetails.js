@@ -1722,9 +1722,12 @@ export const ProfileDetails = () => {
               </View>
             ) : null}
 
-            <Text style={styles.heroSubText}>
-              {basic_details.profession}
-            </Text>
+            {basic_details?.profession &&
+              basic_details.profession.trim().toLowerCase() !== "not mentioned" && (
+                <Text style={styles.heroSubText}>
+                  {basic_details.profession}
+                </Text>
+              )}
           </LinearGradient>
         </View>
 
@@ -1804,7 +1807,14 @@ export const ProfileDetails = () => {
             <View style={styles.factsGrid}>
               {renderFactCard("cake-variant-outline", MaterialCommunityIcons, "Age", basic_details.age ? `${basic_details.age} yrs` : null)}
               {renderFactCard("ruler", MaterialCommunityIcons, "Height", basic_details.height?.height_desc)}
-              {renderFactCard("briefcase-outline", MaterialCommunityIcons, "Profession", basic_details.profession)}
+              {basic_details?.profession &&
+                basic_details.profession.trim().toLowerCase() !== "not mentioned" &&
+                renderFactCard(
+                  "briefcase-outline",
+                  MaterialCommunityIcons,
+                  "Profession",
+                  basic_details.profession
+                )}
               {renderFactCard("school-outline", Ionicons, "Education", basic_details.education || basic_details.degeree)}
               {renderFactCard("star-outline", Ionicons, "Star / Rasi", [basic_details.star, horoscope_details?.rasi].filter(Boolean).join(" · "))}
               {renderFactCard("sparkles-outline", Ionicons, "Gothram", horoscope_details?.surya_gothram || basic_details.gothram)}
