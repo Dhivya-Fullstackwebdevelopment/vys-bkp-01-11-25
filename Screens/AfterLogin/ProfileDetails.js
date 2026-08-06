@@ -62,6 +62,7 @@ import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImage";
 import { openCachedPdf } from "../../Screens/AfterLogin/PdfViewerModal";
 import { Colors, rs } from "../../Reusable/Theme";
+import Svg, { Circle } from 'react-native-svg';
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 const { width } = Dimensions.get('window');
@@ -89,6 +90,39 @@ const TabProgressCircle = ({ active }) => {
         marginTop: 4,
       }}
     />
+  );
+};
+
+const ProgressRing = ({ percentage, size = 64, strokeWidth = 6 }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  return (
+    <Svg width={size} height={size}>
+      <Circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        stroke="#E0E0E0"
+        strokeWidth={strokeWidth}
+        fill="transparent"
+      />
+      <Circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        stroke={Colors.primary}
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference}
+        strokeDashoffset={strokeDashoffset}
+        fill="transparent"
+        strokeLinecap="round"
+        transform={`rotate(-90, ${size / 2}, ${size / 2})`}
+      />
+      <Text style={[styles.ringScoreText, { position: 'absolute', top: size / 2 - 10, left: 0, right: 0, textAlign: 'center' }]}>
+        {percentage}%
+      </Text>
+    </Svg>
   );
 };
 
@@ -1488,6 +1522,23 @@ export const ProfileDetails = () => {
               <View style={styles.card}>
                 <View style={styles.compatHeader}>
                   <View style={styles.ringContainer}>
+                    <Svg width={64} height={64} style={{ position: 'absolute' }}>
+                      {/* background circle */}
+                      <Circle
+                        cx={32} cy={32} r={28}
+                        stroke="#E0E0E0" strokeWidth={5} fill="transparent"
+                      />
+                      {/* progress circle */}
+                      <Circle
+                        cx={32} cy={32} r={28}
+                        stroke={Colors.matchingcirclecolor} strokeWidth={5}
+                        strokeDasharray={2 * Math.PI * 28}
+                        strokeDashoffset={2 * Math.PI * 28 * (1 - basic_details.matching_score / 100)}
+                        fill="transparent"
+                        strokeLinecap="round"
+                        transform="rotate(-90, 32, 32)"
+                      />
+                    </Svg>
                     <Text style={styles.ringScoreText}>{basic_details.matching_score}%</Text>
                   </View>
                   <View style={{ flex: 1, marginLeft: 14 }}>
@@ -2282,7 +2333,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-    letterSpacing: 0.001,
+    letterSpacing: 0,
   },
   verifiedBadge: {
     flexDirection: 'row',
@@ -2381,7 +2432,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 5,
-    borderColor: Colors.primary,
+    borderColor: "#F1E8DD",
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -2406,13 +2457,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: Colors.matchingcirclecolor,
     borderRadius: 22,
     paddingVertical: 10,
     marginTop: 4,
   },
   outlineBtnText: {
-    color: Colors.primary,
+    color: Colors.matchingcirclecolor,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -2692,7 +2743,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: "#5c3d00",
     backgroundColor: "#ffffff",
     justifyContent: 'center',
     alignItems: 'center',

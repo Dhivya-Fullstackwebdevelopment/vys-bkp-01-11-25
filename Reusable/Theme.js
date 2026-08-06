@@ -13,6 +13,7 @@ export const Colors = {
   primaryForeground: "#FAFAFA",
   primaryContainer: "#E8D5D6",
   onPrimaryContainer: "#3D0A0E",
+  matchingcirclecolor: "#64181F",
   
   // Secondary — deep maroon (oklch(0.34 0.108 20))
   secondary: "#4A1A2E",
