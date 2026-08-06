@@ -19,7 +19,7 @@ import {
   ActivityIndicator,
   Pressable,
   Animated,
-    StatusBar
+  StatusBar
 } from "react-native";
 import { Ionicons, MaterialIcons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 import ImageViewer from 'react-native-image-zoom-viewer';
@@ -185,6 +185,7 @@ export const ProfileDetails = () => {
 
   const isPlan16 = storedPlanId === "16";
 
+
   const getSafeImage = (imageUrl) => {
     const isFemaleProfile = basic_details?.profile_id?.startsWith("VF");
     const defaultImgUrl = isFemaleProfile
@@ -196,6 +197,12 @@ export const ProfileDetails = () => {
     }
     return imageUrl;
   };
+
+  useEffect(() => {
+    setImageLoadError(false);
+  }, [viewedProfileId]);
+
+
 
   useEffect(() => {
     if (allProfileIds) {
@@ -273,6 +280,7 @@ export const ProfileDetails = () => {
   const [password, setPassword] = useState('');
   const [fetchedUserImages, setFetchedUserImages] = useState(null);
   const [isProfileUnlocked, setIsProfileUnlocked] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [notes, setNotes] = useState('');
   const [notesData, setNotesData] = useState(null);
@@ -315,6 +323,8 @@ export const ProfileDetails = () => {
   const [showLanguagePopup, setShowLanguagePopup] = useState(false);
   const [blockModalVisible, setBlockModalVisible] = useState(false);
   const [blockLoading, setBlockLoading] = useState(false);
+  const [photoRequestSent, setPhotoRequestSent] = useState(false);
+  const [photoRequestAlreadySent, setPhotoRequestAlreadySent] = useState(false); // NEW
 
   const handleBlockProfile = async () => {
     try {
@@ -447,11 +457,22 @@ export const ProfileDetails = () => {
     setLoading(true);
     try {
       const response = await sendPhotoRequest(viewedProfileId);
+
       if (response.Status === 1) {
+        setPhotoRequestSent(true);
         Toast.show({
           type: 'success',
           text1: 'Success',
           text2: 'Photo Request send successfully!',
+          position: "bottom",
+        });
+      } else if (response.Status === 0 && response.message === "Photo interests updated") {
+        // NEW: this means request was already sent earlier — not a real error
+        setPhotoRequestAlreadySent(true);
+        Toast.show({
+          type: 'info',
+          text1: 'Already Requested',
+          text2: 'You have already sent a photo request for this profile.',
           position: "bottom",
         });
       } else if (response.Status === 0) {
@@ -853,10 +874,14 @@ export const ProfileDetails = () => {
 
   const { basic_details, user_images, personal_details, education_details, family_details, horoscope_details, contact_details } = profileData;
 
-  const images = (fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))
-    .map(url => ({
-      url: getSafeImage(url),
-    }));
+  const images = (
+    fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images || {})
+  ).map(url => ({
+    url: getSafeImage(url),
+  }));
+
+  const hasRealPhoto = Object.values(fetchedUserImages || user_images || {})
+    .some(url => url && url.trim() !== "");
 
   const handlePasswordSubmit = async () => {
     try {
@@ -1198,7 +1223,52 @@ export const ProfileDetails = () => {
   );
 
   const primaryImageUri = getSafeImage((fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0]);
+  // const isLocked = !isProfileUnlocked && photoProtection === 1;
+  // const isNoPhoto = !isLocked && (!hasRealPhoto || imageLoadError);
+  // const isRestricted = !isLocked && photoRequest === 1 && !expressInt && !isProfileUnlocked;
+
+  // const photoState = isLocked
+  //   ? "locked"
+  //   : isRestricted
+  //     ? "restricted"
+  //     : isNoPhoto
+  //       ? "none"
+  //       : "available";
+
   const isLocked = !isProfileUnlocked && photoProtection === 1;
+  const isNoPhoto = !isLocked && (!hasRealPhoto || imageLoadError);
+
+  const photoState = isLocked
+    ? "locked"
+    : isNoPhoto
+      ? "none"
+      : "available";
+
+
+  {
+    photoState === "none" && (
+      <View style={styles.noPhotosBadge}>
+        <Ionicons name="camera-outline" size={13} color={Colors.textDark} style={{ marginRight: 4 }} />
+        <Text style={styles.noPhotosBadgeText}>No Photos</Text>
+      </View>
+    )
+  }
+  {
+    photoState === "locked" && (
+      <View style={styles.noPhotosBadge}>
+        <MaterialCommunityIcons name="lock" size={13} color={Colors.textDark} style={{ marginRight: 4 }} />
+        <Text style={styles.noPhotosBadgeText}>Photos Locked</Text>
+      </View>
+    )
+  }
+  // {
+  //   photoState === "restricted" && (
+  //     <View style={styles.noPhotosBadge}>
+  //       <MaterialCommunityIcons name="lock" size={13} color={Colors.textDark} style={{ marginRight: 4 }} />
+  //       <Text style={styles.noPhotosBadgeText}>Access Restricted</Text>
+  //     </View>
+  //   )
+  // }
 
   const renderDetailRow = (label, value) => {
     if (!value || value === "" || value === "0") return null;
@@ -1338,7 +1408,7 @@ export const ProfileDetails = () => {
       >
         {/* ===== HERO IMAGE HEADER ===== */}
         <View style={styles.heroContainer}>
-          {isLocked ? (
+          {photoState === "locked" ? (
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={() => {
@@ -1351,13 +1421,75 @@ export const ProfileDetails = () => {
                 style={styles.heroImage}
                 blurRadius={20}
               />
-              <View style={styles.heroLockOverlay}>
-                <MaterialCommunityIcons name="lock" size={54} color="#FFFFFF" />
-                <Text style={styles.heroLockText}>
-                  Click here to request password to view profile photo
-                </Text>
+              <View style={styles.stateOverlayWrap}>
+                <View style={styles.stateCard}>
+                  <View style={styles.stateCardHeaderRow}>
+                    <View style={styles.stateGoldIcon}>
+                      <MaterialCommunityIcons name="lock" size={14} color="#5c3d00" />
+                    </View>
+                    <Text style={styles.stateCardTitle}>Photo Locked</Text>
+                  </View>
+                  <Text style={styles.stateCardBody}>
+                    Click here to request password to view profile photo
+                  </Text>
+                  <View style={styles.stateCardBtnRow}>
+                    <TouchableOpacity
+                      style={styles.statePrimaryBtn}
+                      onPress={() => navigation.navigate('MembershipPlan')}
+                    >
+                      <Ionicons name="ribbon-outline" size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                      <Text style={styles.statePrimaryBtnText}>Upgrade</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
             </TouchableOpacity>
+            // ) : photoState === "restricted" ? (
+            //   <View>
+            //     <Image
+            //       source={{ uri: primaryImageUri }}
+            //       style={styles.heroImage}
+            //       blurRadius={20}
+            //     />
+            //     <View style={[styles.stateOverlayWrap, { paddingTop: 92 }]}>
+            //       <View style={styles.stateCard}>
+            //         <View style={styles.stateCardHeaderRow}>
+            //           <View style={styles.stateGoldIcon}>
+            //             <MaterialCommunityIcons name="lock" size={14} color="#5c3d00" />
+            //           </View>
+            //           <Text style={styles.stateCardTitle}>Photo Access Restricted</Text>
+            //         </View>
+            //         <Text style={styles.stateCardBody}>
+            //           Send an interest request to ask this member for photo access.
+            //         </Text>
+            //         {photoRequestSent ? (
+            //           <View style={styles.stateSuccessPill}>
+            //             <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+            //             <Text style={styles.stateSuccessPillText}>Request sent successfully</Text>
+            //           </View>
+            //         ) : (
+            //           <TouchableOpacity
+            //             style={styles.stateFullPrimaryBtn}
+            //             onPress={handleSendPhotoRequest}
+            //             disabled={loading}
+            //           >
+            //             <Ionicons name="heart" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+            //             <Text style={styles.statePrimaryBtnText}>Send Interest Request</Text>
+            //           </TouchableOpacity>
+            //         )}
+            //       </View>
+            //     </View>
+            //   </View>
+          ) : photoState === "none" ? (
+            <View style={styles.noPhotoContainer}>
+              <View style={styles.noPhotoIconCircle}>
+                <Ionicons name="camera-outline" size={28} color={Colors.primary} />
+              </View>
+              <Text style={styles.noPhotoTitle}>Photo Not Available</Text>
+              <Text style={styles.noPhotoSubtitle}>
+                This member has not uploaded a{"\n"}profile photo yet.
+              </Text>
+            </View>
           ) : (
             <View>
               <ScrollView
@@ -1379,6 +1511,7 @@ export const ProfileDetails = () => {
                       source={{ uri: img.url }}
                       style={{ width, height: 420 }}
                       resizeMode="cover"
+                      onError={() => setImageLoadError(true)}
                     />
                   </TouchableOpacity>
                 ))}
@@ -1483,6 +1616,13 @@ export const ProfileDetails = () => {
             </View>
           </View>
 
+
+          {isNoPhoto && (
+            <View style={styles.noPhotosBadge}>
+              <Ionicons name="camera-outline" size={13} color={Colors.textDark} style={{ marginRight: 4 }} />
+              <Text style={styles.noPhotosBadgeText}>No Photos</Text>
+            </View>
+          )}
           {/* Identity Overlay on Image */}
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.85)']}
@@ -1493,7 +1633,7 @@ export const ProfileDetails = () => {
               {basic_details.verified === 1 && (
                 <View style={styles.verifiedBadge}>
                   <Ionicons name="checkmark-circle" size={12} color={Colors.primaryGradientEnd} />
-                  <Text style={styles.verifiedText}>Verified</Text>
+                  <Text style={styles.verifiedText}>Mobile Verified</Text>
                 </View>
               )}
             </View>
@@ -1602,7 +1742,7 @@ export const ProfileDetails = () => {
             </View>
           </View>
 
-          
+
           <View
             ref={tabBarRef}
             onLayout={(e) => {
@@ -2619,7 +2759,7 @@ const styles = StyleSheet.create({
   },
 
   // ─── NEW: sticky tab bar wrapper ────────────────────────────────────────────
- stickyTabBarWrapper: {
+  stickyTabBarWrapper: {
     position: 'absolute',
     left: 0,
     right: 0,
@@ -3495,4 +3635,149 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     fontSize: 13,
   },
+  noPhotoContainer: {
+    width: '100%',
+    height: 420,
+    backgroundColor: '#3A3A3A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  noPhotoIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  noPhotoTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    marginBottom: 6,
+  },
+  noPhotoSubtitle: {
+    color: '#D0D0D0',
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  noPhotosBadge: {
+    position: 'absolute',
+    top: Platform.OS === 'android' ? 40 : 52,
+    right: 60, // sits left of the ⋮ / share / bookmark icons; adjust to taste
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(250, 246, 240, 0.85)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    zIndex: 10,
+  },
+  noPhotosBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textDark,
+  },
+  stateOverlayWrap: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    paddingTop: 86,
+    paddingHorizontal: 24,
+  },
+  stateCard: {
+    width: '100%',
+    maxWidth: 260,
+    backgroundColor: 'rgba(250,246,240,0.9)',
+    borderRadius: 20,
+    padding: 14,
+    alignItems: 'center',
+  },
+  stateCardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  stateGoldIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F0C36D',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stateCardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textDark,
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
+  stateCardBody: {
+    fontSize: 12,
+    color: Colors.textDark,
+    textAlign: 'center',
+    lineHeight: 16,
+    marginBottom: 10,
+  },
+  stateCardBtnRow: {
+    flexDirection: 'row',
+    gap: 8,
+    width: '100%',
+  },
+  statePrimaryBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateFullPrimaryBtn: {
+    flexDirection: 'row',
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    width: '100%',
+  },
+  statePrimaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  stateSecondaryBtn: {
+    flex: 1,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateSecondaryBtnText: {
+    color: Colors.primary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  stateSuccessPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(40,167,69,0.12)',
+    paddingHorizontal: 14,
+  },
+  stateSuccessPillText: {
+  color: Colors.success,
+  fontSize: 13,
+  fontWeight: '700',
+},
 });
