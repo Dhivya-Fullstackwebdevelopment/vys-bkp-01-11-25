@@ -2395,7 +2395,7 @@ export const ProfileDetails = () => {
           draggableIcon: { backgroundColor: Colors.border },
           container: { borderTopLeftRadius: 24, borderTopRightRadius: 24 }
         }}
-        height={380}
+        height={280}
       >
         {renderBottomSheetContent()}
       </RBSheet>
