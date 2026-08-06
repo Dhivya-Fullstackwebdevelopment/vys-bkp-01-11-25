@@ -1442,15 +1442,6 @@ export const ProfileDetails = () => {
                   <Text style={styles.stateCardBody}>
                     Click here to request password to view profile photo
                   </Text>
-                  <View style={styles.stateCardBtnRow}>
-                    <TouchableOpacity
-                      style={styles.statePrimaryBtn}
-                      onPress={() => navigation.navigate('MembershipPlan')}
-                    >
-                      <Ionicons name="ribbon-outline" size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-                      <Text style={styles.statePrimaryBtnText}>Upgrade</Text>
-                    </TouchableOpacity>
-                  </View>
                 </View>
               </View>
             </TouchableOpacity>
@@ -3709,7 +3700,7 @@ const styles = StyleSheet.create({
   stateOverlayWrap: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
-    paddingTop: 86,
+    justifyContent: 'center',
     paddingHorizontal: 24,
   },
   stateCard: {
@@ -3717,7 +3708,8 @@ const styles = StyleSheet.create({
     maxWidth: 260,
     backgroundColor: 'rgba(251,245,237,0.45)',
     borderRadius: 20,
-    padding: 14,
+    paddingVertical: 36,
+    paddingHorizontal: 16,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(251,245,237,0.5)',
