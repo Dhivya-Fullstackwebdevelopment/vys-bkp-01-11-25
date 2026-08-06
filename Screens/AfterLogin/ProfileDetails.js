@@ -1373,6 +1373,9 @@ export const ProfileDetails = () => {
             {/* <Text style={styles.heroSubText}>
               {[basic_details.profession, basic_details.education, basic_details.degeree].filter(Boolean).join(" · ")}
             </Text> */}
+              <Text style={styles.heroSubText}>
+              {basic_details.profession}
+            </Text>
           </LinearGradient>
         </View>
 
@@ -2172,6 +2175,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    letterSpacing: 0.001,
   },
   verifiedBadge: {
     flexDirection: 'row',
@@ -2199,7 +2203,7 @@ const styles = StyleSheet.create({
   },
   imageCounterBadge: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 100,
     right: 16,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     paddingHorizontal: 10,
