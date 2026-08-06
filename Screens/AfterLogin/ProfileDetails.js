@@ -173,6 +173,28 @@ export const ProfileDetails = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
   const isManualScroll = useRef(false);
   const insets = useSafeAreaInsets();
+  const stickyTabScrollRef = useRef(null);
+  const inlineTabScrollRef = useRef(null);
+  const tabLayouts = useRef({});
+  const tabBarViewportWidth = useRef(0);
+  // ────────────────────────────────────────────────────────────────────────────
+
+  // ─── AUTO-SCROLL TAB BAR TO KEEP ACTIVE TAB VISIBLE/CENTERED ────────────────
+  const scrollTabBarToActive = (tab) => {
+    const layout = tabLayouts.current[tab];
+    const viewportWidth = tabBarViewportWidth.current;
+    if (!layout || !viewportWidth) return;
+
+    const targetOffset = layout.x - (viewportWidth / 2 - layout.width / 2);
+    const clampedOffset = Math.max(0, targetOffset);
+
+    stickyTabScrollRef.current?.scrollTo({ x: clampedOffset, animated: true });
+    inlineTabScrollRef.current?.scrollTo({ x: clampedOffset, animated: true });
+  };
+
+  useEffect(() => {
+    scrollTabBarToActive(activeTab);
+  }, [activeTab]);
   // ────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -480,7 +502,7 @@ export const ProfileDetails = () => {
       } else if (response.Status === 0 && response.message === "Photo interests updated") {
         // NEW: this means request was already sent earlier — not a real error
         setPhotoRequestAlreadySent(true);
-         setShowAlreadyRequestedModal(true);
+        setShowAlreadyRequestedModal(true);
         // Toast.show({
         //   type: 'info',
         //   text1: 'Already Requested',
@@ -531,7 +553,7 @@ export const ProfileDetails = () => {
   }, []);
 
   const toggleModal = () => {
-     bottomSheetRef.current?.close();
+    bottomSheetRef.current?.close();
     setModalVisible(!isModalVisible);
   };
 
@@ -1312,11 +1334,16 @@ export const ProfileDetails = () => {
   const isBookmarked = bookmarkedProfiles.has(basic_details?.profile_id);
 
   // ─── TAB BAR (shared between inline and sticky) ──────────────────────────────
-  const renderTabBar = () => (
+// ─── TAB BAR (shared between inline and sticky) ──────────────────────────────
+  const renderTabBar = (scrollRef) => (
     <ScrollView
+      ref={scrollRef}
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingRight: 10, paddingLeft: 2 }}
+      onLayout={(e) => {
+        tabBarViewportWidth.current = e.nativeEvent.layout.width;
+      }}
     >
       {TABS.map((tab) => {
         const isActive = activeTab === tab;
@@ -1325,6 +1352,12 @@ export const ProfileDetails = () => {
             key={tab}
             style={[styles.tabPill, isActive && styles.tabPillActive]}
             onPress={() => handleTabPress(tab)}
+            onLayout={(e) => {
+              tabLayouts.current[tab] = {
+                x: e.nativeEvent.layout.x,
+                width: e.nativeEvent.layout.width,
+              };
+            }}
           >
             <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>
               {tab}
@@ -1345,7 +1378,7 @@ export const ProfileDetails = () => {
 
       {isTabSticky && (
         <View style={[styles.stickyTabBarWrapper, { top: insets.top }]}>
-          {renderTabBar()}
+          {renderTabBar(stickyTabScrollRef)}
         </View>
       )}
 
@@ -1792,7 +1825,7 @@ export const ProfileDetails = () => {
             style={styles.tabsContainer}
           >
             <View style={{ opacity: isTabSticky ? 0 : 1 }}>
-              {renderTabBar()}
+              {renderTabBar(inlineTabScrollRef)}
             </View>
           </View>
 
