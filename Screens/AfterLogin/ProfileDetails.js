@@ -19,7 +19,8 @@ import {
   ActivityIndicator,
   Pressable,
   Animated,
-  StatusBar
+  StatusBar,
+  PixelRatio
 } from "react-native";
 import { Ionicons, MaterialIcons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 import ImageViewer from 'react-native-image-zoom-viewer';
@@ -65,6 +66,16 @@ import { openCachedPdf } from "../../Screens/AfterLogin/PdfViewerModal";
 import { Colors, rs } from "../../Reusable/Theme";
 import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const scale = (size) => (SCREEN_W / 375) * size;
+const verticalScale = (size) => (SCREEN_H / 812) * size;
+const moderateScale = (size, factor = 0.5) => size + (scale(size) - size) * factor;
+
+const HERO_HEIGHT = Math.max(340, Math.min(460, verticalScale(420)));
+
+
 
 const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 const { width } = Dimensions.get('window');
@@ -154,6 +165,7 @@ export const ProfileDetails = () => {
   const [rasiGrid, setRasiGrid] = useState([]);
   const [amsaGrid, setAmsaGrid] = useState([]);
   const [storedPlanId, setStoredPlanId] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // ─── NEW: refs for scroll-to-section ────────────────────────────────────────
   const mainScrollRef = useRef(null);
@@ -177,6 +189,9 @@ export const ProfileDetails = () => {
   const inlineTabScrollRef = useRef(null);
   const tabLayouts = useRef({});
   const tabBarViewportWidth = useRef(0);
+
+
+
   // ────────────────────────────────────────────────────────────────────────────
 
   // ─── AUTO-SCROLL TAB BAR TO KEEP ACTIVE TAB VISIBLE/CENTERED ────────────────
@@ -553,7 +568,7 @@ export const ProfileDetails = () => {
   }, []);
 
   const toggleModal = () => {
-    bottomSheetRef.current?.close();
+    setMenuOpen(false);
     setModalVisible(!isModalVisible);
   };
 
@@ -1187,23 +1202,16 @@ export const ProfileDetails = () => {
 
   const renderBottomSheetContent = () => {
     const options = [
-      { icon: 'document-text', text: 'Personal Notes', onPress: toggleModal, type: 'Ionicons' },
+      { icon: 'document-text', text: 'Download Profile (PDF)', onPress: () => { setMenuOpen(false); setShowLanguagePopup(true); }, type: 'Ionicons' },
       ...(!isPlan16
-        ? [{ icon: "account-voice", text: "Vys Assist", onPress: openPopup, type: "MaterialCommunityIcons" }]
+        ? [{ icon: "account-voice", text: "Vys Assist", onPress: () => { setMenuOpen(false); openPopup(); }, type: "MaterialCommunityIcons" }]
         : []),
+      { icon: 'document-text', text: 'Personal Notes', onPress: () => { setMenuOpen(false); toggleModal(); }, type: 'Ionicons' },
       {
-        icon: 'print-outline', text: 'Download Profile',
-        onPress: () => {
-          bottomSheetRef.current.close();
-          setShowLanguagePopup(true);
-        },
-        type: 'Ionicons'
-      },
-      {
-        icon: 'block', text: 'Block Profile', onPress: () => {
-          bottomSheetRef.current.close();
-          setBlockModalVisible(true);
-        }, type: 'MaterialIcons'
+        icon: 'block', text: 'Block Profile',
+        onPress: () => { setMenuOpen(false); setBlockModalVisible(true); },
+        type: 'MaterialIcons',
+        danger: true,
       },
     ];
 
@@ -1215,16 +1223,41 @@ export const ProfileDetails = () => {
             style={styles.bottomSheetOption}
             onPress={option.onPress}
           >
-            {option.type === 'MaterialCommunityIcons' && (
-              <MaterialCommunityIcons name={option.icon} size={22} color="#1E1E1E" />
-            )}
-            {option.type === 'MaterialIcons' && (
-              <MaterialIcons name={option.icon} size={22} color="#1E1E1E" />
-            )}
-            {option.type === 'Ionicons' && (
-              <Ionicons name={option.icon} size={22} color="#1E1E1E" />
-            )}
-            <Text style={styles.bottomSheetText}>{option.text}</Text>
+            <View style={styles.optionRow}>
+              {option.type === "MaterialCommunityIcons" && (
+                <MaterialCommunityIcons
+                  name={option.icon}
+                  size={22}
+                  color={option.danger ? "#DC2626" : "#1E1E1E"}
+                />
+              )}
+
+              {option.type === "MaterialIcons" && (
+                <MaterialIcons
+                  name={option.icon}
+                  size={22}
+                  color={option.danger ? "#DC2626" : "#1E1E1E"}
+                />
+              )}
+
+              {option.type === "Ionicons" && (
+                <Ionicons
+                  name={option.icon}
+                  size={22}
+                  color={option.danger ? "#DC2626" : "#1E1E1E"}
+                />
+              )}
+
+              <Text
+                style={[
+                  styles.bottomSheetText,
+                  option.danger && styles.bottomSheetTextDanger,
+                ]}
+                numberOfLines={1}
+              >
+                {option.text}
+              </Text>
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -1644,7 +1677,7 @@ export const ProfileDetails = () => {
                   >
                     <Image
                       source={{ uri: img.url }}
-                      style={{ width, height: 420 }}
+                      style={{ width, height: HERO_HEIGHT }}
                       resizeMode="cover"
                       onError={() => setImageLoadError(true)}
                     />
@@ -1743,7 +1776,7 @@ export const ProfileDetails = () => {
                   styles.iconButton,
                   pressed && styles.iconButtonPressed,
                 ]}
-                onPress={() => bottomSheetRef.current?.open()}
+                onPress={() => setMenuOpen(true)}
                 accessibilityLabel="More options"
               >
                 <Ionicons name="ellipsis-vertical" size={20} color={Colors.textDark} />
@@ -2969,6 +3002,22 @@ export const ProfileDetails = () => {
         </View>
       </Modal>
 
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuOpen(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setMenuOpen(false)}>
+          <View style={styles.popupMenuOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.popupMenuCard, { top: (Platform.OS === "android" ? 40 : 52) + 48 }]}>
+                {renderBottomSheetContent()}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
       <BottomTabBarComponent />
     </View>
   );
@@ -3008,7 +3057,7 @@ const styles = StyleSheet.create({
 
   heroContainer: {
     position: 'relative',
-    height: 420,
+    height: HERO_HEIGHT,
     width: '100%',
     backgroundColor: '#000000',
     borderBottomLeftRadius: 28,  // Adjust value for stronger/milder curve
@@ -3534,21 +3583,35 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   bottomSheetContent: {
-    padding: 20,
+    padding: 2,
   },
   bottomSheetOption: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.chipInactiveBg,
-    gap: 12,
+    alignItems: 'left',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 2,
+
   },
+
+  optionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5, // If gap is not supported, remove this and use marginLeft below.
+  },
+
   bottomSheetText: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '400',          // was '600' — lighter weight
     color: Colors.textDark,
+    flexShrink: 1,
+    marginLeft: 2,               // ensures text can wrap/shrink instead of pushing layout
   },
+
+  bottomSheetTextDanger: {
+    color: '#D92D20',            // red for Block Profile
+  },
+
   chartBorder: {
     borderWidth: 1,
     borderColor: '#000',
@@ -3876,8 +3939,8 @@ const styles = StyleSheet.create({
   },
   noPhotoContainer: {
     width: '100%',
-    height: 420,
-    justify: 'center',
+    height: HERO_HEIGHT,          // was fixed 420
+    justifyContent: 'center',     // ✅ fixed the bug (was `justify`)
     alignItems: 'center',
     paddingHorizontal: 30,
     paddingTop: 24,
@@ -3886,28 +3949,30 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   noPhotoIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: moderateScale(64),
+    height: moderateScale(64),
+    borderRadius: moderateScale(32),
     backgroundColor: 'rgba(255,255,255,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: verticalScale(5),
     borderWidth: 1,
     borderColor: Colors.border,
   },
   noPhotoTitle: {
     color: Colors.textDark,
-    fontSize: 17,
+    fontSize: moderateScale(17),
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-    marginBottom: 6,
+    marginBottom: verticalScale(6),
+    textAlign: 'center',
   },
   noPhotoSubtitle: {
     color: Colors.textMuted,
-    fontSize: 12.5,
+    fontSize: moderateScale(12.5),
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: moderateScale(18),
+    paddingHorizontal: scale(10),
   },
   noPhotoGoldRule: {
     height: 2,
@@ -4173,5 +4238,22 @@ const styles = StyleSheet.create({
     marginTop: -28,   // pulls it up to overlap the hero bottom edge slightly
     marginBottom: 8,
     zIndex: 20,
+  },
+  popupMenuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+  },
+  popupMenuCard: {
+    position: 'absolute',
+    right: 16,
+    width: 220,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
 });
