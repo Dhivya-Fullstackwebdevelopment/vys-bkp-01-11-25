@@ -1560,6 +1560,61 @@ export const ProfileDetails = () => {
                 This member has not uploaded a{"\n"}profile photo yet.
               </Text>
               <View style={styles.noPhotoGoldRule} />
+              {/* {!isPlan16 && photoRequest === 1 && (
+                photoRequestSent || photoRequestAlreadySent ? (
+                  <View style={styles.noPhotoReqSentPill}>
+                    <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                    <Text style={styles.noPhotoReqSentText}>
+                      {photoRequestAlreadySent ? "Request Already Sent" : "Request Sent!"}
+                    </Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.noPhotoReqBtn}
+                    onPress={handleSendPhotoRequest}
+                    activeOpacity={0.85}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <>
+                        <MaterialIcons name="insert-photo" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                        <Text style={styles.noPhotoReqBtnText}>Request Photo</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )
+              )} */}
+
+              {photoState === "none" && !isPlan16 && photoRequest === 1 && (
+                <View style={styles.floatingPhotoReqWrapper}>
+                  {photoRequestSent || photoRequestAlreadySent ? (
+                    <View style={styles.noPhotoReqSentPill}>
+                      <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                      <Text style={styles.noPhotoReqSentText}>
+                        {photoRequestAlreadySent ? "Request Already Sent" : "Request Sent!"}
+                      </Text>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.noPhotoReqBtn}
+                      onPress={handleSendPhotoRequest}
+                      activeOpacity={0.85}
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <>
+                          <MaterialIcons name="insert-photo" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                          <Text style={styles.noPhotoReqBtnText}>Request Photo</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
             </LinearGradient>
           ) : (
             <View>
@@ -1613,7 +1668,7 @@ export const ProfileDetails = () => {
           )}
 
           {/* ===== TOP BAR ===== */}
-          <View style={styles.headerOverlay}>
+          <View style={styles.headerOverlay} pointerEvents="box-none">
             <View style={styles.leftHeaderGroup}>
               <Pressable
                 style={({ pressed }) => [
@@ -1698,6 +1753,7 @@ export const ProfileDetails = () => {
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.85)']}
             style={styles.identityOverlay}
+            pointerEvents="none"
           >
             <View style={styles.nameBadgeRow}>
               <Text style={styles.heroName}>{basic_details.profile_name}</Text>
@@ -3800,6 +3856,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 30,
     paddingTop: 24,
+    overflow: 'visible',
   },
   noPhotoIconCircle: {
     width: 64,
@@ -3808,7 +3865,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -3826,9 +3883,9 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   noPhotoGoldRule: {
-    marginTop: 10,
     height: 2,
     width: 64,
+    marginBottom: 15,
     borderRadius: 2,
     backgroundColor: '#F0C36D',
   },
@@ -4046,5 +4103,47 @@ const styles = StyleSheet.create({
 
   disabledButton: {
     opacity: 0.5,
+  },
+  noPhotoReqBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 18,
+    height: 44,
+    paddingHorizontal: 24,
+    borderRadius: 22,
+    backgroundColor: Colors.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  noPhotoReqBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  noPhotoReqSentPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 18,
+    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: 'rgba(40, 167, 69, 0.12)',
+  },
+  noPhotoReqSentText: {
+    color: Colors.success,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  floatingPhotoReqWrapper: {
+    alignItems: 'center',
+    marginTop: -28,   // pulls it up to overlap the hero bottom edge slightly
+    marginBottom: 8,
+    zIndex: 20,
   },
 });
