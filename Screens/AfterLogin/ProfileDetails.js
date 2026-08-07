@@ -1710,7 +1710,8 @@ export const ProfileDetails = () => {
             </View>
 
             <Text style={styles.heroSubText}>
-              {basic_details.age} yrs · {basic_details.height?.height_desc || 'N/A'} · {basic_details.profile_id}
+              {basic_details.age} yrs · {basic_details.height?.height_desc
+                ?.replace(/(\d+)ft\s*(\d+)in\s*-\s*(\d+)cm/i, "$1'$2\" ($3 cm)") || ""} · {basic_details.profile_id}
             </Text>
 
             {(contact_details?.city || contact_details?.state) ? (
@@ -1806,7 +1807,15 @@ export const ProfileDetails = () => {
 
             <View style={styles.factsGrid}>
               {renderFactCard("cake-variant-outline", MaterialCommunityIcons, "Age", basic_details.age ? `${basic_details.age} yrs` : null)}
-              {renderFactCard("ruler", MaterialCommunityIcons, "Height", basic_details.height?.height_desc)}
+              {renderFactCard(
+                "ruler",
+                MaterialCommunityIcons,
+                "Height",
+                basic_details.height?.height_desc?.replace(
+                  /(\d+)ft\s*(\d+)in\s*-\s*(\d+)cm/i,
+                  "$1'$2\" ($3 cm)"
+                )
+              )}
               {basic_details?.profession &&
                 basic_details.profession.trim().toLowerCase() !== "not mentioned" &&
                 renderFactCard(
