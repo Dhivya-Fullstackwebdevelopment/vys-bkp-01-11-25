@@ -3011,10 +3011,13 @@ const styles = StyleSheet.create({
     height: 420,
     width: '100%',
     backgroundColor: '#000000',
+    borderBottomLeftRadius: 28,  // Adjust value for stronger/milder curve
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
   },
   heroImage: {
     width: '100%',
-    height: 420,
+    height: '100%',
   },
   identityOverlay: {
     position: 'absolute',
@@ -3874,11 +3877,13 @@ const styles = StyleSheet.create({
   noPhotoContainer: {
     width: '100%',
     height: 420,
-    justifyContent: 'center',
+    justify: 'center',
     alignItems: 'center',
     paddingHorizontal: 30,
     paddingTop: 24,
-    overflow: 'visible',
+    borderBottomLeftRadius: 28,  // Apply curve to gradient fallback as well
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
   },
   noPhotoIconCircle: {
     width: 64,
