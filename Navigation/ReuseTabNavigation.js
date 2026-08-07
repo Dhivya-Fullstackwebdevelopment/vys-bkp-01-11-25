@@ -1,14 +1,41 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors } from '../Reusable/Theme';
 
 const tabs = [
-  { name: 'Home', icon: 'home', route: 'HomeWithToast' },
-  { name: 'Search', icon: 'search', route: 'Search' },
-  { name: 'DashBoard', icon: 'dashboard', route: 'DashBoard' },
-  { name: 'Menu', icon: 'menu', route: 'Menu' },
+  {
+    name: 'Home',
+    activeIcon: 'home',
+    inactiveIcon: 'home-outline',
+    route: 'HomeWithToast',
+  },
+  {
+    name: 'Search',
+    activeIcon: 'search',
+    inactiveIcon: 'search-outline',
+    route: 'Search',
+  },
+  {
+    name: 'DashBoard',
+    activeIcon: 'grid',
+    inactiveIcon: 'grid-outline',
+    route: 'DashBoard',
+  },
+  {
+    name: 'Alerts',
+    activeIcon: 'notifications',
+    inactiveIcon: 'notifications-outline',
+    route: 'Notifications',
+  },
+  {
+    name: 'Profile',
+    activeIcon: 'person',
+    inactiveIcon: 'person-outline',
+    route: 'Menu',
+  },
 ];
 
 export const BottomTabBarComponent = () => {
@@ -18,7 +45,12 @@ export const BottomTabBarComponent = () => {
   const activeRouteName = route.name;
 
   return (
-    <View style={[barStyles.tabContainer, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View
+      style={[
+        barStyles.tabContainer,
+        { paddingBottom: Math.max(insets.bottom, 6) },
+      ]}
+    >
       {tabs.map((tab) => {
         const isActive =
           activeRouteName === tab.route ||
@@ -31,15 +63,24 @@ export const BottomTabBarComponent = () => {
             onPress={() => navigation.navigate(tab.route)}
             activeOpacity={0.7}
           >
-            <MaterialIcons
-              name={tab.icon}
-              size={24}
-              color={isActive ? '#ED1E24' : '#535665'}
-            />
+            {/* Pill: h-8 (32px) w-16 (64px) rounded-full */}
+            <View style={[barStyles.iconPill, isActive && barStyles.activeIconPill]}>
+              <Ionicons
+                name={isActive ? tab.activeIcon : tab.inactiveIcon}
+                size={18}
+                color={
+                  isActive
+                    ? Colors.onPrimaryContainer ?? "#5c3d00"
+                    : Colors.textMuted
+                }
+              />
+            </View>
+
+            {/* Label: text-[11px] font-medium */}
             <Text
               style={[
                 barStyles.tabLabel,
-                { color: isActive ? '#ED1E24' : '#535665' },
+                { color: isActive ? Colors.textDark : Colors.textMuted },
               ]}
             >
               {tab.name}
@@ -54,17 +95,18 @@ export const BottomTabBarComponent = () => {
 const barStyles = StyleSheet.create({
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
+    backgroundColor: Colors.footerbg ?? '#FFFFFF',
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#E5E5E5',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingTop: 8,
+    justifyContent: 'space-between',
+    alignItems: 'stretch',
+    paddingTop: 6,          // pt-1.5
+    paddingHorizontal: 4,   // px-1
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    zIndex: 100,
+    zIndex: 40,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
@@ -73,12 +115,24 @@ const barStyles = StyleSheet.create({
   },
   tabButton: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,   // py-1.5
+    gap: 4,               // gap-1
+  },
+  iconPill: {
+    width: 64,            // w-16
+    height: 32,           // h-8
+    borderRadius: 16,     // rounded-full
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  activeIconPill: {
+    backgroundColor: Colors.primaryContainer ?? '#FDE8E8',  // bg-primary-container
   },
   tabLabel: {
-    fontSize: 11,
-    marginTop: 3,
-    fontWeight: '600',
+    fontSize: 11,         // text-[11px]
+    fontWeight: '500',    // font-medium
   },
 });

@@ -33,6 +33,7 @@ export const Colors = {
   surface1: "#F6EFE5",
   surface2: "#F2E8DA",
   surface3: "#E8D5CA",
+  footerbg: "#F7EFE6",
   
   // Cards
   card: "#FFFFFF",

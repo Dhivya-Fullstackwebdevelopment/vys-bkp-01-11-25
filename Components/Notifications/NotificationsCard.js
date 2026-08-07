@@ -12,7 +12,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import config from '../../API/Apiurl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { BottomTabBarComponent } from '../../Navigation/ReuseTabNavigation';
+// import { BottomTabBarComponent } from '../../Navigation/ReuseTabNavigation';
 import Toast from "react-native-toast-message";
 
 export const NotificationsCard = () => {
@@ -365,7 +365,7 @@ export const NotificationsCard = () => {
         <Text style={{ fontSize: 18, color: '#666', fontWeight: '500' }}>
           No notifications found
         </Text>
-        <BottomTabBarComponent />
+        {/* <BottomTabBarComponent /> */}
       </View>
     );
   }
@@ -403,7 +403,7 @@ export const NotificationsCard = () => {
           You have reached the end of notifications
         </Text>
       )}
-      <BottomTabBarComponent />
+      {/* <BottomTabBarComponent /> */}
     </View>
   );
 };

@@ -16,6 +16,8 @@ import { Message } from "../Tabs/Message";
 import { Menu } from "../Tabs/Menu";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { Notifications } from "../Screens/Notifications";
+import { Colors } from "../Reusable/Theme";
 
 const Tab = createBottomTabNavigator();
 
@@ -52,6 +54,23 @@ export const TabNavigation = () => {
         options={{
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="search" color={color} size={size} />
+          ),
+          headerTitle: () => <Header name="HomeWithToast" />,
+          //   tabBarActiveTintColor: "#FF0000",
+          headerStyle: {
+            backgroundColor: "#fff",
+          },
+          headerLeft: null,
+          headerShown: true,
+          //   tabBarActiveTintColor: "#FF0000",
+        }}
+      />
+        <Tab.Screen
+        name="Alerts"
+        component={Notifications}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="notifications" color={color} size={size} />
           ),
           headerTitle: () => <Header name="HomeWithToast" />,
           //   tabBarActiveTintColor: "#FF0000",
