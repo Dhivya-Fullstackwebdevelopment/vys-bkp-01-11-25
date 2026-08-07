@@ -645,7 +645,7 @@ export const Search = () => {
             onPress={() => toggleSection("basics")}
           >
             <View style={styles.accordionIconCircle}>
-              <Feather name="user" size={18} color="#BD1225" />
+              <Feather name="user" size={18} color={Colors.matchingcirclecolor} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Basics</Text>
@@ -707,7 +707,7 @@ export const Search = () => {
             onPress={() => toggleSection("marital")}
           >
             <View style={styles.accordionIconCircle}>
-              <Ionicons name="heart-outline" size={18} color="#BD1225" />
+              <Ionicons name="heart-outline" size={18} color={Colors.matchingcirclecolor} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Marital status</Text>
@@ -753,7 +753,7 @@ export const Search = () => {
             onPress={() => toggleSection("profession")}
           >
             <View style={styles.accordionIconCircle}>
-              <Feather name="briefcase" size={18} color="#BD1225" />
+              <Feather name="briefcase" size={18} color={Colors.matchingcirclecolor} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Profession & income</Text>
@@ -838,7 +838,7 @@ export const Search = () => {
             onPress={() => toggleSection("education")}
           >
             <View style={styles.accordionIconCircle}>
-              <Feather name="book-open" size={18} color="#BD1225" />
+              <Feather name="book-open" size={18} color={Colors.matchingcirclecolor} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Education</Text>
@@ -908,7 +908,7 @@ export const Search = () => {
             onPress={() => toggleSection("astrology")}
           >
             <View style={styles.accordionIconCircle}>
-              <Ionicons name="sparkles-outline" size={18} color="#BD1225" />
+              <Ionicons name="sparkles-outline" size={18} color={Colors.matchingcirclecolor} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Dosham & Astrology</Text>
@@ -969,7 +969,7 @@ export const Search = () => {
             onPress={() => toggleSection("location")}
           >
             <View style={styles.accordionIconCircle}>
-              <Ionicons name="location-outline" size={18} color="#BD1225" />
+              <Ionicons name="location-outline" size={18} color={Colors.matchingcirclecolor} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Location</Text>
@@ -1027,7 +1027,7 @@ export const Search = () => {
             onPress={() => toggleSection("photo")}
           >
             <View style={styles.accordionIconCircle}>
-              <Feather name="camera" size={18} color="#BD1225" />
+              <Feather name="camera" size={18} color={Colors.matchingcirclecolor} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Profile Photo</Text>
@@ -1129,7 +1129,7 @@ const styles = StyleSheet.create({
     color: "#1E1E1E",
   },
   searchBtn: {
-    backgroundColor: "#BD1225",
+    backgroundColor: Colors.primary,
     borderRadius: 10,
     paddingHorizontal: 18,
     paddingVertical: 12,
@@ -1162,12 +1162,14 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "#FEE2E2",
+    backgroundColor: Colors.iconContainerBg,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
   accordionTitle: {
+    fontSize: 14,       
+    lineHeight: 15,
     fontSize: 17,
     fontWeight: "700",
     color: "#18181B",
@@ -1367,7 +1369,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   submitGradientBtn: {
-    backgroundColor: "#BD1225",
+    backgroundColor: Colors.primary,
     paddingVertical: 16,
     borderRadius: 28,
     alignItems: "center",

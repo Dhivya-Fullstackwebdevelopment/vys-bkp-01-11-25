@@ -1316,6 +1316,21 @@ export const ProfileDetails = () => {
     );
   };
 
+  const renderFullFactCard = (iconName, IconComponent, label, value) => {
+    if (!value || value === "" || value === "0") return null;
+    return (
+      <View style={styles.factCardFull} key={label}>
+        <View style={styles.factIconBg}>
+          <IconComponent name={iconName} size={16} color={Colors.primary} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.factLabel}>{label}</Text>
+          <Text style={styles.factValue}>{value}</Text>
+        </View>
+      </View>
+    );
+  };
+
   const renderFactCard = (iconName, IconComponent, label, value) => {
     if (!value || value === "" || value === "0") return null;
     return (
@@ -1856,7 +1871,7 @@ export const ProfileDetails = () => {
             </View>
 
             <View style={styles.factsGrid}>
-              {renderFactCard("cake-variant-outline", MaterialCommunityIcons, "Age", basic_details.age ? `${basic_details.age} yrs` : null)}
+              {/* {renderFactCard("cake-variant-outline", MaterialCommunityIcons, "Age", basic_details.age ? `${basic_details.age} yrs` : null)}
               {renderFactCard(
                 "ruler",
                 MaterialCommunityIcons,
@@ -1865,8 +1880,8 @@ export const ProfileDetails = () => {
                   /(\d+)ft\s*(\d+)in\s*-\s*(\d+)cm/i,
                   "$1'$2\" ($3 cm)"
                 )
-              )}
-              {basic_details?.profession &&
+              )} */}
+              {/* {basic_details?.profession &&
                 basic_details.profession.trim().toLowerCase() !== "not mentioned" &&
                 renderFactCard(
                   "briefcase-outline",
@@ -1874,7 +1889,11 @@ export const ProfileDetails = () => {
                   "Profession",
                   basic_details.profession
                 )}
-              {renderFactCard("school-outline", Ionicons, "Education", basic_details.education || basic_details.degeree)}
+              {renderFactCard("school-outline", Ionicons, "Education", basic_details.education || basic_details.degeree)} */}
+              {basic_details?.profession &&
+                basic_details.profession.trim().toLowerCase() !== "not mentioned" &&
+                renderFullFactCard("briefcase-outline", MaterialCommunityIcons, "Profession", basic_details.profession)}
+              {renderFullFactCard("school-outline", Ionicons, "Education", basic_details.education || basic_details.degeree)}
               {renderFactCard("star-outline", Ionicons, "Star / Rasi", [basic_details.star, horoscope_details?.rasi].filter(Boolean).join(" · "))}
               {renderFactCard("sparkles-outline", Ionicons, "Gothram", horoscope_details?.surya_gothram || basic_details.gothram)}
               {renderFactCard("home-outline", Ionicons, "Native", personal_details?.place_of_birth || family_details?.about_family)}
@@ -3198,6 +3217,15 @@ const styles = StyleSheet.create({
   factsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 8,
+  },
+  factCardFull: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.snapshotbg,
+    padding: 10,
+    borderRadius: 25,
     gap: 8,
   },
   factCard: {
