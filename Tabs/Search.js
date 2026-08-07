@@ -331,7 +331,6 @@ export const Search = () => {
       const fromHeightNum = parseInt(fromHeight.toString(), 10);
       const toHeightNum = parseInt(toHeight.toString(), 10);
 
-      // 1. Basic Age Range Validation
       if (fromAgeNum > 0 && toAgeNum > 0 && fromAgeNum > toAgeNum) {
         setBtnLoading(false);
         return Toast.show({
@@ -342,7 +341,6 @@ export const Search = () => {
         });
       }
 
-      // 2. Basic Height Range Validation
       if (fromHeightNum > 0 && toHeightNum > 0 && fromHeightNum > toHeightNum) {
         setBtnLoading(false);
         return Toast.show({
@@ -353,7 +351,6 @@ export const Search = () => {
         });
       }
 
-      // 3. Gender Profile Preference Validations (Male)
       if (normalizedGender === "male") {
         if (toAgeNum > 0 && toAgeNum > myAge + 1) {
           setBtnLoading(false);
@@ -375,7 +372,6 @@ export const Search = () => {
         }
       }
 
-      // 4. Gender Profile Preference Validations (Female)
       if (normalizedGender === "female") {
         if (fromAgeNum > 0 && fromAgeNum < myAge - 1) {
           setBtnLoading(false);
@@ -397,7 +393,6 @@ export const Search = () => {
         }
       }
 
-      // Build Search Parameters Payload
       const params = {
         from_age: fromAge,
         to_age: toAge,
@@ -417,13 +412,10 @@ export const Search = () => {
         search_worklocation: selectedWorkLocationId,
       };
 
-      // Save criteria to AsyncStorage
       await AsyncStorage.setItem("searchParams", JSON.stringify(params));
 
-      // Call API (passing perPage: 10, pageNumber: 1)
       const searchResults = await getAdvanceSearchResults(10, 1);
 
-      // Navigate only on explicit success response
       if (searchResults && searchResults.status === "success" && Array.isArray(searchResults.data)) {
         navigation.navigate("SearchResults", {
           results: searchResults.data,
@@ -535,6 +527,7 @@ export const Search = () => {
     setChevvaiDhosam("No");
     setSelectedBirthStarId("");
     setSelectedWorkLocationId("");
+    setSearchProfileId("");
     ppSetChecked(false);
 
     fetchMaritalStatuses();
@@ -611,30 +604,25 @@ export const Search = () => {
       </LinearGradient>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 110 }} nestedScrollEnabled={true}>
-        {/* Quick Search Bar */}
+        {/* Rounded Full Pill Search Bar (Matching image and React UI) */}
         <View style={styles.searchBarWrapper}>
-          <View style={styles.searchBarCard}>
-            <Ionicons name="search" size={18} color="#71717A" style={{ marginRight: 8 }} />
+          <View style={styles.searchBarPill}>
+            <Ionicons name="search-outline" size={18} color="#71717A" style={{ marginRight: 8 }} />
             <TextInput
               style={styles.searchBarInput}
-              placeholder="Search profile ID or profile Name"
-              placeholderTextColor="#9CA3AF"
+              placeholder="Search profile ID or name"
+              placeholderTextColor="#71717A"
               value={searchProfileId}
               onChangeText={(text) => setSearchProfileId(text)}
+              onSubmitEditing={handleFilterPress}
+              returnKeyType="search"
             />
+            {searchProfileId ? (
+              <TouchableOpacity onPress={() => setSearchProfileId("")} style={{ padding: 2 }}>
+                <Ionicons name="close" size={18} color="#71717A" />
+              </TouchableOpacity>
+            ) : null}
           </View>
-          <TouchableOpacity
-            style={styles.searchBtn}
-            activeOpacity={0.85}
-            onPress={handleFilterPress}
-            disabled={btnLoading}
-          >
-            {btnLoading ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.searchBtnText}>Search</Text>
-            )}
-          </TouchableOpacity>
         </View>
 
         {/* Section 1: Basics */}
@@ -1084,10 +1072,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   headerTitle: {
-    fontSize: rs(20, 22, 24),
-    fontWeight: "700",
+    // fontSize: rs(20, 22, 24),
+    fontSize: 22,
+    fontWeight: 700,
     color: "#FFFFFF",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -1,
   },
   headerSubtitle: {
     fontSize: rs(12, 13, 14),
@@ -1105,41 +1095,28 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   searchBarWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
     paddingHorizontal: 16,
     marginTop: 14,
     marginBottom: 8,
-    gap: 8,
   },
-  searchBarCard: {
-    flex: 1,
+  searchBarPill: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 10 : 4,
-    borderWidth: 1,
-    borderColor: "#E4E4E7",
+    borderRadius: 5000,
+    paddingHorizontal: 16,
+    paddingVertical: Platform.OS === "ios" ? 9 : 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+
   },
   searchBarInput: {
     flex: 1,
     fontSize: 14,
-    color: "#1E1E1E",
-  },
-  searchBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: 10,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  searchBtnText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "700",
+    color: "#18181B",
   },
   accordionCard: {
     backgroundColor: "#FFFFFF",
@@ -1168,9 +1145,8 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   accordionTitle: {
-    fontSize: 14,       
-    lineHeight: 15,
-    fontSize: 17,
+    lineHeight: 14,
+    fontSize: 15,
     fontWeight: "700",
     color: "#18181B",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
@@ -1216,7 +1192,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.selectedBg,
     color: "#18181B",
   },
-  /* Native Custom Select Styling */
   dropdownStyle: {
     flex: 1,
     flexDirection: "row",
