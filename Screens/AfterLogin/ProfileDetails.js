@@ -1589,30 +1589,24 @@ export const ProfileDetails = () => {
 
               {photoState === "none" && !isPlan16 && photoRequest === 1 && (
                 <View style={styles.floatingPhotoReqWrapper}>
-                  {photoRequestSent || photoRequestAlreadySent ? (
+                  {/* {photoRequestSent || photoRequestAlreadySent ? (
                     <View style={styles.noPhotoReqSentPill}>
                       <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
                       <Text style={styles.noPhotoReqSentText}>
                         {photoRequestAlreadySent ? "Request Already Sent" : "Request Sent!"}
                       </Text>
                     </View>
-                  ) : (
-                    <TouchableOpacity
-                      style={styles.noPhotoReqBtn}
-                      onPress={handleSendPhotoRequest}
-                      activeOpacity={0.85}
-                      disabled={loading}
-                    >
-                      {loading ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                      ) : (
-                        <>
-                          <MaterialIcons name="insert-photo" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
-                          <Text style={styles.noPhotoReqBtnText}>Request Photo</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  )}
+                  ) : ( */}
+                  <TouchableOpacity
+                    style={styles.noPhotoReqBtn}
+                    onPress={handleSendPhotoRequest}
+                    activeOpacity={0.85}
+                    disabled={loading}
+                  >
+                    <MaterialIcons name="insert-photo" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    <Text style={styles.noPhotoReqBtnText}>Photo Request</Text>
+                  </TouchableOpacity>
+                  {/* )} */}
                 </View>
               )}
             </LinearGradient>
@@ -1716,7 +1710,7 @@ export const ProfileDetails = () => {
                 />
               </Pressable>
 
-              {!isPlan16 && photoRequest === 1 && (
+              {/* {!isPlan16 && photoRequest === 1 && (
                 <Pressable
                   style={({ pressed }) => [
                     styles.iconButton,
@@ -1727,7 +1721,7 @@ export const ProfileDetails = () => {
                 >
                   <MaterialIcons name="insert-photo" size={20} color={Colors.textDark} />
                 </Pressable>
-              )}
+              )} */}
 
               <Pressable
                 style={({ pressed }) => [
@@ -4109,6 +4103,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 18,
+    marginBottom: 8,
     height: 44,
     paddingHorizontal: 24,
     borderRadius: 22,
