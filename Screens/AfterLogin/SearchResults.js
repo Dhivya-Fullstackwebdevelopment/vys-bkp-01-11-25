@@ -13,13 +13,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SearchCard } from "../../Components/DashBoardTab/Search/SearchCard";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { Colors, rs } from "../../Reusable/Theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export const SearchResults = ({ route }) => {
   const navigation = useNavigation();
   const { results = [], totalCount = 0 } = route.params || {};
 
   return (
-    <View style={styles.rootContainer}>
+    <SafeAreaView style={styles.rootContainer} edges={['top']}>
       {/* Configure StatusBar to match header theme */}
       <StatusBar
         barStyle="light-content"
@@ -63,14 +64,14 @@ export const SearchResults = ({ route }) => {
       </View>
 
       <BottomTabBarComponent />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   rootContainer: {
     flex: 1,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#FFFFFF'
   },
   header: {
     flexDirection: "row",
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#FFFFFF",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-     letterSpacing: -1,
+    letterSpacing: -1,
   },
   headerSubtitle: {
     fontSize: rs(12, 13, 14),

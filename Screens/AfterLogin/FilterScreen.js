@@ -3,7 +3,6 @@ import {
     StyleSheet,
     Text,
     View,
-    SafeAreaView,
     FlatList,
     TouchableOpacity,
     ActivityIndicator,
@@ -29,6 +28,7 @@ import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImag
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { PlatinumModalPopup } from "../../Components/ReusePopups/PlatinumModalPopup";
 import { Colors, GlobalStyles, rs } from "../../Reusable/Theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const DEFAULT_BRIDE =
     "https://vysyamat.blob.core.windows.net/vysyamala/default_bride.png";
@@ -286,6 +286,7 @@ export const FilterScreen = () => {
         const [badgeLoaded, setBadgeLoaded] = useState(false);
 
         return (
+
             <View style={styles.marriageBadgeOverlay}>
                 <View style={styles.marriageBadgeCircle}>
                     {!badgeLoaded && (
@@ -470,7 +471,7 @@ export const FilterScreen = () => {
     const displayCount = profileCount ?? totalCount ?? profiles.length;
 
     return (
-        <View style={styles.rootContainer}>
+        <SafeAreaView style={styles.rootContainer} edges={['top']}>
             <StatusBar
                 barStyle="light-content"
                 backgroundColor={Colors.primary}
@@ -535,20 +536,20 @@ export const FilterScreen = () => {
                 visible={showPlatinumModal}
                 onClose={() => setShowPlatinumModal(false)}
             />
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     rootContainer: {
         flex: 1,
-        backgroundColor: Colors.primary,
+        backgroundColor: '#FFFFFF'
     },
     header: {
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: rs(12, 16, 20),
-        paddingTop: Platform.OS === "ios" ? rs(48, 52, 56) : rs(14, 16, 18),
+        paddingTop: rs(14, 16, 18),
         paddingBottom: rs(14, 16, 18),
     },
     backBtn: { padding: 4 },
@@ -739,7 +740,7 @@ const styles = StyleSheet.create({
     },
     footerLoader: {
         paddingVertical: 20,
-        paddingBottom: 40,    
+        paddingBottom: 40,
         alignItems: "center",
         minHeight: 60,
     },
