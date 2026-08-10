@@ -13,6 +13,8 @@ import {
   Platform,
   LayoutAnimation,
   UIManager,
+  Animated,
+  Easing,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import VysyamalaLogo from "../assets/img/VysyamalaLogo.png";
@@ -39,10 +41,88 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 const DEBOUNCE_DELAY = 300;
 const MIN_SEARCH_LENGTH = 1;
 const CARD_WIDTH = width - 90;
+
+// ── Shimmer Animation Component ────────────────────────────────────────────────
+const DynamicShimmer = ({ style }) => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: 1200,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [animatedValue]);
+
+  const opacity = animatedValue.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0.3, 0.7, 0.3],
+  });
+
+  return <Animated.View style={[style, { backgroundColor: "#E1E9EE", opacity }]} />;
+};
+
+// ── Initial Full Skeleton Screen Component ─────────────────────────────────────
+const InitialShimmerLoader = () => {
+  return (
+    <View style={styles.shimmerScreenContainer}>
+      {/* Skeleton Top Header Gradient simulation */}
+      <View style={styles.shimmerHeader}>
+        <View style={styles.shimmerHeaderTop}>
+          <DynamicShimmer style={{ width: 120, height: 32, borderRadius: 12 }} />
+          <DynamicShimmer style={{ width: 40, height: 40, borderRadius: 20 }} />
+        </View>
+        <DynamicShimmer style={{ width: 180, height: 22, borderRadius: 6, marginTop: 15 }} />
+        <DynamicShimmer style={{ width: 100, height: 14, borderRadius: 4, marginTop: 8 }} />
+        <DynamicShimmer style={{ width: "100%", height: 42, borderRadius: 21, marginTop: 15 }} />
+      </View>
+
+      {/* Shimmer Body Occupying Half the Screen height with Profile Cards */}
+      <View style={styles.shimmerBodyContainer}>
+        {/* Mock sticky title bar */}
+        <View style={styles.shimmerTitleRow}>
+          <DynamicShimmer style={{ width: 140, height: 18, borderRadius: 4 }} />
+          <DynamicShimmer style={{ width: 70, height: 18, borderRadius: 4 }} />
+        </View>
+
+        {/* Mock Profile Card 1 */}
+        <View style={styles.shimmerProfileCard}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <DynamicShimmer style={{ width: 80, height: 80, borderRadius: 8, marginRight: 12 }} />
+            <View style={{ flex: 1, gap: 8 }}>
+              <DynamicShimmer style={{ width: "70%", height: 16, borderRadius: 4 }} />
+              <DynamicShimmer style={{ width: "40%", height: 12, borderRadius: 4 }} />
+              <DynamicShimmer style={{ width: "50%", height: 12, borderRadius: 4 }} />
+            </View>
+          </View>
+          <DynamicShimmer style={{ width: "100%", height: 35, borderRadius: 6, marginTop: 12 }} />
+        </View>
+
+        {/* Mock Profile Card 2 */}
+        <View style={styles.shimmerProfileCard}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <DynamicShimmer style={{ width: 80, height: 80, borderRadius: 8, marginRight: 12 }} />
+            <View style={{ flex: 1, gap: 8 }}>
+              <DynamicShimmer style={{ width: "65%", height: 16, borderRadius: 4 }} />
+              <DynamicShimmer style={{ width: "45%", height: 12, borderRadius: 4 }} />
+              <DynamicShimmer style={{ width: "55%", height: 12, borderRadius: 4 }} />
+            </View>
+          </View>
+          <DynamicShimmer style={{ width: "100%", height: 35, borderRadius: 6, marginTop: 12 }} />
+        </View>
+      </View>
+    </View>
+  );
+};
 
 export const HomeWithToast = () => {
   // ── Slider / interest state ──────────────────────────────────────────────
@@ -331,7 +411,6 @@ export const HomeWithToast = () => {
 
   const handleFilterPress = () => navigation.navigate("MatchingProfileSearch");
   const handleFilterPressMenu = () => navigation.navigate("MatchingProfileSearch");
-
 
   // ── Slider helpers ───────────────────────────────────────────────────────
   const combinedData = useMemo(
@@ -669,7 +748,7 @@ export const HomeWithToast = () => {
           label: "Advanced\nSearch",
           onPress: handleFilterPressMenu,
         },
-        // {
+         // {
         //   icon: "star-border",
         //   isSvg: false,
         //   label: "Horoscope\nMatch",
@@ -704,6 +783,7 @@ export const HomeWithToast = () => {
       ))}
     </View>
   );
+
   // ── Sticky matching header ────────────────────────────────────────────────
   const renderMatchingHeader = () => (
     <View style={styles.stickyHeader}>
@@ -806,14 +886,11 @@ export const HomeWithToast = () => {
     return null;
   };
 
-  // ── Loading state ─────────────────────────────────────────────────────────
+  // ── Initial Loading state showing full height Shimmer Skeleton ─────────────
   if (isInitialLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Loading your matches...</Text>
-        </View>
+        <InitialShimmerLoader />
       </SafeAreaView>
     );
   }
@@ -852,15 +929,47 @@ const styles = StyleSheet.create({
   flatListContent: {
     flexGrow: 1,
   },
-  loadingContainer: {
+
+  // ── Shimmer Loading Mock Layout Styles ───────────────────────────────────
+  shimmerScreenContainer: {
     flex: 1,
-    justifyContent: "center",
+    backgroundColor: Colors.background || "#FAF6F0",
+  },
+  shimmerHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
+    backgroundColor: Colors.primary || "#9B061B",
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  shimmerHeaderTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
   },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: Colors.textMuted,
+  shimmerBodyContainer: {
+    flex: 1,
+    height: height * 0.5, // Takes visible half of the screen
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  shimmerTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  shimmerProfileCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
 
   // ── App header (gradient block) ───────────────────────────────────────────
@@ -945,7 +1054,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4A000A",
   },
 
-  // ── Redesigned Menu Cards to match Image ──────────────────────────────────
+  // ── Redesigned Menu Cards ──────────────────────────────────────────────────
   menuCardsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
