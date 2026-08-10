@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,6 +13,7 @@ import {
   UIManager,
   Modal,
   FlatList,
+  PanResponder,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -41,6 +42,80 @@ const staticStates = [
   { id: 5, name: "Kerala" },
   { id: 6, name: "Others" },
 ];
+
+/* Custom Multi-Thumb Range Slider built with pure RN to avoid PropTypes crashes */
+const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
+  const [sliderWidth, setSliderWidth] = useState(260);
+  const currentValues = useRef(values);
+  currentValues.current = values;
+
+  const getPositionFromValue = (val) => {
+    return ((val - min) / (max - min)) * sliderWidth;
+  };
+
+  const getValueFromPosition = (pos) => {
+    const clampedPos = Math.max(0, Math.min(pos, sliderWidth));
+    const val = Math.round(min + (clampedPos / sliderWidth) * (max - min));
+    return val;
+  };
+
+  // PanResponder for Min Thumb
+  const minPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (evt, gestureState) => {
+        const startPos = getPositionFromValue(currentValues.current[0]);
+        const newPos = startPos + gestureState.dx;
+        const newValue = getValueFromPosition(newPos);
+        if (newValue <= currentValues.current[1]) {
+          onValuesChange([newValue, currentValues.current[1]]);
+        }
+      },
+    })
+  ).current;
+
+  // PanResponder for Max Thumb
+  // const maxPanResponder = useRef(
+  //   PanResponder.create({
+  //     onStartShouldSetPanResponder: () => true,
+  //     onPanResponderMove: (evt, gestureState) => {
+  //       const startPos = getPositionFromValue(currentValues.current[1]);
+  //       const newPos = startPos + gestureState.dx;
+  //       const newValue = getValueFromPosition(newPos);
+  //       if (newValue >= currentValues.current[0]) {
+  //         onValuesChange([currentValues.current[0], newValue]);
+  //       }
+  //     },
+  //   })
+  // ).current;
+
+  const minPos = getPositionFromValue(values[0]);
+  //const maxPos = getPositionFromValue(values[1]);
+
+  return (
+    <View
+      style={styles.sliderContainer}
+      onLayout={(e) => setSliderWidth(e.nativeEvent.layout.width - 24)}
+    >
+      <View style={styles.sliderTrackBg}>
+        <View
+          style={[
+            styles.sliderTrackActive,
+            { left: minPos, width: Math.max(0, sliderWidth - minPos) },
+          ]}
+        />
+      </View>
+      <View
+        {...minPanResponder.panHandlers}
+        style={[styles.sliderThumb, { left: minPos }]}
+      />
+      {/* <View
+        {...maxPanResponder.panHandlers}
+        style={[styles.sliderThumb, { left: maxPos }]}
+      /> */}
+    </View>
+  );
+};
 
 /* Custom Dropdown Component to replace external package */
 const CustomSelectDropdown = ({
@@ -167,6 +242,8 @@ export const Search = () => {
   const [selectedIncomeMaxLabel, setSelectedIncomeMaxLabel] = useState("Select Max Annual Income");
   const [btnLoading, setBtnLoading] = useState(false);
   const [ppChecked, ppSetChecked] = useState(false);
+  const [ageRange, setAgeRange] = useState([24, 34]);   // [fromAge, toAge]
+  const [heightRange, setHeightRange] = useState([155, 185]); // [fromHeight, toHeight] in cm
 
   const [expandedSections, setExpandedSections] = useState({
     basics: true,
@@ -326,11 +403,13 @@ export const Search = () => {
       const myHeight = parseInt(myHeightValue || "0", 10);
       const normalizedGender = myGender?.toLowerCase();
 
-      const fromAgeNum = parseInt(fromAge.toString(), 10);
-      const toAgeNum = parseInt(toAge.toString(), 10);
-      const fromHeightNum = parseInt(fromHeight.toString(), 10);
-      const toHeightNum = parseInt(toHeight.toString(), 10);
+      // 1. Get values from slider state
+      const fromAgeNum = ageRange[0];
+      const toAgeNum = ageRange[1];
+      const fromHeightNum = heightRange[0];
+      const toHeightNum = heightRange[1];
 
+      // 2. Validate Age range
       if (fromAgeNum > 0 && toAgeNum > 0 && fromAgeNum > toAgeNum) {
         setBtnLoading(false);
         return Toast.show({
@@ -341,6 +420,7 @@ export const Search = () => {
         });
       }
 
+      // 3. Validate Height range (numeric)
       if (fromHeightNum > 0 && toHeightNum > 0 && fromHeightNum > toHeightNum) {
         setBtnLoading(false);
         return Toast.show({
@@ -351,6 +431,7 @@ export const Search = () => {
         });
       }
 
+      // 4. Gender‑specific constraints
       if (normalizedGender === "male") {
         if (toAgeNum > 0 && toAgeNum > myAge + 1) {
           setBtnLoading(false);
@@ -393,11 +474,31 @@ export const Search = () => {
         }
       }
 
+      // 5. Map height (cm) to height_id from heightOptions
+      const findHeightId = (cmValue) => {
+        if (!heightOptions || heightOptions.length === 0) return "";
+        let closest = heightOptions[0];
+        let minDiff = Infinity;
+        heightOptions.forEach((opt) => {
+          const cm = parseInt(opt.label.replace(/\D/g, ""), 10);
+          const diff = Math.abs(cm - cmValue);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closest = opt;
+          }
+        });
+        return closest.value;
+      };
+
+      const fromHeightId = fromHeightNum > 0 ? findHeightId(fromHeightNum) : "";
+      const toHeightId = toHeightNum > 0 ? findHeightId(toHeightNum) : "";
+
+      // 6. Build params
       const params = {
-        from_age: fromAge,
-        to_age: toAge,
-        from_height: fromHeight,
-        to_height: toHeight,
+        from_age: fromAgeNum,
+        to_age: toAgeNum,
+        from_height: fromHeightId,
+        to_height: toHeightId,
         search_marital_status: selectedIds,
         search_profession: selectedProfessionIds,
         search_education: selectedEducationId,
@@ -529,6 +630,8 @@ export const Search = () => {
     setSelectedWorkLocationId("");
     setSearchProfileId("");
     ppSetChecked(false);
+    setAgeRange([24, 34]);
+    setHeightRange([155, 185]);
 
     fetchMaritalStatuses();
     fetchProfessions();
@@ -566,8 +669,8 @@ export const Search = () => {
   );
 
   const getBasicsSubtitle = () => {
-    const ageText = fromAge && toAge ? `${fromAge}-${toAge} yrs` : "Any age";
-    const heightText = fromHeight && toHeight ? ` · selected height` : "";
+    const ageText = ageRange[0] && ageRange[1] ? `${ageRange[0]}-${ageRange[1]} yrs` : "Any age";
+    const heightText = heightRange[0] && heightRange[1] ? ` · ${heightRange[0]}-${heightRange[1]} cm` : "";
     return `${ageText}${heightText}`;
   };
 
@@ -604,7 +707,7 @@ export const Search = () => {
       </LinearGradient>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 110 }} nestedScrollEnabled={true}>
-        {/* Rounded Full Pill Search Bar (Matching image and React UI) */}
+        {/* Search Bar */}
         <View style={styles.searchBarWrapper}>
           <View style={styles.searchBarPill}>
             <Ionicons name="search-outline" size={18} color="#71717A" style={{ marginRight: 8 }} />
@@ -650,37 +753,39 @@ export const Search = () => {
 
           {expandedSections.basics && (
             <View style={styles.accordionContent}>
-              <Text style={styles.fieldLabel}>Age Range</Text>
-              <View style={styles.inputFlexContainer}>
-                <TextInput
-                  placeholder="From Age"
-                  keyboardType="numeric"
-                  value={fromAge ? String(fromAge) : ""}
-                  onChangeText={setFromAge}
-                  style={styles.roundedInput}
-                />
-                <TextInput
-                  placeholder="To Age"
-                  keyboardType="numeric"
-                  value={toAge ? String(toAge) : ""}
-                  onChangeText={setToAge}
-                  style={styles.roundedInput}
+              {/* Age Range Slider */}
+              <View style={styles.rangeBlock}>
+                <View style={styles.rangeHeader}>
+                  <Text style={styles.fieldLabel}>Age</Text>
+                  <View style={styles.rangeBadge}>
+                    <Text style={styles.rangeBadgeText}>
+                      {ageRange[0]} – {ageRange[1]} yrs
+                    </Text>
+                  </View>
+                </View>
+                <CustomRangeSlider
+                  min={18}
+                  max={60}
+                  values={ageRange}
+                  onValuesChange={setAgeRange}
                 />
               </View>
 
-              <Text style={[styles.fieldLabel, { marginTop: 14 }]}>Height Range</Text>
-              <View style={styles.inputFlexContainer}>
-                <CustomSelectDropdown
-                  placeholder="From Height"
-                  data={heightOptions}
-                  selectedValue={fromHeight}
-                  onSelect={(item) => setFromHeight(item.value)}
-                />
-                <CustomSelectDropdown
-                  placeholder="To Height"
-                  data={heightOptions}
-                  selectedValue={toHeight}
-                  onSelect={(item) => setToHeight(item.value)}
+              {/* Height Range Slider */}
+              <View style={[styles.rangeBlock, { marginTop: 16 }]}>
+                <View style={styles.rangeHeader}>
+                  <Text style={styles.fieldLabel}>Height</Text>
+                  <View style={styles.rangeBadge}>
+                    <Text style={styles.rangeBadgeText}>
+                      {heightRange[0]} – {heightRange[1]} cm
+                    </Text>
+                  </View>
+                </View>
+                <CustomRangeSlider
+                  min={140}
+                  max={200}
+                  values={heightRange}
+                  onValuesChange={setHeightRange}
                 />
               </View>
             </View>
@@ -1051,7 +1156,11 @@ export const Search = () => {
         <View style={styles.bottomBarSubmit}>
           <TouchableOpacity style={{ flex: 1 }} onPress={handleSubmit} activeOpacity={0.85}>
             <View style={styles.submitGradientBtn}>
-              <Text style={styles.submitBtnText}>Submit Search Criteria</Text>
+              {btnLoading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.submitBtnText}>Submit Search Criteria</Text>
+              )}
             </View>
           </TouchableOpacity>
         </View>
@@ -1072,9 +1181,8 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   headerTitle: {
-    // fontSize: rs(20, 22, 24),
     fontSize: 22,
-    fontWeight: 700,
+    fontWeight: "700",
     color: "#FFFFFF",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     letterSpacing: -1,
@@ -1111,7 +1219,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 3,
     elevation: 2,
-
   },
   searchBarInput: {
     flex: 1,
@@ -1145,7 +1252,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   accordionTitle: {
-    lineHeight: 14,
+    lineHeight: 18,
     fontSize: 15,
     fontWeight: "700",
     color: "#18181B",
@@ -1176,21 +1283,6 @@ const styles = StyleSheet.create({
     color: "#71717A",
     textTransform: "uppercase",
     marginBottom: 8,
-  },
-  inputFlexContainer: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  roundedInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#E4E4E7",
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-    backgroundColor: Colors.selectedBg,
-    color: "#18181B",
   },
   dropdownStyle: {
     flex: 1,
@@ -1359,5 +1451,59 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
+  },
+  rangeBlock: {
+    marginBottom: 8,
+  },
+  rangeHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  rangeBadge: {
+    backgroundColor: Colors.iconContainerBg,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  rangeBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: Colors.primary,
+  },
+  sliderContainer: {
+    height: 36,
+    justifyContent: "center",
+    position: "relative",
+    marginHorizontal: 8,
+  },
+  sliderTrackBg: {
+    height: 6,
+    backgroundColor: "#F1D2D3",
+    borderRadius: 2,
+    position: "relative",
+  },
+  sliderTrackActive: {
+    height: 6,
+    backgroundColor: Colors.primary || "#BD1225",
+    borderRadius: 2,
+    position: "absolute",
+  },
+  sliderThumb: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 2,
+    borderColor: Colors.primary || "#BD1225",
+    position: "absolute",
+    top: 7,
+    marginTop: -4,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
 });
