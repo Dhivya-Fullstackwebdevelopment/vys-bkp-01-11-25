@@ -690,11 +690,18 @@ export const Search = () => {
   const getProfessionSubtitle = () => {
     const parts = [];
     if (checkedProfessions.size > 0) parts.push(`${checkedProfessions.size} selected`);
-    if (selectedIncomeMinIds || selectedIncomeMaxIds) {
-      const min = selectedIncomeMinLabel.replace("Select min ", "").replace("Select Max ", "");
-      const max = selectedIncomeMaxLabel.replace("Select min ", "").replace("Select Max ", "");
-      parts.push(selectedIncomeMinIds && selectedIncomeMaxIds ? `${min}-${max}` : (selectedIncomeMinIds ? min : max));
-    }
+
+    const minVal = selectedIncomeMinIds
+      ? incomeOptions.find((o) => String(o.value) === String(selectedIncomeMinIds))?.label
+      : null;
+    const maxVal = selectedIncomeMaxIds
+      ? incomeOptions.find((o) => String(o.value) === String(selectedIncomeMaxIds))?.label
+      : null;
+
+    if (minVal && maxVal) parts.push(`${minVal} - ${maxVal}`);
+    else if (minVal) parts.push(`Min ${minVal}`);
+    else if (maxVal) parts.push(`Max ${maxVal}`);
+
     return parts.length ? parts.join(" · ") : "Any profession";
   };
 
@@ -706,12 +713,14 @@ export const Search = () => {
   };
 
   const getAstrologySubtitle = () => {
-    const parts = [`Chevvai: ${chevvaiDhosam}`, `Rahu/Ketu: ${rahuKetuDhosam}`];
-    if (selectedBirthStarId) {
-      const star = birthStars.find((b) => String(b.birth_id) === String(selectedBirthStarId));
-      if (star) parts.push(star.birth_star);
-    }
-    return parts.join(" · ");
+    const parts = [];
+
+    if (chevvaiDhosam === "No") parts.push(`Chevvai: ${chevvaiDhosam}`);
+    if (rahuKetuDhosam === "No") parts.push(`Rahu/Ketu: ${rahuKetuDhosam}`);
+
+    if (selectedBirthStarId) parts.push("1 star selected");
+
+    return parts.length > 0 ? parts.join(" · ") : "Any preference";
   };
 
   const getLocationSubtitle = () => {
