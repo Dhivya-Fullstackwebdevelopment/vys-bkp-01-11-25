@@ -477,6 +477,21 @@ export const Search = () => {
     });
   };
 
+  const getHeightLabel = (cmValue) => {
+    if (!heightOptions || heightOptions.length === 0) return `${cmValue} cm`;
+    let closest = heightOptions[0];
+    let minDiff = Infinity;
+    heightOptions.forEach((opt) => {
+      const cm = parseInt(opt.value, 10);
+      const diff = Math.abs(cm - cmValue);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = opt;
+      }
+    });
+    return closest.label; // e.g. "5ft 2in - 157cm"
+  };
+
   const handleSubmit = async () => {
     if (btnLoading) return;
     setBtnLoading(true);
@@ -567,7 +582,7 @@ export const Search = () => {
         let closest = heightOptions[0];
         let minDiff = Infinity;
         heightOptions.forEach((opt) => {
-          const cm = parseInt(opt.label.replace(/\D/g, ""), 10);
+          const cm = parseInt(opt.value, 10);
           const diff = Math.abs(cm - cmValue);
           if (diff < minDiff) {
             minDiff = diff;
@@ -599,13 +614,13 @@ export const Search = () => {
         people_withphoto: ppChecked ? 1 : 0,
         search_worklocation: selectedWorkLocationId,
       };
-      console.log("advance search params",params)
+      console.log("advance search params", params)
 
       await AsyncStorage.setItem("searchParams", JSON.stringify(params));
 
       const searchResults = await getAdvanceSearchResults(10, 1);
 
-      console.log("advance search results",searchResults)
+      console.log("advance search results", searchResults)
 
       if (searchResults && searchResults.status === "success" && Array.isArray(searchResults.data)) {
         navigation.navigate("SearchResults", {
@@ -721,7 +736,7 @@ export const Search = () => {
     setSearchProfileId("");
     ppSetChecked(false);
 
-      try {
+    try {
       const myGender = await AsyncStorage.getItem("gender");
       const myAgeValue = await AsyncStorage.getItem("age");
       const myHeightValue = await AsyncStorage.getItem("height");
@@ -731,8 +746,8 @@ export const Search = () => {
         myAge,
         myHeight,
         myGender,
-        heightBounds.min, 
-        heightBounds.max    
+        heightBounds.min,
+        heightBounds.max
       );
       setAgeRange(ageRangeDefault);
       setHeightRange(heightRangeDefault);
@@ -1014,7 +1029,8 @@ export const Search = () => {
                   <Text style={styles.fieldLabel}>Height</Text>
                   <View style={styles.rangeBadge}>
                     <Text style={styles.rangeBadgeText}>
-                      {heightRange[0]} – {heightRange[1]} cm
+                      {getHeightLabel(heightRange[0])} – {getHeightLabel(heightRange[1])}
+
                     </Text>
                   </View>
                 </View>
