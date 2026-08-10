@@ -75,7 +75,6 @@ const DynamicShimmer = ({ style }) => {
 const InitialShimmerLoader = () => {
   return (
     <View style={styles.shimmerScreenContainer}>
-      {/* Skeleton Top Header Gradient simulation */}
       <View style={styles.shimmerHeader}>
         <View style={styles.shimmerHeaderTop}>
           <DynamicShimmer style={{ width: 120, height: 32, borderRadius: 12 }} />
@@ -86,15 +85,12 @@ const InitialShimmerLoader = () => {
         <DynamicShimmer style={{ width: "100%", height: 42, borderRadius: 21, marginTop: 15 }} />
       </View>
 
-      {/* Shimmer Body Occupying Half the Screen height with Profile Cards */}
       <View style={styles.shimmerBodyContainer}>
-        {/* Mock sticky title bar */}
         <View style={styles.shimmerTitleRow}>
           <DynamicShimmer style={{ width: 140, height: 18, borderRadius: 4 }} />
           <DynamicShimmer style={{ width: 70, height: 18, borderRadius: 4 }} />
         </View>
 
-        {/* Mock Profile Card 1 */}
         <View style={styles.shimmerProfileCard}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <DynamicShimmer style={{ width: 80, height: 80, borderRadius: 8, marginRight: 12 }} />
@@ -107,7 +103,6 @@ const InitialShimmerLoader = () => {
           <DynamicShimmer style={{ width: "100%", height: 35, borderRadius: 6, marginTop: 12 }} />
         </View>
 
-        {/* Mock Profile Card 2 */}
         <View style={styles.shimmerProfileCard}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <DynamicShimmer style={{ width: 80, height: 80, borderRadius: 8, marginRight: 12 }} />
@@ -129,7 +124,7 @@ export const HomeWithToast = () => {
   const [profiles, setProfiles] = useState([]);
   const [vysassistData, setVysassistData] = useState([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [isBannerExpanded, setIsBannerExpanded] = useState(false); // Collapsed by default
+  const [isBannerExpanded, setIsBannerExpanded] = useState(false);
   const flatListRef = useRef(null);
 
   // ── Matching profiles list state ─────────────────────────────────────────
@@ -138,11 +133,13 @@ export const HomeWithToast = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMorePages, setHasMorePages] = useState(true);
 
-  // ── User / member info ───────────────────────────────────────────────────
+  // ── User / member info & Button Logic State ──────────────────────────────
   const [userName, setUserName] = useState("");
   const [userProfileId, setUserProfileId] = useState("");
   const [memberLabel, setMemberLabel] = useState("");
   const [memberSub, setMemberSub] = useState("");
+  const [buttonText, setButtonText] = useState("Upgrade");
+  const [hidePlanButton, setHidePlanButton] = useState(false);
 
   // ── Search / sort / view ─────────────────────────────────────────────────
   const [searchResults, setSearchResults] = useState([]);
@@ -151,7 +148,7 @@ export const HomeWithToast = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isProfilesLoading, setIsProfilesLoading] = useState(false);
-  const [isEnabled, setIsEnabled] = useState(false); // false = sort by match, true = sort by date
+  const [isEnabled, setIsEnabled] = useState(false);
   const [viewMode, setViewMode] = useState("list");
 
   const navigation = useNavigation();
@@ -192,24 +189,47 @@ export const HomeWithToast = () => {
     setIsBannerExpanded((prev) => !prev);
   };
 
-  // ── Load user info from AsyncStorage ────────────────────────────────────
+  // ── Load user info & Determine Button Type from AsyncStorage ──────────────
   useEffect(() => {
     const loadUserInfo = async () => {
       try {
         const name = await AsyncStorage.getItem("loginuser_name");
         const pid = await AsyncStorage.getItem("loginuser_profileId");
-        const planId = parseInt(
-          (await AsyncStorage.getItem("current_plan_id")) || "0"
-        );
-        const validTill = await AsyncStorage.getItem("valid_till_date");
+        const currentPlanId = await AsyncStorage.getItem("current_plan_id");
+        const validityDate = await AsyncStorage.getItem("valid_till_date");
         const contactViews = await AsyncStorage.getItem("contact_views_left");
 
         if (name) setUserName(name);
         if (pid) setUserProfileId(pid);
 
+        const planId = parseInt(currentPlanId || "0");
+        const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
+
+        // Determine plan button visibility and text
+        if (planId === 16) {
+          setHidePlanButton(true);
+        } else {
+          setHidePlanButton(false);
+          let buttonType = "Upgrade";
+
+          if (allowedPremiumIds.includes(planId)) {
+            if (validityDate) {
+              const validDate = new Date(validityDate);
+              const currentDate = new Date();
+              if (validDate.getTime() > currentDate.getTime()) {
+                buttonType = "Add-On";
+              } else {
+                buttonType = "Renew";
+              }
+            } else {
+              buttonType = "Upgrade";
+            }
+          }
+          setButtonText(buttonType);
+        }
+
         // Derive member label from plan
-        const premiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
-        if (premiumIds.includes(planId)) {
+        if (allowedPremiumIds.includes(planId)) {
           if (planId === 16) {
             setMemberLabel("PLATINUM MEMBER");
           } else if ([13, 14, 15, 17].includes(planId)) {
@@ -218,12 +238,12 @@ export const HomeWithToast = () => {
             setMemberLabel("PREMIUM MEMBER");
           }
           const views = contactViews ? `${contactViews} contact views left` : "";
-          const till = validTill
-            ? `till ${new Date(validTill).toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}`
+          const till = validityDate
+            ? `till ${new Date(validityDate).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}`
             : "";
           setMemberSub([views, till].filter(Boolean).join(" · "));
         } else {
@@ -231,7 +251,8 @@ export const HomeWithToast = () => {
           setMemberSub("Upgrade to connect with more profiles");
         }
       } catch (e) {
-        console.error("Error loading user info:", e);
+        console.error("Error loading user info/determining button type:", e);
+        setButtonText("Upgrade");
       }
     };
     loadUserInfo();
@@ -605,7 +626,7 @@ export const HomeWithToast = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* Integrated Interest/VysAssist Slider Section with Expand/Collapse Icon */}
+      {/* Integrated Interest/VysAssist Slider Section */}
       {combinedData.length > 0 && (
         <View style={styles.sliderSectionContainer}>
           <TouchableOpacity
@@ -630,7 +651,6 @@ export const HomeWithToast = () => {
               )}
             </View>
 
-            {/* Expand / Collapse Action Icon */}
             <TouchableOpacity
               style={styles.expandIconButton}
               onPress={toggleBannerExpand}
@@ -649,7 +669,6 @@ export const HomeWithToast = () => {
             </TouchableOpacity>
           </TouchableOpacity>
 
-          {/* Expandable Slider Content */}
           {isBannerExpanded && (
             <View style={styles.expandedContentContainer}>
               <View style={styles.sliderRow}>
@@ -738,51 +757,52 @@ export const HomeWithToast = () => {
     </LinearGradient>
   );
 
-  // ── Menu Cards Matched to Provided Design ──────────────────────────────
-  const renderQuickActionsMenu = () => (
-    <View style={styles.menuCardsContainer}>
-      {[
-        {
-          icon: "tune",
-          isSvg: false,
-          label: "Advanced\nSearch",
-          onPress: handleFilterPressMenu,
-        },
-         // {
-        //   icon: "star-border",
-        //   isSvg: false,
-        //   label: "Horoscope\nMatch",
-        //   onPress: () => navigation.navigate("HoroscopeMatch"),
-        // },
-        {
-          isSvg: true,
-          label: "Upgrade\nPlan",
-          onPress: () => navigation.navigate("MembershipPlan"),
-        },
-        {
-          icon: "grid-view",
-          isSvg: false,
-          label: "My\nDashboard",
-          onPress: () => navigation.navigate("DashBoard"),
-        },
-      ].map((action, i) => (
-        <View key={i} style={styles.menuCardItem}>
-          <TouchableOpacity
-            style={styles.pillButton}
-            onPress={action.onPress}
-            activeOpacity={0.8}
-          >
-            {action.isSvg ? (
-              <CrownOutlineIcon color="#A00014" size={24} />
-            ) : (
-              <MaterialIcons name={action.icon} size={28} color="#A00014" />
-            )}
-          </TouchableOpacity>
-          <Text style={styles.pillLabel}>{action.label}</Text>
-        </View>
-      ))}
-    </View>
-  );
+  // ── Menu Cards Dynamic Rendering ──────────────────────────────────────────
+  const renderQuickActionsMenu = () => {
+    const actions = [
+      {
+        icon: "tune",
+        isSvg: false,
+        label: "Advanced\nSearch",
+        onPress: handleFilterPressMenu,
+        show: true,
+      },
+      {
+        isSvg: true,
+        label: `${buttonText}\nPlan`,
+        onPress: () => navigation.navigate("MembershipPlan"),
+        show: !hidePlanButton,
+      },
+      {
+        icon: "grid-view",
+        isSvg: false,
+        label: "My\nDashboard",
+        onPress: () => navigation.navigate("DashBoard"),
+        show: true,
+      },
+    ].filter((action) => action.show);
+
+    return (
+      <View style={styles.menuCardsContainer}>
+        {actions.map((action, i) => (
+          <View key={i} style={styles.menuCardItem}>
+            <TouchableOpacity
+              style={styles.pillButton}
+              onPress={action.onPress}
+              activeOpacity={0.8}
+            >
+              {action.isSvg ? (
+                <CrownOutlineIcon color="#A00014" size={24} />
+              ) : (
+                <MaterialIcons name={action.icon} size={28} color="#A00014" />
+              )}
+            </TouchableOpacity>
+            <Text style={styles.pillLabel}>{action.label}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
 
   // ── Sticky matching header ────────────────────────────────────────────────
   const renderMatchingHeader = () => (
@@ -902,7 +922,7 @@ export const HomeWithToast = () => {
         data={mainData}
         renderItem={renderMainItem}
         keyExtractor={(item) => item.key}
-        stickyHeaderIndices={[2]} // matchingHeader sticks (index 2 in mainData)
+        stickyHeaderIndices={[2]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
         onEndReached={handleLoadMoreProfiles}
@@ -950,7 +970,7 @@ const styles = StyleSheet.create({
   },
   shimmerBodyContainer: {
     flex: 1,
-    height: height * 0.5, // Takes visible half of the screen
+    height: height * 0.5,
     paddingHorizontal: 16,
     paddingTop: 16,
   },
