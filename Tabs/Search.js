@@ -1384,9 +1384,9 @@ const styles = StyleSheet.create({
   },
   segmentedContainer: {
     flexDirection: "row",
-    backgroundColor: "#F4F4F5",
+    backgroundColor: Colors.selectedBg,
     borderRadius: 20,
-    padding: 3,
+    padding: 8,
   },
   segmentedBtn: {
     flex: 1,
