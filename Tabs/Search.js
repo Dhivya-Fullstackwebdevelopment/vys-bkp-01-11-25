@@ -89,7 +89,7 @@ const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
   ).current;
 
   const minPos = getPositionFromValue(values[0]);
-  const maxPos = getPositionFromValue(values[1]); // ← RESTORED
+  const maxPos = getPositionFromValue(values[1]); 
 
   return (
     <View
@@ -1468,7 +1468,7 @@ const styles = StyleSheet.create({
   rangeBadgeText: {
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.primary,
+    color: Colors.matchingcirclecolor,
   },
   sliderContainer: {
     height: 36,
@@ -1489,15 +1489,15 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   sliderThumb: {
-    width: 22,
-    height: 22,
+    width: 18,
+    height: 18,
     borderRadius: 11,
     backgroundColor: "#FFFFFF",
     borderWidth: 2,
-    borderColor: Colors.primary || "#BD1225",
+    borderColor: "#F1D2D3",
     position: "absolute",
     top: 7,
-    marginTop: -4,
+    marginTop: 1,
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
