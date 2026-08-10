@@ -577,12 +577,12 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingVertical: 12,
         paddingHorizontal: rs(12, 14, 16),
-        paddingBottom: 20,
+        paddingBottom: 100,
     },
     card: {
         backgroundColor: Colors.cardBackground,
         borderRadius: 20,
-        marginBottom: 12,
+        marginBottom: 20,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
         color: Colors.textDark,
         flexShrink: 1,
         maxWidth: "50%",
-        fontFamily: Platform.OS === "ios" ? "Georgia" : "serif", 
+        fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
         letterSpacing: -1,
     },
     matchChip: {
@@ -739,6 +739,7 @@ const styles = StyleSheet.create({
     },
     footerLoader: {
         paddingVertical: 20,
+        paddingBottom: 40,    
         alignItems: "center",
         minHeight: 60,
     },

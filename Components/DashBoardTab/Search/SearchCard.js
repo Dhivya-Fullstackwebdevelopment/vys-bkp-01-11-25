@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
   profileScrollView: {
     paddingVertical: 12,
     paddingHorizontal: 12,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   footerLoader: {
     paddingVertical: 20,
