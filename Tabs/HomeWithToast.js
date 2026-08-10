@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
   ImageBackground,
   Image,
   TouchableOpacity,
@@ -31,7 +30,7 @@ import {
 } from "../CommonApiCall/CommonApiCall";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../API/Apiurl";
-import { Colors, rs } from "../Reusable/Theme"; // ← theme tokens
+import { Colors } from "../Reusable/Theme"; // ← theme tokens
 
 const { width } = Dimensions.get("window");
 const DEBOUNCE_DELAY = 300;
@@ -207,16 +206,6 @@ export const HomeWithToast = () => {
     []
   );
 
-  const handleSearchInput = (text) => {
-    setSearchProfileId(text);
-    if (text.length < MIN_SEARCH_LENGTH) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-    debouncedSearch(text, getOrderBy());
-  };
-
   // ── Navigation helpers ───────────────────────────────────────────────────
   const handleViewProfile = async (viewedProfileId) => {
     const success = await logProfileVisit(viewedProfileId);
@@ -384,8 +373,7 @@ export const HomeWithToast = () => {
       ? "New VysAssist Request"
       : "New Interest Received";
 
-  // ── App header (greeting + search + member banner + quick actions) ────────
-  // ── App header (greeting + search + member banner + quick actions) ────────
+  // ── App header ────────────────────────────────────────────────────────────
   const renderAppHeader = () => (
     <LinearGradient
       colors={[Colors.primary || "#9B061B", Colors.primaryGradientEnd || "#52000A"]}
@@ -393,9 +381,11 @@ export const HomeWithToast = () => {
       end={{ x: 0, y: 1 }}
       style={styles.appHeader}
     >
-      {/* Top Row: Logo on Left & Notification Bell aligned on Right */}
+      {/* Top Row: Logo with Styled Container on Left & Notification Bell on Right */}
       <View style={styles.topHeaderRow}>
-        <Image source={VysyamalaLogo} style={styles.appLogo} resizeMode="contain" />
+        <View style={styles.logoBadgeContainer}>
+          <Image source={VysyamalaLogo} style={styles.appLogo} resizeMode="contain" />
+        </View>
         <TouchableOpacity
           style={styles.notificationBtn}
           onPress={() => navigation.navigate("Notifications")}
@@ -406,7 +396,7 @@ export const HomeWithToast = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Greeting row directly below top row */}
+      {/* Greeting Row */}
       <View style={styles.greetingContainer}>
         <Text style={styles.greetingName}>
           Vanakkam, {userName || ""}
@@ -416,7 +406,7 @@ export const HomeWithToast = () => {
         </Text>
       </View>
 
-      {/* Search bar */}
+      {/* Search Bar */}
       <TouchableOpacity
         style={styles.searchBar}
         onPress={handleFilterPress}
@@ -433,7 +423,7 @@ export const HomeWithToast = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* Member banner */}
+      {/* Member Banner */}
       <TouchableOpacity
         style={styles.memberBanner}
         activeOpacity={0.85}
@@ -450,141 +440,139 @@ export const HomeWithToast = () => {
         <Text style={styles.upgradeArrow}>Upgrade →</Text>
       </TouchableOpacity>
 
-      {/* Quick actions */}
-      <View style={styles.quickActions}>
-        {[
-          {
-            icon: "tune",
-            label: "Advanced\nSearch",
-            onPress: handleFilterPress,
-          },
-          {
-            icon: "favorite-border",
-            label: "Horoscope\nMatch",
-            onPress: () => navigation.navigate("HoroscopeMatch"),
-          },
-          {
-            icon: "workspace-premium",
-            label: "Upgrade\nPlan",
-            onPress: () => navigation.navigate("MembershipPlan"),
-          },
-          {
-            icon: "dashboard",
-            label: "My\nDashboard",
-            onPress: () => navigation.navigate("Dashboard"),
-          },
-        ].map((action, i) => (
-          <TouchableOpacity
-            key={i}
-            style={styles.actionBtn}
-            onPress={action.onPress}
-            activeOpacity={0.8}
-          >
-            <View style={styles.actionIconCircle}>
-              <MaterialIcons name={action.icon} size={22} color={Colors.primary || "#9B061B"} />
-            </View>
-            <Text style={styles.actionLabel}>{action.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Integrated Interest/VysAssist Slider Section */}
+      {/* Integrated Interest/VysAssist Slider Section */}
+      {combinedData.length > 0 && (
+        <View style={styles.sliderSectionContainer}>
+          <View style={styles.bannerHeaderRow}>
+            <Image
+              style={styles.MessageImg}
+              source={require("../assets/img/MessageImg.png")}
+            />
+            <Text style={styles.newInterest}>{sliderHeaderText}</Text>
+          </View>
+
+          <View style={styles.sliderRow}>
+            <TouchableOpacity
+              onPress={handleSlidePrev}
+              disabled={currentSlideIndex === 0}
+              style={[
+                styles.arrowButton,
+                currentSlideIndex === 0 && styles.arrowDisabled,
+              ]}
+            >
+              <MaterialIcons
+                name="chevron-left"
+                size={32}
+                color={
+                  currentSlideIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"
+                }
+              />
+            </TouchableOpacity>
+
+            <FlatList
+              ref={flatListRef}
+              horizontal
+              snapToInterval={CARD_WIDTH + 16}
+              snapToAlignment="center"
+              decelerationRate="fast"
+              data={combinedData}
+              renderItem={renderSliderItem}
+              keyExtractor={(item, index) =>
+                item.type === "vysassist"
+                  ? `vysassist-${item.id}`
+                  : `interest-${index}`
+              }
+              contentContainerStyle={styles.interestList}
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={handleScrollEnd}
+              scrollEventThrottle={16}
+              style={styles.sliderFlatList}
+              getItemLayout={(data, index) => ({
+                length: CARD_WIDTH + 16,
+                offset: (CARD_WIDTH + 16) * index,
+                index,
+              })}
+            />
+
+            <TouchableOpacity
+              onPress={handleSlideNext}
+              disabled={currentSlideIndex === combinedData.length - 1}
+              style={[
+                styles.arrowButton,
+                currentSlideIndex === combinedData.length - 1 &&
+                styles.arrowDisabled,
+              ]}
+            >
+              <MaterialIcons
+                name="chevron-right"
+                size={32}
+                color={
+                  currentSlideIndex === combinedData.length - 1
+                    ? "rgba(255,255,255,0.3)"
+                    : "#fff"
+                }
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.dotsContainer}>
+            {combinedData.map((_, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  flatListRef.current?.scrollToOffset({
+                    offset: index * (CARD_WIDTH + 16),
+                    animated: true,
+                  });
+                  setCurrentSlideIndex(index);
+                }}
+                style={[styles.dot, currentSlideIndex === index && styles.activeDot]}
+              />
+            ))}
+          </View>
+        </View>
+      )}
     </LinearGradient>
   );
 
-  // ── Interest/VysAssist banner ─────────────────────────────────────────────
-  const renderBanner = () => (
-    <View style={styles.heartinBg}>
-      <ImageBackground
-        style={styles.heartinBg}
-        source={require("../assets/img/HeartinBg.png")}
-      >
-        <View style={styles.bannerHeaderRow}>
-          <Image
-            style={styles.MessageImg}
-            source={require("../assets/img/MessageImg.png")}
-          />
-          <Text style={styles.newInterest}>{sliderHeaderText}</Text>
-        </View>
-
-        <View style={styles.sliderRow}>
-          <TouchableOpacity
-            onPress={handleSlidePrev}
-            disabled={currentSlideIndex === 0}
-            style={[
-              styles.arrowButton,
-              currentSlideIndex === 0 && styles.arrowDisabled,
-            ]}
-          >
-            <MaterialIcons
-              name="chevron-left"
-              size={32}
-              color={
-                currentSlideIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"
-              }
-            />
-          </TouchableOpacity>
-
-          <FlatList
-            ref={flatListRef}
-            horizontal
-            snapToInterval={CARD_WIDTH + 16}
-            snapToAlignment="center"
-            decelerationRate="fast"
-            data={combinedData}
-            renderItem={renderSliderItem}
-            keyExtractor={(item, index) =>
-              item.type === "vysassist"
-                ? `vysassist-${item.id}`
-                : `interest-${index}`
-            }
-            contentContainerStyle={styles.interestList}
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={handleScrollEnd}
-            scrollEventThrottle={16}
-            style={styles.sliderFlatList}
-            getItemLayout={(data, index) => ({
-              length: CARD_WIDTH + 16,
-              offset: (CARD_WIDTH + 16) * index,
-              index,
-            })}
-          />
-
-          <TouchableOpacity
-            onPress={handleSlideNext}
-            disabled={currentSlideIndex === combinedData.length - 1}
-            style={[
-              styles.arrowButton,
-              currentSlideIndex === combinedData.length - 1 &&
-              styles.arrowDisabled,
-            ]}
-          >
-            <MaterialIcons
-              name="chevron-right"
-              size={32}
-              color={
-                currentSlideIndex === combinedData.length - 1
-                  ? "rgba(255,255,255,0.3)"
-                  : "#fff"
-              }
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.dotsContainer}>
-          {combinedData.map((_, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => {
-                flatListRef.current?.scrollToOffset({
-                  offset: index * (CARD_WIDTH + 16),
-                  animated: true,
-                });
-                setCurrentSlideIndex(index);
-              }}
-              style={[styles.dot, currentSlideIndex === index && styles.activeDot]}
-            />
-          ))}
-        </View>
-      </ImageBackground>
+  // ── Standalone Quick Actions Menu (Outside Header) ──────────────────────
+  const renderQuickActionsMenu = () => (
+    <View style={styles.quickActionsCard}>
+      {[
+        {
+          icon: "tune",
+          label: "Advanced\nSearch",
+          onPress: handleFilterPress,
+        },
+        {
+          icon: "favorite-border",
+          label: "Horoscope\nMatch",
+          onPress: () => navigation.navigate("HoroscopeMatch"),
+        },
+        {
+          icon: "workspace-premium",
+          label: "Upgrade\nPlan",
+          onPress: () => navigation.navigate("MembershipPlan"),
+        },
+        {
+          icon: "dashboard",
+          label: "My\nDashboard",
+          onPress: () => navigation.navigate("Dashboard"),
+        },
+      ].map((action, i) => (
+        <TouchableOpacity
+          key={i}
+          style={styles.actionBtn}
+          onPress={action.onPress}
+          activeOpacity={0.8}
+        >
+          <View style={styles.actionIconCircle}>
+            <MaterialIcons name={action.icon} size={22} color={Colors.primary || "#9B061B"} />
+          </View>
+          <Text style={styles.actionLabel}>{action.label}</Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 
@@ -643,15 +631,14 @@ export const HomeWithToast = () => {
   // ── Main FlatList data ────────────────────────────────────────────────────
   const mainData = [
     { type: "appHeader", key: "appHeader" },
-    { type: "banner", key: "banner" },
+    { type: "quickActions", key: "quickActions" },
     { type: "matchingHeader", key: "matchingHeader" },
     { type: "profiles", key: "profiles" },
   ];
 
   const renderMainItem = ({ item }) => {
     if (item.type === "appHeader") return renderAppHeader();
-    if (item.type === "banner")
-      return combinedData.length > 0 ? renderBanner() : null;
+    if (item.type === "quickActions") return renderQuickActionsMenu();
     if (item.type === "matchingHeader") return renderMatchingHeader();
     if (item.type === "profiles") {
       return (
@@ -689,7 +676,7 @@ export const HomeWithToast = () => {
         data={mainData}
         renderItem={renderMainItem}
         keyExtractor={(item) => item.key}
-        stickyHeaderIndices={[2]} // matchingHeader sticks (index 2)
+        stickyHeaderIndices={[2]} // matchingHeader sticks (index 2 in mainData)
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
         ListFooterComponent={<View style={{ height: 20 }} />}
@@ -729,7 +716,9 @@ const styles = StyleSheet.create({
   appHeader: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 22,
+    paddingBottom: 16,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   topHeaderRow: {
     flexDirection: "row",
@@ -737,11 +726,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  greetingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 14,
+  logoBadgeContainer: {
+    backgroundColor: "rgba(255, 255, 255, 0.92)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 215, 0, 0.4)", // subtle gold tint border
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
+  },
+  appLogo: {
+    width: 120,
+    height: 32,
+  },
+  greetingContainer: {
+    marginBottom: 12,
   },
   greetingName: {
     fontSize: 21,
@@ -778,7 +781,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginBottom: 18,
   },
   memberTitle: {
     color: "#fff",
@@ -796,47 +798,72 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginLeft: 8,
   },
-  quickActions: {
+
+  // ── Standalone Floating Quick Actions Card ────────────────────────────────
+  quickActionsCard: {
     flexDirection: "row",
     justifyContent: "space-between",
+    backgroundColor: Colors.card || "#FFFFFF",
+    marginHorizontal: 16,
+    marginVertical: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: Colors.border || "#E0E0E0",
   },
   actionBtn: {
     alignItems: "center",
     flex: 1,
   },
   actionIconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "#fff",
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(189, 18, 37, 0.08)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
   },
   actionLabel: {
-    color: "rgba(255,255,255,0.9)",
+    color: Colors.textDark || "#212121",
     fontSize: 11,
     textAlign: "center",
-    lineHeight: 15,
+    lineHeight: 14,
     fontWeight: "600",
   },
 
-  // ── Banner (interest/vysassist slider) ────────────────────────────────────
+  // ── Integrated Slider Banner ──────────────────────────────────────────────
   heartinBg: {
     width: "100%",
-    backgroundColor: "#ED1E24",
-    paddingVertical: 4,
+    paddingVertical: 8,
+    marginTop: 14,
+    borderRadius: 14,
+    overflow: "hidden",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.18)",
+  },
+  heartinBgImage: {
+    borderRadius: 14,
+  },
+  sliderSectionContainer: {
+    width: "100%",
+    paddingVertical: 16, // Height adjustment
+    marginTop: 14,
+    minHeight: 180,      // Height adjustment
+    paddingHorizontal: 0, // Allows child elements (like the slider) to expand full width
   },
   bannerHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 2,
+    paddingHorizontal: 8,
+    marginBottom: 6,
   },
   MessageImg: {
     width: 22,
@@ -1033,7 +1060,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: Colors.textDark,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    lineSpacing: -0.5,
   },
   matchNumber: {
     color: Colors.primary,
@@ -1046,37 +1072,6 @@ const styles = StyleSheet.create({
   },
   toggleSwitchcontainer: {
     transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
-  },
-  formContainer: {
-    width: "100%",
-    paddingHorizontal: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-    marginBottom: 6,
-  },
-  inputContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 10,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
-  },
-  input: {
-    flex: 1,
-    color: Colors.textDark,
-    padding: 10,
-    backgroundColor: "transparent",
-  },
-  searchIcon: {
-    paddingLeft: 10,
-  },
-  filterIcon: {
-    position: "absolute",
-    right: 20,
-    bottom: 12,
   },
   viewToggleContainer: {
     flexDirection: "row",
@@ -1107,25 +1102,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 4,
   },
-  logoContainer: {
-    alignItems: "flex-start",
-    marginBottom: 10,
-  },
-  appLogo: {
-    width: 135,
-    height: 38,
-  },
-  greetingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 14,
-  },
   notificationBtn: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "rgba(255, 255, 255, 0.15)", // Translucent circular container
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
@@ -1137,7 +1118,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#4A000A", // Dark red dot matching the image
+    backgroundColor: "#4A000A",
   },
 });
 
