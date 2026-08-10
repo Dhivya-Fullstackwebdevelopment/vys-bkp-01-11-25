@@ -35,6 +35,7 @@ import { Colors } from "../Reusable/Theme"; // ← theme tokens
 const { width } = Dimensions.get("window");
 const DEBOUNCE_DELAY = 300;
 const MIN_SEARCH_LENGTH = 1;
+const CARD_WIDTH = width - 90;
 
 export const HomeWithToast = () => {
   // ── Slider / interest state ──────────────────────────────────────────────
@@ -42,7 +43,7 @@ export const HomeWithToast = () => {
   const [vysassistData, setVysassistData] = useState([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const flatListRef = useRef(null);
-  const CARD_WIDTH = width - 80;
+  // const CARD_WIDTH = width - 40;
 
   // ── User / member info ───────────────────────────────────────────────────
   const [userName, setUserName] = useState("");
@@ -424,7 +425,7 @@ export const HomeWithToast = () => {
       </TouchableOpacity>
 
       {/* Member Banner */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.memberBanner}
         activeOpacity={0.85}
         onPress={() => navigation.navigate("MembershipPlan")}
@@ -438,7 +439,7 @@ export const HomeWithToast = () => {
           </Text>
         </View>
         <Text style={styles.upgradeArrow}>Upgrade →</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Integrated Interest/VysAssist Slider Section */}
       {/* Integrated Interest/VysAssist Slider Section */}
@@ -854,10 +855,9 @@ const styles = StyleSheet.create({
   },
   sliderSectionContainer: {
     width: "100%",
-    paddingVertical: 16, // Height adjustment
-    marginTop: 14,
-    minHeight: 180,      // Height adjustment
-    paddingHorizontal: 0, // Allows child elements (like the slider) to expand full width
+    paddingVertical: 12,
+    marginTop: 10,
+    minHeight: 220, // Increased height so cards don't cut off vertically
   },
   bannerHeaderRow: {
     flexDirection: "row",
@@ -880,7 +880,7 @@ const styles = StyleSheet.create({
   sliderRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 4,
+    paddingHorizontal: 0,
   },
   arrowButton: {
     width: 36,
@@ -893,9 +893,10 @@ const styles = StyleSheet.create({
   },
   sliderFlatList: {
     flex: 1,
+    overflow: "visible",
   },
   interestList: {
-    paddingVertical: 6,
+    paddingVertical: 8,
   },
   dotsContainer: {
     flexDirection: "row",
@@ -919,13 +920,17 @@ const styles = StyleSheet.create({
   // ── Slider cards ──────────────────────────────────────────────────────────
   cardContainer: {
     justifyContent: "center",
+    paddingVertical: 4,
   },
   cardStyle: {
     backgroundColor: Colors.card,
-    width: width - 80,
-    padding: 10,
+    width: CARD_WIDTH, // Uses the updated wider card width
+    padding: 12,      // Comfortable internal padding
     borderRadius: 12,
-    marginHorizontal: 8,
+    marginHorizontal: 6,
+    // Add minHeight so the content fits completely without squeezing:
+    minHeight: 140,
+    justifyContent: "space-between",
   },
   ProfileContentFlex: {
     flexDirection: "row",
@@ -995,15 +1000,15 @@ const styles = StyleSheet.create({
   },
   vysassistRow: {
     flexDirection: "row",
-    alignItems: "stretch",
+    alignItems: "center",
   },
   vysassistLeft: {
     backgroundColor: Colors.surface2,
     borderRadius: 8,
-    padding: 8,
+    padding: 10,
     marginRight: 10,
     justifyContent: "center",
-    minWidth: 80,
+    minWidth: 90, // Slightly wider for profile ID and date
   },
   fromLabel: {
     fontSize: 10,
@@ -1030,13 +1035,14 @@ const styles = StyleSheet.create({
   vysassistRight: {
     flex: 1,
     justifyContent: "space-between",
+    paddingLeft: 4,
   },
   vysassistMessage: {
     fontSize: 13,
     fontStyle: "italic",
     color: Colors.textDark,
     marginBottom: 8,
-    lineHeight: 20,
+    lineHeight: 18,
     flexShrink: 1,
   },
 
