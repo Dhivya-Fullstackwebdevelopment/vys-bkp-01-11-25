@@ -11,6 +11,8 @@ import {
   Modal,
   Switch,
   Platform,
+  LayoutAnimation,
+  UIManager,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import VysyamalaLogo from "../assets/img/VysyamalaLogo.png";
@@ -32,18 +34,22 @@ import config from "../API/Apiurl";
 import { Colors } from "../Reusable/Theme";
 import Svg, { Path } from "react-native-svg";
 
+// Enable LayoutAnimation for Android
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 const { width } = Dimensions.get("window");
 const DEBOUNCE_DELAY = 300;
 const MIN_SEARCH_LENGTH = 1;
 const CARD_WIDTH = width - 90;
-
-
 
 export const HomeWithToast = () => {
   // ── Slider / interest state ──────────────────────────────────────────────
   const [profiles, setProfiles] = useState([]);
   const [vysassistData, setVysassistData] = useState([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isBannerExpanded, setIsBannerExpanded] = useState(false); // Collapsed by default
   const flatListRef = useRef(null);
 
   // ── Matching profiles list state ─────────────────────────────────────────
@@ -98,6 +104,12 @@ export const HomeWithToast = () => {
     if (diffDays === 1) return "Yesterday";
     if (diffDays > 1 && diffDays <= 30) return `${diffDays} days ago`;
     return "Recently active";
+  };
+
+  // ── Toggle Banner Visibility ─────────────────────────────────────────────
+  const toggleBannerExpand = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsBannerExpanded((prev) => !prev);
   };
 
   // ── Load user info from AsyncStorage ────────────────────────────────────
@@ -318,6 +330,8 @@ export const HomeWithToast = () => {
   };
 
   const handleFilterPress = () => navigation.navigate("MatchingProfileSearch");
+  const handleFilterPressMenu = () => navigation.navigate("MatchingProfileSearch");
+
 
   // ── Slider helpers ───────────────────────────────────────────────────────
   const combinedData = useMemo(
@@ -512,96 +526,134 @@ export const HomeWithToast = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* Integrated Interest/VysAssist Slider Section */}
+      {/* Integrated Interest/VysAssist Slider Section with Expand/Collapse Icon */}
       {combinedData.length > 0 && (
         <View style={styles.sliderSectionContainer}>
-          <View style={styles.bannerHeaderRow}>
-            <Image
-              style={styles.MessageImg}
-              source={require("../assets/img/MessageImg.png")}
-            />
-            <Text style={styles.newInterest}>{sliderHeaderText}</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.bannerHeaderRow}
+            onPress={toggleBannerExpand}
+            activeOpacity={0.8}
+          >
+            <View style={styles.bannerHeaderLeft}>
+              <Image
+                style={styles.MessageImg}
+                source={require("../assets/img/MessageImg.png")}
+              />
+              <Text style={styles.newInterest}>
+                {isBannerExpanded ? sliderHeaderText : "Interests & Requests"}
+              </Text>
+              {!isBannerExpanded && (
+                <View style={styles.badgeCount}>
+                  <Text style={styles.badgeCountText}>
+                    {combinedData.length} New
+                  </Text>
+                </View>
+              )}
+            </View>
 
-          <View style={styles.sliderRow}>
+            {/* Expand / Collapse Action Icon */}
             <TouchableOpacity
-              onPress={handleSlidePrev}
-              disabled={currentSlideIndex === 0}
-              style={[
-                styles.arrowButton,
-                currentSlideIndex === 0 && styles.arrowDisabled,
-              ]}
+              style={styles.expandIconButton}
+              onPress={toggleBannerExpand}
+              activeOpacity={0.7}
             >
+              <MaterialCommunityIcons
+                name={isBannerExpanded ? "chevron-up-circle" : "star-face"}
+                size={24}
+                color="#FFD700"
+              />
               <MaterialIcons
-                name="chevron-left"
-                size={32}
-                color={
-                  currentSlideIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"
-                }
+                name={isBannerExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                size={22}
+                color="#FFFFFF"
               />
             </TouchableOpacity>
+          </TouchableOpacity>
 
-            <FlatList
-              ref={flatListRef}
-              horizontal
-              snapToInterval={CARD_WIDTH + 16}
-              snapToAlignment="center"
-              decelerationRate="fast"
-              data={combinedData}
-              renderItem={renderSliderItem}
-              keyExtractor={(item, index) =>
-                item.type === "vysassist"
-                  ? `vysassist-${item.id}`
-                  : `interest-${index}`
-              }
-              contentContainerStyle={styles.interestList}
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={handleScrollEnd}
-              scrollEventThrottle={16}
-              style={styles.sliderFlatList}
-              getItemLayout={(data, index) => ({
-                length: CARD_WIDTH + 16,
-                offset: (CARD_WIDTH + 16) * index,
-                index,
-              })}
-            />
+          {/* Expandable Slider Content */}
+          {isBannerExpanded && (
+            <View style={styles.expandedContentContainer}>
+              <View style={styles.sliderRow}>
+                <TouchableOpacity
+                  onPress={handleSlidePrev}
+                  disabled={currentSlideIndex === 0}
+                  style={[
+                    styles.arrowButton,
+                    currentSlideIndex === 0 && styles.arrowDisabled,
+                  ]}
+                >
+                  <MaterialIcons
+                    name="chevron-left"
+                    size={32}
+                    color={
+                      currentSlideIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"
+                    }
+                  />
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleSlideNext}
-              disabled={currentSlideIndex === combinedData.length - 1}
-              style={[
-                styles.arrowButton,
-                currentSlideIndex === combinedData.length - 1 &&
-                styles.arrowDisabled,
-              ]}
-            >
-              <MaterialIcons
-                name="chevron-right"
-                size={32}
-                color={
-                  currentSlideIndex === combinedData.length - 1
-                    ? "rgba(255,255,255,0.3)"
-                    : "#fff"
-                }
-              />
-            </TouchableOpacity>
-          </View>
+                <FlatList
+                  ref={flatListRef}
+                  horizontal
+                  snapToInterval={CARD_WIDTH + 16}
+                  snapToAlignment="center"
+                  decelerationRate="fast"
+                  data={combinedData}
+                  renderItem={renderSliderItem}
+                  keyExtractor={(item, index) =>
+                    item.type === "vysassist"
+                      ? `vysassist-${item.id}`
+                      : `interest-${index}`
+                  }
+                  contentContainerStyle={styles.interestList}
+                  showsHorizontalScrollIndicator={false}
+                  onMomentumScrollEnd={handleScrollEnd}
+                  scrollEventThrottle={16}
+                  style={styles.sliderFlatList}
+                  getItemLayout={(data, index) => ({
+                    length: CARD_WIDTH + 16,
+                    offset: (CARD_WIDTH + 16) * index,
+                    index,
+                  })}
+                />
 
-          <View style={styles.dotsContainer}>
-            {combinedData.map((_, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => {
-                  flatListRef.current?.scrollToOffset({
-                    offset: index * (CARD_WIDTH + 16),
-                    animated: true,
-                  });
-                  setCurrentSlideIndex(index);
-                }}
-                style={[styles.dot, currentSlideIndex === index && styles.activeDot]}
-              />
-            ))}
-          </View>
+                <TouchableOpacity
+                  onPress={handleSlideNext}
+                  disabled={currentSlideIndex === combinedData.length - 1}
+                  style={[
+                    styles.arrowButton,
+                    currentSlideIndex === combinedData.length - 1 &&
+                    styles.arrowDisabled,
+                  ]}
+                >
+                  <MaterialIcons
+                    name="chevron-right"
+                    size={32}
+                    color={
+                      currentSlideIndex === combinedData.length - 1
+                        ? "rgba(255,255,255,0.3)"
+                        : "#fff"
+                    }
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.dotsContainer}>
+                {combinedData.map((_, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => {
+                      flatListRef.current?.scrollToOffset({
+                        offset: index * (CARD_WIDTH + 16),
+                        animated: true,
+                      });
+                      setCurrentSlideIndex(index);
+                    }}
+                    style={[styles.dot, currentSlideIndex === index && styles.activeDot]}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
         </View>
       )}
     </LinearGradient>
@@ -615,14 +667,14 @@ export const HomeWithToast = () => {
           icon: "tune",
           isSvg: false,
           label: "Advanced\nSearch",
-          onPress: handleFilterPress,
+          onPress: handleFilterPressMenu,
         },
-        {
-          icon: "star-border",
-          isSvg: false,
-          label: "Horoscope\nMatch",
-          onPress: () => navigation.navigate("HoroscopeMatch"),
-        },
+        // {
+        //   icon: "star-border",
+        //   isSvg: false,
+        //   label: "Horoscope\nMatch",
+        //   onPress: () => navigation.navigate("HoroscopeMatch"),
+        // },
         {
           isSvg: true,
           label: "Upgrade\nPlan",
@@ -632,7 +684,7 @@ export const HomeWithToast = () => {
           icon: "grid-view",
           isSvg: false,
           label: "My\nDashboard",
-          onPress: () => navigation.navigate("Dashboard"),
+          onPress: () => navigation.navigate("DashBoard"),
         },
       ].map((action, i) => (
         <View key={i} style={styles.menuCardItem}>
@@ -893,7 +945,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#4A000A",
   },
 
-
   // ── Redesigned Menu Cards to match Image ──────────────────────────────────
   menuCardsContainer: {
     flexDirection: "row",
@@ -924,25 +975,34 @@ const styles = StyleSheet.create({
   },
   pillLabel: {
     marginTop: 8,
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#4A4A4A",
+    fontWeight: "400",
     textAlign: "center",
-    lineHeight: 15,
+    fontSize: 12,
+    color: Colors.textMuted || "#888888",
   },
 
   // ── Integrated Slider Banner ──────────────────────────────────────────────
   sliderSectionContainer: {
     width: "100%",
-    paddingVertical: 12,
-    marginTop: 10,
-    minHeight: 220,
+    paddingVertical: 8,
+    marginTop: 6,
+    backgroundColor: "rgba(0, 0, 0, 0.18)",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    overflow: "hidden",
   },
   bannerHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    marginBottom: 6,
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  bannerHeaderLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
   },
   MessageImg: {
     width: 22,
@@ -952,9 +1012,33 @@ const styles = StyleSheet.create({
   },
   newInterest: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: "700",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    lineSpacing: -0.5,
+  },
+  badgeCount: {
+    backgroundColor: "#FFD700",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+  badgeCountText: {
+    color: "#52000A",
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  expandIconButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  expandedContentContainer: {
+    marginTop: 4,
   },
   sliderRow: {
     flexDirection: "row",
