@@ -823,7 +823,7 @@ export const Search = () => {
 
 
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 160 }} nestedScrollEnabled={true}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 200 }} nestedScrollEnabled={true}>
         {/* Search Bar */}
         <View style={styles.searchBarWrapper}>
           <View style={styles.searchBarPill}>
@@ -1673,7 +1673,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    marginBottom: 60,
+    marginBottom: 50,
     // NO backgroundColor, NO borderTopWidth, NO marginBottom
   },
   bottomBarCard: {
