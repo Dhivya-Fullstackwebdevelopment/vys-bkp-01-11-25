@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  ImageBackground,
   Image,
   TouchableOpacity,
   FlatList,
@@ -16,7 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import VysyamalaLogo from "../assets/img/VysyamalaLogo.png";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { ProfileCard } from "../Components/HomeTab/MatchingProfiles/ProfileCard";
@@ -30,12 +29,15 @@ import {
 } from "../CommonApiCall/CommonApiCall";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../API/Apiurl";
-import { Colors } from "../Reusable/Theme"; // ← theme tokens
+import { Colors } from "../Reusable/Theme";
+import Svg, { Path } from "react-native-svg";
 
 const { width } = Dimensions.get("window");
 const DEBOUNCE_DELAY = 300;
 const MIN_SEARCH_LENGTH = 1;
 const CARD_WIDTH = width - 90;
+
+
 
 export const HomeWithToast = () => {
   // ── Slider / interest state ──────────────────────────────────────────────
@@ -43,7 +45,12 @@ export const HomeWithToast = () => {
   const [vysassistData, setVysassistData] = useState([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const flatListRef = useRef(null);
-  // const CARD_WIDTH = width - 40;
+
+  // ── Matching profiles list state ─────────────────────────────────────────
+  const [matchingProfilesList, setMatchingProfilesList] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMorePages, setHasMorePages] = useState(true);
 
   // ── User / member info ───────────────────────────────────────────────────
   const [userName, setUserName] = useState("");
@@ -63,6 +70,35 @@ export const HomeWithToast = () => {
 
   const navigation = useNavigation();
   const getOrderBy = () => (isEnabled ? "2" : "1");
+
+  const CrownOutlineIcon = ({ color = "#A00014", size = 26 }) => (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" />
+      <Path d="M3 20h18" />
+    </Svg>
+  );
+
+  // Relative Time Helper
+  const formatRelativeTime = (viewed_date) => {
+    if (!viewed_date) return "Recently active";
+    const date = new Date(viewed_date);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Active today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays > 1 && diffDays <= 30) return `${diffDays} days ago`;
+    return "Recently active";
+  };
 
   // ── Load user info from AsyncStorage ────────────────────────────────────
   useEffect(() => {
@@ -110,20 +146,51 @@ export const HomeWithToast = () => {
   }, []);
 
   // ── Data fetching ────────────────────────────────────────────────────────
-  const fetchAllData = async (orderBy = "1") => {
-    setIsInitialLoading(true);
-    setIsProfilesLoading(true);
+  const fetchAllData = async (orderBy = "1", pageNum = 1, isLoadMore = false) => {
+    if (isLoadMore) {
+      setLoadingMore(true);
+    } else {
+      setIsInitialLoading(true);
+      setIsProfilesLoading(true);
+      setPage(1);
+      setHasMorePages(true);
+    }
+
     try {
       const [profileInterests, vysassistRes, response] = await Promise.all([
-        fetchProfileInterests(),
-        fetchVysassistRequests(),
-        fetchProfiles(20, 1, orderBy),
+        pageNum === 1 ? fetchProfileInterests() : Promise.resolve(null),
+        pageNum === 1 ? fetchVysassistRequests() : Promise.resolve(null),
+        fetchProfiles(20, pageNum, orderBy),
       ]);
-      setProfiles(profileInterests || []);
-      setVysassistData(vysassistRes || []);
-      setTotalCount(response?.total_count || 0);
+
+      if (pageNum === 1) {
+        if (profileInterests) setProfiles(profileInterests);
+        if (vysassistRes) setVysassistData(vysassistRes);
+      }
+
+      if (response && response.profiles) {
+        const newProfiles = response.profiles || [];
+        const total = response.total_count || 0;
+        setTotalCount(total);
+
+        setMatchingProfilesList((prev) => {
+          const updated = isLoadMore ? [...prev, ...newProfiles] : newProfiles;
+          if (total > 0 && updated.length >= total) {
+            setHasMorePages(false);
+          } else if (newProfiles.length === 0) {
+            setHasMorePages(false);
+          } else {
+            setHasMorePages(true);
+          }
+          return updated;
+        });
+        setPage(pageNum);
+      } else {
+        setHasMorePages(false);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
+      setHasMorePages(false);
       Toast.show({
         type: "error",
         text1: "Error",
@@ -133,19 +200,32 @@ export const HomeWithToast = () => {
     } finally {
       setIsProfilesLoading(false);
       setIsInitialLoading(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchAllData(getOrderBy());
+    fetchAllData(getOrderBy(), 1, false);
   }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
-      if (searchProfileId.length === 0) fetchAllData(getOrderBy());
+      if (searchProfileId.length === 0) fetchAllData(getOrderBy(), 1, false);
     });
     return unsubscribe;
   }, [navigation, searchProfileId]);
+
+  // Load More Functionality for Matching Profiles
+  const handleLoadMoreProfiles = () => {
+    if (
+      !isProfilesLoading &&
+      !loadingMore &&
+      hasMorePages &&
+      searchProfileId.length === 0
+    ) {
+      fetchAllData(getOrderBy(), page + 1, true);
+    }
+  };
 
   // ── Sort toggle ──────────────────────────────────────────────────────────
   const toggleSwitch = async () => {
@@ -155,7 +235,7 @@ export const HomeWithToast = () => {
     if (searchProfileId.length > 0) {
       await handleSearchPress(searchProfileId, newOrderBy);
     } else {
-      await fetchAllData(newOrderBy);
+      await fetchAllData(newOrderBy, 1, false);
     }
   };
 
@@ -375,6 +455,8 @@ export const HomeWithToast = () => {
       : "New Interest Received";
 
   // ── App header ────────────────────────────────────────────────────────────
+  const unreadNotificationCount = combinedData.length;
+
   const renderAppHeader = () => (
     <LinearGradient
       colors={[Colors.primary || "#9B061B", Colors.primaryGradientEnd || "#52000A"]}
@@ -382,7 +464,7 @@ export const HomeWithToast = () => {
       end={{ x: 0, y: 1 }}
       style={styles.appHeader}
     >
-      {/* Top Row: Logo with Styled Container on Left & Notification Bell on Right */}
+      {/* Top Row */}
       <View style={styles.topHeaderRow}>
         <View style={styles.logoBadgeContainer}>
           <Image source={VysyamalaLogo} style={styles.appLogo} resizeMode="contain" />
@@ -392,8 +474,14 @@ export const HomeWithToast = () => {
           onPress={() => navigation.navigate("Notifications")}
           activeOpacity={0.7}
         >
-          <MaterialIcons name="notifications-none" size={20} color="#FFFFFF" />
-          <View style={styles.notificationBadge} />
+          <MaterialIcons name="notifications-none" size={22} color="#FFFFFF" />
+          {unreadNotificationCount > 0 && (
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationBadgeText}>
+                {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -424,24 +512,6 @@ export const HomeWithToast = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* Member Banner */}
-      {/* <TouchableOpacity
-        style={styles.memberBanner}
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate("MembershipPlan")}
-      >
-        <View style={{ flex: 1 }}>
-          <Text style={styles.memberTitle}>
-            ★ {memberLabel || "PREMIUM MEMBER"}
-          </Text>
-          <Text style={styles.memberSubText}>
-            {memberSub || "till 27 Jul 2027"}
-          </Text>
-        </View>
-        <Text style={styles.upgradeArrow}>Upgrade →</Text>
-      </TouchableOpacity> */}
-
-      {/* Integrated Interest/VysAssist Slider Section */}
       {/* Integrated Interest/VysAssist Slider Section */}
       {combinedData.length > 0 && (
         <View style={styles.sliderSectionContainer}>
@@ -537,46 +607,51 @@ export const HomeWithToast = () => {
     </LinearGradient>
   );
 
-  // ── Standalone Quick Actions Menu (Outside Header) ──────────────────────
+  // ── Menu Cards Matched to Provided Design ──────────────────────────────
   const renderQuickActionsMenu = () => (
-    <View style={styles.quickActionsCard}>
+    <View style={styles.menuCardsContainer}>
       {[
         {
           icon: "tune",
+          isSvg: false,
           label: "Advanced\nSearch",
           onPress: handleFilterPress,
         },
         {
-          icon: "favorite-border",
+          icon: "star-border",
+          isSvg: false,
           label: "Horoscope\nMatch",
           onPress: () => navigation.navigate("HoroscopeMatch"),
         },
         {
-          icon: "workspace-premium",
+          isSvg: true,
           label: "Upgrade\nPlan",
           onPress: () => navigation.navigate("MembershipPlan"),
         },
         {
-          icon: "dashboard",
+          icon: "grid-view",
+          isSvg: false,
           label: "My\nDashboard",
           onPress: () => navigation.navigate("Dashboard"),
         },
       ].map((action, i) => (
-        <TouchableOpacity
-          key={i}
-          style={styles.actionBtn}
-          onPress={action.onPress}
-          activeOpacity={0.8}
-        >
-          <View style={styles.actionIconCircle}>
-            <MaterialIcons name={action.icon} size={22} color={Colors.primary || "#9B061B"} />
-          </View>
-          <Text style={styles.actionLabel}>{action.label}</Text>
-        </TouchableOpacity>
+        <View key={i} style={styles.menuCardItem}>
+          <TouchableOpacity
+            style={styles.pillButton}
+            onPress={action.onPress}
+            activeOpacity={0.8}
+          >
+            {action.isSvg ? (
+              <CrownOutlineIcon color="#A00014" size={24} />
+            ) : (
+              <MaterialIcons name={action.icon} size={28} color="#A00014" />
+            )}
+          </TouchableOpacity>
+          <Text style={styles.pillLabel}>{action.label}</Text>
+        </View>
       ))}
     </View>
   );
-
   // ── Sticky matching header ────────────────────────────────────────────────
   const renderMatchingHeader = () => (
     <View style={styles.stickyHeader}>
@@ -629,6 +704,26 @@ export const HomeWithToast = () => {
     </View>
   );
 
+  // ── Footer loader for profile list pagination ─────────────────────────────
+  const renderListFooter = () => {
+    if (loadingMore) {
+      return (
+        <View style={styles.footerLoader}>
+          <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
+          <Text style={styles.loadingMoreText}>Loading more profiles…</Text>
+        </View>
+      );
+    }
+    if (!hasMorePages && matchingProfilesList.length > 0 && searchProfileId.length === 0) {
+      return (
+        <View style={styles.footerLoader}>
+          <Text style={styles.endMessage}>No more profiles</Text>
+        </View>
+      );
+    }
+    return <View style={{ height: 30 }} />;
+  };
+
   // ── Main FlatList data ────────────────────────────────────────────────────
   const mainData = [
     { type: "appHeader", key: "appHeader" },
@@ -646,11 +741,12 @@ export const HomeWithToast = () => {
         <View style={styles.profileCardContainer}>
           <ProfileCard
             searchProfiles={
-              searchProfileId.length > 0 ? searchResults : null
+              searchProfileId.length > 0 ? searchResults : matchingProfilesList
             }
-            isLoadingNew={isSearching || isProfilesLoading}
+            isLoadingNew={isSearching || (isProfilesLoading && page === 1)}
             orderBy={getOrderBy()}
             viewMode={viewMode}
+            formatRelativeTime={formatRelativeTime}
           />
         </View>
       );
@@ -680,7 +776,9 @@ export const HomeWithToast = () => {
         stickyHeaderIndices={[2]} // matchingHeader sticks (index 2 in mainData)
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
-        ListFooterComponent={<View style={{ height: 20 }} />}
+        onEndReached={handleLoadMoreProfiles}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={renderListFooter}
       />
 
       <Modal
@@ -697,7 +795,7 @@ export const HomeWithToast = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.background || "#FAF6F0",
   },
   flatListContent: {
     flexGrow: 1,
@@ -733,7 +831,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(255, 215, 0, 0.4)", // subtle gold tint border
+    borderColor: "rgba(255, 215, 0, 0.4)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -750,7 +848,7 @@ const styles = StyleSheet.create({
   greetingName: {
     fontSize: 21,
     fontWeight: "700",
-    color: Colors.textLight,
+    color: Colors.textLight || "#FFFFFF",
     letterSpacing: -1,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
@@ -774,90 +872,71 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.55)",
     fontSize: 14,
   },
-  memberBanner: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: Colors.gold,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  memberTitle: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "800",
-    marginBottom: 2,
-  },
-  memberSubText: {
-    color: "rgba(255,255,255,0.88)",
-    fontSize: 12,
-  },
-  upgradeArrow: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
-    marginLeft: 8,
-  },
 
-  // ── Standalone Floating Quick Actions Card ────────────────────────────────
-  quickActionsCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: Colors.card || "#FFFFFF",
-    marginHorizontal: 16,
-    marginVertical: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: Colors.border || "#E0E0E0",
-  },
-  actionBtn: {
-    alignItems: "center",
-    flex: 1,
-  },
-  actionIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(189, 18, 37, 0.08)",
+  // ── Notification Badge ───────────────────────────────────────────────────
+  notificationBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 6,
+    position: "relative",
   },
-  actionLabel: {
-    color: Colors.textDark || "#212121",
-    fontSize: 11,
+  notificationBadge: {
+    position: "absolute",
+    top: 9,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#4A000A",
+  },
+
+
+  // ── Redesigned Menu Cards to match Image ──────────────────────────────────
+  menuCardsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 18,
+    backgroundColor: "transparent",
+  },
+  menuCardItem: {
+    alignItems: "center",
+    width: (width - 48) / 4,
+  },
+  pillButton: {
+    width: 68,
+    height: 42,
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    borderWidth: 0.5,
+    borderColor: "rgba(0,0,0,0.05)",
+  },
+  pillLabel: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#4A4A4A",
     textAlign: "center",
-    lineHeight: 14,
-    fontWeight: "600",
+    lineHeight: 15,
   },
 
   // ── Integrated Slider Banner ──────────────────────────────────────────────
-  heartinBg: {
-    width: "100%",
-    paddingVertical: 8,
-    marginTop: 14,
-    borderRadius: 14,
-    overflow: "hidden",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.18)",
-  },
-  heartinBgImage: {
-    borderRadius: 14,
-  },
   sliderSectionContainer: {
     width: "100%",
     paddingVertical: 12,
     marginTop: 10,
-    minHeight: 220, // Increased height so cards don't cut off vertically
+    minHeight: 220,
   },
   bannerHeaderRow: {
     flexDirection: "row",
@@ -923,12 +1002,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   cardStyle: {
-    backgroundColor: Colors.card,
-    width: CARD_WIDTH, // Uses the updated wider card width
-    padding: 12,      // Comfortable internal padding
+    backgroundColor: Colors.card || "#FFFFFF",
+    width: CARD_WIDTH,
+    padding: 12,
     borderRadius: 12,
     marginHorizontal: 6,
-    // Add minHeight so the content fits completely without squeezing:
     minHeight: 140,
     justifyContent: "space-between",
   },
@@ -946,16 +1024,16 @@ const styles = StyleSheet.create({
   },
   profileContent: { flex: 1 },
   nameStyle: {
-    color: Colors.textDark,
+    color: Colors.textDark || "#212121",
     fontSize: 18,
     fontWeight: "600",
   },
   ageStyle: {
-    color: Colors.textMuted,
+    color: Colors.textMuted || "#757575",
     fontSize: 12,
   },
   interestedText: {
-    color: Colors.textDark,
+    color: Colors.textDark || "#212121",
     fontSize: 12,
     marginBottom: 8,
   },
@@ -975,11 +1053,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   cancel: {
-    color: Colors.primary,
+    color: Colors.primary || "#A00014",
     fontSize: 14,
     fontWeight: "600",
     borderWidth: 2,
-    borderColor: Colors.primary,
+    borderColor: Colors.primary || "#A00014",
     borderRadius: 5,
     paddingHorizontal: 15,
     paddingVertical: 8.5,
@@ -1003,17 +1081,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   vysassistLeft: {
-    backgroundColor: Colors.surface2,
+    backgroundColor: Colors.surface2 || "#F2EBE1",
     borderRadius: 8,
     padding: 10,
     marginRight: 10,
     justifyContent: "center",
-    minWidth: 90, // Slightly wider for profile ID and date
+    minWidth: 90,
   },
   fromLabel: {
     fontSize: 10,
     letterSpacing: 2,
-    color: Colors.textMuted,
+    color: Colors.textMuted || "#757575",
     fontWeight: "bold",
     textTransform: "uppercase",
     marginBottom: 2,
@@ -1021,16 +1099,16 @@ const styles = StyleSheet.create({
   fromProfileId: {
     fontSize: 20,
     fontWeight: "bold",
-    color: Colors.textDark,
+    color: Colors.textDark || "#212121",
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.border || "#E0E0E0",
     marginVertical: 6,
   },
   dateText: {
     fontSize: 12,
-    color: Colors.textMuted,
+    color: Colors.textMuted || "#757575",
   },
   vysassistRight: {
     flex: 1,
@@ -1040,7 +1118,7 @@ const styles = StyleSheet.create({
   vysassistMessage: {
     fontSize: 13,
     fontStyle: "italic",
-    color: Colors.textDark,
+    color: Colors.textDark || "#212121",
     marginBottom: 8,
     lineHeight: 18,
     flexShrink: 1,
@@ -1048,11 +1126,11 @@ const styles = StyleSheet.create({
 
   // ── Sticky matching header ─────────────────────────────────────────────────
   stickyHeader: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.background || "#FAF6F0",
     paddingTop: 12,
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.border || "#E0E0E0",
   },
   matchingContainer: {
     flexDirection: "row",
@@ -1064,16 +1142,16 @@ const styles = StyleSheet.create({
   matching: {
     fontSize: 16,
     fontWeight: "700",
-    color: Colors.textDark,
+    color: Colors.textDark || "#212121",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   matchNumber: {
-    color: Colors.primary,
+    color: Colors.primary || "#A00014",
   },
   sortByText: {
     fontSize: 14,
     fontWeight: "700",
-    color: Colors.primary,
+    color: Colors.primary || "#A00014",
     marginHorizontal: 6,
   },
   toggleSwitchcontainer: {
@@ -1082,7 +1160,7 @@ const styles = StyleSheet.create({
   viewToggleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.surface1,
+    backgroundColor: Colors.surface1 || "#EFE7DC",
     borderRadius: 8,
     padding: 2,
     marginHorizontal: 10,
@@ -1094,7 +1172,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   activeViewButton: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.card || "#FFFFFF",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -1108,23 +1186,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 4,
   },
-  notificationBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    justifyContent: "center",
+  footerLoader: {
+    paddingVertical: 20,
     alignItems: "center",
-    position: "relative",
   },
-  notificationBadge: {
-    position: "absolute",
-    top: 9,
-    right: 10,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#4A000A",
+  loadingMoreText: {
+    marginTop: 8,
+    fontSize: 13,
+    color: Colors.textMuted || "#757575",
+    fontWeight: "600",
+  },
+  endMessage: {
+    fontSize: 13,
+    color: Colors.textMuted || "#757575",
+    fontStyle: "italic",
   },
 });
 
