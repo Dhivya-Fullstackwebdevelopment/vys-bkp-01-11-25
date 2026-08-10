@@ -34,6 +34,15 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+const sortSelectedFirst = (list, checkedSet, idKey) => {
+  const selected = [];
+  const rest = [];
+  list.forEach((item) => {
+    (checkedSet.has(item[idKey]) ? selected : rest).push(item);
+  });
+  return [...selected, ...rest];
+};
+
 const staticStates = [
   { id: [2, 7], name: "TamilNadu & Pondhicherry" },
   { id: 4, name: "Karnataka" },
@@ -362,6 +371,7 @@ export const Search = () => {
   };
 
   const handleProfessionToggle = (professionId) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setCheckedProfessions((prev) => {
       const updated = new Set(prev);
       updated.has(professionId) ? updated.delete(professionId) : updated.add(professionId);
@@ -672,15 +682,62 @@ export const Search = () => {
     return `${ageText}${heightText}`;
   };
 
-  const getMaritalSubtitle = () => {
-    const count = checkedStatuses.size;
-    return count > 0 ? `${count} selected` : "Any status";
+  const countSummary = (checkedSet, emptyText) =>
+    checkedSet.size > 0 ? `${checkedSet.size} selected` : emptyText;
+
+  const getMaritalSubtitle = () => countSummary(checkedStatuses, "Any status");
+  const getProfessionSubtitle = () => countSummary(checkedProfessions, "Any profession");
+
+  const getActiveFilters = () => {
+    const filters = [];
+
+    maritalStatuses.forEach((s) => {
+      if (checkedStatuses.has(s.marital_sts_id)) {
+        filters.push({ id: `marital-${s.marital_sts_id}`, label: s.marital_sts_name, onRemove: () => handleCheckboxToggle(s.marital_sts_id) });
+      }
+    });
+
+    professions.forEach((p) => {
+      if (checkedProfessions.has(p.Profes_Pref_id)) {
+        filters.push({ id: `prof-${p.Profes_Pref_id}`, label: p.Profes_name, onRemove: () => handleProfessionToggle(p.Profes_Pref_id) });
+      }
+    });
+
+    const eduItem = educationOptions.find((e) => String(e.education_id) === String(selectedEducationId));
+    if (eduItem) {
+      filters.push({ id: "edu", label: eduItem.education_description, onRemove: () => setSelectedEducationId("") });
+    }
+
+    fieldOfStudyOptions.forEach((f) => {
+      if (checkFieldoStudy.has(f.study_id)) {
+        filters.push({ id: `field-${f.study_id}`, label: f.study_description, onRemove: () => handleFieldofStudyToggle(f.study_id) });
+      }
+    });
+
+    staticStates.forEach((st) => {
+      if (checkedStates.has(st.id)) {
+        filters.push({ id: `state-${Array.isArray(st.id) ? st.id.join("-") : st.id}`, label: st.name, onRemove: () => handleStateToggle(st.id) });
+      }
+    });
+
+    const workLoc = states.find((s) => String(s.State_Pref_id) === String(selectedWorkLocationId));
+    if (workLoc) {
+      filters.push({ id: "worklocation", label: workLoc.State_name, onRemove: () => setSelectedWorkLocationId("") });
+    }
+
+    const birthStar = birthStars.find((b) => String(b.birth_id) === String(selectedBirthStarId));
+    if (birthStar) {
+      filters.push({ id: "birthstar", label: birthStar.birth_star, onRemove: () => setSelectedBirthStarId("") });
+    }
+
+    if (ppChecked) {
+      filters.push({ id: "photo", label: "With photo", onRemove: () => ppSetChecked(false) });
+    }
+
+    return filters;
   };
 
-  const getProfessionSubtitle = () => {
-    const count = checkedProfessions.size;
-    return count > 0 ? `${count} selected` : "Any profession";
-  };
+  const activeFilters = getActiveFilters();
 
   return (
     <SafeAreaView style={GlobalStyles.container}>
@@ -704,6 +761,8 @@ export const Search = () => {
         </TouchableOpacity>
       </LinearGradient>
 
+
+
       <ScrollView contentContainerStyle={{ paddingBottom: 160 }} nestedScrollEnabled={true}>
         {/* Search Bar */}
         <View style={styles.searchBarWrapper}>
@@ -725,6 +784,25 @@ export const Search = () => {
             ) : null}
           </View>
         </View>
+
+        {activeFilters.length > 0 && (
+          <View style={styles.activeFiltersWrapper}>
+            <View style={styles.activeFiltersHeaderRow}>
+              <Ionicons name="options-outline" size={16} color="#71717A" />
+              <Text style={styles.activeFiltersCount}>{activeFilters.length} ACTIVE FILTERS</Text>
+            </View>
+            <View style={styles.chipRowWrap}>
+              {activeFilters.map((f) => (
+                <View key={f.id} style={styles.activeFilterChip}>
+                  <Text style={styles.activeFilterChipText}>{f.label}</Text>
+                  <TouchableOpacity onPress={f.onRemove} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                    <Ionicons name="close" size={14} color="#78716C" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* Section 1: Basics */}
         <View style={styles.accordionCard}>
@@ -816,7 +894,7 @@ export const Search = () => {
           {expandedSections.marital && (
             <View style={styles.accordionContent}>
               <View style={styles.chipRowWrap}>
-                {maritalStatuses.map((status) => {
+                {sortSelectedFirst(maritalStatuses, checkedStatuses, "marital_sts_id").map((status) => {
                   const active = checkedStatuses.has(status.marital_sts_id);
                   return (
                     <TouchableOpacity
@@ -863,7 +941,7 @@ export const Search = () => {
             <View style={styles.accordionContent}>
               <Text style={styles.fieldLabel}>Profession</Text>
               <View style={styles.chipRowWrap}>
-                {professions.map((prof) => {
+                {sortSelectedFirst(professions, checkedProfessions, "Profes_Pref_id").map((prof) => {
                   const active = checkedProfessions.has(prof.Profes_Pref_id);
                   return (
                     <TouchableOpacity
@@ -934,7 +1012,12 @@ export const Search = () => {
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Education</Text>
               <Text style={styles.accordionSubtitle}>
-                {selectedEducationId ? "1 selected" : "Any education"}
+                {(() => {
+                  const stateCount = checkedStates.size;
+                  const cityCount = selectedWorkLocationId ? 1 : 0;
+                  if (stateCount === 0 && cityCount === 0) return "Any location";
+                  return `${stateCount} states · ${cityCount} cities`;
+                })()}
               </Text>
             </View>
             <View style={styles.chevronCircle}>
@@ -971,7 +1054,7 @@ export const Search = () => {
 
               <Text style={[styles.fieldLabel, { marginTop: 14 }]}>Field of Study</Text>
               <View style={styles.chipRowWrap}>
-                {fieldOfStudyOptions.map((field) => {
+                {sortSelectedFirst(fieldOfStudyOptions, checkFieldoStudy, "study_id").map((field) => {
                   const active = checkFieldoStudy.has(field.study_id);
                   return (
                     <TouchableOpacity
@@ -1585,5 +1668,36 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
+  },
+  activeFiltersWrapper: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 4,
+  },
+  activeFiltersHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 10,
+  },
+  activeFiltersCount: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#71717A",
+    letterSpacing: 0.3,
+  },
+  activeFilterChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#FDE9C8",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  activeFilterChipText: {
+    fontSize: 13,
+    color: "#7C5A16",
+    fontWeight: "500",
   },
 });
