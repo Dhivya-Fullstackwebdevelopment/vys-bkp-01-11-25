@@ -52,22 +52,60 @@ const staticStates = [
   { id: 6, name: "Others" },
 ];
 
+const computeDefaultRanges = (myAge, myHeight, gender, heightMin = 140, heightMax = 200) => {
+  const normalizedGender = gender?.toLowerCase();
+
+  const AGE_MIN = 18, AGE_MAX = 60;
+
+  let ageRangeDefault = [24, 34];
+  let heightRangeDefault = [155, 185];
+
+  if (myAge > 0) {
+    if (normalizedGender === "male") {
+      ageRangeDefault = [Math.max(AGE_MIN, myAge - 6), Math.min(AGE_MAX, myAge + 1)];
+    } else if (normalizedGender === "female") {
+      ageRangeDefault = [Math.max(AGE_MIN, myAge - 1), Math.min(AGE_MAX, myAge + 6)];
+    }
+  }
+
+  if (myHeight > 0) {
+    if (normalizedGender === "male") {
+      heightRangeDefault = [
+        Math.max(heightMin, myHeight - 20),
+        Math.min(heightMax, myHeight + 2),   // ← now clamps to real API max (213), not fake 200
+      ];
+    } else if (normalizedGender === "female") {
+      heightRangeDefault = [
+        Math.max(heightMin, myHeight - 2),
+        Math.min(heightMax, myHeight + 20),
+      ];
+    }
+  }
+
+  if (ageRangeDefault[0] > ageRangeDefault[1]) ageRangeDefault = [ageRangeDefault[1], ageRangeDefault[1]];
+  if (heightRangeDefault[0] > heightRangeDefault[1]) heightRangeDefault = [heightRangeDefault[1], heightRangeDefault[1]];
+
+  return { ageRangeDefault, heightRangeDefault };
+};
+
 /* Custom Multi-Thumb Range Slider built with pure RN to avoid PropTypes crashes */
 const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
   const [sliderWidth, setSliderWidth] = useState(260);
+  const THUMB_SIZE = 18;
   const currentValues = useRef(values);
   currentValues.current = values;
 
+  const trackWidth = Math.max(0, sliderWidth - THUMB_SIZE); // ← usable track, leaves room for thumb radius
+
   const getPositionFromValue = (val) => {
-    return ((val - min) / (max - min)) * sliderWidth;
+    return ((val - min) / (max - min)) * trackWidth;
   };
 
   const getValueFromPosition = (pos) => {
-    const clampedPos = Math.max(0, Math.min(pos, sliderWidth));
-    return Math.round(min + (clampedPos / sliderWidth) * (max - min));
+    const clampedPos = Math.max(0, Math.min(pos, trackWidth));
+    return Math.round(min + (clampedPos / trackWidth) * (max - min));
   };
 
-  // PanResponder for Min Thumb
   const minPanResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -82,7 +120,6 @@ const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
     })
   ).current;
 
-  // PanResponder for Max Thumb ← RESTORED
   const maxPanResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -99,6 +136,7 @@ const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
 
   const minPos = getPositionFromValue(values[0]);
   const maxPos = getPositionFromValue(values[1]);
+
 
   return (
     <View
@@ -251,6 +289,7 @@ export const Search = () => {
   const [ppChecked, ppSetChecked] = useState(false);
   const [ageRange, setAgeRange] = useState([24, 34]);   // [fromAge, toAge]
   const [heightRange, setHeightRange] = useState([155, 185]); // [fromHeight, toHeight] in cm
+  const [heightBounds, setHeightBounds] = useState({ min: 122, max: 213 })
 
   const [expandedSections, setExpandedSections] = useState({
     basics: true,
@@ -336,6 +375,18 @@ export const Search = () => {
         value: response.data[key].height_id.toString(),
       }));
       setHeightOptions(heightArray);
+
+      // ← derive actual min/max cm from the API response
+      const cmValues = Object.values(response.data)
+        .map((h) => parseInt(h.height_id, 10))
+        .filter((n) => !isNaN(n));
+
+      if (cmValues.length > 0) {
+        setHeightBounds({
+          min: Math.min(...cmValues),
+          max: Math.max(...cmValues),
+        });
+      }
     } catch (error) {
       console.error("Error fetching height options:", error);
     }
@@ -360,6 +411,34 @@ export const Search = () => {
     fetchHeightOptions();
     fetchFieldOfStudy();
   }, []);
+
+  useEffect(() => {
+    const loadDefaultRangesFromProfile = async () => {
+      try {
+        const myGender = await AsyncStorage.getItem("gender");
+        const myAgeValue = await AsyncStorage.getItem("age");
+        const myHeightValue = await AsyncStorage.getItem("height");
+
+        const myAge = parseInt(myAgeValue || "0", 10);
+        const myHeight = parseInt(myHeightValue || "0", 10);
+
+        const { ageRangeDefault, heightRangeDefault } = computeDefaultRanges(
+          myAge,
+          myHeight,
+          myGender,
+          heightBounds.min,
+          heightBounds.max
+        );
+
+        setAgeRange(ageRangeDefault);
+        setHeightRange(heightRangeDefault);
+      } catch (error) {
+        console.error("Error loading default age/height from profile:", error);
+      }
+    };
+
+    loadDefaultRangesFromProfile();
+  }, [heightBounds]); // ← re-run once heightBounds updates from the API
 
   const handleCheckboxToggle = (statusId) => {
     setCheckedStatuses((prev) => {
@@ -618,7 +697,7 @@ export const Search = () => {
     }
   };
 
-  const clearFields = () => {
+  const clearFields = async () => {
     setFromAge(0);
     setToAge(0);
     setFromHeight(0);
@@ -638,8 +717,27 @@ export const Search = () => {
     setSelectedWorkLocationId("");
     setSearchProfileId("");
     ppSetChecked(false);
-    setAgeRange([24, 34]);
-    setHeightRange([155, 185]);
+
+      try {
+      const myGender = await AsyncStorage.getItem("gender");
+      const myAgeValue = await AsyncStorage.getItem("age");
+      const myHeightValue = await AsyncStorage.getItem("height");
+      const myAge = parseInt(myAgeValue || "0", 10);
+      const myHeight = parseInt(myHeightValue || "0", 10);
+      const { ageRangeDefault, heightRangeDefault } = computeDefaultRanges(
+        myAge,
+        myHeight,
+        myGender,
+        heightBounds.min, 
+        heightBounds.max    
+      );
+      setAgeRange(ageRangeDefault);
+      setHeightRange(heightRangeDefault);
+    } catch (error) {
+      console.error("Error resetting default age/height:", error);
+      setAgeRange([24, 34]);
+      setHeightRange([155, 185]);
+    }
 
     fetchMaritalStatuses();
     fetchProfessions();
@@ -918,8 +1016,8 @@ export const Search = () => {
                   </View>
                 </View>
                 <CustomRangeSlider
-                  min={140}
-                  max={200}
+                  min={heightBounds.min}
+                  max={heightBounds.max}
                   values={heightRange}
                   onValuesChange={setHeightRange}
                 />
@@ -1635,7 +1733,7 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: "center",
     position: "relative",
-    marginHorizontal: 8,
+    // marginHorizontal: 8,
   },
   sliderTrackBg: {
     height: 6,
@@ -1657,8 +1755,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#F1D2D3",
     position: "absolute",
-    top: 7,
-    marginTop: 1,
+    top: 9,          // ← centers with 6px track height (36 - 18)/2
+    left: 9,          // base offset, overridden by inline style per-thumb — actually remove this, inline `left` from render controls it
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
