@@ -599,10 +599,13 @@ export const Search = () => {
         people_withphoto: ppChecked ? 1 : 0,
         search_worklocation: selectedWorkLocationId,
       };
+      console.log("advance search params",params)
 
       await AsyncStorage.setItem("searchParams", JSON.stringify(params));
 
       const searchResults = await getAdvanceSearchResults(10, 1);
+
+      console.log("advance search results",searchResults)
 
       if (searchResults && searchResults.status === "success" && Array.isArray(searchResults.data)) {
         navigation.navigate("SearchResults", {
