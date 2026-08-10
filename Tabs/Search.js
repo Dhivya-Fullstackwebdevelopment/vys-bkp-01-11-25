@@ -55,8 +55,7 @@ const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
 
   const getValueFromPosition = (pos) => {
     const clampedPos = Math.max(0, Math.min(pos, sliderWidth));
-    const val = Math.round(min + (clampedPos / sliderWidth) * (max - min));
-    return val;
+    return Math.round(min + (clampedPos / sliderWidth) * (max - min));
   };
 
   // PanResponder for Min Thumb
@@ -74,23 +73,23 @@ const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
     })
   ).current;
 
-  // PanResponder for Max Thumb
-  // const maxPanResponder = useRef(
-  //   PanResponder.create({
-  //     onStartShouldSetPanResponder: () => true,
-  //     onPanResponderMove: (evt, gestureState) => {
-  //       const startPos = getPositionFromValue(currentValues.current[1]);
-  //       const newPos = startPos + gestureState.dx;
-  //       const newValue = getValueFromPosition(newPos);
-  //       if (newValue >= currentValues.current[0]) {
-  //         onValuesChange([currentValues.current[0], newValue]);
-  //       }
-  //     },
-  //   })
-  // ).current;
+  // PanResponder for Max Thumb ← RESTORED
+  const maxPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (evt, gestureState) => {
+        const startPos = getPositionFromValue(currentValues.current[1]);
+        const newPos = startPos + gestureState.dx;
+        const newValue = getValueFromPosition(newPos);
+        if (newValue >= currentValues.current[0]) {
+          onValuesChange([currentValues.current[0], newValue]);
+        }
+      },
+    })
+  ).current;
 
   const minPos = getPositionFromValue(values[0]);
-  //const maxPos = getPositionFromValue(values[1]);
+  const maxPos = getPositionFromValue(values[1]); // ← RESTORED
 
   return (
     <View
@@ -101,7 +100,7 @@ const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
         <View
           style={[
             styles.sliderTrackActive,
-            { left: minPos, width: Math.max(0, sliderWidth - minPos) },
+            { left: minPos, width: Math.max(0, maxPos - minPos) }, // ← back to minPos→maxPos
           ]}
         />
       </View>
@@ -109,15 +108,14 @@ const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
         {...minPanResponder.panHandlers}
         style={[styles.sliderThumb, { left: minPos }]}
       />
-      {/* <View
+      <View
         {...maxPanResponder.panHandlers}
-        style={[styles.sliderThumb, { left: maxPos }]}
-      /> */}
+        style={[styles.sliderThumb, { left: maxPos, opacity: 0  }]} 
+      />
     </View>
   );
 };
 
-/* Custom Dropdown Component to replace external package */
 const CustomSelectDropdown = ({
   placeholder,
   data = [],
