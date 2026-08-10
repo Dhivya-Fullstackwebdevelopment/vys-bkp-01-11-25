@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TextInput,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -22,6 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useForm, Controller } from "react-hook-form";
 import Toast from "react-native-toast-message";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   getAdvanceSearchResults,
@@ -89,7 +89,7 @@ const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
   ).current;
 
   const minPos = getPositionFromValue(values[0]);
-  const maxPos = getPositionFromValue(values[1]); 
+  const maxPos = getPositionFromValue(values[1]);
 
   return (
     <View
@@ -110,7 +110,7 @@ const CustomRangeSlider = ({ min, max, values, onValuesChange }) => {
       />
       <View
         {...maxPanResponder.panHandlers}
-        style={[styles.sliderThumb, { left: maxPos, opacity: 0  }]} 
+        style={[styles.sliderThumb, { left: maxPos, opacity: 0 }]}
       />
     </View>
   );
@@ -704,7 +704,7 @@ export const Search = () => {
         </TouchableOpacity>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 110 }} nestedScrollEnabled={true}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 160 }} nestedScrollEnabled={true}>
         {/* Search Bar */}
         <View style={styles.searchBarWrapper}>
           <View style={styles.searchBarPill}>
@@ -1151,7 +1151,7 @@ export const Search = () => {
         </View>
 
         {/* Submit Bottom Button */}
-        <View style={styles.bottomBarSubmit}>
+        {/* <View style={styles.bottomBarSubmit}>
           <TouchableOpacity style={{ flex: 1 }} onPress={handleSubmit} activeOpacity={0.85}>
             <View style={styles.submitGradientBtn}>
               {btnLoading ? (
@@ -1161,8 +1161,33 @@ export const Search = () => {
               )}
             </View>
           </TouchableOpacity>
-        </View>
+        </View> */}
+
+        {/* <View style={styles.stickyBottomBar}>
+          <TouchableOpacity style={styles.clearBtnBottom} onPress={clearFields}>
+            <Text style={styles.clearBtnBottomText}>Clear</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.showProfilesBtn} onPress={handleSubmit} activeOpacity={0.85}>
+            {btnLoading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.showProfilesBtnText}>Show matching profiles</Text>
+            )}
+          </TouchableOpacity>
+        </View> */}
       </ScrollView>
+      <View style={styles.stickyBottomBar}>
+        <TouchableOpacity style={styles.clearBtnBottom} onPress={clearFields}>
+          <Text style={styles.clearBtnBottomText}>Clear</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.showProfilesBtn} onPress={handleSubmit} activeOpacity={0.85}>
+          {btnLoading ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.showProfilesBtnText}>Show matching profiles</Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -1503,5 +1528,62 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
+  },
+  stickyBottomBar: {
+    position: "absolute",        // ← make it float
+    bottom: Platform.OS === "ios" ? 100 : 80,
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 60,
+    // NO backgroundColor, NO borderTopWidth, NO marginBottom
+  },
+  bottomBarCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 30,
+    padding: 5,
+    gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  clearBtnBottom: {
+    width: 70,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1.5,
+    borderColor: "#E4E4E7",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  clearBtnBottomText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#3F3F46",
+  },
+  showProfilesBtn: {
+    flex: 1,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: Colors.primary || "#BD1225",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 3,
+    shadowColor: "#BD1225",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  showProfilesBtnText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

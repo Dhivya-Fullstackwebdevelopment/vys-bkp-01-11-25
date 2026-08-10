@@ -10,7 +10,7 @@ import { Platform, ActivityIndicator } from 'react-native';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-gesture-handler';
-
+import { SafeAreaProvider } from 'react-native-safe-area-context'; // ← ADD THIS
 
 export default function App() {
 
@@ -24,7 +24,6 @@ export default function App() {
       });
     }
 
-    // Update to use expo-notifications for permissions
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
@@ -64,11 +63,6 @@ export default function App() {
       console.log("Notification Response Received:", response);
     });
 
-    // return () => {
-    //   Notifications.removeNotificationSubscription(notificationReceivedListener);
-    //   Notifications.removeNotificationSubscription(notificationResponseListener);
-    // };
-
     return () => {
       if (notificationReceivedListener) notificationReceivedListener.remove();
       if (notificationResponseListener) notificationResponseListener.remove();
@@ -78,7 +72,6 @@ export default function App() {
   const [fontsLoaded] = useFonts({
     kaush: require("./assets/fonts/KaushanScript-Regular.ttf"),
     inter: require("./assets/fonts/Inter-VariableFont_slnt,wght.ttf"),
-    // Add these:
     AntDesign: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/AntDesign.ttf"),
     Ionicons: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf"),
   });
@@ -88,14 +81,16 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ProfileProvider>
-        <NavigationContainer>
-          <StatusBar hidden />
-          <AppNavigation />
-          <Toast />
-        </NavigationContainer>
-      </ProfileProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>                                     
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ProfileProvider>
+          <NavigationContainer>
+            <StatusBar hidden />
+            <AppNavigation />
+            <Toast />
+          </NavigationContainer>
+        </ProfileProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }

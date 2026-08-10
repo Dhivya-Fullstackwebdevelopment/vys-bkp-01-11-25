@@ -76,7 +76,7 @@ export const Colors = {
 export const GlobalStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.surface1,
+    backgroundColor: Colors.selectedBg,
   },
   card: {
     backgroundColor: Colors.card,
