@@ -477,8 +477,23 @@ export const Search = () => {
     });
   };
 
-  const getHeightLabel = (cmValue) => {
-    if (!heightOptions || heightOptions.length === 0) return `${cmValue} cm`;
+  // const getHeightLabel = (cmValue) => {
+  //   if (!heightOptions || heightOptions.length === 0) return `${cmValue} cm`;
+  //   let closest = heightOptions[0];
+  //   let minDiff = Infinity;
+  //   heightOptions.forEach((opt) => {
+  //     const cm = parseInt(opt.value, 10);
+  //     const diff = Math.abs(cm - cmValue);
+  //     if (diff < minDiff) {
+  //       minDiff = diff;
+  //       closest = opt;
+  //     }
+  //   });
+  //   return closest.label; // e.g. "5ft 2in - 157cm"
+  // };
+
+  const getHeightCm = (cmValue) => {
+    if (!heightOptions || heightOptions.length === 0) return `${cmValue}cm`;
     let closest = heightOptions[0];
     let minDiff = Infinity;
     heightOptions.forEach((opt) => {
@@ -489,7 +504,7 @@ export const Search = () => {
         closest = opt;
       }
     });
-    return closest.label; // e.g. "5ft 2in - 157cm"
+    return `${closest.value}cm`;
   };
 
   const handleSubmit = async () => {
@@ -1029,8 +1044,8 @@ export const Search = () => {
                   <Text style={styles.fieldLabel}>Height</Text>
                   <View style={styles.rangeBadge}>
                     <Text style={styles.rangeBadgeText}>
-                      {getHeightLabel(heightRange[0])} – {getHeightLabel(heightRange[1])}
-
+                      {/* {getHeightLabel(heightRange[0])} – {getHeightLabel(heightRange[1])} */}
+                      {getHeightCm(heightRange[0])} – {getHeightCm(heightRange[1])}
                     </Text>
                   </View>
                 </View>
