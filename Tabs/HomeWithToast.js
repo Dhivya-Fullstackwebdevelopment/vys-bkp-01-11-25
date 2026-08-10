@@ -8,13 +8,14 @@ import {
   Image,
   TouchableOpacity,
   FlatList,
-  SafeAreaView,
   Dimensions,
   ActivityIndicator,
   Modal,
   Switch,
+  Platform,
 } from "react-native";
-
+import { SafeAreaView } from "react-native-safe-area-context";
+import VysyamalaLogo from "../assets/img/VysyamalaLogo.png";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -91,10 +92,10 @@ export const HomeWithToast = () => {
           const views = contactViews ? `${contactViews} contact views left` : "";
           const till = validTill
             ? `till ${new Date(validTill).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}`
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}`
             : "";
           setMemberSub([views, till].filter(Boolean).join(" · "));
         } else {
@@ -384,21 +385,35 @@ export const HomeWithToast = () => {
       : "New Interest Received";
 
   // ── App header (greeting + search + member banner + quick actions) ────────
+  // ── App header (greeting + search + member banner + quick actions) ────────
   const renderAppHeader = () => (
     <LinearGradient
-      colors={[Colors.primary, Colors.primaryGradientEnd || "#4A000A"]}
+      colors={[Colors.primary || "#9B061B", Colors.primaryGradientEnd || "#52000A"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.appHeader}
     >
-      {/* Greeting row */}
-      <View style={styles.greetingRow}>
-        <View>
-          <Text style={styles.greetingName}>
-            Vanakkam, {userName || ""}
-          </Text>
-          <Text style={styles.greetingId}>Profile ID {userProfileId}</Text>
-        </View>
+      {/* Top Row: Logo on Left & Notification Bell aligned on Right */}
+      <View style={styles.topHeaderRow}>
+        <Image source={VysyamalaLogo} style={styles.appLogo} resizeMode="contain" />
+        <TouchableOpacity
+          style={styles.notificationBtn}
+          onPress={() => navigation.navigate("Notifications")}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="notifications-none" size={20} color="#FFFFFF" />
+          <View style={styles.notificationBadge} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Greeting row directly below top row */}
+      <View style={styles.greetingContainer}>
+        <Text style={styles.greetingName}>
+          Vanakkam, {userName || ""}
+        </Text>
+        <Text style={styles.greetingId}>
+          Profile ID {userProfileId || "VF56480"}
+        </Text>
       </View>
 
       {/* Search bar */}
@@ -409,8 +424,8 @@ export const HomeWithToast = () => {
       >
         <MaterialIcons
           name="search"
-          size={18}
-          color="rgba(255,255,255,0.6)"
+          size={20}
+          color="rgba(255,255,255,0.7)"
           style={{ marginRight: 8 }}
         />
         <Text style={styles.searchPlaceholder}>
@@ -419,23 +434,23 @@ export const HomeWithToast = () => {
       </TouchableOpacity>
 
       {/* Member banner */}
-      {memberLabel ? (
-        <TouchableOpacity
-          style={styles.memberBanner}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate("MembershipPlan")}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={styles.memberTitle}>⭐ {memberLabel}</Text>
-            {memberSub ? (
-              <Text style={styles.memberSubText}>{memberSub}</Text>
-            ) : null}
-          </View>
-          <Text style={styles.upgradeArrow}>Upgrade →</Text>
-        </TouchableOpacity>
-      ) : null}
+      <TouchableOpacity
+        style={styles.memberBanner}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate("MembershipPlan")}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={styles.memberTitle}>
+            ★ {memberLabel || "PREMIUM MEMBER"}
+          </Text>
+          <Text style={styles.memberSubText}>
+            {memberSub || "till 27 Jul 2027"}
+          </Text>
+        </View>
+        <Text style={styles.upgradeArrow}>Upgrade →</Text>
+      </TouchableOpacity>
 
-      {/* Quick action icons */}
+      {/* Quick actions */}
       <View style={styles.quickActions}>
         {[
           {
@@ -463,9 +478,10 @@ export const HomeWithToast = () => {
             key={i}
             style={styles.actionBtn}
             onPress={action.onPress}
+            activeOpacity={0.8}
           >
             <View style={styles.actionIconCircle}>
-              <MaterialIcons name={action.icon} size={22} color={Colors.primary} />
+              <MaterialIcons name={action.icon} size={22} color={Colors.primary || "#9B061B"} />
             </View>
             <Text style={styles.actionLabel}>{action.label}</Text>
           </TouchableOpacity>
@@ -538,7 +554,7 @@ export const HomeWithToast = () => {
             style={[
               styles.arrowButton,
               currentSlideIndex === combinedData.length - 1 &&
-                styles.arrowDisabled,
+              styles.arrowDisabled,
             ]}
           >
             <MaterialIcons
@@ -591,30 +607,6 @@ export const HomeWithToast = () => {
           onValueChange={toggleSwitch}
           value={isEnabled}
         />
-      </View>
-
-      <View style={styles.formContainer}>
-        <View style={styles.inputContainer}>
-          <MaterialIcons
-            name="search"
-            size={18}
-            color={Colors.textMuted}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Search profile ID"
-            value={searchProfileId}
-            onChangeText={handleSearchInput}
-            placeholderTextColor={Colors.textMuted}
-            underlineColorAndroid="transparent"
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-        </View>
-        <TouchableOpacity style={styles.filterIcon} onPress={handleFilterPress}>
-          <MaterialIcons name="filter-list" size={20} color={Colors.primary} />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.viewToggleContainer}>
@@ -707,7 +699,7 @@ export const HomeWithToast = () => {
         animationType="slide"
         transparent={true}
         visible={false}
-        onRequestClose={() => {}}
+        onRequestClose={() => { }}
       />
     </SafeAreaView>
   );
@@ -735,9 +727,15 @@ const styles = StyleSheet.create({
 
   // ── App header (gradient block) ───────────────────────────────────────────
   appHeader: {
-    paddingHorizontal: rs(14, 16, 18),
-    paddingTop: rs(14, 16, 18),
-    paddingBottom: rs(18, 22, 26),
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 22,
+  },
+  topHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
   },
   greetingRow: {
     flexDirection: "row",
@@ -746,10 +744,11 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   greetingName: {
-    fontSize: rs(22, 25, 28),
-    fontWeight: "800",
+    fontSize: 21,
+    fontWeight: "700",
     color: Colors.textLight,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   greetingId: {
     fontSize: 13,
@@ -849,6 +848,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   sliderRow: {
     flexDirection: "row",
@@ -1032,6 +1032,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: Colors.textDark,
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    lineSpacing: -0.5,
   },
   matchNumber: {
     color: Colors.primary,
@@ -1104,6 +1106,38 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 10,
     paddingTop: 4,
+  },
+  logoContainer: {
+    alignItems: "flex-start",
+    marginBottom: 10,
+  },
+  appLogo: {
+    width: 135,
+    height: 38,
+  },
+  greetingRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  notificationBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "rgba(255, 255, 255, 0.15)", // Translucent circular container
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  notificationBadge: {
+    position: "absolute",
+    top: 9,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#4A000A", // Dark red dot matching the image
   },
 });
 
