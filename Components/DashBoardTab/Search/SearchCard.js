@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
     flexWrap: "nowrap",
   },
   profileName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
     color: Colors.textDark || "#2D2D2D",
     flexShrink: 1,

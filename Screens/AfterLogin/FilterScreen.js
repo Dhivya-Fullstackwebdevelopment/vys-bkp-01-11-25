@@ -554,9 +554,11 @@ const styles = StyleSheet.create({
     backBtn: { padding: 4 },
     headerCenter: { flex: 1, marginLeft: 12 },
     headerTitle: {
-        fontSize: rs(20, 22, 24),
+        fontSize: 20,
         fontWeight: "700",
         color: "#FFFFFF",
+        fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+        letterSpacing: -1,
     },
     headerSubtitle: {
         fontSize: rs(12, 13, 14),
@@ -565,7 +567,7 @@ const styles = StyleSheet.create({
     },
     filterIconBtn: {
         backgroundColor: "rgba(255,255,255,0.18)",
-        borderRadius: 10,
+        borderRadius: 20,
         padding: 9,
     },
     bodyContainer: {
@@ -639,11 +641,13 @@ const styles = StyleSheet.create({
         flexWrap: "nowrap",
     },
     profileName: {
-        fontSize: rs(15, 16, 17),
+        fontSize: 15,
         fontWeight: "700",
         color: Colors.textDark,
         flexShrink: 1,
         maxWidth: "50%",
+        fontFamily: Platform.OS === "ios" ? "Georgia" : "serif", 
+        letterSpacing: -1,
     },
     matchChip: {
         marginLeft: "auto",
@@ -658,14 +662,13 @@ const styles = StyleSheet.create({
         fontSize: 11,
     },
     subtext: {
-        fontSize: 12,
-        color: Colors.textMuted,
+        fontSize: 13,          // ← was 12, now matches heroSubText/rowLabel
+        color: Colors.textMuted || "#888888",
         marginTop: 3,
     },
     professionText: {
-        fontSize: 13,
-        color: Colors.textDark,
-        fontWeight: "500",
+        fontSize: 13,           // ← was 13 already, kept
+        color: Colors.textMuted || "#888888",
         marginTop: 4,
     },
     locationRow: {
@@ -675,8 +678,8 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     locationText: {
-        fontSize: 12,
-        color: Colors.textMuted,
+        fontSize: 12,           // ← matches factValue size
+        color: Colors.textMuted || "#888888",
     },
     tagsRow: {
         flexDirection: "row",
@@ -727,7 +730,7 @@ const styles = StyleSheet.create({
         borderColor: "transparent",
     },
     shortlistBtnText: {
-        fontSize: 12,
+        fontSize: 13,           // ← was 12
         fontWeight: "600",
         color: Colors.textDark,
     },
