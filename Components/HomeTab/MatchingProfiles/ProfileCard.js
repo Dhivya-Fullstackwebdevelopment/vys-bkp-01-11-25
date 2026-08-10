@@ -8,9 +8,10 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -19,6 +20,7 @@ import {
   logProfileVisit,
   getWishlistProfiles,
   fetchProfileData,
+
   fetchProfileDataCheck,
 } from "../../../CommonApiCall/CommonApiCall";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -28,6 +30,8 @@ import { FeaturedProfiles } from "../FeaturedProfiles";
 import { TopAlignedImage } from "../../ReuseImageAlign/TopAlignedImage";
 import { Dimensions } from "react-native";
 import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
+// ← same theme tokens FilterScreen.js uses, so fonts/colors/spacing match exactly
+import { Colors, rs } from "../../../Reusable/Theme";
 
 export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewMode = "list" }) => {
   const [profiles, setProfiles] = useState([]);
@@ -45,9 +49,6 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
   const SCREEN_WIDTH = Dimensions.get("window").width;
   const [showPlatinumModal, setShowPlatinumModal] = useState(false);
 
-  console.log("ProfileCard received searchProfiles:", searchProfiles?.length || 'null');
-  console.log("ProfileCard received orderBy:", orderBy);
-
   const loadProfiles = async (page = 1, isInitialLoad = false, sortOrder) => {
     if ((isLoading && isInitialLoad) || (isLoadingMore && !isInitialLoad)) return;
 
@@ -59,15 +60,9 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
 
     try {
       const perPage = 10;
-      console.log(`Loading profiles - Page: ${page}, Order: ${sortOrder}`);
-
       const response = await fetchProfiles(perPage, page, sortOrder);
 
-      console.log("Profiles response:", response);
-      console.log("All Profile IDs from API:", response?.all_profile_ids);
-
       if (response?.Status === 0) {
-        console.log("Error fetching profiles:", response?.Message || "Unknown error");
         setProfiles(null);
         setTotalPages(1);
         setTotalRecords(0);
@@ -100,8 +95,6 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
         setTotalPages(Math.ceil(response.total_count / perPage));
         setTotalRecords(response.total_count || 0);
         setCurrentPage(page);
-
-        console.log("Updated allProfileIds:", response.all_profile_ids);
       }
     } catch (error) {
       console.error("Error loading profiles:", error);
@@ -117,21 +110,16 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     }
   };
 
-  // Initial load
   useEffect(() => {
-    console.log("Initial load with orderBy:", orderBy);
     setCurrentOrderBy(orderBy);
     loadProfiles(1, true, orderBy);
   }, []);
 
-  // Reload when orderBy changes
   useEffect(() => {
-    console.log("OrderBy changed to:", orderBy, "Current:", currentOrderBy);
     if (orderBy !== currentOrderBy) {
-      console.log("Reloading profiles with new order:", orderBy);
       setCurrentOrderBy(orderBy);
-      setProfiles([]); // Clear existing profiles
-      setCurrentPage(1); // Reset to first page
+      setProfiles([]);
+      setCurrentPage(1);
       loadProfiles(1, true, orderBy);
     }
   }, [orderBy]);
@@ -193,6 +181,13 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
         });
       }
       setBookmarkedProfiles(updatedBookmarkedProfiles);
+      setProfiles((prev) =>
+        prev.map((p) =>
+          p.profile_id === viewedProfileId
+            ? { ...p, wish_list: newStatus === "1" ? 1 : 0 }
+            : p
+        )
+      );
     } else {
       Toast.show({
         type: "error",
@@ -206,16 +201,14 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
   const handleProfileClick = async (viewedProfileId) => {
     try {
       const data = await fetchProfileDataCheck(viewedProfileId, "1");
-      console.log("data 1 ==>", data);
 
       if (data?.status === "failure") {
         Toast.show({
           type: "error",
-          // text1: "Profile Error", // You can keep this general
-          text1: data.message, // <-- This displays the exact API message
+          text1: data.message,
           position: "top",
         });
-        return; // Stop the function
+        return;
       }
       const success = await logProfileVisit(viewedProfileId);
       console.log("Log visit success 2:", success);
@@ -229,7 +222,6 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
         });
       }
 
-      // Create allProfileIds from current profiles or search results
       const currentProfiles = Array.isArray(searchProfiles) && searchProfiles.length > 0
         ? searchProfiles
         : profiles;
@@ -239,14 +231,11 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
         return acc;
       }, {});
 
-      console.log("Navigating with profile IDs:", profileIdsForNavigation);
-
       navigation.navigate("ProfileDetails", {
         viewedProfileId,
         allProfileIds: profileIdsForNavigation,
       });
     } catch (error) {
-      console.error("Error fetching profile data:", error);
       const serverMessage =
         error?.response?.data?.message ||
         error?.message ||
@@ -261,18 +250,72 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           text2: serverMessage || "Something went wrong.",
           position: "top",
         });
-        console.error("Profile click error:", error);
       }
     }
   };
 
+  // ← same "days ago / Active today" logic FilterScreen uses for the footer
+  const formatLastActive = (viewed_date) => {
+    if (!viewed_date) return null;
+
+    const date = new Date(viewed_date);
+    const now = new Date();
+
+    const diffMs = now - date;
+
+    if (diffMs < 0) return null;
+
+    const diffDays = Math.floor(
+      diffMs / (1000 * 60 * 60 * 24)
+    );
+
+    // Today
+    if (diffDays === 0) {
+      return "Active today";
+    }
+
+    // Yesterday
+    if (diffDays === 1) {
+      return "Yesterday";
+    }
+
+    // Days
+    if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    }
+
+    // Weeks
+    const diffWeeks = Math.floor(diffDays / 7);
+
+    if (diffWeeks < 4) {
+      return diffWeeks === 1
+        ? "1 week ago"
+        : `${diffWeeks} weeks ago`;
+    }
+
+    // Months
+    const diffMonths = Math.floor(diffDays / 30);
+
+    if (diffMonths < 12) {
+      return diffMonths === 1
+        ? "1 month ago"
+        : `${diffMonths} months ago`;
+    }
+
+    // Years
+    const diffYears = Math.floor(diffDays / 365);
+
+    return diffYears === 1
+      ? "1 year ago"
+      : `${diffYears} years ago`;
+  };
+
   const renderFooter = () => {
     if (!isLoadingMore) return null;
-
     return (
       <View style={styles.footer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.footerText}>Loading more profiles...</Text>
+        <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
+        <Text style={styles.footerText}>Loading more profiles…</Text>
       </View>
     );
   };
@@ -288,142 +331,215 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     windowSize: 21,
   };
 
-  const renderGridItem = ({ item }) => (
-    <TouchableOpacity
-      key={item.profile_id}
-      onPress={() => handleProfileClick(item.profile_id)}
-      style={styles.gridItemContainer}
-    >
-      <View style={styles.gridCard}>
-        {/* <Image
-          source={getImageSource(item.profile_img)}
-          style={styles.gridImage}
-        /> */}
-        <View style={styles.imageContainer}>
+  // ─── GRID CARD (same palette/typography as list card, larger hero image) ──
+  const renderGridItem = ({ item }) => {
+    const isSaved = bookmarkedProfiles.has(item.profile_id);
+    const matchScore = item.matching_score ?? item.matchScore ?? 0;
+    const lastActive = formatLastActive(item.viewed_date);
+    const degreeProfession =
+      [item.degree, item.profession]
+        .filter((v) => v && v !== "Not mentioned" && v !== "Not working")
+        .join(" · ") || item.profession || "N/A";
+
+    return (
+      <TouchableOpacity
+        key={item.profile_id}
+        onPress={() => handleProfileClick(item.profile_id)}
+        activeOpacity={0.92}
+        style={styles.gridCard}
+      >
+        <View style={styles.gridImageWrapper}>
           <TopAlignedImage
             uri={Array.isArray(item.profile_img) ? item.profile_img[0] : item.profile_img}
-            width={SCREEN_WIDTH - 30}
-            height={300}
-            // Apply blurRadius only when protected
+            width={SCREEN_WIDTH - 24}
+            height={280}
             blurRadius={item.photo_protection === 1 ? 20 : 0}
           />
-
-          {/* Render the lock overlay only if photo_protection is 1 */}
           {item.photo_protection === 1 && (
             <View style={styles.lockOverlayLarge}>
-              <MaterialIcons name="lock" size={60} color="#FF6666" />
+              <MaterialIcons name="lock" size={44} color="#FFFFFF" />
               <Text style={styles.lockOverlayText}>
                 Click here to request password to view profile photo
               </Text>
             </View>
           )}
         </View>
-        <TouchableOpacity
-          onPress={() => handleSavePress(item.profile_id)}
-          style={styles.gridSaveIcon}
-        >
-          <MaterialIcons
-            name={
-              bookmarkedProfiles.has(item.profile_id)
-                ? "bookmark"
-                : "bookmark-border"
-            }
-            size={20}
-            color="red"
-          />
-        </TouchableOpacity>
-        <View style={styles.gridContent}>
-          <View style={styles.gridNameContainer}>
-            <Text
-              style={[styles.gridProfileName, { flexShrink: 1 }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
+
+        <View style={styles.cardFooterTop}>
+          <View style={styles.nameRow}>
+            <Text style={styles.profileName} numberOfLines={1}>
               {item.profile_name || "N/A"}
             </Text>
-
-            <Text style={styles.gridProfileId}>
-              ({item.profile_id})
-            </Text>
-          </View>
-          <Text style={styles.gridProfileAge}>
-            {item.profile_age} Yrs | {item.height?.height_desc || item.profile_height?.height_desc || "N/A"}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderSearchItem = ({ item }) => (
-    <TouchableOpacity
-      key={item.profile_id}
-      onPress={() => handleProfileClick(item.profile_id)}
-    >
-      <View style={styles.profileDiv}>
-        <View style={styles.profileContainer}>
-          {/* <Image
-            source={getImageSource(item.profile_img)}
-            style={styles.profileImage}
-          /> */}
-          <View style={styles.listImageWrapper}>
-            <TopAlignedImage
-              uri={Array.isArray(item.profile_img) ? item.profile_img[0] : item.profile_img}
-              width={100}
-              height={100}
-              blurRadius={item.photo_protection === 1 ? 12 : 0}
-            />
-            {item.photo_protection === 1 && (
-              <View style={styles.listLockOverlay}>
-                <MaterialIcons name="lock" size={24} color="#FF6666" />
+            {item.verified === 1 && (
+              <MaterialIcons name="verified" size={16} color={Colors.primary} style={{ marginLeft: 4 }} />
+            )}
+            {Number(matchScore) > 50 && (
+              <View style={styles.matchChip}>
+                <Text style={styles.matchChipText}>{matchScore}% match</Text>
               </View>
             )}
           </View>
+
+          <Text style={styles.subtext}>
+            {item.profile_id} · {item.profile_age} yrs ·{" "}
+            {item.height?.height_desc || item.profile_height?.height_desc || "N/A"}
+          </Text>
+
+          {/* <Text style={styles.professionText} numberOfLines={1}>
+            {degreeProfession}
+          </Text>
+
+          {item.star ? (
+            <View style={styles.tagsRow}>
+              <View style={styles.tag}>
+                <Text style={styles.tagText}>{item.star}</Text>
+              </View>
+            </View>
+          ) : null} */}
+        </View>
+
+        <View style={styles.cardFooter}>
+          <Text style={styles.lastActiveText}>{lastActive || ""}</Text>
           <TouchableOpacity
-            onPress={() => handleSavePress(item.profile_id)}
+            onPress={(e) => {
+              e?.stopPropagation?.();
+              handleSavePress(item.profile_id);
+            }}
+            onStartShouldSetResponder={() => true}
+            onTouchEnd={(e) => e.stopPropagation()}
+            style={[styles.shortlistBtn, isSaved && styles.shortlistBtnSaved]}
           >
             <MaterialIcons
-              name={
-                bookmarkedProfiles.has(item.profile_id)
-                  ? "bookmark"
-                  : "bookmark-border"
-              }
-              size={20}
-              color="red"
-              style={styles.saveIcon}
+              name={isSaved ? "bookmark" : "bookmark-border"}
+              size={16}
+              color={isSaved ? Colors.chipActiveText : Colors.textDark}
             />
+            <Text style={[styles.shortlistBtnText, isSaved && styles.shortlistBtnTextSaved]}>
+              {isSaved ? "Saved" : "Shortlist"}
+            </Text>
           </TouchableOpacity>
-          <View style={styles.profileContent}>
-            <View style={styles.nameContainer}>
-              <Text
-                style={[styles.profileName, { flexShrink: 1 }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {item.profile_name || "N/A"}
-              </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
-              <Text style={styles.profileId}>
-                ({item.profile_id})
+  // ─── LIST CARD — matches FilterScreen.renderProfileCard exactly ──────────
+  const renderSearchItem = ({ item: profile }) => {
+    const isSaved = bookmarkedProfiles.has(profile.profile_id);
+    const rawImage = Array.isArray(profile.profile_img)
+      ? profile.profile_img[0]
+      : profile.profile_img;
+    const matchScore = profile.matching_score ?? profile.matchScore ?? 0;
+    const lastActive = formatLastActive(profile.viewed_date);
+
+    const degreeProfession =
+      [profile.degree, profile.profession]
+        .filter((v) => v && v !== "Not mentioned" && v !== "Not working")
+        .join(" · ") || profile.profession || "N/A";
+
+    return (
+      <TouchableOpacity
+        key={profile.profile_id}
+        onPress={() => handleProfileClick(profile.profile_id)}
+        activeOpacity={0.92}
+        style={styles.card}
+      >
+        <View style={styles.cardBody}>
+          <View style={styles.imageWrapper}>
+            <TopAlignedImage
+              uri={rawImage}
+              width={rs(110, 120, 130)}
+              height={rs(120, 130, 140)}
+              blurRadius={profile.photo_protection === 1 ? 15 : 0}
+              style={{ borderRadius: 14 }}
+            />
+            {profile.photo_protection === 1 && (
+              <View style={styles.lockOverlay}>
+                <MaterialIcons name="lock" size={22} color="#FFFFFF" />
+              </View>
+            )}
+          </View>
+
+          <View style={styles.infoCol}>
+            <View style={styles.nameRow}>
+              <Text style={styles.profileName} numberOfLines={1}>
+                {profile.profile_name || "N/A"}
               </Text>
+              {profile.verified === 1 && (
+                <MaterialIcons
+                  name="verified"
+                  size={16}
+                  color={Colors.primary}
+                  style={{ marginLeft: 4 }}
+                />
+              )}
+              {Number(matchScore) > 50 && (
+                <View style={styles.matchChip}>
+                  <Text style={styles.matchChipText}>{matchScore}% match</Text>
+                </View>
+              )}
             </View>
-            <View style={styles.ageHeightContainer}>
-              <Text style={styles.profileAge}>{item.profile_age} Yrs</Text>
-              <Text style={styles.separator}>|</Text>
-              <Text style={styles.profileAge}>{item.height?.height_desc || item.profile_height?.height_desc || "N/A"}</Text>
+
+            <Text style={styles.subtext}>
+              {profile.profile_id} · {profile.profile_age} yrs ·{" "}
+              {profile.height?.height_desc || profile.profile_height?.height_desc || "N/A"}
+            </Text>
+
+            <Text style={styles.professionText} numberOfLines={1}>
+              {degreeProfession}
+            </Text>
+
+            {(profile.location || profile.city) ? (
+              <View style={styles.locationRow}>
+                <Ionicons name="location-outline" size={13} color={Colors.textMuted} />
+                <Text style={styles.locationText}>
+                  {profile.location || profile.city}
+                </Text>
+              </View>
+            ) : null}
+
+            <View style={styles.tagsRow}>
+              {profile.star ? (
+                <View style={styles.tag}>
+                  <Text style={styles.tagText}>{profile.star}</Text>
+                </View>
+              ) : null}
             </View>
-            <Text style={styles.zodiac}>{item.star}</Text>
-            <Text style={styles.employed}>{item.profession}</Text>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+
+        <View style={styles.cardFooter}>
+          <Text style={styles.lastActiveText}>{lastActive || ""}</Text>
+          <View style={styles.btnGroup}>
+            <TouchableOpacity
+              onPress={(e) => {
+                e?.stopPropagation?.();
+                handleSavePress(profile.profile_id);
+              }}
+              style={[styles.shortlistBtn, isSaved && styles.shortlistBtnSaved]}
+            >
+              <MaterialIcons
+                name={isSaved ? "bookmark" : "bookmark-border"}
+                size={16}
+                color={isSaved ? Colors.chipActiveText : Colors.textDark}
+              />
+              <Text
+                style={[styles.shortlistBtnText, isSaved && styles.shortlistBtnTextSaved]}
+              >
+                {isSaved ? "Saved" : "Shortlist"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const renderContent = () => {
     if (isLoadingNew) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#BD1225" />
+          <ActivityIndicator size="large" color={Colors.primary || "#BD1225"} />
           <Text style={styles.loadingText}>Searching profiles...</Text>
         </View>
       );
@@ -452,7 +568,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           {...flatListProps}
           data={dataToRender}
           numColumns={numColumns}
-          columnWrapperStyle={viewMode === 'grid' ? styles.gridRow : null}
+          // columnWrapperStyle={viewMode === 'grid' ? styles.gridRow : null}
           keyExtractor={(item, index) => `${item.profile_id}-${orderBy}-${viewMode}-${index}`}
           extraData={orderBy}
           renderItem={viewMode === 'grid' ? renderGridItem : renderSearchItem}
@@ -474,92 +590,19 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     );
   };
 
-  return <View style={styles.container}>{renderContent()}
-    <PlatinumModalPopup
-      visible={showPlatinumModal}
-      onClose={() => setShowPlatinumModal(false)}
-    />
-  </View>;
+  return (
+    <View style={styles.container}>
+      {renderContent()}
+      <PlatinumModalPopup
+        visible={showPlatinumModal}
+        onClose={() => setShowPlatinumModal(false)}
+      />
+    </View>
+  );
 };
 
-
+// ─── Styles — mirrors FilterScreen.js card styling 1:1 ─────────────────────
 const styles = StyleSheet.create({
-  profileScrollView: {
-    width: "100%",
-    paddingBottom: 50,
-  },
-  profileDiv: {
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-  profileContainer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    borderRadius: 8,
-    padding: 8,
-    marginVertical: 6,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-  },
-  saveIcon: {
-    position: "absolute",
-    right: 10,
-    top: 10,
-  },
-  profileContent: {
-    paddingLeft: 10,
-    flex: 1,
-  },
-  ageHeightContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
-    gap: 10,
-  },
-  profileAge: {
-    fontSize: 14,
-    color: "#4F515D",
-  },
-  separator: {
-    fontSize: 14,
-    color: "#4F515D",
-    paddingHorizontal: 4,
-  },
-  zodiac: {
-    fontSize: 14,
-    color: "#4F515D",
-    marginBottom: 5,
-  },
-  employed: {
-    fontSize: 14,
-    color: "#4F515D",
-  },
-  matching: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#282C3F",
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    marginVertical: 20,
-  },
-  footer: {
-    paddingVertical: 20,
-    alignItems: "center",
-  },
-  footerText: {
-    color: "#666",
-    marginTop: 5,
-  },
   container: {
     flex: 1,
     width: '100%',
@@ -568,12 +611,192 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
-  flatListContainer: {
-    flex: 1,
-    width: '100%',
-  },
   flatListContent: {
     flexGrow: 1,
+    paddingHorizontal: rs(12, 14, 16),
+    paddingVertical: 12,
+    paddingBottom: 100,
+  },
+
+  // ── List card (matches FilterScreen.styles.card exactly) ──
+  card: {
+    backgroundColor: Colors.cardBackground || "#FFFFFF",
+    borderRadius: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+    overflow: "hidden",
+  },
+  cardBody: {
+    flexDirection: "row",
+    padding: 12,
+    gap: 12,
+  },
+  imageWrapper: {
+    borderRadius: 14,
+    overflow: "hidden",
+    position: "relative",
+    alignSelf: "flex-start",
+  },
+  lockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  infoCol: { flex: 1 },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "nowrap",
+  },
+  profileName: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: Colors.textDark || "#2D2D2D",
+    flexShrink: 1,
+    maxWidth: "50%",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -1,
+  },
+  matchChip: {
+    marginLeft: "auto",
+    backgroundColor: Colors.secondaryGold || "#D4AF37",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  matchChipText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 11,
+  },
+  subtext: {
+    fontSize: 13,
+    color: Colors.textMuted || "#888888",
+    marginTop: 3,
+  },
+  professionText: {
+    fontSize: 13,
+    color: Colors.textMuted || "#888888",
+    marginTop: 4,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    marginTop: 4,
+  },
+  locationText: {
+    fontSize: 12,
+    color: Colors.textMuted || "#888888",
+  },
+  tagsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 6,
+    gap: 4,
+  },
+  tag: {
+    backgroundColor: Colors.selectedBg || "#E8E0D5",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  tagText: {
+    fontSize: 11,
+    color: Colors.textMuted || "#888888",
+    fontWeight: "500",
+  },
+  cardFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderTopWidth: 1,
+    borderTopColor: Colors.border || "#EEEEEE",
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  lastActiveText: {
+    fontSize: 12,
+    color: Colors.textMuted || "#888888",
+  },
+  btnGroup: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  shortlistBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    borderWidth: 1,
+    borderColor: Colors.border || "#CCCCCC",
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  shortlistBtnSaved: {
+    backgroundColor: Colors.chipActiveBg || "#FFE8E8",
+    borderColor: "transparent",
+  },
+  shortlistBtnText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.textDark || "#2D2D2D",
+  },
+  shortlistBtnTextSaved: {
+    color: Colors.chipActiveText || "#D32F2F",
+  },
+
+  // ── Grid card (same tokens, larger hero image) ──
+  gridCard: {
+    backgroundColor: Colors.cardBackground || "#FFFFFF",
+    borderRadius: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+    overflow: "hidden",
+  },
+  gridImageWrapper: {
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  cardFooterTop: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 6,
+  },
+  lockOverlayLarge: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  lockOverlayText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 20,
+  },
+
+  // ── Loading / empty states ──
+  footer: {
+    paddingVertical: 20,
+    alignItems: "center",
+  },
+  footerText: {
+    color: Colors.textMuted || "#666",
+    marginTop: 6,
+    fontSize: 13,
   },
   suggestedWrapper: {
     width: '100%',
@@ -589,7 +812,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    color: '#666',
+    color: Colors.textMuted || '#666',
     fontSize: 14,
   },
   noResultsContainer: {
@@ -598,131 +821,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 20,
   },
-  noResultsText: {
-    color: '#666',
-    fontSize: 16,
-  },
-  gridItemContainer: {
-    width: '100%', // Two columns with proper spacing
-    marginVertical: 8,
-  },
-  gridCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    overflow: 'hidden',
-  },
-  gridImage: {
-    width: '100%',
-    height: 350,
-    resizeMode: 'cover',
-  },
-  gridSaveIcon: {
-    position: 'absolute',
-    right: 8,
-    top: 8,
-    borderRadius: 15,
-    padding: 4,
-  },
-  gridContent: {
-    padding: 12,
-    alignItems: 'flex-start', // Align content to the left
-  },
-  gridProfileAge: {
-    fontSize: 14,
-    color: '#4F515D',
-    marginTop: 4,
-    textAlign: 'left',
-  },
-  imageContainer: {
-    position: 'relative',
-    overflow: 'hidden',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-  },
-  lockOverlayLarge: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent dark background
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  lockOverlayText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginTop: 12,
-    lineHeight: 20,
-  },
-  lockOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Dark overlay like image
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  lockText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginTop: 10,
-  },
-  listImageWrapper: {
-    position: 'relative',
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  listLockOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  nameContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-  },
-
-  gridNameContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-  },
-
-  profileName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#FF6666",
-    flexShrink: 1,
-  },
-
-  profileId: {
-    fontSize: 14,
-    color: "#85878C",
-    fontWeight: "700",
-    marginLeft: 0,
-  },
-
-  gridProfileName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#FF6666",
-    flexShrink: 1,
-  },
-
-  gridProfileId: {
-    fontSize: 13,
-    color: "#85878C",
-    fontWeight: "700",
-    marginLeft: 0,
+  gridRow: {
+    justifyContent: 'space-between',
   },
 });

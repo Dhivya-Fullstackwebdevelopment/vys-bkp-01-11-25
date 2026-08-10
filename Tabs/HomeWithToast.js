@@ -1,947 +1,3 @@
-// import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-// import {
-//   StyleSheet,
-//   Text,
-//   View,
-//   TextInput,
-//   ImageBackground,
-//   Image,
-//   TouchableOpacity,
-//   FlatList,
-//   SafeAreaView,
-//   Dimensions,
-//   ActivityIndicator,
-//   Modal,
-//   Switch,
-//   ScrollView,
-// } from "react-native";
-
-// import { SafeAreaProvider } from 'react-native-safe-area-context';
-// import { LinearGradient } from "expo-linear-gradient";
-// import { MaterialIcons } from "@expo/vector-icons";
-// import { useNavigation } from "@react-navigation/native";
-// import Toast from "react-native-toast-message";
-// import { ProfileCard } from "../Components/HomeTab/MatchingProfiles/ProfileCard";
-// import { SuggestedProfiles } from "../Components/HomeTab/SuggestedProfiles";
-// import { VysyamalaAd } from "../Components/HomeTab/VysyamalaAd";
-// import {
-//   fetchProfileInterests,
-//   logProfileVisit,
-//   createOrRetrieveChat,
-//   Search_By_profileId_matchingProfile,
-//   fetchProfiles,
-//   fetchVysassistRequests
-// } from "../CommonApiCall/CommonApiCall";
-// import { FeaturedProfiles } from "../Components/HomeTab/FeaturedProfiles";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-// import ProfileNotFound from "../Components/ProfileNotFound/ProfileNotFound";
-// import OfferHeaderBg from "../assets/img/OfferHeader.png";
-// import config from "../API/Apiurl";
-
-// const { width, height } = Dimensions.get("window");
-// const DEBOUNCE_DELAY = 300;
-// const MIN_SEARCH_LENGTH = 1;
-
-// export const HomeWithToast = () => {
-//   const [activeSlide, setActiveSlide] = useState(0);
-//   const [profiles, setProfiles] = useState([]);
-//   const [searchResults, setSearchResults] = useState([]);
-//   const [searchProfileId, setSearchProfileId] = useState("");
-//   const [totalCount, setTotalCount] = useState(0);
-//   const [isSearching, setIsSearching] = useState(false);
-//   const [modalVisible, setModalVisible] = useState(false);
-//   const [isInitialLoading, setIsInitialLoading] = useState(true);
-//   const [isInterestsLoading, setIsInterestsLoading] = useState(false);
-//   const [isProfilesLoading, setIsProfilesLoading] = useState(false);
-//   const [vysassistData, setVysassistData] = useState([]);
-//   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-
-//   // State to control visibility of the top red banner based on scroll
-//   const [showBanner, setShowBanner] = useState(true);
-
-//   const flatListRef = useRef(null);
-//   // Toggle switch - false = "1" (default), true = "2" (sort by date)
-//   const [isEnabled, setIsEnabled] = useState(false);
-//   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
-//   const navigation = useNavigation();
-//   const getOrderBy = () => isEnabled ? "2" : "1";
-
-//   const CARD_WIDTH = width - 80;
-
-//   const handleScrollVertical = (event) => {
-//     const offsetY = event.nativeEvent.contentOffset.y;
-//     // Hide top red banner when scrolled down beyond 50px
-//     if (offsetY > 50) {
-//       if (showBanner) setShowBanner(false);
-//     } else {
-//       if (!showBanner) setShowBanner(true);
-//     }
-//   };
-
-//   const handleSlideNext = () => {
-//     if (currentSlideIndex < combinedData.length - 1) {
-//       const nextIndex = currentSlideIndex + 1;
-//       flatListRef.current?.scrollToOffset({
-//         offset: nextIndex * (CARD_WIDTH + 16),
-//         animated: true
-//       });
-//       setCurrentSlideIndex(nextIndex);
-//     }
-//   };
-
-//   const handleSlidePrev = () => {
-//     if (currentSlideIndex > 0) {
-//       const prevIndex = currentSlideIndex - 1;
-//       flatListRef.current?.scrollToOffset({
-//         offset: prevIndex * (CARD_WIDTH + 16),
-//         animated: true
-//       });
-//       setCurrentSlideIndex(prevIndex);
-//     }
-//   };
-
-//   const handleScrollEnd = (event) => {
-//     const contentOffsetX = event.nativeEvent.contentOffset.x;
-//     const index = Math.round(contentOffsetX / CARD_WIDTH);
-//     setCurrentSlideIndex(index);
-//   };
-
-//   const fetchAllData = async (orderBy = "1") => {
-//     setIsInitialLoading(true);
-//     setIsInterestsLoading(true);
-//     setIsProfilesLoading(true);
-
-//     try {
-//       const [profileInterests, vysassistRes, response] = await Promise.all([
-//         fetchProfileInterests(),
-//         fetchVysassistRequests(),
-//         fetchProfiles(20, 1, orderBy),
-//       ]);
-
-//       setProfiles(profileInterests || []);
-//       setVysassistData(vysassistRes || []);
-//       setTotalCount(response?.total_count || 0);
-//     } catch (error) {
-//       console.error("Error fetching data:", error);
-//       Toast.show({
-//         type: "error",
-//         text1: "Error",
-//         text2: error.message || "Failed to fetch data.",
-//         position: "top",
-//       });
-//     } finally {
-//       setIsInterestsLoading(false);
-//       setIsProfilesLoading(false);
-//       setIsInitialLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchAllData(getOrderBy());
-//   }, []);
-
-//   useEffect(() => {
-//     const unsubscribe = navigation.addListener("focus", () => {
-//       if (searchProfileId.length === 0) {
-//         fetchAllData(getOrderBy());
-//       }
-//     });
-//     return unsubscribe;
-//   }, [navigation, fetchAllData, searchProfileId]);
-
-//   useEffect(() => {
-//     setModalVisible(true);
-//     const timer = setTimeout(() => {
-//       setModalVisible(false);
-//     }, 3000);
-//     return () => clearTimeout(timer);
-//   }, []);
-
-//   // Handle toggle switch change
-//   const toggleSwitch = async () => {
-//     const newState = !isEnabled;
-//     setIsEnabled(newState);
-//     const newOrderBy = newState ? "2" : "1";
-
-//     if (searchProfileId.length > 0) {
-//       await handleSearchPress(searchProfileId, newOrderBy);
-//     } else {
-//       await fetchAllData(newOrderBy);
-//     }
-//   };
-
-//   const debounce = (func, delay) => {
-//     let timer;
-//     return (...args) => {
-//       if (timer) clearTimeout(timer);
-//       timer = setTimeout(() => func(...args), delay);
-//     };
-//   };
-
-//   const handleSearchPress = async (profileId, orderBy = null) => {
-//     if (!profileId || profileId.length < MIN_SEARCH_LENGTH) {
-//       setSearchResults([]);
-//       setIsSearching(false);
-//       return;
-//     }
-
-//     const orderByValue = orderBy || getOrderBy();
-
-//     try {
-//       setIsSearching(true);
-//       const response = await Search_By_profileId_matchingProfile(profileId, orderByValue);
-//       if (response.Status === 1 && response.profiles) {
-//         setSearchResults(response.profiles);
-//         setTotalCount(response.total_count || response.profiles.length);
-//       } else {
-//         setSearchResults([]);
-//         setTotalCount(0);
-//       }
-//     } catch (error) {
-//       console.error("Search error:", error.message);
-//       setSearchResults([]);
-//       setTotalCount(0);
-//       Toast.show({
-//         type: "error",
-//         text1: "Search Error",
-//         text2: "Failed to fetch search results",
-//         position: "top",
-//       });
-//     } finally {
-//       setIsSearching(false);
-//     }
-//   };
-
-//   const debouncedSearch = useCallback(
-//     debounce((text, orderBy) => {
-//       handleSearchPress(text, orderBy);
-//     }, DEBOUNCE_DELAY),
-//     []
-//   );
-
-//   const handleSearchInput = (text) => {
-//     setSearchProfileId(text);
-//     if (text.length < MIN_SEARCH_LENGTH) {
-//       setSearchResults([]);
-//       setIsSearching(false);
-//       return;
-//     }
-//     debouncedSearch(text, getOrderBy());
-//   };
-
-//   const handleViewProfile = async (viewedProfileId) => {
-//     const success = await logProfileVisit(viewedProfileId);
-//     if (success) {
-//       navigation.navigate("ProfileDetails", {
-//         viewedProfileId,
-//         interestParam: 1,
-//       });
-//     } else {
-//       Toast.show({
-//         type: "error",
-//         text1: "Error",
-//         text2: "Failed to log profile visit.",
-//         position: "top",
-//       });
-//     }
-//   };
-
-//   const handlePress = async (profile_to) => {
-//     try {
-//       const result = await createOrRetrieveChat(profile_to);
-//       await AsyncStorage.setItem(
-//         "chat_created",
-//         JSON.stringify(result.created)
-//       );
-//       await AsyncStorage.setItem("chat_room_id_name", result.room_id_name);
-//       await AsyncStorage.setItem("chat_statue", JSON.stringify(result.statue));
-//       navigation.navigate("Message");
-//     } catch (error) {
-//       console.error("API call failed:", error);
-//     }
-//   };
-
-//   const renderInterestItem = ({ item, index }) => (
-//     <View style={styles.cardContainer} key={index}>
-//       <View style={styles.cardStyle}>
-//         <View style={styles.ProfileContentFlex}>
-//           <Image
-//             style={styles.ProfileImgStyle}
-//             source={{
-//               uri: item.int_Profile_img
-//                 ? item.int_Profile_img
-//                 : `${config.apiUrl}/media/default_photo_protect.png`,
-//             }}
-//           />
-//           <View style={styles.profileContent}>
-//             <Text style={styles.nameStyle}>
-//               {item.int_profile_name
-//                 ? (item.int_profile_name.length > 10
-//                   ? item.int_profile_name.substring(0, 10) + "..."
-//                   : item.int_profile_name)
-//                 : "N/A"
-//               }{` (${item.int_profileid})`}
-//             </Text>
-//             <Text style={styles.ageStyle}>{item.int_profile_age} yrs</Text>
-//           </View>
-//         </View>
-//         <Text style={styles.interestedText}>
-//           I am interested in your profile. If you are interested in my profile,
-//           please contact me.
-//         </Text>
-//         <View style={styles.buttonContainer}>
-//           <TouchableOpacity
-//             style={styles.btn}
-//             onPress={() => handleViewProfile(item.int_profileid)}
-//           >
-//             <LinearGradient
-//               colors={["#BD1225", "#FF4050"]}
-//               start={{ x: 0, y: 0 }}
-//               end={{ x: 1, y: 1 }}
-//               style={styles.linearGradient}
-//             >
-//               <Text style={styles.login}>View Profile</Text>
-//             </LinearGradient>
-//           </TouchableOpacity>
-//           <TouchableOpacity onPress={() => handlePress(item.int_profileid)}>
-//             <View style={styles.loginContainer}>
-//               <Text style={styles.cancel}>Message</Text>
-//             </View>
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-//     </View>
-//   );
-
-//   const handleFilterPress = () => {
-//     navigation.navigate("MatchingProfileSearch");
-//   };
-
-//   const renderVysassistItem = ({ item, index }) => (
-//     <View style={styles.cardContainer} key={`vysassist-${index}`}>
-//       <View style={styles.cardStyle}>
-//         <View style={styles.vysassistLeft}>
-//           <Text style={styles.fromLabel}>FROM</Text>
-//           <Text style={styles.fromProfileId}>{item.profile_from}</Text>
-//           <View style={styles.divider} />
-//           <Text style={styles.dateText}>
-//             {new Date(item.req_datetime).toISOString().split("T")[0]}
-//           </Text>
-//         </View>
-
-//         <Text style={styles.vysassistMessage}>"{item.to_message}"</Text>
-
-//         <TouchableOpacity
-//           style={styles.btn}
-//           onPress={() => handleViewProfile(item.profile_from)}
-//         >
-//           <LinearGradient
-//             colors={["#BD1225", "#FF4050"]}
-//             start={{ x: 0, y: 0 }}
-//             end={{ x: 1, y: 1 }}
-//             style={styles.linearGradient}
-//           >
-//             <Text style={styles.login}>View Details</Text>
-//           </LinearGradient>
-//         </TouchableOpacity>
-//       </View>
-//     </View>
-//   );
-
-//   const combinedData = useMemo(() => [
-//     ...(profiles || []).map(item => ({ ...item, type: 'interest' })),
-//     ...(vysassistData || []).map(item => ({ ...item, type: 'vysassist' })),
-//   ], [profiles, vysassistData]);
-
-//   const renderSliderItem = ({ item, index }) => {
-//     if (!item) return null;
-//     if (item.type === 'vysassist') {
-//       return renderVysassistItem({ item, index });
-//     }
-//     return renderInterestItem({ item, index });
-//   };
-
-//   const currentCardType = combinedData[currentSlideIndex]?.type;
-//   const sliderHeaderText = currentCardType === 'vysassist'
-//     ? 'New VysAssist Request'
-//     : 'New Interest Received';
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       {isInitialLoading ? (
-//         <View style={styles.loadingContainer}>
-//           <ActivityIndicator size="large" color="#BD1225" />
-//           <Text style={styles.loadingText}>Loading your matches...</Text>
-//         </View>
-//       ) : (
-//         <ScrollView
-//           style={styles.mainContainer}
-//           onScroll={handleScrollVertical}
-//           scrollEventThrottle={16}
-//         >
-//           {/* Header/Interest Section - Conditionally rendered when scrolling */}
-//           {showBanner && combinedData.length > 0 ? (
-//             <View style={styles.heartinBg}>
-//               <ImageBackground
-//                 style={styles.heartinBg}
-//                 source={require("../assets/img/HeartinBg.png")}
-//               >
-//                 {/* Icon + title now sit on a single row to reduce banner height */}
-//                 <View style={styles.headerRow}>
-//                   <Image
-//                     style={styles.MessageImg}
-//                     source={require("../assets/img/MessageImg.png")}
-//                   />
-//                   <Text style={styles.newInterest}>
-//                     {sliderHeaderText}
-//                   </Text>
-//                 </View>
-
-//                 {/* Slider Row with Arrows */}
-//                 <View style={styles.sliderRow}>
-//                   <TouchableOpacity
-//                     onPress={handleSlidePrev}
-//                     disabled={currentSlideIndex === 0}
-//                     style={[
-//                       styles.arrowButton,
-//                       currentSlideIndex === 0 && styles.arrowDisabled,
-//                     ]}
-//                   >
-//                     <MaterialIcons
-//                       name="chevron-left"
-//                       size={32}
-//                       color={currentSlideIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"}
-//                     />
-//                   </TouchableOpacity>
-
-//                   <FlatList
-//                     ref={flatListRef}
-//                     horizontal
-//                     snapToInterval={CARD_WIDTH + 16}
-//                     snapToAlignment="center"
-//                     decelerationRate="fast"
-//                     data={combinedData}
-//                     renderItem={renderSliderItem}
-//                     keyExtractor={(item, index) =>
-//                       item.type === 'vysassist'
-//                         ? `vysassist-${item.id}`
-//                         : `interest-${index}`
-//                     }
-//                     contentContainerStyle={styles.interestList}
-//                     showsHorizontalScrollIndicator={false}
-//                     onMomentumScrollEnd={handleScrollEnd}
-//                     scrollEventThrottle={16}
-//                     style={styles.sliderFlatList}
-//                     getItemLayout={(data, index) => ({
-//                       length: CARD_WIDTH + 16,
-//                       offset: (CARD_WIDTH + 16) * index,
-//                       index,
-//                     })}
-//                   />
-
-//                   <TouchableOpacity
-//                     onPress={handleSlideNext}
-//                     disabled={currentSlideIndex === combinedData.length - 1}
-//                     style={[
-//                       styles.arrowButton,
-//                       currentSlideIndex === combinedData.length - 1 && styles.arrowDisabled,
-//                     ]}
-//                   >
-//                     <MaterialIcons
-//                       name="chevron-right"
-//                       size={32}
-//                       color={
-//                         currentSlideIndex === combinedData.length - 1
-//                           ? "rgba(255,255,255,0.3)"
-//                           : "#fff"
-//                       }
-//                     />
-//                   </TouchableOpacity>
-//                 </View>
-
-//                 {/* Dot Indicators */}
-//                 <View style={styles.dotsContainer}>
-//                   {combinedData.map((_, index) => (
-//                     <TouchableOpacity
-//                       key={index}
-//                       onPress={() => {
-//                         flatListRef.current?.scrollToOffset({
-//                           offset: index * (CARD_WIDTH + 16),
-//                           animated: true
-//                         });
-//                         setCurrentSlideIndex(index);
-//                       }}
-//                       style={[
-//                         styles.dot,
-//                         currentSlideIndex === index && styles.activeDot,
-//                       ]}
-//                     />
-//                   ))}
-//                 </View>
-//               </ImageBackground>
-//             </View>
-//           ) : null}
-
-//           {/* Matching Profiles Section */}
-//           <View style={styles.matchingSection}>
-//             <View style={styles.matchingContainer}>
-//               <Text style={styles.matching}>
-//                 {"Matching Profiles"}
-//                 <Text style={styles.matchNumber}>
-//                   ({searchProfileId.length > 0 ? searchResults.length : totalCount})
-//                 </Text>
-//               </Text>
-
-//               <Text style={{
-//                 fontSize: 15,
-//                 fontWeight: 'bold',
-//                 alignSelf: 'center',
-//                 color: '#b40101ff',
-//                 marginHorizontal: 8
-//               }}>
-//                 Sort by Date:
-//               </Text>
-//               <Switch
-//                 style={styles.toggleSwitchcontainer}
-//                 trackColor={{ false: '#767577', true: '#7f0909ff' }}
-//                 thumbColor={isEnabled ? '#e80909ff' : '#f4f3f4'}
-//                 ios_backgroundColor="#3e3e3e"
-//                 onValueChange={toggleSwitch}
-//                 value={isEnabled}
-//               />
-//             </View>
-
-//             <View style={styles.formContainer}>
-//               <View style={styles.inputContainer}>
-//                 <MaterialIcons
-//                   name="search"
-//                   size={18}
-//                   color="#85878C"
-//                   style={styles.searchIcon}
-//                 />
-//                 <TextInput
-//                   style={styles.input}
-//                   placeholder="Search profile ID"
-//                   value={searchProfileId}
-//                   onChangeText={handleSearchInput}
-//                   placeholderTextColor="#85878C"
-//                   underlineColorAndroid="transparent"
-//                   autoCorrect={false}
-//                   autoCapitalize="none"
-//                 />
-//               </View>
-//               <TouchableOpacity
-//                 style={styles.filterIcon}
-//                 onPress={handleFilterPress}
-//               >
-//                 <MaterialIcons name="filter-list" size={18} color="#FF6666" />
-//               </TouchableOpacity>
-//             </View>
-//             <View style={styles.viewToggleContainer}>
-//               <TouchableOpacity
-//                 onPress={() => setViewMode('list')}
-//                 style={[
-//                   styles.viewToggleButton,
-//                   viewMode === 'list' && styles.activeViewButton
-//                 ]}
-//               >
-//                 <MaterialIcons
-//                   name="view-list"
-//                   size={24}
-//                   color={viewMode === 'list' ? '#BD1225' : '#85878C'}
-//                 />
-//               </TouchableOpacity>
-
-//               <TouchableOpacity
-//                 onPress={() => setViewMode('grid')}
-//                 style={[
-//                   styles.viewToggleButton,
-//                   viewMode === 'grid' && styles.activeViewButton
-//                 ]}
-//               >
-//                 <MaterialIcons
-//                   name="view-module"
-//                   size={24}
-//                   color={viewMode === 'grid' ? '#BD1225' : '#85878C'}
-//                 />
-//               </TouchableOpacity>
-//             </View>
-//             {/* Profile Cards Section */}
-//             <View style={styles.profileCardContainer}>
-//               <ProfileCard
-//                 searchProfiles={searchProfileId.length > 0 ? searchResults : null}
-//                 isLoadingNew={isSearching || isProfilesLoading}
-//                 orderBy={getOrderBy()}
-//                 viewMode={viewMode}
-//               />
-//             </View>
-//           </View>
-//         </ScrollView>
-//       )}
-
-//       <Modal
-//         animationType="slide"
-//         transparent={true}
-//         visible={modalVisible}
-//         onRequestClose={() => setModalVisible(false)}
-//       >
-//       </Modal>
-//     </SafeAreaView>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#F4F4F4",
-//   },
-//   matchingContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'space-between',
-//     marginHorizontal: 15,
-//   },
-//   mainContainer: {
-//     flex: 1,
-//   },
-//   loadingContainer: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   imageBackground: {
-//     width: width,
-//     height: 40,
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   imageStyle: {
-//     resizeMode: "cover",
-//   },
-//   gradientOverlay: {
-//     ...StyleSheet.absoluteFillObject,
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   text: {
-//     color: "#FFFFFF",
-//     fontWeight: "bold",
-//     fontSize: 16,
-//   },
-//   link: {
-//     textDecorationLine: "underline",
-//   },
-//   // Reduced vertical padding to shrink overall banner height (was paddingVertical: -20, which is invalid)
-//   heartinBg: {
-//     width: "100%",
-//     backgroundColor: "#ED1E24",
-//     paddingVertical: 4,
-//   },
-//   // New: row wrapper so the mail icon and title text sit on the same line
-//   headerRow: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     paddingHorizontal: 20,
-//     marginBottom: 2,
-//   },
-//   MessageImg: {
-//     width: 22,
-//     height: 22,
-//     resizeMode: "contain",
-//     marginRight: 8,
-//     marginHorizontal: 0,
-//     marginBottom: 0,
-//   },
-//   newInterest: {
-//     color: "#fff",
-//     fontSize: 16,
-//     fontWeight: "700",
-//     paddingHorizontal: 0,
-//     marginBottom: 0,
-//   },
-//   cardContainer: {
-//     justify: 'center'
-//   },
-//   cardStyle: {
-//     backgroundColor: "#FFF",
-//     width: width - 80,
-//     padding: 10,
-//     borderRadius: 12,
-//     marginHorizontal: 8,
-//   },
-//   ProfileContentFlex: {
-//     flexDirection: "row",
-//     justifyContent: "flex-start",
-//     alignItems: "center",
-//     marginBottom: 8,
-//   },
-//   ProfileImgStyle: {
-//     marginRight: 10,
-//     width: 70,
-//     height: 70,
-//     borderRadius: 0,
-//   },
-//   nameStyle: {
-//     color: "#4F515D",
-//     fontSize: 18,
-//     fontWeight: "600",
-//   },
-//   ageStyle: {
-//     color: "#4F515D",
-//     fontSize: 12,
-//   },
-//   interestedText: {
-//     color: "#282C3F",
-//     fontSize: 12,
-//     marginBottom: 8,
-//   },
-//   buttonContainer: {
-//     flexDirection: "row",
-//     justifyContent: "flex-start",
-//     alignItems: "center",
-//     alignSelf: "center",
-//     width: "100%",
-//   },
-//   btn: {
-//     alignSelf: "center",
-//     borderRadius: 6,
-//   },
-//   loginContainer: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   cancel: {
-//     color: "#ED1E24",
-//     fontSize: 14,
-//     fontWeight: "600",
-//     fontFamily: "inter",
-//     borderWidth: 2,
-//     borderColor: "#ED1E24",
-//     borderRadius: 5,
-//     paddingHorizontal: 15,
-//     paddingVertical: 8.5,
-//     letterSpacing: 1,
-//   },
-//   login: {
-//     textAlign: "center",
-//     color: "white",
-//     fontWeight: "600",
-//     fontSize: 14,
-//     letterSpacing: 1,
-//     fontFamily: "inter",
-//   },
-//   linearGradient: {
-//     borderRadius: 5,
-//     justifyContent: "center",
-//     padding: 10,
-//     marginRight: 15,
-//   },
-//   paginationContainer: {
-//     flexDirection: "row",
-//     justifyContent: "center",
-//     alignItems: "center",
-//     marginVertical: 10,
-//     backgroundColor: "transparent",
-//   },
-//   matchingSection: {
-//     flex: 1,
-//     backgroundColor: '#F4F4F4',
-//     paddingTop: 20,
-//     paddingHorizontal: 15,
-//   },
-//   matching: {
-//     fontSize: 16,
-//     fontWeight: "700",
-//     color: "#282C3F",
-//   },
-//   matchNumber: {
-//     color: "#FF6666",
-//   },
-//   formContainer: {
-//     width: "100%",
-//     paddingHorizontal: 10,
-//     flexDirection: "row",
-//     alignItems: "center",
-//     marginTop: 10,
-//     marginBottom: 10,
-//   },
-//   inputContainer: {
-//     flex: 1,
-//     flexDirection: "row",
-//     alignItems: "center",
-//     borderWidth: 1,
-//     borderRadius: 4,
-//     borderColor: "#D4D5D9",
-//     backgroundColor: "#FFFFFF",
-//   },
-//   input: {
-//     flex: 1,
-//     color: "#535665",
-//     padding: 10,
-//     fontFamily: "inter",
-//     backgroundColor: "#FFFFFF",
-//   },
-//   searchIcon: {
-//     paddingLeft: 10,
-//   },
-//   filterIcon: {
-//     position: "absolute",
-//     right: 20,
-//     bottom: 15,
-//   },
-//   profileCardContainer: {
-//     flex: 1,
-//   },
-//   modalBackground: {
-//     flex: 1,
-//     justifyContent: "flex-end",
-//     alignItems: "center",
-//     borderRadius: 40,
-//   },
-//   modalGradient: {
-//     borderRadius: 10,
-//   },
-//   modalContainer: {
-//     width: "95%",
-//     padding: 40,
-//   },
-//   modalText: {
-//     fontSize: 16,
-//     fontWeight: "400",
-//     marginBottom: 20,
-//     color: "#FFFFFF",
-//     marginLeft: -20,
-//   },
-//   modalButton: {
-//     width: "50%",
-//     backgroundColor: "#FFFFFF",
-//     borderRadius: 10,
-//     marginLeft: -20,
-//   },
-//   modalButtonText: {
-//     color: "#ED1E24",
-//     fontSize: 16,
-//     fontWeight: "bold",
-//     textAlign: "center",
-//     marginLeft: 15,
-//     marginTop: 10,
-//     marginRight: 15,
-//     marginBottom: 10,
-//   },
-//   loadingSection: {
-//     height: 243,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     backgroundColor: "#ED1E24",
-//   },
-//   loadingText: {
-//     marginTop: 10,
-//     fontSize: 16,
-//     color: "#666",
-//   },
-//   // Reduced vertical padding to shrink slider area height (was 20)
-//   interestList: {
-//     paddingVertical: 6,
-//   },
-//   viewToggleContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#F4F4F4',
-//     borderRadius: 8,
-//     padding: 2,
-//     marginHorizontal: 10,
-//   },
-//   viewToggleButton: {
-//     padding: 8,
-//     borderRadius: 6,
-//   },
-//   activeViewButton: {
-//     backgroundColor: '#FFF',
-//   },
-//   sortByText: {
-//     fontSize: 15,
-//     fontWeight: 'bold',
-//     alignSelf: 'center',
-//     color: '#b40101ff',
-//     marginHorizontal: 8,
-//   },
-//   vysassistLeft: {
-//     backgroundColor: '#E0E0E0',
-//     borderRadius: 8,
-//     padding: 8,
-//     marginBottom: 6,
-//   },
-//   fromLabel: {
-//     fontSize: 10,
-//     letterSpacing: 2,
-//     color: '#888',
-//     fontWeight: 'bold',
-//     textTransform: 'uppercase',
-//     marginBottom: 2,
-//   },
-//   fromProfileId: {
-//     fontSize: 20,
-//     fontWeight: 'bold',
-//     color: '#222',
-//   },
-//   divider: {
-//     height: 1,
-//     backgroundColor: '#ccc',
-//     marginVertical: 8,
-//   },
-//   dateText: {
-//     fontSize: 12,
-//     color: '#666',
-//   },
-//   vysassistMessage: {
-//     fontSize: 13,
-//     fontStyle: 'italic',
-//     color: '#333',
-//     marginBottom: 12,
-//     lineHeight: 20,
-//   },
-//   sliderRow: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     paddingHorizontal: 4,
-//   },
-//   arrowButton: {
-//     width: 36,
-//     height: 36,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   arrowDisabled: {
-//     opacity: 0.3,
-//   },
-//   sliderFlatList: {
-//     flex: 1,
-//   },
-//   // Reduced vertical padding to shrink dots row height (was 10)
-//   dotsContainer: {
-//     flexDirection: 'row',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     paddingVertical: 3,
-//   },
-//   dot: {
-//     width: 8,
-//     height: 8,
-//     borderRadius: 4,
-//     backgroundColor: 'rgba(255,255,255,0.4)',
-//     marginHorizontal: 4,
-//   },
-//   activeDot: {
-//     backgroundColor: '#fff',
-//     width: 20,
-//     borderRadius: 4,
-//   },
-// });
-
-// export default HomeWithToast;
-
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   StyleSheet,
@@ -959,67 +15,109 @@ import {
   Switch,
 } from "react-native";
 
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { ProfileCard } from "../Components/HomeTab/MatchingProfiles/ProfileCard";
-import { SuggestedProfiles } from "../Components/HomeTab/SuggestedProfiles";
-import { VysyamalaAd } from "../Components/HomeTab/VysyamalaAd";
 import {
   fetchProfileInterests,
   logProfileVisit,
   createOrRetrieveChat,
   Search_By_profileId_matchingProfile,
   fetchProfiles,
-  fetchVysassistRequests
+  fetchVysassistRequests,
 } from "../CommonApiCall/CommonApiCall";
-import { FeaturedProfiles } from "../Components/HomeTab/FeaturedProfiles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import ProfileNotFound from "../Components/ProfileNotFound/ProfileNotFound";
-import OfferHeaderBg from "../assets/img/OfferHeader.png";
 import config from "../API/Apiurl";
+import { Colors, rs } from "../Reusable/Theme"; // ← theme tokens
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 const DEBOUNCE_DELAY = 300;
 const MIN_SEARCH_LENGTH = 1;
 
 export const HomeWithToast = () => {
-  const [activeSlide, setActiveSlide] = useState(0);
+  // ── Slider / interest state ──────────────────────────────────────────────
   const [profiles, setProfiles] = useState([]);
+  const [vysassistData, setVysassistData] = useState([]);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const flatListRef = useRef(null);
+  const CARD_WIDTH = width - 80;
+
+  // ── User / member info ───────────────────────────────────────────────────
+  const [userName, setUserName] = useState("");
+  const [userProfileId, setUserProfileId] = useState("");
+  const [memberLabel, setMemberLabel] = useState("");
+  const [memberSub, setMemberSub] = useState("");
+
+  // ── Search / sort / view ─────────────────────────────────────────────────
   const [searchResults, setSearchResults] = useState([]);
   const [searchProfileId, setSearchProfileId] = useState("");
   const [totalCount, setTotalCount] = useState(0);
   const [isSearching, setIsSearching] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [isInterestsLoading, setIsInterestsLoading] = useState(false);
   const [isProfilesLoading, setIsProfilesLoading] = useState(false);
-  const [vysassistData, setVysassistData] = useState([]);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isEnabled, setIsEnabled] = useState(false); // false = sort by match, true = sort by date
+  const [viewMode, setViewMode] = useState("list");
 
-  const flatListRef = useRef(null);
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [viewMode, setViewMode] = useState('list');
   const navigation = useNavigation();
-  const getOrderBy = () => isEnabled ? "2" : "1";
+  const getOrderBy = () => (isEnabled ? "2" : "1");
 
-  const CARD_WIDTH = width - 80;
+  // ── Load user info from AsyncStorage ────────────────────────────────────
+  useEffect(() => {
+    const loadUserInfo = async () => {
+      try {
+        const name = await AsyncStorage.getItem("loginuser_name");
+        const pid = await AsyncStorage.getItem("loginuser_profileId");
+        const planId = parseInt(
+          (await AsyncStorage.getItem("current_plan_id")) || "0"
+        );
+        const validTill = await AsyncStorage.getItem("valid_till_date");
+        const contactViews = await AsyncStorage.getItem("contact_views_left");
 
-  // ----- Data fetching -----
+        if (name) setUserName(name);
+        if (pid) setUserProfileId(pid);
+
+        // Derive member label from plan
+        const premiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
+        if (premiumIds.includes(planId)) {
+          if (planId === 16) {
+            setMemberLabel("PLATINUM MEMBER");
+          } else if ([13, 14, 15, 17].includes(planId)) {
+            setMemberLabel("GOLD MEMBER");
+          } else {
+            setMemberLabel("PREMIUM MEMBER");
+          }
+          const views = contactViews ? `${contactViews} contact views left` : "";
+          const till = validTill
+            ? `till ${new Date(validTill).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}`
+            : "";
+          setMemberSub([views, till].filter(Boolean).join(" · "));
+        } else {
+          setMemberLabel("FREE MEMBER");
+          setMemberSub("Upgrade to connect with more profiles");
+        }
+      } catch (e) {
+        console.error("Error loading user info:", e);
+      }
+    };
+    loadUserInfo();
+  }, []);
+
+  // ── Data fetching ────────────────────────────────────────────────────────
   const fetchAllData = async (orderBy = "1") => {
     setIsInitialLoading(true);
-    setIsInterestsLoading(true);
     setIsProfilesLoading(true);
-
     try {
       const [profileInterests, vysassistRes, response] = await Promise.all([
         fetchProfileInterests(),
         fetchVysassistRequests(),
         fetchProfiles(20, 1, orderBy),
       ]);
-
       setProfiles(profileInterests || []);
       setVysassistData(vysassistRes || []);
       setTotalCount(response?.total_count || 0);
@@ -1032,7 +130,6 @@ export const HomeWithToast = () => {
         position: "top",
       });
     } finally {
-      setIsInterestsLoading(false);
       setIsProfilesLoading(false);
       setIsInitialLoading(false);
     }
@@ -1044,27 +141,16 @@ export const HomeWithToast = () => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
-      if (searchProfileId.length === 0) {
-        fetchAllData(getOrderBy());
-      }
+      if (searchProfileId.length === 0) fetchAllData(getOrderBy());
     });
     return unsubscribe;
-  }, [navigation, fetchAllData, searchProfileId]);
+  }, [navigation, searchProfileId]);
 
-  useEffect(() => {
-    setModalVisible(true);
-    const timer = setTimeout(() => {
-      setModalVisible(false);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // ----- Toggle Sort -----
+  // ── Sort toggle ──────────────────────────────────────────────────────────
   const toggleSwitch = async () => {
     const newState = !isEnabled;
     setIsEnabled(newState);
     const newOrderBy = newState ? "2" : "1";
-
     if (searchProfileId.length > 0) {
       await handleSearchPress(searchProfileId, newOrderBy);
     } else {
@@ -1072,7 +158,7 @@ export const HomeWithToast = () => {
     }
   };
 
-  // ----- Search -----
+  // ── Search ───────────────────────────────────────────────────────────────
   const debounce = (func, delay) => {
     let timer;
     return (...args) => {
@@ -1081,18 +167,19 @@ export const HomeWithToast = () => {
     };
   };
 
-  const handleSearchPress = async (profileId, orderBy = null) => {
-    if (!profileId || profileId.length < MIN_SEARCH_LENGTH) {
+  const handleSearchPress = async (pid, orderBy = null) => {
+    if (!pid || pid.length < MIN_SEARCH_LENGTH) {
       setSearchResults([]);
       setIsSearching(false);
       return;
     }
-
     const orderByValue = orderBy || getOrderBy();
-
     try {
       setIsSearching(true);
-      const response = await Search_By_profileId_matchingProfile(profileId, orderByValue);
+      const response = await Search_By_profileId_matchingProfile(
+        pid,
+        orderByValue
+      );
       if (response.Status === 1 && response.profiles) {
         setSearchResults(response.profiles);
         setTotalCount(response.total_count || response.profiles.length);
@@ -1101,7 +188,6 @@ export const HomeWithToast = () => {
         setTotalCount(0);
       }
     } catch (error) {
-      console.error("Search error:", error.message);
       setSearchResults([]);
       setTotalCount(0);
       Toast.show({
@@ -1116,9 +202,7 @@ export const HomeWithToast = () => {
   };
 
   const debouncedSearch = useCallback(
-    debounce((text, orderBy) => {
-      handleSearchPress(text, orderBy);
-    }, DEBOUNCE_DELAY),
+    debounce((text, orderBy) => handleSearchPress(text, orderBy), DEBOUNCE_DELAY),
     []
   );
 
@@ -1132,7 +216,7 @@ export const HomeWithToast = () => {
     debouncedSearch(text, getOrderBy());
   };
 
-  // ----- Navigation helpers -----
+  // ── Navigation helpers ───────────────────────────────────────────────────
   const handleViewProfile = async (viewedProfileId) => {
     const success = await logProfileVisit(viewedProfileId);
     if (success) {
@@ -1153,10 +237,7 @@ export const HomeWithToast = () => {
   const handlePress = async (profile_to) => {
     try {
       const result = await createOrRetrieveChat(profile_to);
-      await AsyncStorage.setItem(
-        "chat_created",
-        JSON.stringify(result.created)
-      );
+      await AsyncStorage.setItem("chat_created", JSON.stringify(result.created));
       await AsyncStorage.setItem("chat_room_id_name", result.room_id_name);
       await AsyncStorage.setItem("chat_statue", JSON.stringify(result.statue));
       navigation.navigate("Message");
@@ -1165,7 +246,45 @@ export const HomeWithToast = () => {
     }
   };
 
-  // ----- Render functions for slider items -----
+  const handleFilterPress = () => navigation.navigate("MatchingProfileSearch");
+
+  // ── Slider helpers ───────────────────────────────────────────────────────
+  const combinedData = useMemo(
+    () => [
+      ...(profiles || []).map((item) => ({ ...item, type: "interest" })),
+      ...(vysassistData || []).map((item) => ({ ...item, type: "vysassist" })),
+    ],
+    [profiles, vysassistData]
+  );
+
+  const handleSlideNext = () => {
+    if (currentSlideIndex < combinedData.length - 1) {
+      const nextIndex = currentSlideIndex + 1;
+      flatListRef.current?.scrollToOffset({
+        offset: nextIndex * (CARD_WIDTH + 16),
+        animated: true,
+      });
+      setCurrentSlideIndex(nextIndex);
+    }
+  };
+
+  const handleSlidePrev = () => {
+    if (currentSlideIndex > 0) {
+      const prevIndex = currentSlideIndex - 1;
+      flatListRef.current?.scrollToOffset({
+        offset: prevIndex * (CARD_WIDTH + 16),
+        animated: true,
+      });
+      setCurrentSlideIndex(prevIndex);
+    }
+  };
+
+  const handleScrollEnd = (event) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    setCurrentSlideIndex(Math.round(contentOffsetX / CARD_WIDTH));
+  };
+
+  // ── Slider card renderers ────────────────────────────────────────────────
   const renderInterestItem = ({ item, index }) => (
     <View style={styles.cardContainer} key={index}>
       <View style={styles.cardStyle}>
@@ -1181,11 +300,11 @@ export const HomeWithToast = () => {
           <View style={styles.profileContent}>
             <Text style={styles.nameStyle}>
               {item.int_profile_name
-                ? (item.int_profile_name.length > 10
+                ? item.int_profile_name.length > 10
                   ? item.int_profile_name.substring(0, 10) + "..."
-                  : item.int_profile_name)
-                : "N/A"
-              }{` (${item.int_profileid})`}
+                  : item.int_profile_name
+                : "N/A"}
+              {` (${item.int_profileid})`}
             </Text>
             <Text style={styles.ageStyle}>{item.int_profile_age} yrs</Text>
           </View>
@@ -1218,12 +337,10 @@ export const HomeWithToast = () => {
     </View>
   );
 
-  // --- UPDATED: VysAssist card with horizontal layout (left: FROM info, right: message + button) ---
   const renderVysassistItem = ({ item, index }) => (
     <View style={styles.cardContainer} key={`vysassist-${index}`}>
       <View style={styles.cardStyle}>
         <View style={styles.vysassistRow}>
-          {/* Left section: FROM, profile_id, date */}
           <View style={styles.vysassistLeft}>
             <Text style={styles.fromLabel}>FROM</Text>
             <Text style={styles.fromProfileId}>{item.profile_from}</Text>
@@ -1232,8 +349,6 @@ export const HomeWithToast = () => {
               {new Date(item.req_datetime).toISOString().split("T")[0]}
             </Text>
           </View>
-
-          {/* Right section: message + button */}
           <View style={styles.vysassistRight}>
             <Text style={styles.vysassistMessage}>"{item.to_message}"</Text>
             <TouchableOpacity
@@ -1255,72 +370,123 @@ export const HomeWithToast = () => {
     </View>
   );
 
-  const handleFilterPress = () => {
-    navigation.navigate("MatchingProfileSearch");
-  };
-
-  // ----- Slider data & navigation -----
-  const combinedData = useMemo(() => [
-    ...(profiles || []).map(item => ({ ...item, type: 'interest' })),
-    ...(vysassistData || []).map(item => ({ ...item, type: 'vysassist' })),
-  ], [profiles, vysassistData]);
-
   const renderSliderItem = ({ item, index }) => {
     if (!item) return null;
-    if (item.type === 'vysassist') {
-      return renderVysassistItem({ item, index });
-    }
-    return renderInterestItem({ item, index });
+    return item.type === "vysassist"
+      ? renderVysassistItem({ item, index })
+      : renderInterestItem({ item, index });
   };
 
   const currentCardType = combinedData[currentSlideIndex]?.type;
-  const sliderHeaderText = currentCardType === 'vysassist'
-    ? 'New VysAssist Request'
-    : 'New Interest Received';
+  const sliderHeaderText =
+    currentCardType === "vysassist"
+      ? "New VysAssist Request"
+      : "New Interest Received";
 
-  const handleSlideNext = () => {
-    if (currentSlideIndex < combinedData.length - 1) {
-      const nextIndex = currentSlideIndex + 1;
-      flatListRef.current?.scrollToOffset({
-        offset: nextIndex * (CARD_WIDTH + 16),
-        animated: true
-      });
-      setCurrentSlideIndex(nextIndex);
-    }
-  };
+  // ── App header (greeting + search + member banner + quick actions) ────────
+  const renderAppHeader = () => (
+    <LinearGradient
+      colors={[Colors.primary, Colors.primaryGradientEnd || "#4A000A"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.appHeader}
+    >
+      {/* Greeting row */}
+      <View style={styles.greetingRow}>
+        <View>
+          <Text style={styles.greetingName}>
+            Vanakkam, {userName || ""}
+          </Text>
+          <Text style={styles.greetingId}>Profile ID {userProfileId}</Text>
+        </View>
+      </View>
 
-  const handleSlidePrev = () => {
-    if (currentSlideIndex > 0) {
-      const prevIndex = currentSlideIndex - 1;
-      flatListRef.current?.scrollToOffset({
-        offset: prevIndex * (CARD_WIDTH + 16),
-        animated: true
-      });
-      setCurrentSlideIndex(prevIndex);
-    }
-  };
+      {/* Search bar */}
+      <TouchableOpacity
+        style={styles.searchBar}
+        onPress={handleFilterPress}
+        activeOpacity={0.85}
+      >
+        <MaterialIcons
+          name="search"
+          size={18}
+          color="rgba(255,255,255,0.6)"
+          style={{ marginRight: 8 }}
+        />
+        <Text style={styles.searchPlaceholder}>
+          Search by name, ID, gothram or star
+        </Text>
+      </TouchableOpacity>
 
-  const handleScrollEnd = (event) => {
-    const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.round(contentOffsetX / CARD_WIDTH);
-    setCurrentSlideIndex(index);
-  };
+      {/* Member banner */}
+      {memberLabel ? (
+        <TouchableOpacity
+          style={styles.memberBanner}
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate("MembershipPlan")}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.memberTitle}>⭐ {memberLabel}</Text>
+            {memberSub ? (
+              <Text style={styles.memberSubText}>{memberSub}</Text>
+            ) : null}
+          </View>
+          <Text style={styles.upgradeArrow}>Upgrade →</Text>
+        </TouchableOpacity>
+      ) : null}
 
-  // ----- Render the banner (red section with slider) -----
+      {/* Quick action icons */}
+      <View style={styles.quickActions}>
+        {[
+          {
+            icon: "tune",
+            label: "Advanced\nSearch",
+            onPress: handleFilterPress,
+          },
+          {
+            icon: "favorite-border",
+            label: "Horoscope\nMatch",
+            onPress: () => navigation.navigate("HoroscopeMatch"),
+          },
+          {
+            icon: "workspace-premium",
+            label: "Upgrade\nPlan",
+            onPress: () => navigation.navigate("MembershipPlan"),
+          },
+          {
+            icon: "dashboard",
+            label: "My\nDashboard",
+            onPress: () => navigation.navigate("Dashboard"),
+          },
+        ].map((action, i) => (
+          <TouchableOpacity
+            key={i}
+            style={styles.actionBtn}
+            onPress={action.onPress}
+          >
+            <View style={styles.actionIconCircle}>
+              <MaterialIcons name={action.icon} size={22} color={Colors.primary} />
+            </View>
+            <Text style={styles.actionLabel}>{action.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </LinearGradient>
+  );
+
+  // ── Interest/VysAssist banner ─────────────────────────────────────────────
   const renderBanner = () => (
     <View style={styles.heartinBg}>
       <ImageBackground
         style={styles.heartinBg}
         source={require("../assets/img/HeartinBg.png")}
       >
-        <View style={styles.headerRow}>
+        <View style={styles.bannerHeaderRow}>
           <Image
             style={styles.MessageImg}
             source={require("../assets/img/MessageImg.png")}
           />
-          <Text style={styles.newInterest}>
-            {sliderHeaderText}
-          </Text>
+          <Text style={styles.newInterest}>{sliderHeaderText}</Text>
         </View>
 
         <View style={styles.sliderRow}>
@@ -1335,7 +501,9 @@ export const HomeWithToast = () => {
             <MaterialIcons
               name="chevron-left"
               size={32}
-              color={currentSlideIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"}
+              color={
+                currentSlideIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"
+              }
             />
           </TouchableOpacity>
 
@@ -1348,7 +516,7 @@ export const HomeWithToast = () => {
             data={combinedData}
             renderItem={renderSliderItem}
             keyExtractor={(item, index) =>
-              item.type === 'vysassist'
+              item.type === "vysassist"
                 ? `vysassist-${item.id}`
                 : `interest-${index}`
             }
@@ -1369,7 +537,8 @@ export const HomeWithToast = () => {
             disabled={currentSlideIndex === combinedData.length - 1}
             style={[
               styles.arrowButton,
-              currentSlideIndex === combinedData.length - 1 && styles.arrowDisabled,
+              currentSlideIndex === combinedData.length - 1 &&
+                styles.arrowDisabled,
             ]}
           >
             <MaterialIcons
@@ -1391,14 +560,11 @@ export const HomeWithToast = () => {
               onPress={() => {
                 flatListRef.current?.scrollToOffset({
                   offset: index * (CARD_WIDTH + 16),
-                  animated: true
+                  animated: true,
                 });
                 setCurrentSlideIndex(index);
               }}
-              style={[
-                styles.dot,
-                currentSlideIndex === index && styles.activeDot,
-              ]}
+              style={[styles.dot, currentSlideIndex === index && styles.activeDot]}
             />
           ))}
         </View>
@@ -1406,22 +572,21 @@ export const HomeWithToast = () => {
     </View>
   );
 
-  // ----- Render the sticky matching header (title, sort, search, view toggle) -----
+  // ── Sticky matching header ────────────────────────────────────────────────
   const renderMatchingHeader = () => (
     <View style={styles.stickyHeader}>
       <View style={styles.matchingContainer}>
         <Text style={styles.matching}>
-          {"Matching Profiles"}
+          {"Matching Profiles "}
           <Text style={styles.matchNumber}>
             ({searchProfileId.length > 0 ? searchResults.length : totalCount})
           </Text>
         </Text>
-
         <Text style={styles.sortByText}>Sort by Date:</Text>
         <Switch
           style={styles.toggleSwitchcontainer}
-          trackColor={{ false: '#767577', true: '#7f0909ff' }}
-          thumbColor={isEnabled ? '#e80909ff' : '#f4f3f4'}
+          trackColor={{ false: "#767577", true: Colors.primary }}
+          thumbColor={isEnabled ? Colors.gold : "#f4f3f4"}
           ios_backgroundColor="#3e3e3e"
           onValueChange={toggleSwitch}
           value={isEnabled}
@@ -1433,7 +598,7 @@ export const HomeWithToast = () => {
           <MaterialIcons
             name="search"
             size={18}
-            color="#85878C"
+            color={Colors.textMuted}
             style={styles.searchIcon}
           />
           <TextInput
@@ -1441,71 +606,68 @@ export const HomeWithToast = () => {
             placeholder="Search profile ID"
             value={searchProfileId}
             onChangeText={handleSearchInput}
-            placeholderTextColor="#85878C"
+            placeholderTextColor={Colors.textMuted}
             underlineColorAndroid="transparent"
             autoCorrect={false}
             autoCapitalize="none"
           />
         </View>
-        <TouchableOpacity
-          style={styles.filterIcon}
-          onPress={handleFilterPress}
-        >
-          <MaterialIcons name="filter-list" size={18} color="#FF6666" />
+        <TouchableOpacity style={styles.filterIcon} onPress={handleFilterPress}>
+          <MaterialIcons name="filter-list" size={20} color={Colors.primary} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.viewToggleContainer}>
         <TouchableOpacity
-          onPress={() => setViewMode('list')}
+          onPress={() => setViewMode("list")}
           style={[
             styles.viewToggleButton,
-            viewMode === 'list' && styles.activeViewButton
+            viewMode === "list" && styles.activeViewButton,
           ]}
         >
           <MaterialIcons
             name="view-list"
             size={24}
-            color={viewMode === 'list' ? '#BD1225' : '#85878C'}
+            color={viewMode === "list" ? Colors.primary : Colors.textMuted}
           />
         </TouchableOpacity>
-
         <TouchableOpacity
-          onPress={() => setViewMode('grid')}
+          onPress={() => setViewMode("grid")}
           style={[
             styles.viewToggleButton,
-            viewMode === 'grid' && styles.activeViewButton
+            viewMode === "grid" && styles.activeViewButton,
           ]}
         >
           <MaterialIcons
             name="view-module"
             size={24}
-            color={viewMode === 'grid' ? '#BD1225' : '#85878C'}
+            color={viewMode === "grid" ? Colors.primary : Colors.textMuted}
           />
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  // ----- Main content using FlatList with sticky header -----
+  // ── Main FlatList data ────────────────────────────────────────────────────
   const mainData = [
-    { type: 'banner', key: 'banner' },
-    { type: 'header', key: 'header' },
-    { type: 'profiles', key: 'profiles' },
+    { type: "appHeader", key: "appHeader" },
+    { type: "banner", key: "banner" },
+    { type: "matchingHeader", key: "matchingHeader" },
+    { type: "profiles", key: "profiles" },
   ];
 
   const renderMainItem = ({ item }) => {
-    if (item.type === 'banner') {
+    if (item.type === "appHeader") return renderAppHeader();
+    if (item.type === "banner")
       return combinedData.length > 0 ? renderBanner() : null;
-    }
-    if (item.type === 'header') {
-      return renderMatchingHeader();
-    }
-    if (item.type === 'profiles') {
+    if (item.type === "matchingHeader") return renderMatchingHeader();
+    if (item.type === "profiles") {
       return (
         <View style={styles.profileCardContainer}>
           <ProfileCard
-            searchProfiles={searchProfileId.length > 0 ? searchResults : null}
+            searchProfiles={
+              searchProfileId.length > 0 ? searchResults : null
+            }
             isLoadingNew={isSearching || isProfilesLoading}
             orderBy={getOrderBy()}
             viewMode={viewMode}
@@ -1516,25 +678,26 @@ export const HomeWithToast = () => {
     return null;
   };
 
-  // ----- Loading state -----
+  // ── Loading state ─────────────────────────────────────────────────────────
   if (isInitialLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#BD1225" />
+          <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={styles.loadingText}>Loading your matches...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
         data={mainData}
         renderItem={renderMainItem}
         keyExtractor={(item) => item.key}
-        stickyHeaderIndices={[1]} // the header at index 1 sticks
+        stickyHeaderIndices={[2]} // matchingHeader sticks (index 2)
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
         ListFooterComponent={<View style={{ height: 20 }} />}
@@ -1543,17 +706,18 @@ export const HomeWithToast = () => {
       <Modal
         animationType="slide"
         transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        visible={false}
+        onRequestClose={() => {}}
       />
     </SafeAreaView>
   );
 };
 
+// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F4F4",
+    backgroundColor: Colors.background,
   },
   flatListContent: {
     flexGrow: 1,
@@ -1566,15 +730,110 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: "#666",
+    color: Colors.textMuted,
   },
-  // --- Banner styles (unchanged) ---
+
+  // ── App header (gradient block) ───────────────────────────────────────────
+  appHeader: {
+    paddingHorizontal: rs(14, 16, 18),
+    paddingTop: rs(14, 16, 18),
+    paddingBottom: rs(18, 22, 26),
+  },
+  greetingRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 14,
+  },
+  greetingName: {
+    fontSize: rs(22, 25, 28),
+    fontWeight: "800",
+    color: Colors.textLight,
+    letterSpacing: -0.5,
+  },
+  greetingId: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.7)",
+    marginTop: 2,
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.25)",
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+  },
+  searchPlaceholder: {
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 14,
+  },
+  memberBanner: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: Colors.gold,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 18,
+  },
+  memberTitle: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "800",
+    marginBottom: 2,
+  },
+  memberSubText: {
+    color: "rgba(255,255,255,0.88)",
+    fontSize: 12,
+  },
+  upgradeArrow: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700",
+    marginLeft: 8,
+  },
+  quickActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  actionBtn: {
+    alignItems: "center",
+    flex: 1,
+  },
+  actionIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  actionLabel: {
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 11,
+    textAlign: "center",
+    lineHeight: 15,
+    fontWeight: "600",
+  },
+
+  // ── Banner (interest/vysassist slider) ────────────────────────────────────
   heartinBg: {
     width: "100%",
     backgroundColor: "#ED1E24",
     paddingVertical: 4,
   },
-  headerRow: {
+  bannerHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 20,
@@ -1592,15 +851,15 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   sliderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 4,
   },
   arrowButton: {
     width: 36,
     height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   arrowDisabled: {
     opacity: 0.3,
@@ -1612,35 +871,35 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 3,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: "rgba(255,255,255,0.4)",
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     width: 20,
     borderRadius: 4,
   },
-  // --- Slider card styles (interest & vysassist) ---
+
+  // ── Slider cards ──────────────────────────────────────────────────────────
   cardContainer: {
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   cardStyle: {
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
     width: width - 80,
     padding: 10,
     borderRadius: 12,
     marginHorizontal: 8,
   },
-  // Interest card
   ProfileContentFlex: {
     flexDirection: "row",
     justifyContent: "flex-start",
@@ -1653,20 +912,18 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 0,
   },
-  profileContent: {
-    flex: 1,
-  },
+  profileContent: { flex: 1 },
   nameStyle: {
-    color: "#4F515D",
+    color: Colors.textDark,
     fontSize: 18,
     fontWeight: "600",
   },
   ageStyle: {
-    color: "#4F515D",
+    color: Colors.textMuted,
     fontSize: 12,
   },
   interestedText: {
-    color: "#282C3F",
+    color: Colors.textDark,
     fontSize: 12,
     marginBottom: 8,
   },
@@ -1674,7 +931,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "center",
-    alignSelf: "center",
     width: "100%",
   },
   btn: {
@@ -1687,12 +943,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   cancel: {
-    color: "#ED1E24",
+    color: Colors.primary,
     fontSize: 14,
     fontWeight: "600",
-    fontFamily: "inter",
     borderWidth: 2,
-    borderColor: "#ED1E24",
+    borderColor: Colors.primary,
     borderRadius: 5,
     paddingHorizontal: 15,
     paddingVertical: 8.5,
@@ -1700,11 +955,10 @@ const styles = StyleSheet.create({
   },
   login: {
     textAlign: "center",
-    color: "white",
+    color: "#fff",
     fontWeight: "600",
     fontSize: 14,
     letterSpacing: 1,
-    fontFamily: "inter",
   },
   linearGradient: {
     borderRadius: 5,
@@ -1712,84 +966,81 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 15,
   },
-
-  // --- UPDATED VysAssist card horizontal layout ---
   vysassistRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
+    flexDirection: "row",
+    alignItems: "stretch",
   },
   vysassistLeft: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Colors.surface2,
     borderRadius: 8,
     padding: 8,
     marginRight: 10,
-    justifyContent: 'center',
+    justifyContent: "center",
     minWidth: 80,
   },
   fromLabel: {
     fontSize: 10,
     letterSpacing: 2,
-    color: '#888',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
+    color: Colors.textMuted,
+    fontWeight: "bold",
+    textTransform: "uppercase",
     marginBottom: 2,
   },
   fromProfileId: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#222',
+    fontWeight: "bold",
+    color: Colors.textDark,
   },
   divider: {
     height: 1,
-    backgroundColor: '#ccc',
+    backgroundColor: Colors.border,
     marginVertical: 6,
   },
   dateText: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.textMuted,
   },
   vysassistRight: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   vysassistMessage: {
     fontSize: 13,
-    fontStyle: 'italic',
-    color: '#333',
+    fontStyle: "italic",
+    color: Colors.textDark,
     marginBottom: 8,
     lineHeight: 20,
     flexShrink: 1,
   },
 
-  // --- Sticky header (Matching Profiles) ---
+  // ── Sticky matching header ─────────────────────────────────────────────────
   stickyHeader: {
-    backgroundColor: '#F4F4F4',
+    backgroundColor: Colors.background,
     paddingTop: 12,
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: Colors.border,
   },
   matchingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginHorizontal: 15,
     marginBottom: 6,
   },
   matching: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#282C3F",
+    color: Colors.textDark,
   },
   matchNumber: {
-    color: "#FF6666",
+    color: Colors.primary,
   },
   sortByText: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    alignSelf: 'center',
-    color: '#b40101ff',
-    marginHorizontal: 8,
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.primary,
+    marginHorizontal: 6,
   },
   toggleSwitchcontainer: {
     transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
@@ -1807,16 +1058,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderRadius: 4,
-    borderColor: "#D4D5D9",
-    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
   },
   input: {
     flex: 1,
-    color: "#535665",
+    color: Colors.textDark,
     padding: 10,
-    fontFamily: "inter",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "transparent",
   },
   searchIcon: {
     paddingLeft: 10,
@@ -1827,27 +1077,34 @@ const styles = StyleSheet.create({
     bottom: 12,
   },
   viewToggleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F4F4F4',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface1,
     borderRadius: 8,
     padding: 2,
     marginHorizontal: 10,
     marginTop: 2,
+    alignSelf: "flex-start",
   },
   viewToggleButton: {
     padding: 8,
     borderRadius: 6,
   },
   activeViewButton: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.card,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
   },
+
+  // ── Profile cards container ───────────────────────────────────────────────
   profileCardContainer: {
     flex: 1,
     paddingHorizontal: 10,
     paddingTop: 4,
   },
-  // Modal styles (if any)
 });
 
 export default HomeWithToast;
