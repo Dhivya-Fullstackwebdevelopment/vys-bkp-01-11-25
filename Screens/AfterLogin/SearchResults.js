@@ -86,10 +86,13 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
   },
+
   headerTitle: {
-    fontSize: rs(20, 22, 24),
+    fontSize: 20,
     fontWeight: "700",
     color: "#FFFFFF",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+     letterSpacing: -1,
   },
   headerSubtitle: {
     fontSize: rs(12, 13, 14),
@@ -98,7 +101,7 @@ const styles = StyleSheet.create({
   },
   filterIconBtn: {
     backgroundColor: "rgba(255,255,255,0.18)",
-    borderRadius: 10,
+    borderRadius: 20,
     padding: 9,
   },
   searchResultsContainer: {

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions, // ← added for screen height
+  Platform,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
@@ -28,7 +29,7 @@ import { Colors } from "../../../Reusable/Theme";
 const PER_PAGE = 10;
 const MARRIAGE_BADGE_URI =
   "https://vysyamat.blob.core.windows.net/vysyamala/marriage_settled.jpeg";
-Image.prefetch(MARRIAGE_BADGE_URI).catch(() => {});
+Image.prefetch(MARRIAGE_BADGE_URI).catch(() => { });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 const formatLastActive = (viewed_date) => {
@@ -563,6 +564,7 @@ const styles = StyleSheet.create({
     color: Colors.textDark || "#2D2D2D",
     flexShrink: 1,
     maxWidth: "50%",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif", // ← matches cardSectionTitle/heroName
   },
   matchChip: {
     marginLeft: "auto",
@@ -577,14 +579,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   subtext: {
-    fontSize: 12,
+    fontSize: 13,          // ← was 12, now matches heroSubText/rowLabel
     color: Colors.textMuted || "#888888",
     marginTop: 3,
   },
   professionText: {
-    fontSize: 13,
-    color: Colors.textDark || "#2D2D2D",
-    fontWeight: "500",
+    fontSize: 13,           // ← was 13 already, kept
+    color: Colors.textMuted || "#888888",
     marginTop: 4,
   },
   locationRow: {
@@ -594,7 +595,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   locationText: {
-    fontSize: 12,
+    fontSize: 12,           // ← matches factValue size
     color: Colors.textMuted || "#888888",
   },
   tagsRow: {
@@ -612,7 +613,7 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 11,
     color: Colors.textMuted || "#888888",
-    fontWeight: "500",
+    fontWeight: "500",       // ← matches factValue weight pattern
   },
   cardFooter: {
     flexDirection: "row",
@@ -624,7 +625,7 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   lastActiveText: {
-    fontSize: 12,
+    fontSize: 12,           // ← matches factValue/statusChipSub size
     color: Colors.textMuted || "#888888",
   },
   btnGroup: {
@@ -646,8 +647,8 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   shortlistBtnText: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 13,           // ← matches tabPillText size
+    fontWeight: "600",       // ← matches tabPillText weight
     color: Colors.textDark || "#2D2D2D",
   },
   shortlistBtnTextSaved: {
