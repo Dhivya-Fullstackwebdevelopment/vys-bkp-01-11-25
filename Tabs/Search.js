@@ -686,7 +686,40 @@ export const Search = () => {
     checkedSet.size > 0 ? `${checkedSet.size} selected` : emptyText;
 
   const getMaritalSubtitle = () => countSummary(checkedStatuses, "Any status");
-  const getProfessionSubtitle = () => countSummary(checkedProfessions, "Any profession");
+
+  const getProfessionSubtitle = () => {
+    const parts = [];
+    if (checkedProfessions.size > 0) parts.push(`${checkedProfessions.size} selected`);
+    if (selectedIncomeMinIds || selectedIncomeMaxIds) {
+      const min = selectedIncomeMinLabel.replace("Select min ", "").replace("Select Max ", "");
+      const max = selectedIncomeMaxLabel.replace("Select min ", "").replace("Select Max ", "");
+      parts.push(selectedIncomeMinIds && selectedIncomeMaxIds ? `${min}-${max}` : (selectedIncomeMinIds ? min : max));
+    }
+    return parts.length ? parts.join(" · ") : "Any profession";
+  };
+
+  const getEducationSubtitle = () => {
+    const degreeCount = selectedEducationId ? 1 : 0;
+    const fieldCount = checkFieldoStudy.size;
+    if (degreeCount === 0 && fieldCount === 0) return "Any education";
+    return `${degreeCount} degrees · ${fieldCount} fields`;
+  };
+
+  const getAstrologySubtitle = () => {
+    const parts = [`Chevvai: ${chevvaiDhosam}`, `Rahu/Ketu: ${rahuKetuDhosam}`];
+    if (selectedBirthStarId) {
+      const star = birthStars.find((b) => String(b.birth_id) === String(selectedBirthStarId));
+      if (star) parts.push(star.birth_star);
+    }
+    return parts.join(" · ");
+  };
+
+  const getLocationSubtitle = () => {
+    const stateCount = checkedStates.size;
+    const cityCount = selectedWorkLocationId ? 1 : 0;
+    if (stateCount === 0 && cityCount === 0) return "Any location";
+    return `${stateCount} states · ${cityCount} cities`;
+  };
 
   const getActiveFilters = () => {
     const filters = [];
@@ -732,6 +765,24 @@ export const Search = () => {
 
     if (ppChecked) {
       filters.push({ id: "photo", label: "With photo", onRemove: () => ppSetChecked(false) });
+    }
+
+    if (selectedIncomeMinIds) {
+      filters.push({ id: "incomeMin", label: selectedIncomeMinLabel, onRemove: () => { setSelectedIncomeMinIds(""); setSelectedIncomeMinLabel("Select min Annual Income"); } });
+    }
+    if (selectedIncomeMaxIds) {
+      filters.push({ id: "incomeMax", label: selectedIncomeMaxLabel, onRemove: () => { setSelectedIncomeMaxIds(""); setSelectedIncomeMaxLabel("Select Max Annual Income"); } });
+    }
+
+    if (chevvaiDhosam !== "No") {
+      filters.push({ id: "chevvai", label: `Chevvai: ${chevvaiDhosam}`, onRemove: () => setChevvaiDhosam("No") });
+    }
+    if (rahuKetuDhosam !== "No") {
+      filters.push({ id: "rahuketu", label: `Rahu/Ketu: ${rahuKetuDhosam}`, onRemove: () => setRahuKetuDhosam("No") });
+    }
+
+    if (birthStar) {
+      filters.push({ id: "birthstar", label: birthStar.birth_star, onRemove: () => setSelectedBirthStarId("") });
     }
 
     return filters;
@@ -1011,14 +1062,7 @@ export const Search = () => {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Education</Text>
-              <Text style={styles.accordionSubtitle}>
-                {(() => {
-                  const stateCount = checkedStates.size;
-                  const cityCount = selectedWorkLocationId ? 1 : 0;
-                  if (stateCount === 0 && cityCount === 0) return "Any location";
-                  return `${stateCount} states · ${cityCount} cities`;
-                })()}
-              </Text>
+              <Text style={styles.accordionSubtitle}>{getEducationSubtitle()}</Text>
             </View>
             <View style={styles.chevronCircle}>
               <Ionicons
@@ -1086,7 +1130,7 @@ export const Search = () => {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Dosham & Astrology</Text>
-              <Text style={styles.accordionSubtitle}>Preferences</Text>
+              <Text style={styles.accordionSubtitle}>{getAstrologySubtitle()}</Text>
             </View>
             <View style={styles.chevronCircle}>
               <Ionicons
@@ -1147,7 +1191,7 @@ export const Search = () => {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.accordionTitle}>Location</Text>
-              <Text style={styles.accordionSubtitle}>Native & Work Location</Text>
+              <Text style={styles.accordionSubtitle}>{getLocationSubtitle()}</Text>
             </View>
             <View style={styles.chevronCircle}>
               <Ionicons
