@@ -622,7 +622,7 @@ export const HomeWithToast = () => {
           style={{ marginRight: 8 }}
         />
         <Text style={styles.searchPlaceholder}>
-          Search by name, ID, gothram or star
+          Search by profile ID or Name
         </Text>
       </TouchableOpacity>
 
