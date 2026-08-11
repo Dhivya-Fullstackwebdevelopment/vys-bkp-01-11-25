@@ -240,10 +240,10 @@ export const HomeWithToast = () => {
           const views = contactViews ? `${contactViews} contact views left` : "";
           const till = validityDate
             ? `till ${new Date(validityDate).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}`
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}`
             : "";
           setMemberSub([views, till].filter(Boolean).join(" · "));
         } else {
@@ -431,7 +431,7 @@ export const HomeWithToast = () => {
   };
 
   const handleFilterPress = () => navigation.navigate("MatchingProfileSearch");
-  const handleFilterPressMenu = () => navigation.navigate("MatchingProfileSearch");
+  const handleFilterPressMenu = () => navigation.navigate("Search");
 
   // ── Slider helpers ───────────────────────────────────────────────────────
   const combinedData = useMemo(
@@ -602,10 +602,10 @@ export const HomeWithToast = () => {
       {/* Greeting Row */}
       <View style={styles.greetingContainer}>
         <Text style={styles.greetingName}>
-          Vanakkam, {userName || ""}
+          Vanakkam, {userName || "User"}
         </Text>
         <Text style={styles.greetingId}>
-          Profile ID {userProfileId || "VF56480"}
+          Profile ID {userProfileId || "NO ID"}
         </Text>
       </View>
 
@@ -825,34 +825,61 @@ export const HomeWithToast = () => {
         />
       </View>
 
-      <View style={styles.viewToggleContainer}>
+      <View style={styles.viewToggleRow}>
+        {/* List / Grid Toggle */}
+        <View style={styles.viewToggleContainer}>
+          <TouchableOpacity
+            onPress={() => setViewMode("list")}
+            style={[
+              styles.viewToggleButton,
+              viewMode === "list" && styles.activeViewButton,
+            ]}
+          >
+            <MaterialIcons
+              name="view-list"
+              size={24}
+              color={
+                viewMode === "list"
+                  ? Colors.primary
+                  : Colors.textMuted
+              }
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setViewMode("grid")}
+            style={[
+              styles.viewToggleButton,
+              viewMode === "grid" && styles.activeViewButton,
+            ]}
+          >
+            <MaterialIcons
+              name="view-module"
+              size={24}
+              color={
+                viewMode === "grid"
+                  ? Colors.primary
+                  : Colors.textMuted
+              }
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Filter Icon - Right End */}
         <TouchableOpacity
-          onPress={() => setViewMode("list")}
-          style={[
-            styles.viewToggleButton,
-            viewMode === "list" && styles.activeViewButton,
-          ]}
+          style={styles.filterButton}
+          onPress={handleFilterPressMenu}
+          activeOpacity={0.7}
         >
           <MaterialIcons
-            name="view-list"
-            size={24}
-            color={viewMode === "list" ? Colors.primary : Colors.textMuted}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setViewMode("grid")}
-          style={[
-            styles.viewToggleButton,
-            viewMode === "grid" && styles.activeViewButton,
-          ]}
-        >
-          <MaterialIcons
-            name="view-module"
-            size={24}
-            color={viewMode === "grid" ? Colors.primary : Colors.textMuted}
+            name="tune"
+            size={23}
+            color={Colors.primary}
           />
         </TouchableOpacity>
       </View>
+
+
     </View>
   );
 
@@ -1414,6 +1441,45 @@ const styles = StyleSheet.create({
     color: Colors.textMuted || "#757575",
     fontStyle: "italic",
   },
+  headerActionsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 10,
+    marginTop: 2,
+  },
+
+  viewToggleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface1 || "#EFE7DC",
+    borderRadius: 8,
+    padding: 2,
+  },
+
+  filterButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: Colors.surface1 || "#EFE7DC",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+
+  viewToggleButton: {
+    padding: 8,
+    borderRadius: 6,
+  },
+
+  activeViewButton: {
+    backgroundColor: Colors.card || "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  viewToggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", paddingHorizontal: 10, marginTop: 2, },
 });
 
 export default HomeWithToast;
