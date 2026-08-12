@@ -585,7 +585,11 @@ export const Menu = () => {
           </View>
 
           {/* PROFILE COMPLETENESS CARD */}
-          <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate("ProfileCompletionForm")}
+            activeOpacity={0.8}
+          >
             <Text style={styles.cardSectionHeader}>Profile completeness</Text>
             <View style={styles.progressBarTrack}>
               <View
@@ -601,7 +605,7 @@ export const Menu = () => {
                 ? "add more details to reach 100%."
                 : "your profile is fully complete!"}
             </Text>
-          </View>
+          </TouchableOpacity>
 
           {/* BASIC DETAILS CARD */}
           <View style={styles.card}>
