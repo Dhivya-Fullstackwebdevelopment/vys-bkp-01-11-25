@@ -372,7 +372,7 @@ export const DashBoard = () => {
         <Ionicons
           name={a.icon}
           size={size}
-          color={a.color}   
+          color={a.color}
         />
       );
     }
@@ -445,19 +445,20 @@ export const DashBoard = () => {
 
   const renderProfileStrength = () => (
     <View style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: C.primary }]}>Profile strength</Text>
       <View style={styles.strengthCard}>
+         <Text style={[styles.sectionTitle, { marginTop: 15 }]}>Profile strength</Text>
         {strengthRows.map((row, i) => (
+          
           <View
             key={i}
             style={[styles.strengthRow, i < strengthRows.length - 1 && styles.strengthDivider]}
           >
             <Text style={styles.strengthLabel}>{row.label}</Text>
             <View style={styles.strengthValueRow}>
-              {row.isVerified && (
+              {/* {row.isVerified && (
                 <MaterialIcons name="verified" size={14} color={C.verified} style={{ marginRight: 3 }} />
-              )}
-              <Text style={[styles.strengthValue, row.isVerified && { color: C.verified }]}>
+              )} */}
+              <Text style={[styles.strengthValue]}>
                 {row.value}
               </Text>
             </View>
@@ -948,8 +949,9 @@ const styles = StyleSheet.create({
   },
   strengthLabel: {
     fontSize: fs(13),
-    color: C.text,
-    fontWeight: "500",
+    color: C.sub,
+    lineHeight: 15,
+  
   },
   strengthValueRow: {
     flexDirection: "row",
@@ -957,8 +959,8 @@ const styles = StyleSheet.create({
   },
   strengthValue: {
     fontSize: fs(13),
-    fontWeight: "700",
-    color: C.sub,
+    fontWeight: "500",
+    color: Colors.textDark,
   },
 
   // ── Received interests ─────────────────────────────────────────────────────
