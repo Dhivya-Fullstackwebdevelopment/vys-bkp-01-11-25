@@ -597,68 +597,116 @@ export const DashBoard = () => {
   };
 
   // ── Existing coloured summary cards (kept exactly as-is) ──────────────────
+
   const renderExistingCards = () => (
-    <>
-      {/* red card — Matching Profiles */}
-      <TouchableWithoutFeedback onPress={() => navigation.navigate("Home")}>
-        <View style={styles.redCardContainer}>
-          <View style={styles.redCard}>
-            <FontAwesome6 name="user-group" size={30} color="#fff" />
-            <Text style={styles.matching}>Matching Profiles</Text>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 10, marginBottom: 10 }}>
-              <Text style={styles.matchingNumbers}>
-                {dashboardData?.matching_profile_count || 0}
+    <View style={styles.summaryGrid}>
+      {/* Matching Profiles — large full-width hero card */}
+      <TouchableOpacity
+        style={styles.heroCard}
+        onPress={() => navigation.navigate("Home")}
+        activeOpacity={0.88}
+      >
+        <LinearGradient
+          colors={["#B72024", "#7A0A0E"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroGradient}
+        >
+          {/* Top row */}
+          <View style={styles.heroTop}>
+            <View style={styles.heroIconBg}>
+              <FontAwesome6 name="user-group" size={20} color="#fff" />
+            </View>
+            <View style={styles.heroBadge}>
+              <Text style={styles.heroBadgeText}>View All →</Text>
+            </View>
+          </View>
+
+          {/* Count + label */}
+          <Text style={styles.heroCount}>
+            {dashboardData?.matching_profile_count || 0}
+          </Text>
+          <Text style={styles.heroLabel}>Matching Profiles</Text>
+
+          {/* Avatar stack */}
+          {imageUrls.length > 0 && (
+            <View style={styles.heroAvatarRow}>
+              {imageUrls.slice(0, 5).map((url, idx) => (
+                <Image
+                  key={idx}
+                  source={{ uri: url }}
+                  style={[
+                    styles.heroAvatar,
+                    { marginLeft: idx === 0 ? 0 : -12, zIndex: 5 - idx },
+                  ]}
+                />
+              ))}
+              {imageUrls.length > 5 && (
+                <View style={[styles.heroAvatarMore, { marginLeft: -12 }]}>
+                  <Text style={styles.heroAvatarMoreText}>+{imageUrls.length - 5}</Text>
+                </View>
+              )}
+              <Text style={styles.heroAvatarLabel}>
+                {dashboardData?.matching_profile_count || 0} people matched
               </Text>
-              <View style={{ flexDirection: "row" }}>
-                {imageUrls.slice(0, 4).map((url, idx) => (
-                  <Image
-                    key={idx}
-                    source={{ uri: url }}
-                    style={{
-                      width: 40, height: 40, borderRadius: 20,
-                      borderWidth: 2, borderColor: "#fff",
-                      marginLeft: idx === 0 ? 0 : -10,
-                      backgroundColor: "#eee",
-                    }}
-                  />
-                ))}
-                {imageUrls.length > 4 && (
-                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#ccc", justifyContent: "center", alignItems: "center", marginLeft: -10, borderWidth: 2, borderColor: "#fff" }}>
-                    <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>+{imageUrls.length - 4}</Text>
-                  </View>
-                )}
-              </View>
             </View>
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
+          )}
 
-      {/* violet card — Mutual Interest */}
-      <TouchableWithoutFeedback onPress={() => navigation.navigate("DashBoardMutualInterest")}>
-        <View style={styles.violetContainer}>
-          <View style={styles.violetCard}>
-            <View style={styles.textIcons}>
-              <Text style={styles.cardText}>Mutual Interest</Text>
-              <MaterialCommunityIcons name="heart-multiple" size={30} color="#fff" />
-            </View>
-            <Text style={styles.cardNumbers}>{dashboardData?.mutual_int_count || 0}</Text>
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
+          {/* Decorative circle */}
+          <View style={styles.heroDecorCircle1} />
+          <View style={styles.heroDecorCircle2} />
+        </LinearGradient>
+      </TouchableOpacity>
 
-      {/* sandal card — Wishlist */}
-      <TouchableWithoutFeedback onPress={() => navigation.navigate("DashBoardWishlist")}>
-        <View style={styles.sandalContainer}>
-          <View style={styles.sandalCard}>
-            <View style={styles.textIcons}>
-              <Text style={styles.cardText}>Wishlist</Text>
-              <MaterialCommunityIcons name="bookmark" size={30} color="#fff" />
+      {/* Mutual Interest + Wishlist — side by side */}
+      <View style={styles.summaryRow}>
+        {/* Mutual Interest */}
+        <TouchableOpacity
+          style={styles.halfCard}
+          onPress={() => navigation.navigate("DashBoardMutualInterest")}
+          activeOpacity={0.88}
+        >
+          <LinearGradient
+            colors={["#4A1A2E", "#7B2D54"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.halfGradient}
+          >
+            <View style={styles.halfIconBg}>
+              <MaterialCommunityIcons name="heart-multiple" size={18} color="#fff" />
             </View>
-            <Text style={styles.cardNumbers}>{dashboardData?.wishlist_count || 0}</Text>
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
-    </>
+            <Text style={styles.halfCount}>
+              {dashboardData?.mutual_int_count || 0}
+            </Text>
+            <Text style={styles.halfLabel}>Mutual{"\n"}Interest</Text>
+            <View style={styles.halfDecorCircle} />
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Wishlist */}
+        <TouchableOpacity
+          style={styles.halfCard}
+          onPress={() => navigation.navigate("DashBoardWishlist")}
+          activeOpacity={0.88}
+        >
+          <LinearGradient
+            colors={["#C47A1A", "#E2B13C"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.halfGradient}
+          >
+            <View style={styles.halfIconBg}>
+              <MaterialCommunityIcons name="bookmark" size={18} color="#fff" />
+            </View>
+            <Text style={styles.halfCount}>
+              {dashboardData?.wishlist_count || 0}
+            </Text>
+            <Text style={styles.halfLabel}>Wish{"\n"}List</Text>
+            <View style={[styles.halfDecorCircle, { backgroundColor: "rgba(255,255,255,0.08)" }]} />
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -670,6 +718,9 @@ export const DashBoard = () => {
         {/* ── NEW SECTIONS (from screenshot design) ── */}
         {renderProfileHeader()}
         {renderProfileCompletion()}
+        {/* ── EXISTING COLOURED SUMMARY CARDS (untouched) ── */}
+        <Text style={styles.sectionTitle2}>Summary</Text>
+        {renderExistingCards()}
         {renderStatistics()}
         {renderQuickActions()}
         {renderMyActivity()}
@@ -677,9 +728,7 @@ export const DashBoard = () => {
         {/* {renderProfileStrength()} */}
         {renderReceivedInterests()}
 
-        {/* ── EXISTING COLOURED SUMMARY CARDS (untouched) ── */}
-        <Text style={styles.sectionTitle2}>Summary</Text>
-        {renderExistingCards()}
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -1156,6 +1205,182 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: "inter",
     marginVertical: -10,
+  },
+  // ── Summary redesign ───────────────────────────────────────────────────────
+  summaryHeader: {
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    marginTop: 4,
+  },
+  summarySub: {
+    fontSize: fs(11),
+    color: C.sub,
+    marginTop: 1,
+  },
+  summaryGrid: {
+    paddingHorizontal: 14,
+    gap: 10,
+    marginBottom: 20,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+
+  // Hero card (Matching Profiles)
+  heroCard: {
+    borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#B72024",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  heroGradient: {
+    padding: 20,
+    minHeight: 170,
+    position: "relative",
+    overflow: "hidden",
+  },
+  heroTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  heroIconBg: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  heroBadge: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  heroBadgeText: {
+    color: "#fff",
+    fontSize: fs(11),
+    fontWeight: "600",
+  },
+  heroCount: {
+    fontSize: fs(42),
+    fontWeight: "800",
+    color: "#fff",
+    lineHeight: fs(46),
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+  },
+  heroLabel: {
+    fontSize: fs(13),
+    color: "rgba(255,255,255,0.8)",
+    fontWeight: "500",
+    marginBottom: 14,
+  },
+  heroAvatarRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  heroAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "#fff",
+    backgroundColor: "#eee",
+  },
+  heroAvatarMore: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.25)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  heroAvatarMoreText: {
+    color: "#fff",
+    fontSize: fs(9),
+    fontWeight: "700",
+  },
+  heroAvatarLabel: {
+    color: "rgba(255,255,255,0.75)",
+    fontSize: fs(11),
+    marginLeft: 8,
+    fontWeight: "500",
+  },
+  heroDecorCircle1: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    top: -30,
+    right: -20,
+  },
+  heroDecorCircle2: {
+    position: "absolute",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    bottom: 10,
+    right: 60,
+  },
+
+  // Half cards (Mutual Interest & Wishlist)
+  halfCard: {
+    flex: 1,
+    borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  halfGradient: {
+    padding: 16,
+    minHeight: 140,
+    position: "relative",
+    overflow: "hidden",
+  },
+  halfIconBg: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  halfCount: {
+    fontSize: fs(34),
+    fontWeight: "800",
+    color: "#fff",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    lineHeight: fs(38),
+  },
+  halfLabel: {
+    fontSize: fs(12),
+    color: "rgba(255,255,255,0.8)",
+    fontWeight: "500",
+    marginTop: 4,
+    lineHeight: fs(17),
+  },
+  halfDecorCircle: {
+    position: "absolute",
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    bottom: -20,
+    right: -20,
   },
 });
 
