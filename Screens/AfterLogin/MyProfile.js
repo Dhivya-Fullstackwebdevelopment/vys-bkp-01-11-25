@@ -16,7 +16,7 @@ import {
     ScrollView,
     StatusBar,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import {
     Ionicons,
     MaterialIcons,
@@ -39,13 +39,16 @@ import { Colors } from "../../Reusable/Theme";
 
 // Responsive helpers
 const { width: SCREEN_WIDTH, height: SCREEN_H } = Dimensions.get('window');
+
 const isTablet = SCREEN_WIDTH >= 768;
+
 const fs = (size) => isTablet ? Math.round(size * 1.3) : size;
 const verticalScale = (size) => (SCREEN_H / 812) * size;
 
 // Layout Constants
 const HERO_IMAGE_HEIGHT = Math.max(340, Math.min(460, verticalScale(420)));
 const HEADER_HEIGHT = Platform.OS === 'ios' ? 90 : 70;
+const HERO_RADIUS = 28;
 
 const PROFILE_SECTIONS = [
     { key: 'personal', label: 'Personal' },
@@ -122,6 +125,7 @@ export const MyProfile = () => {
     const navigation = useNavigation();
     const scrollY = useRef(new Animated.Value(0)).current;
     const scrollViewRef = useRef(null);
+    const insets = useSafeAreaInsets();
 
     const sectionOffsetsRef = useRef({
         personal: 0,
@@ -134,23 +138,59 @@ export const MyProfile = () => {
     const [activeSection, setActiveSection] = useState('personal');
     const activeSectionRef = useRef('personal');
 
-    const scrollToProfileSection = (key) => {
-        const offsets = sectionOffsetsRef.current;
-        const targetOffset = (offsets[key] || 0);
-        const adjustedY = Math.max(0, targetOffset - (HEADER_HEIGHT + 20));
+    const isProgrammaticScroll = useRef(false);
+    const programmaticScrollTimeout = useRef(null);
 
-        scrollViewRef.current?.scrollTo({ y: adjustedY, animated: true });
+    // Sticky tab tracking
+    const tabBarRef = useRef(null);
+    const tabBarOffset = useRef(0);
+    const [isTabSticky, setIsTabSticky] = useState(false);
+
+    const scrollToProfileSection = (key) => {
         setActiveSection(key);
         activeSectionRef.current = key;
+        isProgrammaticScroll.current = true;
+
+        if (programmaticScrollTimeout.current) {
+            clearTimeout(programmaticScrollTimeout.current);
+        }
+
+        const relativeOffset = sectionOffsetsRef.current[key] || 0;
+        const inlineTabBarY = tabBarOffset.current || 0;
+
+        // Sticky tab bar height is 50px
+        const STICKY_BAR_HEIGHT = 50;
+
+        // Calculate absolute position on the ScrollView so section lands directly under the sticky bar
+        const absoluteTargetY = inlineTabBarY + relativeOffset - STICKY_BAR_HEIGHT;
+        const targetOffset = Math.max(0, absoluteTargetY);
+
+        scrollViewRef.current?.scrollTo({ y: targetOffset, animated: true });
+
+        // Keep scroll handler locked while smooth animation finishes
+        programmaticScrollTimeout.current = setTimeout(() => {
+            isProgrammaticScroll.current = false;
+        }, 850);
     };
 
     const updateActiveSectionFromScroll = useCallback((offsetY) => {
-        const offsets = sectionOffsetsRef.current;
+        const inlineTabBarY = tabBarOffset.current || 0;
+
+        if (inlineTabBarY > 0) {
+            setIsTabSticky(offsetY >= inlineTabBarY);
+        }
+
+        if (isProgrammaticScroll.current) return;
+
+        const STICKY_BAR_HEIGHT = 50;
         let current = PROFILE_SECTIONS[0].key;
 
         for (const section of PROFILE_SECTIONS) {
-            const sectionY = offsets[section.key] || 0;
-            if (offsetY + HEADER_HEIGHT + 60 >= sectionY) {
+            const sectionRelativeY = sectionOffsetsRef.current[section.key] || 0;
+            const sectionAbsoluteY = inlineTabBarY + sectionRelativeY - STICKY_BAR_HEIGHT;
+
+            // Trigger active tab when section top reaches near the sticky tab bar
+            if (offsetY + 30 >= sectionAbsoluteY) {
                 current = section.key;
             }
         }
@@ -159,6 +199,14 @@ export const MyProfile = () => {
             activeSectionRef.current = current;
             setActiveSection(current);
         }
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (programmaticScrollTimeout.current) {
+                clearTimeout(programmaticScrollTimeout.current);
+            }
+        };
     }, []);
 
     const carouselHeight = HERO_IMAGE_HEIGHT;
@@ -225,7 +273,17 @@ export const MyProfile = () => {
             mediaType: 'photo',
             quality: 1,
         }, async (response) => {
-            if (response.didCancel || response.error) return;
+            if (response.didCancel) return;
+
+            if (response.errorCode || response.error) {
+                Toast.show({
+                    type: "error",
+                    text1: "Image picker error",
+                    text2: response.errorMessage || response.error || response.errorCode || "Could not open gallery",
+                    position: "top",
+                });
+                return;
+            }
 
             if (response.assets && response.assets[0]) {
                 const file = response.assets[0];
@@ -281,6 +339,12 @@ export const MyProfile = () => {
                 } finally {
                     setLoading(false);
                 }
+            } else {
+                Toast.show({
+                    type: "info",
+                    text1: "No image selected",
+                    position: "top",
+                });
             }
         });
     };
@@ -353,7 +417,7 @@ export const MyProfile = () => {
                     uri={item.url || 'https://via.placeholder.com/150'}
                     width={SCREEN_WIDTH}
                     height={carouselHeight}
-                    style={styles.image}
+                    style={[styles.image, styles.curvedHeroImage]}
                 />
                 <LinearGradient
                     colors={['transparent', 'rgba(0,0,0,0.55)']}
@@ -362,11 +426,18 @@ export const MyProfile = () => {
                 />
             </TouchableOpacity>
 
-            <View style={styles.floatingActionPill}>
-                <TouchableOpacity style={styles.addIconCircle} onPress={() => uploadImage(null)}>
+            <View style={styles.floatingActionPill} pointerEvents="box-none">
+                <TouchableOpacity
+                    style={styles.addIconCircle}
+                    onPress={() => uploadImage(null)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
                     <Ionicons name="add" size={16} color="#FFFFFF" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleImageUpload(item.id)}>
+                <TouchableOpacity
+                    onPress={() => handleImageUpload(item.id)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
                     <Ionicons name="pencil" size={15} color="#A00014" />
                 </TouchableOpacity>
             </View>
@@ -521,6 +592,17 @@ export const MyProfile = () => {
                 <View style={{ width: 40 }} />
             </LinearGradient>
 
+            {/* STICKY OVERLAY TAB BAR */}
+            {isTabSticky && (
+                <View style={[styles.stickyTabBarWrapper, { top: HEADER_HEIGHT }]}>
+                    <ProfileIconsBar
+                        onSelectSection={scrollToProfileSection}
+                        activeSection={activeSection}
+                        sections={PROFILE_SECTIONS}
+                    />
+                </View>
+            )}
+
             <Animated.ScrollView
                 ref={scrollViewRef}
                 onScroll={Animated.event(
@@ -536,7 +618,6 @@ export const MyProfile = () => {
                 scrollEventThrottle={16}
                 removeClippedSubviews={Platform.OS === 'android'}
                 contentContainerStyle={{ paddingBottom: 100 }}
-                stickyHeaderIndices={[2]}
             >
                 {/* HERO CAROUSEL WITH BOTTOM CORNER CURVES */}
                 <View style={styles.heroWrapper}>
@@ -546,7 +627,11 @@ export const MyProfile = () => {
                                 loop
                                 width={SCREEN_WIDTH}
                                 height={carouselHeight}
-                                style={{ width: SCREEN_WIDTH, height: carouselHeight }}
+                                style={{
+                                    width: SCREEN_WIDTH,
+                                    height: carouselHeight,
+                                    overflow: 'hidden',
+                                }}
                                 autoPlay={false}
                                 data={data}
                                 scrollAnimationDuration={600}
@@ -733,13 +818,21 @@ export const MyProfile = () => {
                     )}
                 </View>
 
-                {/* HORIZONTAL STICKY MENU BAR */}
-                <View style={styles.stickyNavWrapper}>
-                    <ProfileIconsBar
-                        onSelectSection={scrollToProfileSection}
-                        activeSection={activeSection}
-                        sections={PROFILE_SECTIONS}
-                    />
+                {/* HORIZONTAL INLINE MENU BAR */}
+                <View
+                    ref={tabBarRef}
+                    onLayout={(e) => {
+                        tabBarOffset.current = e.nativeEvent.layout.y;
+                    }}
+                    style={styles.stickyNavWrapper}
+                >
+                    <View style={{ opacity: isTabSticky ? 0 : 1 }}>
+                        <ProfileIconsBar
+                            onSelectSection={scrollToProfileSection}
+                            activeSection={activeSection}
+                            sections={PROFILE_SECTIONS}
+                        />
+                    </View>
                 </View>
 
                 {/* EDITABLE PROFILE SECTIONS BODY */}
@@ -880,8 +973,8 @@ const styles = StyleSheet.create({
     },
     heroWrapper: {
         zIndex: 1,
-        borderBottomLeftRadius: 28,
-        borderBottomRightRadius: 28,
+        borderBottomLeftRadius: HERO_RADIUS,
+        borderBottomRightRadius: HERO_RADIUS,
         overflow: 'hidden',
     },
     heroBottomFade: {
@@ -1059,6 +1152,8 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "100%",
         resizeMode: "cover",
+        borderBottomLeftRadius: HERO_RADIUS,
+        borderBottomRightRadius: HERO_RADIUS,
     },
     imageCounterBadge: {
         position: 'absolute',
@@ -1086,8 +1181,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 6,
         gap: 12,
-        zIndex: 10,
-        elevation: 4,
+        zIndex: 999,
+        elevation: 999,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.15,
@@ -1107,10 +1202,20 @@ const styles = StyleSheet.create({
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
+        borderBottomLeftRadius: HERO_RADIUS,
+        borderBottomRightRadius: HERO_RADIUS,
+        overflow: 'hidden',
     },
     imageWrapper: {
         width: '100%',
         height: '100%',
+        borderBottomLeftRadius: HERO_RADIUS,
+        borderBottomRightRadius: HERO_RADIUS,
+        overflow: 'hidden',
+    },
+    curvedHeroImage: {
+        borderBottomLeftRadius: HERO_RADIUS,
+        borderBottomRightRadius: HERO_RADIUS,
     },
     renewButtonWrapper: {
         alignSelf: 'flex-start',
@@ -1245,6 +1350,19 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 3,
+    },
+    stickyTabBarWrapper: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        zIndex: 500,
+        backgroundColor: Colors.selectedBg,
+        paddingVertical: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 6,
     },
     sectionsBody: {
         backgroundColor: Colors.selectedBg,

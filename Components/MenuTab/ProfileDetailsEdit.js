@@ -35,6 +35,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export const ProfileIconsBar = ({ onSelectSection, activeSection, sections }) => {
     const tabScrollViewRef = useRef(null);
     const tabLayouts = useRef({});
+    const tabBarViewportWidth = useRef(0);
 
     const tabList = sections || [
         { key: 'personal', label: 'Personal' },
@@ -44,11 +45,13 @@ export const ProfileIconsBar = ({ onSelectSection, activeSection, sections }) =>
         { key: 'contact', label: 'Contact' },
     ];
 
+    // Auto-scroll active tab into view
     useEffect(() => {
         if (activeSection && tabLayouts.current[activeSection]) {
             const { x, width } = tabLayouts.current[activeSection];
-            const targetX = Math.max(0, x - SCREEN_WIDTH / 2 + width / 2);
-            tabScrollViewRef.current?.scrollTo({ x: targetX, animated: true });
+            const viewportWidth = tabBarViewportWidth.current || SCREEN_WIDTH;
+            const targetOffset = Math.max(0, x - viewportWidth / 2 + width / 2);
+            tabScrollViewRef.current?.scrollTo({ x: targetOffset, animated: true });
         }
     }, [activeSection]);
 
@@ -58,6 +61,9 @@ export const ProfileIconsBar = ({ onSelectSection, activeSection, sections }) =>
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalTabContent}
+            onLayout={(e) => {
+                tabBarViewportWidth.current = e.nativeEvent.layout.width;
+            }}
         >
             {tabList.map((tab) => {
                 const isActive = activeSection === tab.key;
