@@ -104,7 +104,13 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     }
   };
 
+  // Replace handleEndReached with this:
   const handleEndReached = () => {
+    // If parent is driving profiles (no search active), don't double-paginate internally
+    const isParentControlled =
+      !Array.isArray(searchProfiles) || searchProfiles.length === 0;
+    if (isParentControlled) return;
+
     if (!isLoadingMore && currentPage < totalPages) {
       loadProfiles(currentPage + 1, false, currentOrderBy);
     }
@@ -311,13 +317,47 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
   };
 
   const renderFooter = () => {
-    if (!isLoadingMore) return null;
-    return (
-      <View style={styles.footer}>
-        <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
-        <Text style={styles.footerText}>Loading more profiles…</Text>
-      </View>
-    );
+    // Show loader while loading next page
+    if (isLoadingMore) {
+      return (
+        <View style={styles.footer}>
+          <ActivityIndicator
+            size="small"
+            color={Colors.primary || "#A00014"}
+          />
+          <Text style={styles.footerText}>
+            Loading more profiles…
+          </Text>
+        </View>
+      );
+    }
+
+    // Search results reached the end
+    if (Array.isArray(searchProfiles) && searchProfiles.length > 0) {
+      return (
+        <View style={styles.footer}>
+          <Text style={styles.noMoreText}>
+            No more profiles
+          </Text>
+        </View>
+      );
+    }
+
+    // Normal matching profiles reached the last page
+    if (
+      profiles?.length > 0 &&
+      currentPage >= totalPages
+    ) {
+      return (
+        <View style={styles.footer}>
+          <Text style={styles.noMoreText}>
+            No more profiles
+          </Text>
+        </View>
+      );
+    }
+
+    return null;
   };
 
   const flatListProps = {
@@ -603,6 +643,12 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
 
 // ─── Styles — mirrors FilterScreen.js card styling 1:1 ─────────────────────
 const styles = StyleSheet.create({
+  noMoreText: {
+    color: Colors.textMuted || "#888888",
+    fontSize: 13,
+    fontStyle: "italic",
+    paddingVertical: 5,
+  },
   container: {
     flex: 1,
     width: '100%',

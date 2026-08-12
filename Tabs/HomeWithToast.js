@@ -15,6 +15,7 @@ import {
   UIManager,
   Animated,
   Easing,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import VysyamalaLogo from "../assets/img/VysyamalaLogo.png";
@@ -153,6 +154,21 @@ export const HomeWithToast = () => {
 
   const navigation = useNavigation();
   const getOrderBy = () => (isEnabled ? "2" : "1");
+
+  const handleSearchChange = (text) => {
+    const value = text.trimStart();
+
+    setSearchProfileId(value);
+
+    if (value.trim().length === 0) {
+      setSearchProfileId("");
+      setSearchResults([]);
+      setTotalCount(matchingProfilesList.length);
+      return;
+    }
+
+    handleSearchPress(value, getOrderBy());
+  };
 
   const CrownOutlineIcon = ({ color = "#A00014", size = 26 }) => (
     <Svg
@@ -610,21 +626,40 @@ export const HomeWithToast = () => {
       </View>
 
       {/* Search Bar */}
-      <TouchableOpacity
-        style={styles.searchBar}
-        onPress={handleFilterPress}
-        activeOpacity={0.85}
-      >
+      <View style={styles.searchBar}>
         <MaterialIcons
           name="search"
           size={20}
           color="rgba(255,255,255,0.7)"
           style={{ marginRight: 8 }}
         />
-        <Text style={styles.searchPlaceholder}>
-          Search by profile ID or Name
-        </Text>
-      </TouchableOpacity>
+
+        <TextInput
+          style={styles.searchInput}
+          value={searchProfileId}
+          onChangeText={handleSearchChange}
+          placeholder="Search by profile ID or Name"
+          placeholderTextColor="rgba(255,255,255,0.55)"
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+
+        {searchProfileId.length > 0 && (
+          <TouchableOpacity
+            onPress={() => {
+              setSearchProfileId("");
+              setSearchResults([]);
+              setTotalCount(matchingProfilesList.length);
+            }}
+          >
+            <MaterialIcons
+              name="close"
+              size={20}
+              color="rgba(255,255,255,0.7)"
+            />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Integrated Interest/VysAssist Slider Section */}
       {combinedData.length > 0 && (
@@ -868,7 +903,7 @@ export const HomeWithToast = () => {
         {/* Filter Icon - Right End */}
         <TouchableOpacity
           style={styles.filterButton}
-          onPress={handleFilterPressMenu}
+          onPress={handleFilterPress}
           activeOpacity={0.7}
         >
           <MaterialIcons
@@ -884,6 +919,7 @@ export const HomeWithToast = () => {
   );
 
   // ── Footer loader for profile list pagination ─────────────────────────────
+  // Replace renderFooter with this:
   const renderListFooter = () => {
     if (loadingMore) {
       return (
@@ -1480,6 +1516,12 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   viewToggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", paddingHorizontal: 10, marginTop: 2, },
+  searchInput: {
+    flex: 1,
+    color: "#FFFFFF",
+    fontSize: 14,
+    paddingVertical: 0,
+  },
 });
 
 export default HomeWithToast;

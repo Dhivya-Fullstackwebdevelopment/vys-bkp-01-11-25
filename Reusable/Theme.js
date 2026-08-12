@@ -14,18 +14,18 @@ export const Colors = {
   primaryContainer: "#E8D5D6",
   onPrimaryContainer: "#3D0A0E",
   matchingcirclecolor: "#64181F",
-  
+
   // Secondary — deep maroon (oklch(0.34 0.108 20))
   secondary: "#4A1A2E",
   secondaryForeground: "#F8F4F2",
   secondaryContainer: "#F2DEAC",
   onSecondaryContainer: "#5D4220",
-  
+
   // Accent — logo gold (oklch(0.76 0.135 85))
   gold: "#E2B13C",
   accent: "#F2DEAC",
   accentForeground: "#5D4220",
-  
+
   // Backgrounds — warm ivory theme
   background: "#FAF6F0",
   foreground: "#1E1E1E",
@@ -34,27 +34,27 @@ export const Colors = {
   surface2: "#F2E8DA",
   surface3: "#E8D5CA",
   footerbg: "#F7EFE6",
-  
+
   // Cards
   card: "#FFFFFF",
   cardForeground: "#1E1E1E",
-  
+
   // Text colors
   textDark: "#1E1E1E",
   textMuted: "#71717A",
   textLight: "#FFFFFF",
-  
+
   // Borders and inputs
   border: "#E4E4E7",
   input: "#E4E4E7",
   outline: "#71717A",
-  
+
   // Chips
   chipActiveBg: "#F2DEAC",
   chipActiveText: "#5D4220",
   chipInactiveBg: "#F4F4F5",
   chipInactiveText: "#71717A",
-  
+
   // Containers
   iconContainerBg: "#FFDBD6",
   goldContainer: "#F2DEAC",
@@ -64,13 +64,18 @@ export const Colors = {
   success: "#22C55E",
   warning: "#F59E0B",
   destructive: "#EF4444",
-  
+
   // Legacy color names for compatibility
   primaryGradientStart: "#A00014",
   primaryGradientEnd: "#4A000A",
   primaryLight: "#FF4050",
   secondaryGold: "#E2B13C",
   cardBackground: "#FFFFFF",
+
+  profilecompetionbg: "#FDEBC1",
+
+  dashtext: "#1A1A1A",
+
 };
 
 export const GlobalStyles = StyleSheet.create({
