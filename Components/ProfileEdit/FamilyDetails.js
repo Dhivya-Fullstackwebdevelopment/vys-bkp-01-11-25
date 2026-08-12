@@ -18,6 +18,7 @@ import axios from "axios";
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import { Colors } from "../../Reusable/Theme";
 
 export const FamilyDetails = ({ setLoading }) => {
     const [familyDetails, setFamilyDetails] = useState(null);
@@ -253,18 +254,31 @@ export const FamilyDetails = ({ setLoading }) => {
         }
     };
 
+    const renderRow = (label, value) => {
+        if (value === undefined || value === null || value === '') return null;
+        return (
+            <View style={styles.rowItem} key={label}>
+                <Text style={styles.rowLabel}>{label}</Text>
+                <Text style={styles.rowValue}>{value}</Text>
+            </View>
+        );
+    };
+
     return (
         <View style={styles.menuChanges}>
-            <View style={styles.editOptions}>
-                <View style={styles.sectionHeaderRow}>
-                    <FontAwesome5 name="users" size={20} color="#BD1225" style={{ marginRight: 8 }} />
-                    <Text style={styles.sectionHeaderTitle}>Family Details</Text>
+            <View style={styles.card}>
+                <View style={styles.cardHeaderRow}>
+                    <View style={styles.sectionIconCircle}>
+                        <FontAwesome5 name="users" size={14} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.cardSectionTitle}>Family Details</Text>
+                    <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
+                        <View style={styles.editPill}>
+                            <Ionicons name={isEditMode ? "eye-outline" : "create-outline"} size={14} color={Colors.primary} />
+                            <Text style={styles.editPillText}>{isEditMode ? 'View' : 'Edit'}</Text>
+                        </View>
+                    </TouchableWithoutFeedback>
                 </View>
-                <View style={styles.sectionDivider} />
-
-                <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
-                    <Text style={styles.redText}>{isEditMode ? 'View' : 'Edit'}</Text>
-                </TouchableWithoutFeedback>
 
                 {isEditMode ? (
                     <View style={styles.editOptionsInner}>
@@ -320,12 +334,7 @@ export const FamilyDetails = ({ setLoading }) => {
                             value={formValues.personal_fam_sta_id}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => (
-                                <Ionicons
-                                    name="chevron-down"
-                                    size={24}
-                                    color="gray"
-                                    style={{ marginTop: 10 }}
-                                />
+                                <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                             )}
                             placeholder={{ label: "Select Family Status", value: null }}
                             style={pickerSelectStyles}
@@ -354,12 +363,7 @@ export const FamilyDetails = ({ setLoading }) => {
                             value={selectedValue}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => (
-                                <Ionicons
-                                    name="chevron-down"
-                                    size={24}
-                                    color="gray"
-                                    style={{ marginTop: 10 }}
-                                />
+                                <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                             )}
                             placeholder={{ label: 'Select No of Sisters', value: null }}
                             style={pickerSelectStyles}
@@ -375,12 +379,7 @@ export const FamilyDetails = ({ setLoading }) => {
                                     value={selectedSistersMarried}
                                     useNativeAndroidPickerStyle={false}
                                     Icon={() => (
-                                        <Ionicons
-                                            name="chevron-down"
-                                            size={24}
-                                            color="gray"
-                                            style={{ marginTop: 10 }}
-                                        />
+                                        <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                                     )}
                                     placeholder={{ label: 'Select No of Sisters Married', value: null }}
                                     style={pickerSelectStyles}
@@ -413,12 +412,7 @@ export const FamilyDetails = ({ setLoading }) => {
                             value={SelectedValueBro}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => (
-                                <Ionicons
-                                    name="chevron-down"
-                                    size={24}
-                                    color="gray"
-                                    style={{ marginTop: 10 }}
-                                />
+                                <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                             )}
                             placeholder={{ label: 'Select No of Brothers', value: null }}
                             style={pickerSelectStyles}
@@ -434,12 +428,7 @@ export const FamilyDetails = ({ setLoading }) => {
                                     value={selectedBrothersMarried}
                                     useNativeAndroidPickerStyle={false}
                                     Icon={() => (
-                                        <Ionicons
-                                            name="chevron-down"
-                                            size={24}
-                                            color="gray"
-                                            style={{ marginTop: 10 }}
-                                        />
+                                        <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                                     )}
                                     placeholder={{ label: 'Select No of Brothers Married', value: null }}
                                     style={pickerSelectStyles}
@@ -484,12 +473,7 @@ export const FamilyDetails = ({ setLoading }) => {
                                     value={noOfChildren}
                                     useNativeAndroidPickerStyle={false}
                                     Icon={() => (
-                                        <Ionicons
-                                            name="chevron-down"
-                                            size={24}
-                                            color="gray"
-                                            style={{ marginTop: 10 }}
-                                        />
+                                        <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                                     )}
                                     placeholder={{ label: 'Select No. of Children', value: null }}
                                     style={pickerSelectStyles}
@@ -508,12 +492,7 @@ export const FamilyDetails = ({ setLoading }) => {
                             value={formValues.father_alive}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => (
-                                <Ionicons
-                                    name="chevron-down"
-                                    size={24}
-                                    color="gray"
-                                    style={{ marginTop: 10 }}
-                                />
+                                <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                             )}
                             placeholder={{ label: "Is father alive?", value: null }}
                             style={pickerSelectStyles}
@@ -530,12 +509,7 @@ export const FamilyDetails = ({ setLoading }) => {
                             value={formValues.mother_alive}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => (
-                                <Ionicons
-                                    name="chevron-down"
-                                    size={24}
-                                    color="gray"
-                                    style={{ marginTop: 10 }}
-                                />
+                                <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                             )}
                             placeholder={{ label: "Is mother alive?", value: null }}
                             style={pickerSelectStyles}
@@ -548,7 +522,7 @@ export const FamilyDetails = ({ setLoading }) => {
                                 onPress={handleSave}
                             >
                                 <LinearGradient
-                                    colors={["#BD1225", "#FF4050"]}
+                                    colors={[Colors.primary, Colors.primary]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
                                     style={styles.linearGradient}
@@ -564,25 +538,22 @@ export const FamilyDetails = ({ setLoading }) => {
                     <View style={styles.editOptionsInner}>
                         {familyDetails ? (
                             <>
-                                <Text style={styles.labelNew}>About My Family : <Text style={styles.valueNew}>{familyDetails.personal_about_fam || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Father Name : <Text style={styles.valueNew}>{familyDetails.personal_father_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Father's Occupation : <Text style={styles.valueNew}>{familyDetails.personal_father_occu_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Mother Name : <Text style={styles.valueNew}>{familyDetails.personal_mother_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Mother's Occupation : <Text style={styles.valueNew}>{familyDetails.personal_mother_occu_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Family Status : <Text style={styles.valueNew}>{familyDetails.personal_fam_sta_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Sisters : <Text style={styles.valueNew}>{familyDetails.personal_sis || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Sisters Married : <Text style={styles.valueNew}>{familyDetails.personal_sis_married || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Brothers : <Text style={styles.valueNew}>{familyDetails.personal_bro || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Brothers Married : <Text style={styles.valueNew}>{familyDetails.personal_bro_married || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Property Details : <Text style={styles.valueNew}>{familyDetails.personal_prope_det || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Property Worth : <Text style={styles.valueNew}>{familyDetails.personal_property_worth || "N/A"}</Text></Text>
-                                {(martialStatus === "2" || martialStatus === "3" || martialStatus === "5") && (
-                                    <Text style={styles.labelNew}>
-                                        No of Children : <Text style={styles.valueNew}>{familyDetails.personal_no_of_children}</Text>
-                                    </Text>
-                                )}
-                                <Text style={styles.labelNew}>Father Alive : <Text style={styles.valueNew}>{familyDetails.father_alive || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Mother Alive : <Text style={styles.valueNew}>{familyDetails.mother_alive || "N/A"}</Text></Text>
+                                {renderRow("About My Family", familyDetails.personal_about_fam)}
+                                {renderRow("Father Name", familyDetails.personal_father_name)}
+                                {renderRow("Father's Occupation", familyDetails.personal_father_occu_name)}
+                                {renderRow("Mother Name", familyDetails.personal_mother_name)}
+                                {renderRow("Mother's Occupation", familyDetails.personal_mother_occu_name)}
+                                {renderRow("Family Status", familyDetails.personal_fam_sta_name)}
+                                {renderRow("Sisters", familyDetails.personal_sis)}
+                                {renderRow("Sisters Married", familyDetails.personal_sis_married)}
+                                {renderRow("Brothers", familyDetails.personal_bro)}
+                                {renderRow("Brothers Married", familyDetails.personal_bro_married)}
+                                {renderRow("Property Details", familyDetails.personal_prope_det)}
+                                {renderRow("Property Worth", familyDetails.personal_property_worth)}
+                                {(martialStatus === "2" || martialStatus === "3" || martialStatus === "5") &&
+                                    renderRow("No of Children", familyDetails.personal_no_of_children)}
+                                {renderRow("Father Alive", familyDetails.father_alive)}
+                                {renderRow("Mother Alive", familyDetails.mother_alive)}
                             </>
                         ) : null}
                     </View>
@@ -595,76 +566,102 @@ export const FamilyDetails = ({ setLoading }) => {
 const styles = StyleSheet.create({
     menuChanges: {
         width: '100%',
-        backgroundColor: '#F4F4F4',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: Colors.selectedBg,
     },
-    editOptions: {
-        width: '92%',
-        backgroundColor: '#ffffff',
+    card: {
+        backgroundColor: Colors.cardBackground,
+        borderRadius: 18,
         padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-        marginTop: 12,
-        shadowColor: '#000',
+        marginBottom: 4,
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
     },
-    editOptionsInner: {
-        width: '100%',
-    },
-    sectionHeaderRow: {
+    cardHeaderRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
+        gap: 8,
     },
-    sectionHeaderTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#282C3F',
+    sectionIconCircle: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: Colors.iconContainerBg,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    sectionDivider: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#EDEDED',
+    cardSectionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.textDark,
+        fontFamily: 'serif',
+        flex: 1,
+    },
+    editPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 14,
+        backgroundColor: Colors.iconContainerBg,
+    },
+    editPillText: {
+        color: Colors.primary,
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    editOptionsInner: {
         width: '100%',
-        marginBottom: 4,
-    },
-    redText: {
-        color: "#ED1E24",
-        fontSize: 14,
-        fontWeight: "700",
-        marginVertical: 10,
-        alignSelf: "flex-end",
+        marginTop: 4,
     },
     labelNew: {
-        color: '#282C3F',
-        fontSize: 15,
-        fontWeight: 'bold',
-        marginBottom: 5,
-        marginTop: 7,
+        color: Colors.textDark,
+        fontSize: 14,
+        fontWeight: '700',
+        marginBottom: 6,
+        marginTop: 10,
     },
-    valueNew: {
-        color: '#282C3F',
-        fontSize: 15,
+    rowItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.chipInactiveBg,
+    },
+    rowLabel: {
+        fontSize: 13,
+        color: Colors.textMuted,
+        flex: 1,
+    },
+    rowValue: {
+        fontSize: 13,
         fontWeight: '500',
+        color: Colors.textDark,
+        flex: 1.2,
+        textAlign: 'right',
     },
     input: {
-        height: 50,
+        height: 48,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        marginBottom: 15,
-        fontSize: 16,
+        borderColor: Colors.border,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        marginBottom: 10,
+        fontSize: 15,
+        color: Colors.textDark,
+        backgroundColor: Colors.surface,
     },
     error: {
-        color: 'red',
+        color: Colors.destructive,
         fontSize: 12,
-        marginTop: 4,
+        marginTop: 2,
+        marginBottom: 6,
         alignSelf: 'flex-start',
-        fontWeight: 'bold',
+        fontWeight: '600',
     },
     loginContainer: {
         flexDirection: "row",
@@ -674,48 +671,49 @@ const styles = StyleSheet.create({
     login: {
         textAlign: "center",
         color: "white",
-        fontWeight: "600",
-        fontSize: 16,
-        letterSpacing: 1,
-        marginRight: 5,
+        fontWeight: "700",
+        fontSize: 15,
+        letterSpacing: 0.4,
     },
     formContainer1: {
         width: "100%",
-        paddingHorizontal: 0,
-        marginTop: 20,
+        marginTop: 12,
     },
     linearGradient: {
-        borderRadius: 5,
+        borderRadius: 22,
         justifyContent: "center",
-        padding: 15,
+        padding: 14,
     },
     btn: {
         width: "100%",
         alignSelf: "center",
-        borderRadius: 6,
-        marginBottom: 10,
+        borderRadius: 22,
     },
 });
 
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-        fontSize: 16,
+        fontSize: 15,
         paddingVertical: 12,
-        paddingHorizontal: 10,
+        paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 4,
-        color: 'black',
+        borderColor: Colors.border,
+        borderRadius: 12,
+        color: Colors.textDark,
         paddingRight: 30,
+        marginBottom: 10,
+        backgroundColor: Colors.surface,
     },
     inputAndroid: {
-        fontSize: 16,
-        paddingVertical: 8,
-        paddingHorizontal: 10,
+        fontSize: 15,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 4,
-        color: 'black',
+        borderColor: Colors.border,
+        borderRadius: 12,
+        color: Colors.textDark,
         paddingRight: 30,
+        marginBottom: 10,
+        backgroundColor: Colors.surface,
     },
 });

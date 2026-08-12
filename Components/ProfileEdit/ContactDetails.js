@@ -10,6 +10,7 @@ import {
 import {
     Ionicons,
     MaterialIcons,
+    FontAwesome5,
 } from "@expo/vector-icons";
 import { getMyContactDetails, updateProfileContact } from '../../CommonApiCall/CommonApiCall';
 import RNPickerSelect from 'react-native-picker-select';
@@ -17,6 +18,7 @@ import config from "../../API/Apiurl";
 import axios from "axios";
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
+import { Colors } from "../../Reusable/Theme";
 
 export const ContactDetails = ({ setLoading }) => {
     const [contactDetails, setContactDetails] = useState(null);
@@ -401,18 +403,32 @@ export const ContactDetails = ({ setLoading }) => {
         }
     };
 
+    // Helper to render a row in view mode
+    const renderRow = (label, value) => {
+        if (value === undefined || value === null || value === '') return null;
+        return (
+            <View style={styles.rowItem} key={label}>
+                <Text style={styles.rowLabel}>{label}</Text>
+                <Text style={styles.rowValue}>{value}</Text>
+            </View>
+        );
+    };
+
     return (
         <View style={styles.menuChanges}>
-            <View style={styles.editOptions}>
-                <View style={styles.sectionHeaderRow}>
-                    <MaterialIcons name="phone" size={20} color="#BD1225" style={{ marginRight: 8 }} />
-                    <Text style={styles.sectionHeaderTitle}>Contact Details</Text>
+            <View style={styles.card}>
+                <View style={styles.cardHeaderRow}>
+                    <View style={styles.sectionIconCircle}>
+                        <FontAwesome5 name="phone-alt" size={14} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.cardSectionTitle}>Contact Details</Text>
+                    <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
+                        <View style={styles.editPill}>
+                            <Ionicons name={isEditMode ? "eye-outline" : "create-outline"} size={14} color={Colors.primary} />
+                            <Text style={styles.editPillText}>{isEditMode ? 'View' : 'Edit'}</Text>
+                        </View>
+                    </TouchableWithoutFeedback>
                 </View>
-                <View style={styles.sectionDivider} />
-
-                <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
-                    <Text style={styles.redText}>{isEditMode ? 'View' : 'Edit'}</Text>
-                </TouchableWithoutFeedback>
 
                 {isEditMode ? (
                     <View style={styles.editOptionsInner}>
@@ -436,8 +452,8 @@ export const ContactDetails = ({ setLoading }) => {
                             Icon={() => (
                                 <Ionicons
                                     name="chevron-down"
-                                    size={24}
-                                    color="gray"
+                                    size={22}
+                                    color={Colors.textMuted}
                                     style={{ marginTop: 10 }}
                                 />
                             )}
@@ -458,8 +474,8 @@ export const ContactDetails = ({ setLoading }) => {
                                 Icon={() => (
                                     <Ionicons
                                         name="chevron-down"
-                                        size={24}
-                                        color="gray"
+                                        size={22}
+                                        color={Colors.textMuted}
                                         style={{ marginTop: 10 }}
                                     />
                                 )}
@@ -494,8 +510,8 @@ export const ContactDetails = ({ setLoading }) => {
                                 Icon={() => (
                                     <Ionicons
                                         name="chevron-down"
-                                        size={24}
-                                        color="gray"
+                                        size={22}
+                                        color={Colors.textMuted}
                                         style={{ marginTop: 10 }}
                                     />
                                 )}
@@ -530,8 +546,8 @@ export const ContactDetails = ({ setLoading }) => {
                                 Icon={() => (
                                     <Ionicons
                                         name="chevron-down"
-                                        size={24}
-                                        color="gray"
+                                        size={22}
+                                        color={Colors.textMuted}
                                         style={{ marginTop: 10 }}
                                     />
                                 )}
@@ -620,7 +636,7 @@ export const ContactDetails = ({ setLoading }) => {
                                 onPress={handleSave}
                             >
                                 <LinearGradient
-                                    colors={["#BD1225", "#FF4050"]}
+                                    colors={[Colors.primary, Colors.primary]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
                                     style={styles.linearGradient}
@@ -636,17 +652,17 @@ export const ContactDetails = ({ setLoading }) => {
                     <View style={styles.editOptionsInner}>
                         {contactDetails ? (
                             <>
-                                <Text style={styles.labelNew}>Address : <Text style={styles.valueNew}>{contactDetails.personal_prof_addr || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Country : <Text style={styles.valueNew}>{contactDetails.personal_prof_count_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>State : <Text style={styles.valueNew}>{contactDetails.personal_prof_stat_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>District : <Text style={styles.valueNew}>{contactDetails.personal_prof_district_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>City : <Text style={styles.valueNew}>{contactDetails.personal_prof_city_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Pincode : <Text style={styles.valueNew}>{contactDetails.personal_prof_pin || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Alternate Mobile : <Text style={styles.valueNew}>{contactDetails.personal_prof_phone || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>WhatsApp : <Text style={styles.valueNew}>{contactDetails.personal_prof_whats || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Email : <Text style={styles.valueNew}>{contactDetails.personal_email || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Profile Email ID : <Text style={styles.valueNew}>{contactDetails.admin_use_email || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Profile Mobile No : <Text style={styles.valueNew}>{contactDetails.personal_prof_mob_no || "N/A"}</Text></Text>
+                                {renderRow("Address", contactDetails.personal_prof_addr)}
+                                {renderRow("Country", contactDetails.personal_prof_count_name)}
+                                {renderRow("State", contactDetails.personal_prof_stat_name)}
+                                {renderRow("District", contactDetails.personal_prof_district_name)}
+                                {renderRow("City", contactDetails.personal_prof_city_name)}
+                                {renderRow("Pincode", contactDetails.personal_prof_pin)}
+                                {renderRow("Alternate Mobile", contactDetails.personal_prof_phone)}
+                                {renderRow("WhatsApp", contactDetails.personal_prof_whats)}
+                                {renderRow("Email", contactDetails.personal_email)}
+                                {renderRow("Profile Email ID", contactDetails.admin_use_email)}
+                                {renderRow("Profile Mobile No", contactDetails.personal_prof_mob_no)}
                             </>
                         ) : null}
                     </View>
@@ -659,80 +675,105 @@ export const ContactDetails = ({ setLoading }) => {
 const styles = StyleSheet.create({
     menuChanges: {
         width: '100%',
-        backgroundColor: '#F4F4F4',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: Colors.selectedBg,
     },
-    editOptions: {
-        width: '92%',
-        backgroundColor: '#ffffff',
+    card: {
+        backgroundColor: Colors.cardBackground,
+        borderRadius: 18,
         padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-        marginTop: 12,
-        shadowColor: '#000',
+        marginBottom: 4,
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
     },
-    editOptionsInner: {
-        width: '100%',
-    },
-    sectionHeaderRow: {
+    cardHeaderRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
+        gap: 8,
     },
-    sectionHeaderTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#282C3F',
+    sectionIconCircle: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: Colors.iconContainerBg,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    sectionDivider: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#EDEDED',
+    cardSectionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.textDark,
+        fontFamily: 'serif',
+        flex: 1,
+    },
+    editPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 14,
+        backgroundColor: Colors.iconContainerBg,
+    },
+    editPillText: {
+        color: Colors.primary,
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    editOptionsInner: {
         width: '100%',
-        marginBottom: 4,
-    },
-    redText: {
-        color: "#ED1E24",
-        fontSize: 14,
-        fontWeight: "700",
-        marginVertical: 10,
-        alignSelf: "flex-end",
+        marginTop: 4,
     },
     labelNew: {
-        color: '#282C3F',
-        fontSize: 15,
-        fontWeight: 'bold',
-        marginBottom: 5,
-        marginTop: 7,
+        color: Colors.textDark,
+        fontSize: 14,
+        fontWeight: '700',
+        marginBottom: 6,
+        marginTop: 10,
     },
-    valueNew: {
-        color: '#282C3F',
-        fontSize: 15,
+    rowItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.chipInactiveBg,
+    },
+    rowLabel: {
+        fontSize: 13,
+        color: Colors.textMuted,
+        flex: 1,
+    },
+    rowValue: {
+        fontSize: 13,
         fontWeight: '500',
+        color: Colors.textDark,
+        flex: 1.2,
+        textAlign: 'right',
     },
     input: {
-        height: 50,
+        height: 48,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        marginBottom: 15,
-        fontSize: 16,
+        borderColor: Colors.border,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        marginBottom: 10,
+        fontSize: 15,
+        color: Colors.textDark,
+        backgroundColor: Colors.surface,
     },
     inputError: {
-        borderColor: 'red',
+        borderColor: Colors.destructive,
     },
     error: {
-        color: 'red',
+        color: Colors.destructive,
         fontSize: 12,
-        marginTop: -10,
-        marginBottom: 10,
+        marginTop: 2,
+        marginBottom: 6,
         alignSelf: 'flex-start',
-        fontWeight: 'bold',
+        fontWeight: '600',
     },
     loginContainer: {
         flexDirection: "row",
@@ -742,48 +783,49 @@ const styles = StyleSheet.create({
     login: {
         textAlign: "center",
         color: "white",
-        fontWeight: "600",
-        fontSize: 16,
-        letterSpacing: 1,
-        marginRight: 5,
+        fontWeight: "700",
+        fontSize: 15,
+        letterSpacing: 0.4,
     },
     formContainer1: {
         width: "100%",
-        paddingHorizontal: 0,
-        marginTop: 10,
+        marginTop: 12,
     },
     linearGradient: {
-        borderRadius: 5,
+        borderRadius: 22,
         justifyContent: "center",
-        padding: 15,
+        padding: 14,
     },
     btn: {
         width: "100%",
         alignSelf: "center",
-        borderRadius: 6,
-        marginBottom: 10,
+        borderRadius: 22,
     },
 });
 
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-        fontSize: 16,
+        fontSize: 15,
         paddingVertical: 12,
-        paddingHorizontal: 10,
+        paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 4,
-        color: 'black',
+        borderColor: Colors.border,
+        borderRadius: 12,
+        color: Colors.textDark,
         paddingRight: 30,
+        marginBottom: 10,
+        backgroundColor: Colors.surface,
     },
     inputAndroid: {
-        fontSize: 16,
-        paddingVertical: 8,
-        paddingHorizontal: 10,
+        fontSize: 15,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 4,
-        color: 'black',
+        borderColor: Colors.border,
+        borderRadius: 12,
+        color: Colors.textDark,
         paddingRight: 30,
+        marginBottom: 10,
+        backgroundColor: Colors.surface,
     },
 });

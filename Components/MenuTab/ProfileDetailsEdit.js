@@ -26,43 +26,44 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Colors } from "../../Reusable/Theme";
 
 export const ProfileIconsBar = ({ onSelectSection }) => {
     return (
         <View style={styles.iconsRowContainer}>
             <View style={styles.iconContainer}>
                 <TouchableOpacity onPress={() => onSelectSection && onSelectSection('personal')}>
-                    <FontAwesome5 name="user-circle" size={24} color={'#FFFFFF'} style={styles.iconStyle} />
+                    <FontAwesome5 name="user-circle" size={22} color={Colors.primary} style={styles.iconStyle} />
                 </TouchableOpacity>
-                <Text style={[styles.iconText, { color: '#FFFFFF' }]}>Personal</Text>
+                <Text style={styles.iconText}>Personal</Text>
             </View>
 
             <View style={styles.iconContainer}>
                 <TouchableOpacity onPress={() => onSelectSection && onSelectSection('education')}>
-                    <Ionicons name="briefcase" size={22} color={'#FFFFFF'} style={styles.iconStyle} />
+                    <Ionicons name="briefcase" size={20} color={Colors.primary} style={styles.iconStyle} />
                 </TouchableOpacity>
-                <Text style={[styles.iconText, { color: '#FFFFFF' }]}>Work</Text>
+                <Text style={styles.iconText}>Work</Text>
             </View>
 
             <View style={styles.iconContainer}>
                 <TouchableOpacity onPress={() => onSelectSection && onSelectSection('family')}>
-                    <FontAwesome5 name="users" size={22} color={'#FFFFFF'} style={styles.iconStyle} />
-                    <Text style={[styles.iconText, { color: '#FFFFFF' }]}>Family</Text>
+                    <FontAwesome5 name="users" size={20} color={Colors.primary} style={styles.iconStyle} />
+                    <Text style={styles.iconText}>Family</Text>
                 </TouchableOpacity>
             </View>
 
             <View style={styles.iconContainer}>
                 <TouchableOpacity onPress={() => onSelectSection && onSelectSection('horoscope')}>
-                    <MaterialCommunityIcons name="zodiac-libra" size={22} color={'#FFFFFF'} style={styles.iconStyle} />
+                    <MaterialCommunityIcons name="zodiac-libra" size={20} color={Colors.primary} style={styles.iconStyle} />
                 </TouchableOpacity>
-                <Text style={[styles.iconText, { color: '#FFFFFF' }]}>Horoscope</Text>
+                <Text style={styles.iconText}>Horoscope</Text>
             </View>
 
             <View style={styles.iconContainer}>
                 <TouchableOpacity onPress={() => onSelectSection && onSelectSection('contact')}>
-                    <MaterialIcons name="phone" size={22} color={'#FFFFFF'} style={styles.iconStyle} />
+                    <MaterialIcons name="phone" size={20} color={Colors.primary} style={styles.iconStyle} />
                 </TouchableOpacity>
-                <Text style={[styles.iconText, { color: '#FFFFFF' }]}>Contact</Text>
+                <Text style={styles.iconText}>Contact</Text>
             </View>
         </View>
     );
@@ -106,7 +107,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
     const maxDate = new Date(currentYear - 19, 11, 31);
     const CalendarIcon = ({ onPress }) => (
         <Pressable onPress={onPress} style={{ position: "absolute", right: 10, top: 15 }}>
-            <Ionicons name="calendar" size={18} color="#535665" />
+            <Ionicons name="calendar" size={18} color={Colors.textMuted} />
         </Pressable>
     );
 
@@ -394,19 +395,33 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
         }
     };
 
+    // ── Restyled view-mode row, matching EducationalDetails' rowItem/rowLabel/rowValue pattern ──
+    const renderRow = (label, value) => {
+        if (value === undefined || value === null || value === '') return null;
+        return (
+            <View style={styles.rowItem} key={label}>
+                <Text style={styles.rowLabel}>{label}</Text>
+                <Text style={styles.rowValue}>{value}</Text>
+            </View>
+        );
+    };
+
     return (
         <View style={styles.scrollViewContentContainer}>
             <View style={styles.menuChanges} onLayout={setOffset('personal')}>
-                <View style={styles.editOptions}>
-                    <View style={styles.sectionHeaderRow}>
-                        <FontAwesome5 name="user-circle" size={20} color="#BD1225" style={{ marginRight: 8 }} />
-                        <Text style={styles.sectionHeaderTitle}>Personal Details</Text>
+                <View style={styles.card}>
+                    <View style={styles.cardHeaderRow}>
+                        <View style={styles.sectionIconCircle}>
+                            <FontAwesome5 name="user-circle" size={15} color={Colors.primary} />
+                        </View>
+                        <Text style={styles.cardSectionTitle}>Personal Details</Text>
+                        <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
+                            <View style={styles.editPill}>
+                                <Ionicons name={isEditMode ? "eye-outline" : "create-outline"} size={14} color={Colors.primary} />
+                                <Text style={styles.editPillText}>{isEditMode ? 'View' : 'Edit'}</Text>
+                            </View>
+                        </TouchableWithoutFeedback>
                     </View>
-                    <View style={styles.sectionDivider} />
-
-                    <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
-                        <Text style={styles.redText}>{isEditMode ? 'View' : 'Edit'}</Text>
-                    </TouchableWithoutFeedback>
 
                     {isEditMode ? (
                         <View style={styles.editOptionsInner}>
@@ -419,10 +434,10 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                             />
                             {validationErrors.personal_profile_name && <Text style={styles.error}>{validationErrors.personal_profile_name}</Text>}
 
-                            <Text style={styles.label}>Date of Birth</Text>
+                            <Text style={styles.labelNew}>Date of Birth</Text>
                             <Pressable onPress={() => setShowDatepicker(true)}>
                                 <TextInput
-                                    style={[styles.input, { color: 'black' }]}
+                                    style={[styles.input, { color: Colors.textDark }]}
                                     placeholder="Date of Birth"
                                     value={formValues.personal_profile_dob}
                                     editable={false}
@@ -455,7 +470,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
 
                             <Text style={styles.labelNew}>Age</Text>
                             <TextInput
-                                style={[styles.input, { color: 'black' }]}
+                                style={[styles.input, { color: Colors.textDark }]}
                                 placeholder="Age"
                                 value={formValues.personal_age.toString()}
                                 keyboardType="numeric"
@@ -522,7 +537,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 items={heightOptions}
                                 value={formValues.personal_profile_height}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={24} color="gray" style={{ marginTop: 10 }} />)}
+                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
                                 placeholder={{ label: "Select Height", value: null }}
                                 style={pickerSelectStyles}
                             />
@@ -547,7 +562,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 ]}
                                 value={formValues.personal_body_type}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={24} color="gray" style={{ marginTop: 10 }} />)}
+                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
                                 placeholder={{ label: "Body Type", value: null }}
                                 style={pickerSelectStyles}
                             />
@@ -561,7 +576,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 ]}
                                 value={formValues.personal_eye_wear}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={24} color="gray" style={{ marginTop: 10 }} />)}
+                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
                                 placeholder={{ label: "Eye Wear", value: null }}
                                 style={pickerSelectStyles}
                             />
@@ -572,7 +587,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 items={maritalStatusOptions}
                                 value={formValues.personal_profile_marital_status_id}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={24} color="gray" style={{ marginTop: 10 }} />)}
+                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
                                 placeholder={{ label: "Select Marital Status", value: null }}
                                 style={pickerSelectStyles}
                             />
@@ -600,7 +615,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 items={complexionOptions}
                                 value={formValues.personal_profile_complexion_id}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={24} color="gray" style={{ marginTop: 10 }} />)}
+                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
                                 placeholder={{ label: "Select Complexion", value: null }}
                                 style={pickerSelectStyles}
                             />
@@ -623,7 +638,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 ]}
                                 value={formValues.personal_pysically_changed}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={24} color="gray" style={{ marginTop: 10 }} />)}
+                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
                                 placeholder={{ label: "Physical Status", value: null }}
                                 style={pickerSelectStyles}
                             />
@@ -643,7 +658,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                             <View style={styles.formContainer1}>
                                 <TouchableOpacity style={styles.btn} onPress={handleSave}>
                                     <LinearGradient
-                                        colors={["#BD1225", "#FF4050"]}
+                                        colors={[Colors.primary, Colors.primary]}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 1 }}
                                         style={styles.linearGradient}
@@ -659,23 +674,23 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                         <View style={styles.editOptionsInner}>
                             {personalDetails ? (
                                 <>
-                                    <Text style={styles.labelNew}>Name : <Text style={styles.valueNew}>{personalDetails.personal_profile_name || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Gender : <Text style={styles.valueNew}>{personalDetails.personal_gender || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Age : <Text style={styles.valueNew}>{personalDetails.personal_age || "N/A"} Years</Text></Text>
-                                    <Text style={styles.labelNew}>DOB : <Text style={styles.valueNew}>{personalDetails.personal_profile_dob}</Text></Text>
-                                    <Text style={styles.labelNew}>Place of Birth : <Text style={styles.valueNew}>{personalDetails.personal_place_of_birth || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Time of Birth : <Text style={styles.valueNew}>{personalDetails.personal_time_of_birth || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Height : <Text style={styles.valueNew}>{personalDetails.personal_profile_height?.height_desc || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Weight : <Text style={styles.valueNew}>{personalDetails.personal_weight || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Body Type : <Text style={styles.valueNew}>{personalDetails.personal_body_type || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Eye Wear : <Text style={styles.valueNew}>{personalDetails.personal_eye_wear || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Marital Status : <Text style={styles.valueNew}>{personalDetails.personal_profile_marital_status_name || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Blood Group : <Text style={styles.valueNew}>{personalDetails.personal_blood_group || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>About Myself : <Text style={styles.valueNew}>{personalDetails.personal_about_self || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Complexion : <Text style={styles.valueNew}>{personalDetails.personal_profile_complexion_name || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Hobbies : <Text style={styles.valueNew}>{personalDetails.personal_hobbies || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Physical Status : <Text style={styles.valueNew}>{personalDetails.personal_pysically_changed || "N/A"}</Text></Text>
-                                    <Text style={styles.labelNew}>Registered Mobile : <Text style={styles.valueNew}>{personalDetails.mobile_no || "N/A"}</Text></Text>
+                                    {renderRow("Name", personalDetails.personal_profile_name)}
+                                    {renderRow("Gender", personalDetails.personal_gender)}
+                                    {renderRow("Age", personalDetails.personal_age ? `${personalDetails.personal_age} Years` : null)}
+                                    {renderRow("DOB", personalDetails.personal_profile_dob)}
+                                    {renderRow("Place of Birth", personalDetails.personal_place_of_birth)}
+                                    {renderRow("Time of Birth", personalDetails.personal_time_of_birth)}
+                                    {renderRow("Height", personalDetails.personal_profile_height?.height_desc)}
+                                    {renderRow("Weight", personalDetails.personal_weight)}
+                                    {renderRow("Body Type", personalDetails.personal_body_type)}
+                                    {renderRow("Eye Wear", personalDetails.personal_eye_wear)}
+                                    {renderRow("Marital Status", personalDetails.personal_profile_marital_status_name)}
+                                    {renderRow("Blood Group", personalDetails.personal_blood_group)}
+                                    {renderRow("About Myself", personalDetails.personal_about_self)}
+                                    {renderRow("Complexion", personalDetails.personal_profile_complexion_name)}
+                                    {renderRow("Hobbies", personalDetails.personal_hobbies)}
+                                    {renderRow("Physical Status", personalDetails.personal_pysically_changed)}
+                                    {renderRow("Registered Mobile", personalDetails.mobile_no)}
                                 </>
                             ) : null}
                         </View>
@@ -718,10 +733,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         width: '100%',
         paddingHorizontal: 16,
-        backgroundColor: '#4F515D',
-        paddingVertical: 16,
-        borderBottomWidth: 0.5,
-        borderColor: '#fff',
+        backgroundColor: Colors.cardBackground,
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderColor: Colors.border,
         zIndex: 12,
         elevation: 8,
     },
@@ -733,95 +748,130 @@ const styles = StyleSheet.create({
         marginHorizontal: 8,
     },
     iconText: {
-        fontSize: 12,
-        marginBottom: 2,
-        textAlign: 'center',
-        fontWeight: 'bold',
-    },
-    error: {
-        color: 'red',
-        fontSize: 12,
+        fontSize: 11,
         marginTop: 4,
-        alignSelf: 'flex-start',
-        fontWeight: 'bold',
+        textAlign: 'center',
+        fontWeight: '700',
+        color: Colors.textDark,
     },
+
+    // ── Card system matching EducationalDetails.js ──
     menuChanges: {
         width: '100%',
-        backgroundColor: '#F4F4F4',
-        justifyContent: 'center',
-        alignItems: 'center'
+        backgroundColor: Colors.selectedBg,
+        paddingHorizontal: 16,
+        paddingTop: 12,
     },
-    redText: {
-        color: "#ED1E24",
-        fontSize: 14,
-        fontWeight: "700",
-        marginVertical: 10,
-        alignSelf: "flex-end",
-    },
-    editOptions: {
-        width: '92%',
-        backgroundColor: '#ffffff',
+    card: {
+        backgroundColor: Colors.cardBackground,
+        borderRadius: 18,
         padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-        marginTop: 12,
-        shadowColor: '#000',
+        marginBottom: 4,
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
     },
-    editOptionsInner: {
-        width: '100%',
-    },
-    sectionHeaderRow: {
+    cardHeaderRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
+        gap: 8,
     },
-    sectionHeaderTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#282C3F',
+    sectionIconCircle: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: Colors.iconContainerBg,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    sectionDivider: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#EDEDED',
+    cardSectionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.textDark,
+        fontFamily: 'serif',
+        flex: 1,
+    },
+    editPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 14,
+        backgroundColor: Colors.iconContainerBg,
+    },
+    editPillText: {
+        color: Colors.primary,
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    editOptionsInner: {
         width: '100%',
-        marginBottom: 4,
+        marginTop: 4,
+    },
+    rowItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.chipInactiveBg,
+    },
+    rowLabel: {
+        fontSize: 13,
+        color: Colors.textMuted,
+        flex: 1,
+    },
+    rowValue: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: Colors.textDark,
+        flex: 1.2,
+        textAlign: 'right',
+    },
+    error: {
+        color: Colors.destructive,
+        fontSize: 12,
+        marginTop: 2,
+        marginBottom: 6,
+        alignSelf: 'flex-start',
+        fontWeight: '600',
     },
     labelNew: {
-        color: '#282C3F',
-        fontSize: 15,
-        fontWeight: 'bold',
-        marginBottom: 5,
-        marginTop: 7
+        color: Colors.textDark,
+        fontSize: 14,
+        fontWeight: '700',
+        marginBottom: 6,
+        marginTop: 10,
     },
     valueNew: {
-        color: '#282C3F',
-        fontSize: 15,
+        color: Colors.textDark,
+        fontSize: 14,
         fontWeight: '500',
     },
     label: {
-        color: "#535665",
+        color: Colors.textMuted,
         fontSize: 14,
         fontWeight: "700",
         marginBottom: 10,
     },
     input: {
-        height: 50,
+        height: 48,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        marginBottom: 15,
-        fontSize: 16,
+        borderColor: Colors.border,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        marginBottom: 10,
+        fontSize: 15,
+        color: Colors.textDark,
+        backgroundColor: Colors.surface,
     },
     scrollViewContentContainer: {
         flexGrow: 1,
         width: '100%',
-        justifyContent: 'center',
-        alignItems: 'center',
+        gap: 12,
     },
     loginContainer: {
         flexDirection: "row",
@@ -831,32 +881,29 @@ const styles = StyleSheet.create({
     login: {
         textAlign: "center",
         color: "white",
-        fontWeight: "600",
-        fontSize: 16,
-        letterSpacing: 1,
-        marginRight: 5,
+        fontWeight: "700",
+        fontSize: 15,
+        letterSpacing: 0.4,
     },
     formContainer1: {
         width: "100%",
-        paddingHorizontal: 0,
-        marginTop: 10,
+        marginTop: 12,
     },
     linearGradient: {
-        borderRadius: 5,
+        borderRadius: 22,
         justifyContent: "center",
-        padding: 15,
+        padding: 14,
     },
     btn: {
         width: "100%",
         alignSelf: "center",
-        borderRadius: 6,
-        marginBottom: 10,
+        borderRadius: 22,
     },
     timeContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 15,
+        marginBottom: 10,
     },
     timePicker: {
         flex: 1,
@@ -865,32 +912,36 @@ const styles = StyleSheet.create({
     timeSeparator: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#000',
+        color: Colors.textDark,
         marginHorizontal: 5,
     },
 });
 
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-        fontSize: 16,
+        fontSize: 15,
         paddingVertical: 12,
-        paddingHorizontal: 10,
+        paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 4,
-        color: 'black',
+        borderColor: Colors.border,
+        borderRadius: 12,
+        color: Colors.textDark,
         paddingRight: 30,
         textAlign: 'center',
+        marginBottom: 10,
+        backgroundColor: Colors.surface,
     },
     inputAndroid: {
-        fontSize: 16,
-        paddingVertical: 8,
-        paddingHorizontal: 10,
+        fontSize: 15,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 4,
-        color: 'black',
+        borderColor: Colors.border,
+        borderRadius: 12,
+        color: Colors.textDark,
         paddingRight: 30,
         textAlign: 'center',
+        marginBottom: 10,
+        backgroundColor: Colors.surface,
     },
 });

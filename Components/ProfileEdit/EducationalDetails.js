@@ -10,6 +10,7 @@ import {
 import {
     Ionicons,
     MaterialIcons,
+    MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { getMyEducationalDetails, updateProfileEducation } from '../../CommonApiCall/CommonApiCall';
 import RNPickerSelect from 'react-native-picker-select';
@@ -17,6 +18,7 @@ import config from "../../API/Apiurl";
 import axios from "axios";
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
+import { Colors } from "../../Reusable/Theme";
 
 export const EducationalDetails = ({ setLoading }) => {
     const [educationalDetails, setEducationalDetails] = useState(null);
@@ -654,18 +656,31 @@ export const EducationalDetails = ({ setLoading }) => {
     const educationLevelsRequiringFieldOfStudy = ["1", "2", "3", "4"];
     const showFieldOfStudy = educationLevelsRequiringFieldOfStudy.includes(formValues.personal_edu_id);
 
+    const renderRow = (label, value) => {
+        if (!value || value === "") return null;
+        return (
+            <View style={styles.rowItem} key={label}>
+                <Text style={styles.rowLabel}>{label}</Text>
+                <Text style={styles.rowValue}>{value}</Text>
+            </View>
+        );
+    };
+
     return (
         <View style={styles.menuChanges}>
-            <View style={styles.editOptions}>
-                <View style={styles.sectionHeaderRow}>
-                    <MaterialIcons name="work" size={20} color="#BD1225" style={{ marginRight: 8 }} />
-                    <Text style={styles.sectionHeaderTitle}>Education & Profession Details</Text>
+            <View style={styles.card}>
+                <View style={styles.cardHeaderRow}>
+                    <View style={styles.sectionIconCircle}>
+                        <MaterialCommunityIcons name="briefcase-outline" size={16} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.cardSectionTitle}>Education & Profession</Text>
+                    <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
+                        <View style={styles.editPill}>
+                            <Ionicons name={isEditMode ? "eye-outline" : "create-outline"} size={14} color={Colors.primary} />
+                            <Text style={styles.editPillText}>{isEditMode ? 'View' : 'Edit'}</Text>
+                        </View>
+                    </TouchableWithoutFeedback>
                 </View>
-                <View style={styles.sectionDivider} />
-
-                <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
-                    <Text style={styles.redText}>{isEditMode ? 'View' : 'Edit'}</Text>
-                </TouchableWithoutFeedback>
 
                 {isEditMode ? (
                     <View style={styles.editOptionsInner}>
@@ -676,12 +691,7 @@ export const EducationalDetails = ({ setLoading }) => {
                             value={formValues.personal_edu_id}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => (
-                                <Ionicons
-                                    name="chevron-down"
-                                    size={24}
-                                    color="gray"
-                                    style={{ marginTop: 10 }}
-                                />
+                                <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                             )}
                             placeholder={{ label: "Select Education", value: null }}
                             style={pickerSelectStyles}
@@ -697,12 +707,7 @@ export const EducationalDetails = ({ setLoading }) => {
                                     value={formValues.persoanl_field_ofstudy}
                                     useNativeAndroidPickerStyle={false}
                                     Icon={() => (
-                                        <Ionicons
-                                            name="chevron-down"
-                                            size={24}
-                                            color="gray"
-                                            style={{ marginTop: 10 }}
-                                        />
+                                        <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                                     )}
                                     placeholder={{ label: "Select Field of Study", value: null }}
                                     style={pickerSelectStyles}
@@ -722,12 +727,7 @@ export const EducationalDetails = ({ setLoading }) => {
                                                 items={degreeOptions.filter(degree => !selectedDegrees.includes(degree.value))}
                                                 useNativeAndroidPickerStyle={false}
                                                 Icon={() => (
-                                                    <Ionicons
-                                                        name="chevron-down"
-                                                        size={24}
-                                                        color="gray"
-                                                        style={{ marginTop: 10 }}
-                                                    />
+                                                    <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                                                 )}
                                                 placeholder={{ label: "Select Specific Field", value: null }}
                                                 style={pickerSelectStyles}
@@ -745,7 +745,7 @@ export const EducationalDetails = ({ setLoading }) => {
                                                                 onPress={() => handleDegreeSelection(degreeId)}
                                                                 style={styles.chipClose}
                                                             >
-                                                                <Ionicons name="close" size={16} color="#fff" />
+                                                                <Ionicons name="close" size={14} color="#fff" />
                                                             </TouchableOpacity>
                                                         </View>
                                                     );
@@ -788,12 +788,7 @@ export const EducationalDetails = ({ setLoading }) => {
                             value={formValues.personal_profession}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => (
-                                <Ionicons
-                                    name="chevron-down"
-                                    size={24}
-                                    color="gray"
-                                    style={{ marginTop: 10 }}
-                                />
+                                <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                             )}
                             placeholder={{ label: "Select Profession", value: null }}
                             style={pickerSelectStyles}
@@ -872,12 +867,7 @@ export const EducationalDetails = ({ setLoading }) => {
                             value={formValues.personal_ann_inc_id}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => (
-                                <Ionicons
-                                    name="chevron-down"
-                                    size={24}
-                                    color="gray"
-                                    style={{ marginTop: 10 }}
-                                />
+                                <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                             )}
                             placeholder={{ label: "Select Annual Income", value: null }}
                             style={pickerSelectStyles}
@@ -901,12 +891,7 @@ export const EducationalDetails = ({ setLoading }) => {
                             value={formValues.personal_work_coun_id}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => (
-                                <Ionicons
-                                    name="chevron-down"
-                                    size={24}
-                                    color="gray"
-                                    style={{ marginTop: 10 }}
-                                />
+                                <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                             )}
                             placeholder={{ label: "Select Country", value: null }}
                             style={pickerSelectStyles}
@@ -922,12 +907,7 @@ export const EducationalDetails = ({ setLoading }) => {
                                     value={formValues.personal_work_sta_id}
                                     useNativeAndroidPickerStyle={false}
                                     Icon={() => (
-                                        <Ionicons
-                                            name="chevron-down"
-                                            size={24}
-                                            color="gray"
-                                            style={{ marginTop: 10 }}
-                                        />
+                                        <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                                     )}
                                     placeholder={{ label: "Select State", value: null }}
                                     style={pickerSelectStyles}
@@ -949,12 +929,7 @@ export const EducationalDetails = ({ setLoading }) => {
                                         value={formValues.personal_work_district_id}
                                         useNativeAndroidPickerStyle={false}
                                         Icon={() => (
-                                            <Ionicons
-                                                name="chevron-down"
-                                                size={24}
-                                                color="gray"
-                                                style={{ marginTop: 10 }}
-                                            />
+                                            <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                                         )}
                                         placeholder={{ label: "Select District", value: null }}
                                         style={pickerSelectStyles}
@@ -989,12 +964,7 @@ export const EducationalDetails = ({ setLoading }) => {
                                         value={formValues.personal_work_city_id}
                                         useNativeAndroidPickerStyle={false}
                                         Icon={() => (
-                                            <Ionicons
-                                                name="chevron-down"
-                                                size={24}
-                                                color="gray"
-                                                style={{ marginTop: 10 }}
-                                            />
+                                            <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
                                         )}
                                         placeholder={{ label: "Select City", value: null }}
                                         style={pickerSelectStyles}
@@ -1040,12 +1010,9 @@ export const EducationalDetails = ({ setLoading }) => {
                         {validationErrors.personal_career_plans && <Text style={styles.error}>{validationErrors.personal_career_plans}</Text>}
 
                         <View style={styles.formContainer1}>
-                            <TouchableOpacity
-                                style={styles.btn}
-                                onPress={handleSave}
-                            >
+                            <TouchableOpacity style={styles.btn} onPress={handleSave}>
                                 <LinearGradient
-                                    colors={["#BD1225", "#FF4050"]}
+                                    colors={[Colors.primary, Colors.primary]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
                                     style={styles.linearGradient}
@@ -1061,45 +1028,27 @@ export const EducationalDetails = ({ setLoading }) => {
                     <View style={styles.editOptionsInner}>
                         {educationalDetails ? (
                             <>
-                                <Text style={styles.labelNew}>Education Level : <Text style={styles.valueNew}>{educationalDetails.personal_edu_name || "N/A"}</Text></Text>
-                                {educationalDetails.persoanl_field_ofstudy_name && (
-                                    <Text style={styles.labelNew}>Field of Study : <Text style={styles.valueNew}>{educationalDetails.persoanl_field_ofstudy_name || "N/A"}</Text></Text>
-                                )}
-                                {educationalDetails.persoanl_degree_name && (
-                                    <Text style={styles.labelNew}>Specific Field : <Text style={styles.valueNew}>{educationalDetails.persoanl_degree_name || "N/A"}</Text></Text>
-                                )}
-                                {educationalDetails.persoanl_edu_other && (
-                                    <Text style={styles.labelNew}>Other Education : <Text style={styles.valueNew}>{educationalDetails.persoanl_edu_other || "N/A"}</Text></Text>
-                                )}
-                                <Text style={styles.labelNew}>About Education : <Text style={styles.valueNew}>{educationalDetails.personal_about_edu || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Profession : <Text style={styles.valueNew}>{educationalDetails.personal_profession_name || "N/A"}</Text></Text>
-                                {educationalDetails.personal_company_name && (
-                                    <Text style={styles.labelNew}>Company Name : <Text style={styles.valueNew}>{educationalDetails.personal_company_name || "N/A"}</Text></Text>
-                                )}
-                                {educationalDetails.personal_designation && (
-                                    <Text style={styles.labelNew}>Designation : <Text style={styles.valueNew}>{educationalDetails.personal_designation || "N/A"}</Text></Text>
-                                )}
-                                {educationalDetails.personal_profess_details && (
-                                    <Text style={styles.labelNew}>Profession Details : <Text style={styles.valueNew}>{educationalDetails.personal_profess_details || "N/A"}</Text></Text>
-                                )}
-                                {educationalDetails.personal_business_name && (
-                                    <Text style={styles.labelNew}>Business Name : <Text style={styles.valueNew}>{educationalDetails.personal_business_name || "N/A"}</Text></Text>
-                                )}
-                                {educationalDetails.personal_business_addresss && (
-                                    <Text style={styles.labelNew}>Business Address : <Text style={styles.valueNew}>{educationalDetails.personal_business_addresss || "N/A"}</Text></Text>
-                                )}
-                                {educationalDetails.personal_nature_of_business && (
-                                    <Text style={styles.labelNew}>Nature of Business : <Text style={styles.valueNew}>{educationalDetails.personal_nature_of_business || "N/A"}</Text></Text>
-                                )}
-                                <Text style={styles.labelNew}>Gross Annual Income : <Text style={styles.valueNew}>{educationalDetails.personal_ann_inc_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Gross Income : <Text style={styles.valueNew}>{educationalDetails.personal_gross_ann_inc || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Work Country : <Text style={styles.valueNew}>{educationalDetails.personal_work_coun_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Work State : <Text style={styles.valueNew}>{educationalDetails.personal_work_sta_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Work District : <Text style={styles.valueNew}>{educationalDetails.personal_work_district || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Work City : <Text style={styles.valueNew}>{educationalDetails.personal_work_city_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Work Place : <Text style={styles.valueNew}>{educationalDetails.personal_work_place || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Work Pincode : <Text style={styles.valueNew}>{educationalDetails.personal_work_pin || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Career Plans : <Text style={styles.valueNew}>{educationalDetails.personal_career_plans || "N/A"}</Text></Text>
+                                {renderRow("Education Level", educationalDetails.personal_edu_name)}
+                                {renderRow("Field of Study", educationalDetails.persoanl_field_ofstudy_name)}
+                                {renderRow("Specific Field", educationalDetails.persoanl_degree_name)}
+                                {renderRow("Other Education", educationalDetails.persoanl_edu_other)}
+                                {renderRow("About Education", educationalDetails.personal_about_edu)}
+                                {renderRow("Profession", educationalDetails.personal_profession_name)}
+                                {renderRow("Company Name", educationalDetails.personal_company_name)}
+                                {renderRow("Designation", educationalDetails.personal_designation)}
+                                {renderRow("Profession Details", educationalDetails.personal_profess_details)}
+                                {renderRow("Business Name", educationalDetails.personal_business_name)}
+                                {renderRow("Business Address", educationalDetails.personal_business_addresss)}
+                                {renderRow("Nature of Business", educationalDetails.personal_nature_of_business)}
+                                {renderRow("Gross Annual Income", educationalDetails.personal_ann_inc_name)}
+                                {renderRow("Gross Income", educationalDetails.personal_gross_ann_inc)}
+                                {renderRow("Work Country", educationalDetails.personal_work_coun_name)}
+                                {renderRow("Work State", educationalDetails.personal_work_sta_name)}
+                                {renderRow("Work District", educationalDetails.personal_work_district)}
+                                {renderRow("Work City", educationalDetails.personal_work_city_name)}
+                                {renderRow("Work Place", educationalDetails.personal_work_place)}
+                                {renderRow("Work Pincode", educationalDetails.personal_work_pin)}
+                                {renderRow("Career Plans", educationalDetails.personal_career_plans)}
                             </>
                         ) : null}
                     </View>
@@ -1112,76 +1061,102 @@ export const EducationalDetails = ({ setLoading }) => {
 const styles = StyleSheet.create({
     menuChanges: {
         width: '100%',
-        backgroundColor: '#F4F4F4',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: Colors.selectedBg,
     },
-    editOptions: {
-        width: '92%',
-        backgroundColor: '#ffffff',
+    card: {
+        backgroundColor: Colors.cardBackground,
+        borderRadius: 18,
         padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-        marginTop: 12,
-        shadowColor: '#000',
+        marginBottom: 4,
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
     },
-    editOptionsInner: {
-        width: '100%',
-    },
-    sectionHeaderRow: {
+    cardHeaderRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
+        gap: 8,
     },
-    sectionHeaderTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#282C3F',
+    sectionIconCircle: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: Colors.iconContainerBg,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    sectionDivider: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#EDEDED',
+    cardSectionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.textDark,
+        fontFamily: 'serif',
+        flex: 1,
+    },
+    editPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 14,
+        backgroundColor: Colors.iconContainerBg,
+    },
+    editPillText: {
+        color: Colors.primary,
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    editOptionsInner: {
         width: '100%',
-        marginBottom: 4,
-    },
-    redText: {
-        color: "#ED1E24",
-        fontSize: 14,
-        fontWeight: "700",
-        marginVertical: 10,
-        alignSelf: "flex-end",
+        marginTop: 4,
     },
     labelNew: {
-        color: '#282C3F',
-        fontSize: 15,
-        fontWeight: 'bold',
-        marginBottom: 5,
-        marginTop: 7,
+        color: Colors.textDark,
+        fontSize: 14,
+        fontWeight: '700',
+        marginBottom: 6,
+        marginTop: 10,
     },
-    valueNew: {
-        color: '#282C3F',
-        fontSize: 15,
+    rowItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.chipInactiveBg,
+    },
+    rowLabel: {
+        fontSize: 13,
+        color: Colors.textMuted,
+        flex: 1,
+    },
+    rowValue: {
+        fontSize: 13,
         fontWeight: '500',
+        color: Colors.textDark,
+        flex: 1.2,
+        textAlign: 'right',
     },
     input: {
-        height: 50,
+        height: 48,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        marginBottom: 15,
-        fontSize: 16,
+        borderColor: Colors.border,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        marginBottom: 10,
+        fontSize: 15,
+        color: Colors.textDark,
+        backgroundColor: Colors.surface,
     },
     error: {
-        color: 'red',
+        color: Colors.destructive,
         fontSize: 12,
-        marginTop: 4,
+        marginTop: 2,
+        marginBottom: 6,
         alignSelf: 'flex-start',
-        fontWeight: 'bold',
+        fontWeight: '600',
     },
     loginContainer: {
         flexDirection: "row",
@@ -1191,37 +1166,33 @@ const styles = StyleSheet.create({
     login: {
         textAlign: "center",
         color: "white",
-        fontWeight: "600",
-        fontSize: 16,
-        letterSpacing: 1,
-        marginRight: 5,
+        fontWeight: "700",
+        fontSize: 15,
+        letterSpacing: 0.4,
     },
     formContainer1: {
         width: "100%",
-        paddingHorizontal: 0,
-        marginTop: 10,
+        marginTop: 12,
     },
     linearGradient: {
-        borderRadius: 5,
+        borderRadius: 22,
         justifyContent: "center",
-        padding: 15,
+        padding: 14,
     },
     btn: {
         width: "100%",
         alignSelf: "center",
-        borderRadius: 6,
-        marginBottom: 10,
+        borderRadius: 22,
     },
     selectedChipsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         marginBottom: 10,
-        padding: 5,
     },
     chip: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'gray',
+        backgroundColor: Colors.matchingcirclecolor,
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 16,
@@ -1229,7 +1200,7 @@ const styles = StyleSheet.create({
     },
     chipText: {
         color: '#fff',
-        fontSize: 14,
+        fontSize: 13,
         marginRight: 6,
     },
     chipClose: {
@@ -1241,29 +1212,33 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     dropdownContainer: {
-        marginBottom: 15,
+        marginBottom: 10,
     },
 });
 
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-        fontSize: 16,
+        fontSize: 15,
         paddingVertical: 12,
-        paddingHorizontal: 10,
+        paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 4,
-        color: 'black',
+        borderColor: Colors.border,
+        borderRadius: 12,
+        color: Colors.textDark,
         paddingRight: 30,
+        marginBottom: 10,
+        backgroundColor: Colors.surface,
     },
     inputAndroid: {
-        fontSize: 16,
-        paddingVertical: 8,
-        paddingHorizontal: 10,
+        fontSize: 15,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 4,
-        color: 'black',
+        borderColor: Colors.border,
+        borderRadius: 12,
+        color: Colors.textDark,
         paddingRight: 30,
+        marginBottom: 10,
+        backgroundColor: Colors.surface,
     },
 });

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import {
     Ionicons,
+    FontAwesome5,
 } from "@expo/vector-icons";
 import { getMyHoroscopeDetails, updateProfileHoroscope, fetchRasiImage, fetchAmsamImage } from '../../CommonApiCall/CommonApiCall';
 import RNPickerSelect from 'react-native-picker-select';
@@ -18,6 +19,7 @@ import axios from "axios";
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Colors } from "../../Reusable/Theme";
 
 export const HoroscopeDetails = ({ setLoading }) => {
     const [horoscopeDetails, setHoroscopeDetails] = useState(null);
@@ -378,18 +380,32 @@ export const HoroscopeDetails = ({ setLoading }) => {
         }
     };
 
+    // Helper to render a row in view mode
+    const renderRow = (label, value) => {
+        if (value === undefined || value === null || value === '') return null;
+        return (
+            <View style={styles.rowItem} key={label}>
+                <Text style={styles.rowLabel}>{label}</Text>
+                <Text style={styles.rowValue}>{value}</Text>
+            </View>
+        );
+    };
+
     return (
         <View style={styles.menuChanges}>
-            <View style={styles.editOptions}>
-                <View style={styles.sectionHeaderRow}>
-                    <Ionicons name="sparkles" size={20} color="#BD1225" style={{ marginRight: 8 }} />
-                    <Text style={styles.sectionHeaderTitle}>Horoscope Details</Text>
+            <View style={styles.card}>
+                <View style={styles.cardHeaderRow}>
+                    <View style={styles.sectionIconCircle}>
+                        <FontAwesome5 name="star" size={14} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.cardSectionTitle}>Horoscope Details</Text>
+                    <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
+                        <View style={styles.editPill}>
+                            <Ionicons name={isEditMode ? "eye-outline" : "create-outline"} size={14} color={Colors.primary} />
+                            <Text style={styles.editPillText}>{isEditMode ? 'View' : 'Edit'}</Text>
+                        </View>
+                    </TouchableWithoutFeedback>
                 </View>
-                <View style={styles.sectionDivider} />
-
-                <TouchableWithoutFeedback onPress={() => setIsEditMode(!isEditMode)}>
-                    <Text style={styles.redText}>{isEditMode ? 'View' : 'Edit'}</Text>
-                </TouchableWithoutFeedback>
 
                 {isEditMode ? (
                     <View style={styles.editOptionsInner}>
@@ -402,8 +418,8 @@ export const HoroscopeDetails = ({ setLoading }) => {
                             Icon={() => (
                                 <Ionicons
                                     name="chevron-down"
-                                    size={24}
-                                    color="gray"
+                                    size={22}
+                                    color={Colors.textMuted}
                                     style={{ marginTop: 10 }}
                                 />
                             )}
@@ -423,8 +439,8 @@ export const HoroscopeDetails = ({ setLoading }) => {
                             Icon={() => (
                                 <Ionicons
                                     name="chevron-down"
-                                    size={24}
-                                    color="gray"
+                                    size={22}
+                                    color={Colors.textMuted}
                                     style={{ marginTop: 10 }}
                                 />
                             )}
@@ -444,8 +460,8 @@ export const HoroscopeDetails = ({ setLoading }) => {
                             Icon={() => (
                                 <Ionicons
                                     name="chevron-down"
-                                    size={24}
-                                    color="gray"
+                                    size={22}
+                                    color={Colors.textMuted}
                                     style={{ marginTop: 10 }}
                                 />
                             )}
@@ -465,8 +481,8 @@ export const HoroscopeDetails = ({ setLoading }) => {
                             Icon={() => (
                                 <Ionicons
                                     name="chevron-down"
-                                    size={24}
-                                    color="gray"
+                                    size={22}
+                                    color={Colors.textMuted}
                                     style={{ marginTop: 10 }}
                                 />
                             )}
@@ -499,8 +515,8 @@ export const HoroscopeDetails = ({ setLoading }) => {
                                     Icon={() => (
                                         <Ionicons
                                             name="chevron-down"
-                                            size={24}
-                                            color="gray"
+                                            size={22}
+                                            color={Colors.textMuted}
                                             style={{ marginTop: 10 }}
                                         />
                                     )}
@@ -521,8 +537,8 @@ export const HoroscopeDetails = ({ setLoading }) => {
                                     Icon={() => (
                                         <Ionicons
                                             name="chevron-down"
-                                            size={24}
-                                            color="gray"
+                                            size={22}
+                                            color={Colors.textMuted}
                                             style={{ marginTop: 10 }}
                                         />
                                     )}
@@ -543,8 +559,8 @@ export const HoroscopeDetails = ({ setLoading }) => {
                                     Icon={() => (
                                         <Ionicons
                                             name="chevron-down"
-                                            size={24}
-                                            color="gray"
+                                            size={22}
+                                            color={Colors.textMuted}
                                             style={{ marginTop: 10 }}
                                         />
                                     )}
@@ -605,8 +621,8 @@ export const HoroscopeDetails = ({ setLoading }) => {
                             Icon={() => (
                                 <Ionicons
                                     name="chevron-down"
-                                    size={24}
-                                    color="gray"
+                                    size={22}
+                                    color={Colors.textMuted}
                                     style={{ marginTop: 10 }}
                                 />
                             )}
@@ -626,8 +642,8 @@ export const HoroscopeDetails = ({ setLoading }) => {
                             Icon={() => (
                                 <Ionicons
                                     name="chevron-down"
-                                    size={24}
-                                    color="gray"
+                                    size={22}
+                                    color={Colors.textMuted}
                                     style={{ marginTop: 10 }}
                                 />
                             )}
@@ -655,7 +671,7 @@ export const HoroscopeDetails = ({ setLoading }) => {
                                 onPress={handleSave}
                             >
                                 <LinearGradient
-                                    colors={["#BD1225", "#FF4050"]}
+                                    colors={[Colors.primary, Colors.primary]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
                                     style={styles.linearGradient}
@@ -671,19 +687,19 @@ export const HoroscopeDetails = ({ setLoading }) => {
                     <View style={styles.editOptionsInner}>
                         {horoscopeDetails ? (
                             <>
-                                <Text style={styles.labelNew}>Birth Star : <Text style={styles.valueNew}>{horoscopeDetails.personal_bthstar_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Padham : <Text style={styles.valueNew}>{horoscopeDetails.personal_padham || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Rasi : <Text style={styles.valueNew}>{horoscopeDetails.personal_bth_rasi_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Lagnam : <Text style={styles.valueNew}>{horoscopeDetails.personal_lagnam_didi_name || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Dasa Name : <Text style={styles.valueNew}>{horoscopeDetails.personal_dasa || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Dasa Balance : <Text style={styles.valueNew}>{horoscopeDetails.personal_dasa_bal || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Nallikai : <Text style={styles.valueNew}>{horoscopeDetails.personal_nalikai || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Didi : <Text style={styles.valueNew}>{horoscopeDetails.personal_didi || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Suya Gothram : <Text style={styles.valueNew}>{horoscopeDetails.personal_surya_goth || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Madhulam : <Text style={styles.valueNew}>{horoscopeDetails.personal_madulamn || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Ragu Dosham : <Text style={styles.valueNew}>{horoscopeDetails.personal_ragu_dos || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Chevvai Dosham : <Text style={styles.valueNew}>{horoscopeDetails.personal_chevvai_dos || "N/A"}</Text></Text>
-                                <Text style={styles.labelNew}>Horoscope Hints : <Text style={styles.valueNew}>{horoscopeDetails.personal_horoscope_hints || "N/A"}</Text></Text>
+                                {renderRow("Birth Star", horoscopeDetails.personal_bthstar_name)}
+                                {renderRow("Padham", horoscopeDetails.personal_padham)}
+                                {renderRow("Rasi", horoscopeDetails.personal_bth_rasi_name)}
+                                {renderRow("Lagnam", horoscopeDetails.personal_lagnam_didi_name)}
+                                {renderRow("Dasa Name", horoscopeDetails.personal_dasa)}
+                                {renderRow("Dasa Balance", horoscopeDetails.personal_dasa_bal)}
+                                {renderRow("Nallikai", horoscopeDetails.personal_nalikai)}
+                                {renderRow("Didi", horoscopeDetails.personal_didi)}
+                                {renderRow("Suya Gothram", horoscopeDetails.personal_surya_goth)}
+                                {renderRow("Madhulam", horoscopeDetails.personal_madulamn)}
+                                {renderRow("Ragu Dosham", horoscopeDetails.personal_ragu_dos)}
+                                {renderRow("Chevvai Dosham", horoscopeDetails.personal_chevvai_dos)}
+                                {renderRow("Horoscope Hints", horoscopeDetails.personal_horoscope_hints)}
 
                                 {rasiGrid.length >= 4 && (
                                     <View style={styles.horoscopeSection}>
@@ -780,76 +796,102 @@ export const HoroscopeDetails = ({ setLoading }) => {
 const styles = StyleSheet.create({
     menuChanges: {
         width: '100%',
-        backgroundColor: '#F4F4F4',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: Colors.selectedBg,
     },
-    editOptions: {
-        width: '92%',
-        backgroundColor: '#ffffff',
+    card: {
+        backgroundColor: Colors.cardBackground,
+        borderRadius: 18,
         padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-        marginTop: 12,
-        shadowColor: '#000',
+        marginBottom: 4,
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
     },
-    editOptionsInner: {
-        width: '100%',
-    },
-    sectionHeaderRow: {
+    cardHeaderRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
+        gap: 8,
     },
-    sectionHeaderTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#282C3F',
+    sectionIconCircle: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: Colors.iconContainerBg,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    sectionDivider: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#EDEDED',
+    cardSectionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.textDark,
+        fontFamily: 'serif',
+        flex: 1,
+    },
+    editPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 14,
+        backgroundColor: Colors.iconContainerBg,
+    },
+    editPillText: {
+        color: Colors.primary,
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    editOptionsInner: {
         width: '100%',
-        marginBottom: 4,
-    },
-    redText: {
-        color: "#ED1E24",
-        fontSize: 14,
-        fontWeight: "700",
-        marginVertical: 10,
-        alignSelf: "flex-end",
+        marginTop: 4,
     },
     labelNew: {
-        color: '#282C3F',
-        fontSize: 15,
-        fontWeight: 'bold',
-        marginBottom: 5,
-        marginTop: 7,
+        color: Colors.textDark,
+        fontSize: 14,
+        fontWeight: '700',
+        marginBottom: 6,
+        marginTop: 10,
     },
-    valueNew: {
-        color: '#282C3F',
-        fontSize: 15,
+    rowItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.chipInactiveBg,
+    },
+    rowLabel: {
+        fontSize: 13,
+        color: Colors.textMuted,
+        flex: 1,
+    },
+    rowValue: {
+        fontSize: 13,
         fontWeight: '500',
+        color: Colors.textDark,
+        flex: 1.2,
+        textAlign: 'right',
     },
     input: {
-        height: 50,
+        height: 48,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        marginBottom: 15,
-        fontSize: 16,
+        borderColor: Colors.border,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        marginBottom: 10,
+        fontSize: 15,
+        color: Colors.textDark,
+        backgroundColor: Colors.surface,
     },
     error: {
-        color: 'red',
+        color: Colors.destructive,
         fontSize: 12,
-        marginTop: 4,
+        marginTop: 2,
+        marginBottom: 6,
         alignSelf: 'flex-start',
-        fontWeight: 'bold',
+        fontWeight: '600',
     },
     loginContainer: {
         flexDirection: "row",
@@ -859,26 +901,23 @@ const styles = StyleSheet.create({
     login: {
         textAlign: "center",
         color: "white",
-        fontWeight: "600",
-        fontSize: 16,
-        letterSpacing: 1,
-        marginRight: 5,
+        fontWeight: "700",
+        fontSize: 15,
+        letterSpacing: 0.4,
     },
     formContainer1: {
         width: "100%",
-        paddingHorizontal: 0,
-        marginTop: 10,
+        marginTop: 12,
     },
     linearGradient: {
-        borderRadius: 5,
+        borderRadius: 22,
         justifyContent: "center",
-        padding: 15,
+        padding: 14,
     },
     btn: {
         width: "100%",
         alignSelf: "center",
-        borderRadius: 6,
-        marginBottom: 10,
+        borderRadius: 22,
     },
     dropdownFlex: {
         flexDirection: "row",
@@ -957,7 +996,7 @@ const styles = StyleSheet.create({
     chartTitle: {
         fontSize: 17,
         fontWeight: "bold",
-        color: "#282C3F",
+        color: Colors.textDark,
         marginBottom: 6,
         alignSelf: "flex-start",
     },
@@ -965,23 +1004,27 @@ const styles = StyleSheet.create({
 
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-        fontSize: 16,
+        fontSize: 15,
         paddingVertical: 12,
-        paddingHorizontal: 10,
+        paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 4,
-        color: 'black',
+        borderColor: Colors.border,
+        borderRadius: 12,
+        color: Colors.textDark,
         paddingRight: 30,
+        marginBottom: 10,
+        backgroundColor: Colors.surface,
     },
     inputAndroid: {
-        fontSize: 16,
-        paddingVertical: 8,
-        paddingHorizontal: 10,
+        fontSize: 15,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 4,
-        color: 'black',
+        borderColor: Colors.border,
+        borderRadius: 12,
+        color: Colors.textDark,
         paddingRight: 30,
+        marginBottom: 10,
+        backgroundColor: Colors.surface,
     },
 });

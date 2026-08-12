@@ -36,14 +36,16 @@ import Toast from "react-native-toast-message";
 import { getMyEducationalDetails } from '../../CommonApiCall/CommonApiCall';
 import { TopAlignedImage } from '../../Components/ReuseImageAlign/TopAlignedImage';
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
+import { Colors } from "../../Reusable/Theme";
 
 // Responsive helpers
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_H } = Dimensions.get('window');
 const isTablet = SCREEN_WIDTH >= 768;
 const fs = (size) => isTablet ? Math.round(size * 1.3) : size;
+const verticalScale = (size) => (SCREEN_H / 812) * size;
 
-// Layout Constants
-const HERO_IMAGE_HEIGHT = isTablet ? 480 : 380;
+// Layout Constants — matches ProfileDetails hero sizing logic
+const HERO_IMAGE_HEIGHT = Math.max(340, Math.min(460, verticalScale(420)));
 const HEADER_HEIGHT = Platform.OS === 'ios' ? 90 : 70;
 const COMPACT_HEADER_HEIGHT = 64;
 const NAV_BAR_HEIGHT = 50;
@@ -111,7 +113,7 @@ const ShimmerLoader = () => {
     );
 };
 
-// Presentational helper for pill indicators
+// Presentational helper for pill indicators — restyled to match ProfileDetails statusChip look
 const InfoPillRow = ({ items }) => {
     const visible = items.filter((it) => it.value !== undefined && it.value !== null && it.value !== '');
     if (visible.length === 0) return null;
@@ -401,10 +403,10 @@ export const MyProfile = () => {
 
             <View style={styles.iconContainer}>
                 <TouchableOpacity style={styles.addIconWrapper} onPress={() => handleAddNewImage()}>
-                    <MaterialIcons name="add-circle" size={24} color="red" />
+                    <MaterialIcons name="add-circle" size={24} color={Colors.primary} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleImageUpload(item.id)}>
-                    <MaterialIcons name="edit" size={24} color="red" style={styles.editIcon} />
+                    <MaterialIcons name="edit" size={24} color={Colors.primary} style={styles.editIcon} />
                 </TouchableOpacity>
             </View>
         </View>
@@ -566,11 +568,14 @@ export const MyProfile = () => {
     return (
         <SafeAreaView style={styles.mainContainer}>
             <View style={styles.headerContainer}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIconBtn}>
-                    <Ionicons name="arrow-back" size={24} color="#ED1E24" />
-                </TouchableOpacity>
+                <Pressable
+                    style={({ pressed }) => [styles.headerIconBtn, pressed && styles.headerIconBtnPressed]}
+                    onPress={() => navigation.goBack()}
+                >
+                    <Ionicons name="arrow-back" size={22} color={Colors.textDark} />
+                </Pressable>
                 <Text style={styles.headerText} numberOfLines={1}>My Profile</Text>
-                <View style={{ width: 32 }} />
+                <View style={{ width: 40 }} />
             </View>
 
             <Animated.View
@@ -592,18 +597,18 @@ export const MyProfile = () => {
                         <Text style={styles.compactName} numberOfLines={1}>
                             {profileDetails?.personal_profile_name || ''}
                         </Text>
-                        <Ionicons name="shield-checkmark" size={14} color="#53C840" style={{ marginLeft: 6 }} />
+                        <Ionicons name="shield-checkmark" size={14} color={Colors.success} style={{ marginLeft: 6 }} />
                     </View>
                     <Text style={styles.compactSub} numberOfLines={1}>
                         {profileDetails?.profile_id} {profileDetails?.personal_age ? `• ${profileDetails.personal_age} yrs` : ''}
                     </Text>
                 </View>
-                <TouchableOpacity onPress={() => setShareModalVisible(true)} style={styles.compactActionBtn}>
-                    <Ionicons name="share-social" size={19} color="#ED1E24" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleDownloadPdf} style={styles.compactActionBtn}>
-                    <Ionicons name="print" size={19} color="#ED1E24" />
-                </TouchableOpacity>
+                <Pressable onPress={() => setShareModalVisible(true)} style={({ pressed }) => [styles.compactActionBtn, pressed && styles.iconButtonPressed]}>
+                    <Ionicons name="share-social" size={18} color={Colors.primary} />
+                </Pressable>
+                <Pressable onPress={handleDownloadPdf} style={({ pressed }) => [styles.compactActionBtn, pressed && styles.iconButtonPressed]}>
+                    <Ionicons name="print" size={18} color={Colors.primary} />
+                </Pressable>
             </Animated.View>
 
             <Animated.ScrollView
@@ -624,7 +629,7 @@ export const MyProfile = () => {
                 contentContainerStyle={{ paddingBottom: 30 }}
                 stickyHeaderIndices={[1]}
             >
-                <View style={{ backgroundColor: '#F4F4F4' }}>
+                <View style={{ backgroundColor: Colors.selectedBg }}>
                     <Animated.View
                         style={[
                             styles.heroWrapper,
@@ -662,7 +667,7 @@ export const MyProfile = () => {
                                                             {
                                                                 opacity: i === activeSlide ? 1 : 0.5,
                                                                 transform: [{ scale: i === activeSlide ? 1.25 : 0.8 }],
-                                                                backgroundColor: i === activeSlide ? '#ED1E24' : '#FFFFFF',
+                                                                backgroundColor: i === activeSlide ? Colors.primary : '#FFFFFF',
                                                             },
                                                         ]}
                                                     />
@@ -676,7 +681,9 @@ export const MyProfile = () => {
                                             style={styles.uploadWrapper}
                                             onPress={() => uploadImage(null)}
                                         >
-                                            <MaterialIcons name="add-photo-alternate" size={54} color="#888" />
+                                            <View style={styles.noPhotoIconCircle}>
+                                                <MaterialIcons name="add-photo-alternate" size={30} color={Colors.primary} />
+                                            </View>
                                             <Text style={styles.uploadText}>Upload Image</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -704,27 +711,32 @@ export const MyProfile = () => {
                                         <Ionicons
                                             name="shield-checkmark"
                                             size={18}
-                                            color="#53c840"
+                                            color={Colors.success}
                                             style={styles.verificationIcon}
                                         />
                                     </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={styles.actionButton}
+                                    <Pressable
+                                        style={({ pressed }) => [styles.actionButton, pressed && styles.iconButtonPressed]}
                                         onPress={() => setShareModalVisible(true)}
                                     >
                                         <Ionicons
                                             name="share-social"
                                             size={20}
-                                            color="#ED1E24"
+                                            color={Colors.primary}
                                         />
-                                    </TouchableOpacity>
+                                    </Pressable>
 
-                                    <TouchableOpacity style={{ alignItems: 'center' }} onPress={handleDownloadPdf}>
-                                        <Ionicons name="print" size={20} color="#ED1E24" />
-                                    </TouchableOpacity>
+                                    <Pressable
+                                        style={({ pressed }) => [{ alignItems: 'center' }, pressed && styles.iconButtonPressed]}
+                                        onPress={handleDownloadPdf}
+                                    >
+                                        <Ionicons name="print" size={20} color={Colors.primary} />
+                                    </Pressable>
                                 </View>
 
-                                <Text style={styles.profileNumber}>{profileDetails.profile_id}</Text>
+                                <View style={styles.profileCodeChip}>
+                                    <Text style={styles.profileCodeText}>{profileDetails.profile_id}</Text>
+                                </View>
 
                                 <View style={styles.planFlex}>
                                     {profileDetails.valid_upto &&
@@ -735,7 +747,7 @@ export const MyProfile = () => {
                                             onPress={() => navigation.navigate('PayNow')}
                                         >
                                             <LinearGradient
-                                                colors={["#BD1225", "#FF4050"]}
+                                                colors={[Colors.primary, Colors.primary]}
                                                 start={{ x: 0, y: 0 }}
                                                 end={{ x: 1, y: 1 }}
                                                 style={styles.renewButton}
@@ -784,7 +796,7 @@ export const MyProfile = () => {
                                     onPress={handleAddOnPackagePress}
                                 >
                                     <Text style={styles.completeText}>Add on packages</Text>
-                                    <Ionicons name="arrow-forward" size={18} color="#ED1E24" />
+                                    <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
                                 </Pressable>
 
                                 <InfoPillRow
@@ -792,29 +804,39 @@ export const MyProfile = () => {
                                         {
                                             label: 'age',
                                             value: profileDetails.personal_age ? `${profileDetails.personal_age} Yrs` : null,
-                                            icon: <MaterialCommunityIcons name="cake-variant-outline" size={14} color="#ED1E24" />,
+                                            icon: <MaterialCommunityIcons name="cake-variant-outline" size={14} color={Colors.primary} />,
                                         },
                                         {
                                             label: 'height',
                                             value: profileDetails.personal_profile_height?.height_desc,
-                                            icon: <MaterialCommunityIcons name="human-male-height" size={14} color="#ED1E24" />,
+                                            icon: <MaterialCommunityIcons name="human-male-height" size={14} color={Colors.primary} />,
                                         },
                                         {
                                             label: 'star',
                                             value: profileDetails.star,
-                                            icon: <MaterialCommunityIcons name="star-four-points-outline" size={14} color="#ED1E24" />,
+                                            icon: <MaterialCommunityIcons name="star-four-points-outline" size={14} color={Colors.primary} />,
                                         },
                                     ]}
                                 />
 
-                                <View style={styles.detailBlock}>
-                                    <View style={styles.detailRow}>
-                                        <FontAwesome5 name="briefcase" size={13} color="#85878C" style={styles.detailIcon} />
-                                        <Text style={styles.value} numberOfLines={1}>{profileDetails.prosession || '—'}</Text>
+                                <View style={styles.factsGrid}>
+                                    <View style={styles.factCardFull}>
+                                        <View style={styles.factIconBg}>
+                                            <FontAwesome5 name="briefcase" size={14} color={Colors.primary} />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.factLabel}>Profession</Text>
+                                            <Text style={styles.factValue} numberOfLines={1}>{profileDetails.prosession || '—'}</Text>
+                                        </View>
                                     </View>
-                                    <View style={styles.detailRow}>
-                                        <MaterialCommunityIcons name="school-outline" size={15} color="#85878C" style={styles.detailIcon} />
-                                        <Text style={styles.value} numberOfLines={1}>{profileDetails.heightest_education || '—'}</Text>
+                                    <View style={styles.factCardFull}>
+                                        <View style={styles.factIconBg}>
+                                            <MaterialCommunityIcons name="school-outline" size={16} color={Colors.primary} />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.factLabel}>Education</Text>
+                                            <Text style={styles.factValue} numberOfLines={1}>{profileDetails.heightest_education || '—'}</Text>
+                                        </View>
                                     </View>
                                 </View>
                             </>
@@ -859,16 +881,16 @@ export const MyProfile = () => {
                 <View style={styles.modalBackdrop}>
                     <View style={styles.shareModalCard}>
                         <View style={styles.modalHeader}>
-                            <Text style={{ fontSize: fs(18), fontWeight: 'bold', color: '#000' }}>Share Profile</Text>
+                            <Text style={{ fontSize: fs(18), fontWeight: '700', color: Colors.textDark, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>Share Profile</Text>
                             <TouchableOpacity onPress={() => setShareModalVisible(false)}>
-                                <Ionicons name="close" size={24} color="#000" />
+                                <Ionicons name="close" size={24} color={Colors.textDark} />
                             </TouchableOpacity>
                         </View>
                         <TouchableOpacity
                             style={styles.shareOptionBtn}
                             onPress={() => handleWhatsAppShare(true)}
                         >
-                            <Ionicons name="image" size={24} color="#ED1E24" />
+                            <Ionicons name="image" size={22} color={Colors.primary} />
                             <Text style={styles.shareOptionText}>Share with Image</Text>
                         </TouchableOpacity>
 
@@ -876,7 +898,7 @@ export const MyProfile = () => {
                             style={styles.shareOptionBtn}
                             onPress={() => handleWhatsAppShare(false)}
                         >
-                            <Ionicons name="document-text" size={24} color="#ED1E24" />
+                            <Ionicons name="document-text" size={22} color={Colors.primary} />
                             <Text style={styles.shareOptionText}>Share without Image</Text>
                         </TouchableOpacity>
                     </View>
@@ -895,10 +917,10 @@ export const MyProfile = () => {
                             style={{ alignSelf: 'flex-end' }}
                             onPress={() => setShowLanguagePopup(false)}
                         >
-                            <Ionicons name="close" size={24} color="black" />
+                            <Ionicons name="close" size={24} color={Colors.textDark} />
                         </TouchableOpacity>
 
-                        <Text style={{ fontSize: fs(18), fontWeight: 'bold', textAlign: 'center', marginBottom: 20 }}>
+                        <Text style={{ fontSize: fs(18), fontWeight: '700', textAlign: 'center', marginBottom: 20, color: Colors.textDark, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
                             Select Language
                         </Text>
 
@@ -909,9 +931,9 @@ export const MyProfile = () => {
                             >
                                 <MaterialIcons
                                     name={selectedPdfLanguage === "english" ? "radio-button-checked" : "radio-button-unchecked"}
-                                    size={24} color="#BD1225"
+                                    size={24} color={Colors.primary}
                                 />
-                                <Text style={{ fontSize: fs(16), marginLeft: 10 }}>English</Text>
+                                <Text style={{ fontSize: fs(16), marginLeft: 10, color: Colors.textDark }}>English</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -920,17 +942,17 @@ export const MyProfile = () => {
                             >
                                 <MaterialIcons
                                     name={selectedPdfLanguage === "tamil" ? "radio-button-checked" : "radio-button-unchecked"}
-                                    size={24} color="#BD1225"
+                                    size={24} color={Colors.primary}
                                 />
-                                <Text style={{ fontSize: fs(16), marginLeft: 10 }}>Tamil</Text>
+                                <Text style={{ fontSize: fs(16), marginLeft: 10, color: Colors.textDark }}>Tamil</Text>
                             </TouchableOpacity>
                         </View>
 
                         <TouchableOpacity
-                            style={{ backgroundColor: '#BD1225', padding: 12, borderRadius: 8 }}
+                            style={styles.submitBtnRed}
                             onPress={handlePdfSubmit}
                         >
-                            <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>Submit</Text>
+                            <Text style={styles.submitBtnText}>Submit</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -940,7 +962,7 @@ export const MyProfile = () => {
 
             {loading && (
                 <View style={styles.loadingOverlay}>
-                    <ActivityIndicator size="large" color="#ED1E24" />
+                    <ActivityIndicator size="large" color={Colors.primary} />
                 </View>
             )}
         </SafeAreaView>
@@ -950,25 +972,35 @@ export const MyProfile = () => {
 const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
-        backgroundColor: "#F4F4F4",
+        backgroundColor: Colors.selectedBg,
     },
     headerContainer: {
         position: 'relative',
         paddingHorizontal: 15,
         borderBottomWidth: 1,
-        borderBottomColor: "#E5E5E5",
+        borderBottomColor: Colors.border,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        backgroundColor: "#fff",
+        backgroundColor: Colors.selectedBg,
         zIndex: 25,
         elevation: 6,
-        paddingTop: Platform.OS === 'ios' ? 10 : 10,
+        paddingTop: 10,
         height: HEADER_HEIGHT,
     },
     headerIconBtn: {
-        padding: 6,
+        width: 40,
+        height: 40,
         borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0,0,0,0.04)',
+    },
+    headerIconBtnPressed: {
+        backgroundColor: 'rgba(0,0,0,0.08)',
+    },
+    iconButtonPressed: {
+        opacity: 0.6,
     },
     compactProfileBar: {
         position: 'absolute',
@@ -976,9 +1008,9 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         zIndex: 20,
-        backgroundColor: '#fff',
+        backgroundColor: Colors.cardBackground,
         borderBottomWidth: 1,
-        borderBottomColor: '#EFEFEF',
+        borderBottomColor: Colors.border,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 15,
@@ -994,29 +1026,35 @@ const styles = StyleSheet.create({
         width: 42,
         height: 42,
         borderRadius: 21,
-        backgroundColor: '#eee',
+        backgroundColor: Colors.chipInactiveBg,
         borderWidth: 1.5,
-        borderColor: '#F0C4C4',
+        borderColor: Colors.primaryContainer,
     },
     compactName: {
-        color: '#282C3F',
+        color: Colors.textDark,
         fontSize: fs(15),
         fontWeight: '800',
     },
     compactSub: {
-        color: '#85878C',
+        color: Colors.textMuted,
         fontSize: fs(12),
         marginTop: 2,
         fontWeight: '500',
     },
     compactActionBtn: {
         marginLeft: 10,
-        padding: 6,
-        borderRadius: 18,
-        backgroundColor: '#FFF1F1',
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: Colors.iconContainerBg,
     },
     heroWrapper: {
         zIndex: 1,
+        borderBottomLeftRadius: 28,
+        borderBottomRightRadius: 28,
+        overflow: 'hidden',
     },
     heroBottomFade: {
         position: 'absolute',
@@ -1026,18 +1064,19 @@ const styles = StyleSheet.create({
         height: 90,
     },
     headerText: {
-        color: "#000000",
+        color: Colors.textDark,
         fontSize: fs(18),
-        fontWeight: "bold",
+        fontWeight: "700",
         flex: 1,
         textAlign: "center",
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
     },
     summaryCard: {
         width: "100%",
         marginTop: -18,
         paddingHorizontal: 16,
-        paddingVertical: 16,
-        backgroundColor: '#FFFFFF',
+        paddingVertical: 18,
+        backgroundColor: Colors.cardBackground,
         borderTopLeftRadius: 22,
         borderTopRightRadius: 22,
         zIndex: 2,
@@ -1059,10 +1098,11 @@ const styles = StyleSheet.create({
         zIndex: 999,
     },
     name: {
-        color: "#282C3F",
+        color: Colors.textDark,
         fontSize: fs(21),
-        fontWeight: "800",
+        fontWeight: "700",
         flexShrink: 1,
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
     },
     nameIconFlex: {
         flexDirection: "row",
@@ -1078,18 +1118,20 @@ const styles = StyleSheet.create({
     actionButton: {
         marginLeft: 'auto',
     },
-    profileNumber: {
-        fontSize: fs(14),
-        fontWeight: "700",
-        color: "#ED1E24",
+    profileCodeChip: {
+        alignSelf: 'flex-start',
+        backgroundColor: Colors.iconContainerBg,
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 10,
         marginBottom: 12,
-        marginTop: 2,
-        alignSelf: "flex-start",
-        backgroundColor: '#FFF1F1',
-        paddingHorizontal: 10,
-        paddingVertical: 3,
-        borderRadius: 8,
-        overflow: 'hidden',
+        marginTop: 4,
+    },
+    profileCodeText: {
+        fontSize: fs(13),
+        fontWeight: "700",
+        color: Colors.primary,
+        letterSpacing: 0.3,
     },
     planFlex: {
         flexDirection: "row",
@@ -1098,7 +1140,7 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
     },
     goldLinearGradient: {
-        borderRadius: 5,
+        borderRadius: 8,
         justifyContent: "center",
         alignItems: "center",
         padding: 5,
@@ -1106,7 +1148,7 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     goldText: {
-        color: "#202332",
+        color: Colors.onPrimaryContainer,
         fontSize: fs(14),
         fontWeight: "700",
     },
@@ -1116,18 +1158,16 @@ const styles = StyleSheet.create({
     date: {
         fontSize: fs(13),
         fontWeight: "700",
-        color: "#535665",
+        color: Colors.textMuted,
     },
     pillRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FAFAFA',
-        borderRadius: 12,
+        backgroundColor: Colors.snapshotbg,
+        borderRadius: 25,
         paddingVertical: 10,
         paddingHorizontal: 12,
         marginTop: 14,
-        borderWidth: 1,
-        borderColor: '#EFEFEF',
     },
     pillItem: {
         flexDirection: 'row',
@@ -1137,31 +1177,45 @@ const styles = StyleSheet.create({
     pillText: {
         fontSize: fs(13.5),
         fontWeight: '700',
-        color: '#282C3F',
+        color: Colors.textDark,
         marginLeft: 4,
     },
     pillDivider: {
         width: 1,
         height: 14,
-        backgroundColor: '#E0E0E0',
+        backgroundColor: Colors.border,
         marginHorizontal: 12,
     },
-    detailBlock: {
-        marginTop: 14,
-        gap: 10,
+    factsGrid: {
+        marginTop: 12,
+        gap: 8,
     },
-    detailRow: {
+    factCardFull: {
+        width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: Colors.snapshotbg,
+        padding: 10,
+        borderRadius: 25,
+        gap: 8,
     },
-    detailIcon: {
-        width: 20,
+    factIconBg: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: Colors.cardBackground,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    value: {
-        color: "#282C3F",
-        fontSize: fs(14),
-        fontWeight: "600",
-        flex: 1,
+    factLabel: {
+        fontSize: 10,
+        color: Colors.textMuted,
+    },
+    factValue: {
+        fontSize: 12,
+        fontWeight: '500',
+        color: Colors.textDark,
+        marginTop: 1,
     },
     completeTextFlex: {
         flexDirection: "row",
@@ -1170,9 +1224,10 @@ const styles = StyleSheet.create({
         marginVertical: 10,
     },
     completeText: {
-        color: "#ED1E24",
+        color: Colors.primary,
         fontSize: fs(14),
         fontWeight: "600",
+        marginRight: 4,
     },
     image: {
         width: "100%",
@@ -1214,7 +1269,7 @@ const styles = StyleSheet.create({
         right: 12,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.92)',
+        backgroundColor: 'rgba(250, 246, 240, 0.92)',
         borderRadius: 20,
         paddingHorizontal: 8,
         paddingVertical: 4,
@@ -1244,7 +1299,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     renewButton: {
-        borderRadius: 6,
+        borderRadius: 20,
         paddingVertical: 6,
         paddingHorizontal: 12,
         minWidth: 100,
@@ -1260,22 +1315,33 @@ const styles = StyleSheet.create({
         height: HERO_IMAGE_HEIGHT,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#EAEAEA',
+        backgroundColor: Colors.surface1,
     },
     uploadWrapper: {
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
     },
+    noPhotoIconCircle: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
     uploadText: {
-        marginTop: 10,
+        marginTop: 4,
         fontSize: fs(15),
-        color: '#666',
+        color: Colors.textMuted,
         fontWeight: '600',
     },
     shimmerContainer: {
         flex: 1,
-        backgroundColor: '#F4F4F4',
+        backgroundColor: Colors.selectedBg,
     },
     shimmerHero: {
         width: '100%',
@@ -1283,8 +1349,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#E0E0E0',
     },
     shimmerCard: {
-        backgroundColor: '#FFF',
-        borderRadius: 12,
+        backgroundColor: Colors.cardBackground,
+        borderRadius: 18,
         padding: 16,
         marginHorizontal: 16,
         marginTop: 16,
@@ -1306,8 +1372,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     shareModalCard: {
-        backgroundColor: 'white',
-        borderRadius: 15,
+        backgroundColor: Colors.cardBackground,
+        borderRadius: 18,
         padding: 20,
         width: '85%',
         alignItems: 'center',
@@ -1324,29 +1390,40 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 14,
         borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 10,
+        borderColor: Colors.border,
+        borderRadius: 14,
         marginVertical: 6,
         width: '100%',
+        gap: 12,
     },
     shareOptionText: {
-        marginLeft: 15,
         fontSize: fs(15),
-        color: '#000',
+        color: Colors.textDark,
         fontWeight: '500',
     },
     languageModalCard: {
-        backgroundColor: 'white',
+        backgroundColor: Colors.cardBackground,
         width: '85%',
-        borderRadius: 10,
+        borderRadius: 18,
         padding: 20,
     },
+    submitBtnRed: {
+        backgroundColor: Colors.primary,
+        borderRadius: 20,
+        paddingVertical: 12,
+        alignItems: 'center',
+    },
+    submitBtnText: {
+        color: '#FFFFFF',
+        fontWeight: '700',
+        fontSize: 14,
+    },
     stickyNavWrapper: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: Colors.cardBackground,
         zIndex: 100,
         elevation: 8,
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
+        borderBottomColor: Colors.border,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.08,
@@ -1355,8 +1432,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     sectionsBody: {
-        backgroundColor: '#F4F4F4',
-        paddingHorizontal: 12,
+        backgroundColor: Colors.selectedBg,
+        paddingHorizontal: 16,
         paddingTop: 12,
         gap: 12,
     },
