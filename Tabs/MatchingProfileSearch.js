@@ -419,52 +419,96 @@ const MatchingProfileSearch = () => {
           {showSearchFields ? (
             <>
               {/* Search Input */}
-              <View style={[styles.inputContainer, { marginTop: 15, height: 45 }]}>
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search by name or ID..."
-                  placeholderTextColor={Colors.textMuted}
-                  value={searchProfileId}
-                  onChangeText={setSearchProfileId}
-                />
+              <View style={styles.fieldWrapper}>
+                <Text style={styles.fieldLabel}>Search by Name or ID</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons
+                    name="search"
+                    size={18}
+                    color={Colors.textMuted}
+                    style={styles.fieldIcon}
+                  />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search by name or ID..."
+                    placeholderTextColor={Colors.textMuted}
+                    value={searchProfileId}
+                    onChangeText={setSearchProfileId}
+                  />
+                </View>
               </View>
 
               {/* Profession */}
-              <View style={styles.inputContainer}>
-                <Picker selectedValue={profession} onValueChange={setProfession} style={styles.picker}>
-                  <Picker.Item label="Profession" value="" enabled={false} />
-                  {Get_Profes_Pref.map((p) => (
-                    <Picker.Item
-                      key={p.Profes_Pref_id}
-                      label={p.Profes_name}
-                      value={p.Profes_Pref_id}
-                    />
-                  ))}
-                </Picker>
+              <View style={styles.fieldWrapper}>
+                <Text style={styles.fieldLabel}>Profession</Text>
+                <View style={styles.pickerContainer}>
+                  <MaterialIcons
+                    name="work-outline"
+                    size={18}
+                    color={Colors.textMuted}
+                    style={styles.fieldIcon}
+                  />
+                  <Picker
+                    selectedValue={profession}
+                    onValueChange={setProfession}
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="Profession" value="" enabled={false} />
+                    {Get_Profes_Pref.map((p) => (
+                      <Picker.Item
+                        key={p.Profes_Pref_id}
+                        label={p.Profes_name}
+                        value={p.Profes_Pref_id}
+                      />
+                    ))}
+                  </Picker>
+                </View>
               </View>
 
               {/* Age Difference */}
-              <View style={styles.inputContainer}>
-                <Picker selectedValue={selectAge} onValueChange={setSelectAge} style={styles.picker}>
-                  <Picker.Item label="Age Difference" value="" enabled={false} />
-                  {[...Array(10).keys()].map((num) => (
-                    <Picker.Item key={num + 1} label={`${num + 1}`} value={`${num + 1}`} />
-                  ))}
-                </Picker>
+              <View style={styles.fieldWrapper}>
+                <Text style={styles.fieldLabel}>Age Difference</Text>
+                <View style={styles.pickerContainer}>
+                  <MaterialIcons
+                    name="cake"
+                    size={18}
+                    color={Colors.textMuted}
+                    style={styles.fieldIcon}
+                  />
+                  <Picker
+                    selectedValue={selectAge}
+                    onValueChange={setSelectAge}
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="Age Difference" value="" enabled={false} />
+                    {[...Array(10).keys()].map((num) => (
+                      <Picker.Item key={num + 1} label={`${num + 1}`} value={`${num + 1}`} />
+                    ))}
+                  </Picker>
+                </View>
               </View>
 
               {/* Location */}
-              <View style={styles.inputContainer}>
-                <Picker
-                  selectedValue={selectedLocation}
-                  onValueChange={setSelectedLocation}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="Location" value="" enabled={false} />
-                  {states.map((s) => (
-                    <Picker.Item key={s.State_Pref_id} label={s.State_name} value={s.State_Pref_id} />
-                  ))}
-                </Picker>
+              <View style={styles.fieldWrapper}>
+                <Text style={styles.fieldLabel}>Location</Text>
+                <View style={styles.pickerContainer}>
+                  <Ionicons
+                    name="location-outline"
+                    size={18}
+                    color={Colors.textMuted}
+                    style={styles.fieldIcon}
+                  />
+                  <Picker
+                    selectedValue={selectedLocation}
+                    onValueChange={setSelectedLocation}
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="Location" value="" enabled={false} />
+                    {states.map((s) => (
+                      <Picker.Item key={s.State_Pref_id} label={s.State_name} value={s.State_Pref_id} />
+                    ))}
+                  </Picker>
+                </View>
               </View>
 
               {/* Search / Clear */}
@@ -589,26 +633,68 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.80)",
     marginTop: 2,
   },
+
+  // ── Unified rounded field styling ──────────────────────────────────────
+  fieldWrapper: {
+    marginTop: 14,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: Colors.textMuted || "#71717A",
+    marginBottom: 6,
+    marginLeft: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  fieldIcon: {
+    marginLeft: 14,
+    marginRight: 8,
+  },
   inputContainer: {
-    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    height: 48,
     borderWidth: 1,
     borderColor: Colors.border || "#E4E4E7",
-    borderRadius: 12,
+    borderRadius: 16,
     backgroundColor: Colors.card || "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  pickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 52,
+    borderWidth: 1,
+    borderColor: Colors.border || "#E4E4E7",
+    borderRadius: 16,
+    backgroundColor: Colors.card || "#FFFFFF",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
   picker: {
-    height: 55,
+    flex: 1,
+    height: 52,
     justifyContent: "center",
-    paddingHorizontal: 10,
-    backgroundColor: Colors.card || "#FFFFFF",
-    fontSize: 14,
+    color: Colors.textDark,
+    backgroundColor: "transparent",
   },
   searchInput: {
-    height: 40,
-    paddingHorizontal: 10,
-    fontSize: 16,
+    flex: 1,
+    height: 48,
+    paddingRight: 14,
+    fontSize: 15,
     color: Colors.textDark,
   },
+
   profileScrollView: {
     width: "100%",
     paddingHorizontal: rs(12, 14, 16),
@@ -752,14 +838,14 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
+    marginTop: 18,
   },
   selectedFiltersContainer: {
     marginTop: 10,
     marginBottom: 4,
-    padding: 10,
+    padding: 12,
     backgroundColor: Colors.surface1 || "#F6EFE5",
-    borderRadius: 12,
+    borderRadius: 16,
   },
   selectedFiltersTitle: {
     fontSize: 15,
@@ -781,8 +867,8 @@ const styles = StyleSheet.create({
   filterTagText: { color: "#FFFFFF", fontSize: 13 },
   button: { flex: 1, marginHorizontal: 5 },
   linearGradient: {
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: 12,
+    borderRadius: 16,
     alignItems: "center",
   },
   buttonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "bold" },
