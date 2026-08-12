@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,6 +9,8 @@ import {
   TouchableWithoutFeedback,
   Platform,
   Dimensions,
+  Animated,
+  Easing,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -46,6 +48,101 @@ const C = {
   text: "#1A1A1A",
   sub: "#888888",
   verified: "#2ECC71",
+};
+
+// ── Shimmer Loader Component ──────────────────────────────────────────────────
+const DashboardShimmer = () => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [animatedValue]);
+
+  const opacity = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      {/* Title Shimmer */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 }}>
+        <Animated.View style={[styles.shimmerBar, { opacity, width: 120, height: 22 }]} />
+      </View>
+
+      {/* Profile Header Card Shimmer */}
+      <View style={styles.profileHeaderCard}>
+        <View style={styles.profileHeaderRow}>
+          <Animated.View style={[styles.shimmerCircle, { opacity, width: 75, height: 75, borderRadius: 25, marginRight: 12 }]} />
+          <View style={{ flex: 1 }}>
+            <Animated.View style={[styles.shimmerBar, { opacity, width: "60%", height: 18, marginBottom: 8 }]} />
+            <Animated.View style={[styles.shimmerBar, { opacity, width: "40%", height: 14, marginBottom: 8 }]} />
+            <Animated.View style={[styles.shimmerBar, { opacity, width: "50%", height: 20, borderRadius: 10 }]} />
+          </View>
+        </View>
+      </View>
+
+      {/* Profile Completion Box Shimmer */}
+      <View style={styles.profileCompletion}>
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+          <Animated.View style={[styles.shimmerCircle, { opacity, width: 56, height: 56, borderRadius: 28, marginRight: 12 }]} />
+          <View style={{ flex: 1 }}>
+            <Animated.View style={[styles.shimmerBar, { opacity, width: "70%", height: 16, marginBottom: 8 }]} />
+            <Animated.View style={[styles.shimmerBar, { opacity, width: "90%", height: 12 }]} />
+          </View>
+        </View>
+        <Animated.View style={[styles.shimmerBar, { opacity, width: "100%", height: 42, borderRadius: 10 }]} />
+      </View>
+
+      {/* Summary Title Shimmer */}
+      <View style={{ paddingHorizontal: 14, marginBottom: 10 }}>
+        <Animated.View style={[styles.shimmerBar, { opacity, width: 90, height: 18 }]} />
+      </View>
+
+      {/* Summary Cards Grid Shimmer */}
+      <View style={styles.summaryGrid}>
+        <Animated.View style={[styles.shimmerBar, { opacity, width: "100%", height: 110, borderRadius: 20 }]} />
+        <View style={styles.summaryRow}>
+          <Animated.View style={[styles.shimmerBar, { opacity, flex: 1, height: 90, borderRadius: 20 }]} />
+          <Animated.View style={[styles.shimmerBar, { opacity, flex: 1, height: 90, borderRadius: 20 }]} />
+        </View>
+      </View>
+
+      {/* Statistics Shimmer */}
+      <View style={styles.section}>
+        <Animated.View style={[styles.shimmerBar, { opacity, width: 100, height: 18, marginBottom: 10 }]} />
+        <View style={styles.statsRow}>
+          <Animated.View style={[styles.shimmerBar, { opacity, flex: 1, height: 85, borderRadius: 14 }]} />
+          <Animated.View style={[styles.shimmerBar, { opacity, flex: 1, height: 85, borderRadius: 14 }]} />
+          <Animated.View style={[styles.shimmerBar, { opacity, flex: 1, height: 85, borderRadius: 14 }]} />
+        </View>
+      </View>
+
+      {/* Quick Actions Shimmer */}
+      <View style={styles.section}>
+        <Animated.View style={[styles.shimmerBar, { opacity, width: 120, height: 18, marginBottom: 10 }]} />
+        <View style={styles.qaGrid}>
+          <Animated.View style={[styles.shimmerBar, { opacity, width: (SCREEN_WIDTH - 28 - 10) / 2 - 0.5, height: 80, borderRadius: 14 }]} />
+          <Animated.View style={[styles.shimmerBar, { opacity, width: (SCREEN_WIDTH - 28 - 10) / 2 - 0.5, height: 80, borderRadius: 14 }]} />
+        </View>
+      </View>
+    </ScrollView>
+  );
 };
 
 export const DashBoard = () => {
@@ -158,7 +255,6 @@ export const DashBoard = () => {
         </View>
       </View>
     </View>
-
   );
 
   const renderProfileCompletion = () => (
@@ -214,27 +310,21 @@ export const DashBoard = () => {
         </TouchableOpacity>
       )}
     </View>
-
   );
 
   // ── Quick Action SVGs ─────────────────────────────────────────────────────────
   const PersonalNotesSvg = ({ size = 24, color }) => (
     <Svg width={size} height={size} viewBox="0 0 512 512">
-      {/* Notebook body */}
       <Path d="M100 60 Q80 60 75 80 L60 420 Q58 445 80 450 L370 490 Q395 492 400 470 L430 130 Q433 108 415 100 Z"
         fill="none" stroke={color} strokeWidth="26" strokeLinejoin="round" />
-      {/* Rings */}
       <Path d="M100 130 Q70 130 70 155 Q70 180 100 180" fill="none" stroke={color} strokeWidth="22" strokeLinecap="round" />
       <Path d="M95 230 Q65 230 65 255 Q65 280 95 280" fill="none" stroke={color} strokeWidth="22" strokeLinecap="round" />
       <Path d="M90 325 Q60 325 60 350 Q60 375 90 375" fill="none" stroke={color} strokeWidth="22" strokeLinecap="round" />
-      {/* Lines on page */}
       <Line x1="160" y1="200" x2="360" y2="220" stroke={color} strokeWidth="20" strokeLinecap="round" />
       <Line x1="155" y1="265" x2="345" y2="282" stroke={color} strokeWidth="20" strokeLinecap="round" />
       <Line x1="150" y1="330" x2="330" y2="345" stroke={color} strokeWidth="20" strokeLinecap="round" />
-      {/* Pencil */}
       <Path d="M340 370 L430 240 L470 265 L380 395 Z" fill="none" stroke={color} strokeWidth="22" strokeLinejoin="round" />
       <Path d="M340 370 L325 410 L365 400 Z" fill="none" stroke={color} strokeWidth="18" strokeLinejoin="round" />
-      {/* Sparkle lines top-right */}
       <Line x1="430" y1="95" x2="445" y2="75" stroke={color} strokeWidth="18" strokeLinecap="round" />
       <Line x1="450" y1="110" x2="470" y2="100" stroke={color} strokeWidth="18" strokeLinecap="round" />
       <Line x1="440" y1="130" x2="460" y2="135" stroke={color} strokeWidth="18" strokeLinecap="round" />
@@ -243,14 +333,10 @@ export const DashBoard = () => {
 
   const OtherSettingsSvg = ({ size = 24, color }) => (
     <Svg width={size} height={size} viewBox="0 0 512 512">
-      {/* Top slider line */}
       <Line x1="60" y1="160" x2="452" y2="160" stroke={color} strokeWidth="32" strokeLinecap="round" />
-      {/* Top slider knob */}
       <Circle cx="320" cy="160" r="48" fill="none" stroke={color} strokeWidth="28" />
       <Circle cx="320" cy="160" r="16" fill={color} />
-      {/* Bottom slider line */}
       <Line x1="60" y1="352" x2="452" y2="352" stroke={color} strokeWidth="32" strokeLinecap="round" />
-      {/* Bottom slider knob */}
       <Circle cx="175" cy="352" r="48" fill="none" stroke={color} strokeWidth="28" />
       <Circle cx="175" cy="352" r="16" fill={color} />
     </Svg>
@@ -258,7 +344,6 @@ export const DashBoard = () => {
 
   const VysAssistSvg = ({ size = 24, color }) => (
     <Svg width={size} height={size} viewBox="0 0 512 512">
-      {/* Large center sparkle — filled */}
       <Path
         d="M265 80 C265 80 240 200 170 265 C240 330 265 450 265 450 C265 450 290 330 360 265 C290 200 265 80 265 80 Z"
         fill={color}
@@ -271,7 +356,6 @@ export const DashBoard = () => {
         d="M470 265 C470 265 340 245 265 265 C340 285 470 265 470 265 Z"
         fill={color}
       />
-      {/* Small top-left sparkle — filled */}
       <Path
         d="M100 95 C100 95 88 140 60 160 C88 180 100 225 100 225 C100 225 112 180 140 160 C112 140 100 95 100 95 Z"
         fill={color}
@@ -284,7 +368,6 @@ export const DashBoard = () => {
         d="M170 160 C170 160 125 152 100 160 C125 168 170 160 170 160 Z"
         fill={color}
       />
-      {/* Small top-right sparkle — filled */}
       <Path
         d="M390 115 C390 115 382 140 365 152 C382 164 390 190 390 190 C390 190 398 164 415 152 C398 140 390 115 390 115 Z"
         fill={color}
@@ -319,21 +402,21 @@ export const DashBoard = () => {
     {
       label: "My visitors",
       value: dashboardData?.myvisitor_count ?? 0,
-      icon: "people-outline",        // ✅ Ionicons — two-person group
+      icon: "people-outline",
       iconLib: "Ionicons",
       onPress: () => navigation.navigate("MyVisitors"),
     },
     {
       label: "Photo Request",
       value: dashboardData?.photo_int_count ?? 0,
-      icon: "image-plus",            // ✅ MaterialCommunity — photo with plus
+      icon: "image-plus",
       iconLib: "MaterialCommunity",
       onPress: () => navigation.navigate("PhotoRequest"),
     },
     {
       label: "Gallery",
       value: dashboardData?.gallery_count ?? 0,
-      icon: "photo-library",         // ✅ MaterialIcons — clean gallery icon
+      icon: "photo-library",
       iconLib: "MaterialIcons",
       onPress: () => navigation.navigate("GalleryResults"),
     },
@@ -387,8 +470,7 @@ export const DashBoard = () => {
 
   const renderQAIcon = (a) => (
     <a.SvgIcon size={20} color={Colors.dashtext} />
-  )
-
+  );
 
   const renderQuickActions = () => (
     <View style={styles.section}>
@@ -402,12 +484,9 @@ export const DashBoard = () => {
             onPress={a.onPress}
             activeOpacity={0.8}
           >
-            {/* Icon - Top */}
             <View style={styles.qaIconBg}>
               {renderQAIcon(a)}
             </View>
-
-            {/* Text - Below */}
             <Text style={styles.qaLabel}>
               {a.label}
             </Text>
@@ -490,7 +569,7 @@ export const DashBoard = () => {
     </View>
   );
 
-  // ── Contact views ─────────────────────────────────────────────────────────
+   // ── Contact views ─────────────────────────────────────────────────────────
   // const renderContactViews = () => (
   //   <View style={styles.section}>
   //     <Text style={styles.sectionTitle}>Contact views</Text>
@@ -549,8 +628,6 @@ export const DashBoard = () => {
   //     </View>
   //   </View>
   // );
-
-  // ── Received interests (horizontal scroll) ────────────────────────────────
   const receivedProfiles = profileData.filter((p) => p.int_status === 1);
 
   const renderReceivedInterests = () => {
@@ -597,11 +674,9 @@ export const DashBoard = () => {
     );
   };
 
-  // ── Existing coloured summary cards (kept exactly as-is) ──────────────────
-
   const renderExistingCards = () => (
     <View style={styles.summaryGrid}>
-      {/* Matching Profiles — hero card below */}
+      {/* Matching Profiles */}
       <TouchableOpacity
         style={styles.heroCard}
         onPress={() => navigation.navigate("Home")}
@@ -646,9 +721,9 @@ export const DashBoard = () => {
           <View style={styles.heroDecorCircle2} />
         </LinearGradient>
       </TouchableOpacity>
-      {/* Mutual Interest + Wishlist — top horizontal row */}
+
+      {/* Mutual Interest + Wishlist */}
       <View style={styles.summaryRow}>
-        {/* Mutual Interest */}
         <TouchableOpacity
           style={styles.halfCard}
           onPress={() => navigation.navigate("DashBoardMutualInterest")}
@@ -669,7 +744,6 @@ export const DashBoard = () => {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Wishlist */}
         <TouchableOpacity
           style={styles.halfCard}
           onPress={() => navigation.navigate("DashBoardWishlist")}
@@ -690,32 +764,29 @@ export const DashBoard = () => {
           </LinearGradient>
         </TouchableOpacity>
       </View>
-
     </View>
   );
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.pageTitle}>Dashboard</Text>
+      {loading ? (
+        <DashboardShimmer />
+      ) : (
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <Text style={styles.pageTitle}>Dashboard</Text>
 
-        {/* ── NEW SECTIONS (from screenshot design) ── */}
-        {renderProfileHeader()}
-        {renderProfileCompletion()}
-        {/* ── EXISTING COLOURED SUMMARY CARDS (untouched) ── */}
-        <Text style={styles.sectionTitle2}>Summary</Text>
+          {renderProfileHeader()}
+          {renderProfileCompletion()}
+          <Text style={styles.sectionTitle2}>Summary</Text>
 
-        {renderExistingCards()}
-        {renderStatistics()}
-        {renderQuickActions()}
-        {renderMyActivity()}
-        {/* {renderContactViews()} */}
-        {/* {renderProfileStrength()} */}
-        {renderReceivedInterests()}
-
-
-      </ScrollView>
+          {renderExistingCards()}
+          {renderStatistics()}
+          {renderQuickActions()}
+          {renderMyActivity()}
+          {renderReceivedInterests()}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
@@ -737,7 +808,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 8,
-    lineSpacing: -2,
+  },
+
+  // ── Shimmer Elements ───────────────────────────────────────────────────────
+  shimmerBar: {
+    backgroundColor: "#E2DBCE",
+    borderRadius: 6,
+  },
+  shimmerCircle: {
+    backgroundColor: "#E2DBCE",
   },
 
   // ── Profile header ─────────────────────────────────────────────────────────
@@ -753,7 +832,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-
   profileCompletion: {
     marginHorizontal: 14,
     marginBottom: 14,
@@ -795,7 +873,6 @@ const styles = StyleSheet.create({
     color: C.text,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     marginBottom: 2,
-    lineSpacing: -1,
   },
   profileHeaderId: {
     fontSize: fs(12),
@@ -870,7 +947,6 @@ const styles = StyleSheet.create({
     color: C.text,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     marginBottom: 10,
-    lineSpacing: -1,
   },
   sectionTitle2: {
     fontSize: fs(15),
@@ -897,7 +973,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 4,
     paddingHorizontal: 14,
-    alignItems: "left",
+    alignItems: "flex-start",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
@@ -940,8 +1016,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 14,
     flexDirection: "column",
-    alignItems: "left",
-    justifyContent: "left",
+    alignItems: "flex-start",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
@@ -963,6 +1038,7 @@ const styles = StyleSheet.create({
     color: C.text,
     textAlign: "left",
   },
+
   // ── My activity ────────────────────────────────────────────────────────────
   activityGrid: {
     flexDirection: "row",
@@ -1001,83 +1077,6 @@ const styles = StyleSheet.create({
     fontSize: fs(11),
     color: C.sub,
     lineHeight: 15,
-  },
-
-  // ── Contact views ──────────────────────────────────────────────────────────
-  contactCard: {
-    backgroundColor: C.card,
-    borderRadius: 14,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  contactBarBg: {
-    height: 6,
-    backgroundColor: "#F0E8E0",
-    borderRadius: 3,
-    marginBottom: 8,
-    overflow: "hidden",
-  },
-  contactBarFill: {
-    height: "100%",
-    backgroundColor: C.primary,
-    borderRadius: 3,
-  },
-  contactSub: {
-    fontSize: fs(12),
-    color: C.sub,
-    marginBottom: 12,
-  },
-  addContactBtn: {
-    backgroundColor: C.primaryLight,
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  addContactText: {
-    fontSize: fs(13),
-    fontWeight: "700",
-    color: C.primary,
-  },
-
-  // ── Profile strength ───────────────────────────────────────────────────────
-  strengthCard: {
-    backgroundColor: C.card,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  strengthRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 13,
-  },
-  strengthDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-  },
-  strengthLabel: {
-    fontSize: fs(13),
-    color: C.sub,
-    lineHeight: 15,
-
-  },
-  strengthValueRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  strengthValue: {
-    fontSize: fs(13),
-    fontWeight: "500",
-    color: Colors.textDark,
   },
 
   // ── Received interests ─────────────────────────────────────────────────────
@@ -1128,82 +1127,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // ── Existing coloured cards (kept exactly as original) ─────────────────────
-  redCardContainer: {
-    width: "100%",
-    paddingHorizontal: 10,
-    marginBottom: 10,
-  },
-  redCard: {
-    backgroundColor: "#EF4770",
-    paddingVertical: 20,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-  },
-  matching: {
-    color: "#fff",
-    fontSize: fs(16),
-    fontWeight: "700",
-    fontFamily: "inter",
-    marginVertical: 10,
-  },
-  matchingNumbers: {
-    color: "#fff",
-    fontSize: fs(36),
-    fontWeight: "700",
-    fontFamily: "inter",
-  },
-  violetContainer: {
-    width: "100%",
-    paddingHorizontal: 10,
-    marginBottom: 10,
-  },
-  violetCard: {
-    backgroundColor: "#9047EF",
-    paddingVertical: 20,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-  },
-  sandalContainer: {
-    width: "100%",
-    paddingHorizontal: 10,
-    marginBottom: 10,
-  },
-  sandalCard: {
-    backgroundColor: "#EFAC47",
-    paddingVertical: 20,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-  },
-  textIcons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  cardText: {
-    color: "#fff",
-    fontSize: fs(16),
-    fontWeight: "700",
-    fontFamily: "inter",
-  },
-  cardNumbers: {
-    color: "#fff",
-    fontSize: fs(36),
-    fontWeight: "700",
-    fontFamily: "inter",
-    marginVertical: -10,
-  },
   // ── Summary redesign ───────────────────────────────────────────────────────
-  summaryHeader: {
-    paddingHorizontal: 14,
-    marginBottom: 10,
-    marginTop: 4,
-  },
-  summarySub: {
-    fontSize: fs(11),
-    color: C.sub,
-    marginTop: 1,
-  },
   summaryGrid: {
     paddingHorizontal: 14,
     gap: 10,
@@ -1347,7 +1271,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 4,
   },
-
   halfCount: {
     fontSize: fs(19),
     fontWeight: "800",
