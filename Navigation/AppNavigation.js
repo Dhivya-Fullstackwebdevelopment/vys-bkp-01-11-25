@@ -252,7 +252,7 @@ export const AppNavigation = () => {
       <Stack.Screen
         name="Notifications"
         component={Notifications}
-        options={{ headerShown: true }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ThankYou"
