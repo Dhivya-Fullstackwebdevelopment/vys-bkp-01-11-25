@@ -72,7 +72,7 @@ const DropdownField = ({ icon, iconSet, label, placeholder, value, options, valu
         onRequestClose={() => setVisible(false)}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setVisible(false)}>
-          <Pressable style={styles.modalSheet} onPress={() => {}}>
+          <Pressable style={styles.modalSheet} onPress={() => { }}>
             <View style={styles.modalHeaderRow}>
               <Text style={styles.modalTitle}>{label}</Text>
               <TouchableOpacity onPress={() => setVisible(false)}>
@@ -795,17 +795,24 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",       
+    alignItems: "center",            
+    paddingHorizontal: 24,           
   },
   modalSheet: {
     backgroundColor: Colors.card || "#FFFFFF",
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
+    borderRadius: 22,                
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 24,
     maxHeight: "60%",
+    width: "100%",                   
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    elevation: 10,
   },
   modalHeaderRow: {
     flexDirection: "row",
