@@ -96,6 +96,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
         personal_profile_marital_status_id: null,
         personal_profile_complexion_id: null,
         personal_profile_for_id: null,
+        Physically_challenged_details: "",
         Mobile_no: ''
     });
     const [isFetched, setIsFetched] = useState(false);
@@ -360,6 +361,11 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                 Profile_complexion: formValues.personal_profile_complexion_id,
                 hobbies: formValues.personal_hobbies,
                 physically_changed: formValues.personal_pysically_changed,
+                Physically_challenged_details:
+                    formValues.personal_pysically_changed === "yes"
+                        ? formValues.Physically_challenged_details
+                        : "",
+
                 Profile_for: formValues.personal_profile_for_id,
                 Mobile_no: formValues.Mobile_no
             };
@@ -630,18 +636,56 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                             />
 
                             <Text style={styles.labelNew}>Physical Status</Text>
+
                             <RNPickerSelect
-                                onValueChange={(value) => handleChange('personal_pysically_changed', value)}
+                                onValueChange={(value) => {
+                                    handleChange("personal_pysically_changed", value);
+
+                                    // If user selects No, clear challenged details
+                                    if (value === "no") {
+                                        handleChange("Physically_challenged_details", "");
+                                    }
+                                }}
                                 items={[
-                                    { label: 'Yes', value: 'yes' },
-                                    { label: 'No', value: 'no' },
+                                    { label: "Yes", value: "yes" },
+                                    { label: "No", value: "no" },
                                 ]}
                                 value={formValues.personal_pysically_changed}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
-                                placeholder={{ label: "Physical Status", value: null }}
+                                Icon={() => (
+                                    <Ionicons
+                                        name="chevron-down"
+                                        size={22}
+                                        color={Colors.textMuted}
+                                        style={{ marginTop: 10 }}
+                                    />
+                                )}
+                                placeholder={{
+                                    label: "Physical Status",
+                                    value: null,
+                                }}
                                 style={pickerSelectStyles}
                             />
+
+                            {formValues.personal_pysically_changed === "yes" && (
+                                <>
+                                    <Text style={styles.labelNew}>
+                                        Challenged Details
+                                    </Text>
+
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Enter Challenged Details"
+                                        value={formValues.Physically_challenged_details}
+                                        onChangeText={(text) =>
+                                            handleChange(
+                                                "Physically_challenged_details",
+                                                text
+                                            )
+                                        }
+                                    />
+                                </>
+                            )}
 
                             <Text style={styles.labelNew}>Registered Mobile</Text>
                             <TextInput
@@ -690,6 +734,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                     {renderRow("Complexion", personalDetails.personal_profile_complexion_name)}
                                     {renderRow("Hobbies", personalDetails.personal_hobbies)}
                                     {renderRow("Physical Status", personalDetails.personal_pysically_changed)}
+                                    {renderRow("Challenged Details", personalDetails.Physically_challenged_details)}
                                     {renderRow("Registered Mobile", personalDetails.mobile_no)}
                                 </>
                             ) : null}
