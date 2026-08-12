@@ -31,7 +31,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
     { route: "Search", ionIcon: "search", label: "Search" },
     { route: "DashBoard", ionIcon: "grid", label: "DashBoard" },
     { route: "Alerts", ionIcon: "notifications", label: "Alerts" },
-    { route: "Menu", ionIcon: "person", label: "Menu" },
+    { route: "Menu", ionIcon: "person", label: "Profile" },
   ];
 
   return (
