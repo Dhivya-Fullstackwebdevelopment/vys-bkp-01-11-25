@@ -13,10 +13,10 @@ import {
     Linking,
     Animated,
     Platform,
-    SafeAreaView,
     Easing,
     ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
     Ionicons,
     MaterialIcons,
@@ -567,16 +567,23 @@ export const MyProfile = () => {
 
     return (
         <SafeAreaView style={styles.mainContainer}>
-            <View style={styles.headerContainer}>
+            {/* <View style={styles.headerContainer}> */}
+            <LinearGradient
+                colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.headerContainer}
+            >
                 <Pressable
                     style={({ pressed }) => [styles.headerIconBtn, pressed && styles.headerIconBtnPressed]}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={22} color={Colors.textDark} />
+                    <Ionicons name="arrow-back" size={22} color={Colors.cardBackground} />
                 </Pressable>
                 <Text style={styles.headerText} numberOfLines={1}>My Profile</Text>
                 <View style={{ width: 40 }} />
-            </View>
+            </LinearGradient>
+
 
             <Animated.View
                 pointerEvents={"box-none"}
@@ -960,12 +967,14 @@ export const MyProfile = () => {
 
             <BottomTabBarComponent />
 
-            {loading && (
-                <View style={styles.loadingOverlay}>
-                    <ActivityIndicator size="large" color={Colors.primary} />
-                </View>
-            )}
-        </SafeAreaView>
+            {
+                loading && (
+                    <View style={styles.loadingOverlay}>
+                        <ActivityIndicator size="large" color={Colors.primary} />
+                    </View>
+                )
+            }
+        </SafeAreaView >
     );
 };
 
@@ -1064,7 +1073,7 @@ const styles = StyleSheet.create({
         height: 90,
     },
     headerText: {
-        color: Colors.textDark,
+        color: Colors.cardBackground,
         fontSize: fs(18),
         fontWeight: "700",
         flex: 1,
