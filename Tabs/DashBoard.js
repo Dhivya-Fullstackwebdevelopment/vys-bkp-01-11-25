@@ -28,6 +28,7 @@ import {
 } from "../CommonApiCall/CommonApiCall";
 import { TopAlignedImage } from "../Components/ReuseImageAlign/TopAlignedImage";
 import { Colors } from "../Reusable/Theme";
+import Svg, { Path, Circle, Rect, Polyline, Line } from "react-native-svg";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isTablet = SCREEN_WIDTH >= 768;
@@ -215,26 +216,147 @@ export const DashBoard = () => {
 
   );
 
+  const VisitorsSvg = ({ size = 24, color = Colors.matchingcirclecolor }) => (
+    <Svg width={size} height={size} viewBox="0 0 512 512">
+      <Circle
+        cx="130"
+        cy="150"
+        r="70"
+        fill="none"
+        stroke={color}
+        strokeWidth="28"
+      />
+      <Path
+        d="M55 390 L80 300 Q95 270 130 270 Q165 270 180 300 L205 390"
+        fill="none"
+        stroke={color}
+        strokeWidth="28"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M280 95 Q330 55 380 95 Q415 125 390 165"
+        fill="none"
+        stroke={color}
+        strokeWidth="28"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M290 205 H390 Q425 205 435 240 L450 290"
+        fill="none"
+        stroke={color}
+        strokeWidth="28"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+
+  const GallerySvg = ({ size = 24, color = Colors.matchingcirclecolor }) => (
+    <Svg width={size} height={size} viewBox="0 0 512 512">
+      <Rect
+        x="100"
+        y="80"
+        width="320"
+        height="280"
+        rx="25"
+        fill="none"
+        stroke={color}
+        strokeWidth="24"
+      />
+      <Circle
+        cx="160"
+        cy="145"
+        r="25"
+        fill="none"
+        stroke={color}
+        strokeWidth="20"
+      />
+      <Polyline
+        points="110,330 220,220 275,275 350,175 420,250"
+        fill="none"
+        stroke={color}
+        strokeWidth="24"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M85 365 L65 425 Q62 440 80 445 L350 510"
+        fill="none"
+        stroke={color}
+        strokeWidth="24"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+
+  const PhotoRequestSvg = ({ size = 24, color = Colors.matchingcirclecolor }) => (
+    <Svg width={size} height={size} viewBox="0 0 512 512">
+      <Rect
+        x="55"
+        y="70"
+        width="400"
+        height="370"
+        rx="45"
+        fill="none"
+        stroke={color}
+        strokeWidth="28"
+      />
+      <Circle
+        cx="170"
+        cy="170"
+        r="38"
+        fill="none"
+        stroke={color}
+        strokeWidth="24"
+      />
+      <Polyline
+        points="75,355 175,250 235,315 325,220 455,350"
+        fill="none"
+        stroke={color}
+        strokeWidth="28"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Line
+        x1="405"
+        y1="55"
+        x2="405"
+        y2="145"
+        stroke={color}
+        strokeWidth="24"
+        strokeLinecap="round"
+      />
+      <Line
+        x1="360"
+        y1="100"
+        x2="450"
+        y2="100"
+        stroke={color}
+        strokeWidth="24"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+
   // ── Statistics row ────────────────────────────────────────────────────────
   const stats = [
     {
       label: "My visitors",
       value: dashboardData?.myvisitor_count ?? 0,
-      icon: "eye-outline",
+      icon: "people-outline",        // ✅ Ionicons — two-person group
       iconLib: "Ionicons",
       onPress: () => navigation.navigate("MyVisitors"),
     },
     {
       label: "Photo Request",
       value: dashboardData?.photo_int_count ?? 0,
-      icon: "image-multiple",
+      icon: "image-plus",            // ✅ MaterialCommunity — photo with plus
       iconLib: "MaterialCommunity",
       onPress: () => navigation.navigate("PhotoRequest"),
     },
     {
       label: "Gallery",
       value: dashboardData?.gallery_count ?? 0,
-      icon: "photo-library",
+      icon: "photo-library",         // ✅ MaterialIcons — clean gallery icon
       iconLib: "MaterialIcons",
       onPress: () => navigation.navigate("GalleryResults"),
     },
@@ -242,7 +364,7 @@ export const DashBoard = () => {
 
   const renderStatIcon = (stat) => {
     const color = Colors.matchingcirclecolor;
-    const size = 22;
+    const size = 18;
     if (stat.iconLib === "Ionicons")
       return <Ionicons name={stat.icon} size={size} color={color} />;
     if (stat.iconLib === "MaterialCommunity")
@@ -446,9 +568,9 @@ export const DashBoard = () => {
   const renderProfileStrength = () => (
     <View style={styles.section}>
       <View style={styles.strengthCard}>
-         <Text style={[styles.sectionTitle, { marginTop: 15 }]}>Profile strength</Text>
+        <Text style={[styles.sectionTitle, { marginTop: 15 }]}>Profile strength</Text>
         {strengthRows.map((row, i) => (
-          
+
           <View
             key={i}
             style={[styles.strengthRow, i < strengthRows.length - 1 && styles.strengthDivider]}
@@ -778,8 +900,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: C.card,
     borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
+    paddingVertical: 4,
+    paddingHorizontal: 14,
     alignItems: "left",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -788,8 +910,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   statIconBg: {
-    width: 40,
-    height: 40,
+    width: 33,
+    height: 33,
     borderRadius: 25,
     backgroundColor: Colors.iconContainerBg,
     justifyContent: "center",
@@ -797,7 +919,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   statValue: {
-    fontSize: fs(22),
+    fontSize: fs(20),
     fontWeight: "800",
     color: C.text,
     marginTop: 6,
@@ -832,8 +954,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   qaIconBg: {
-    width: 40,
-    height: 40,
+    width: 33,
+    height: 33,
     borderRadius: 20,
     backgroundColor: Colors.profilecompetionbg,
     justifyContent: "center",
@@ -865,8 +987,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   activityIconBg: {
-    width: 42,
-    height: 42,
+    width: 33,
+    height: 33,
     borderRadius: 21,
     justifyContent: "center",
     alignItems: "center",
@@ -951,7 +1073,7 @@ const styles = StyleSheet.create({
     fontSize: fs(13),
     color: C.sub,
     lineHeight: 15,
-  
+
   },
   strengthValueRow: {
     flexDirection: "row",
