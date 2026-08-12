@@ -106,8 +106,9 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
 
     const minDate = new Date(1947, 0, 1);
     const maxDate = new Date(currentYear - 19, 11, 31);
+
     const CalendarIcon = ({ onPress }) => (
-        <Pressable onPress={onPress} style={{ position: "absolute", right: 10, top: 15 }}>
+        <Pressable onPress={onPress} style={styles.calendarIconPosition}>
             <Ionicons name="calendar" size={18} color={Colors.textMuted} />
         </Pressable>
     );
@@ -401,7 +402,6 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
         }
     };
 
-    // ── Restyled view-mode row, matching EducationalDetails' rowItem/rowLabel/rowValue pattern ──
     const renderRow = (label, value) => {
         if (value === undefined || value === null || value === '') return null;
         return (
@@ -411,6 +411,10 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
             </View>
         );
     };
+
+    const ChevronIcon = () => (
+        <Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />
+    );
 
     return (
         <View style={styles.scrollViewContentContainer}>
@@ -505,6 +509,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                         value={hour}
                                         useNativeAndroidPickerStyle={false}
                                         placeholder={{ label: "Select hour", value: "" }}
+                                        Icon={ChevronIcon}
                                         style={pickerSelectStyles}
                                     />
                                 </View>
@@ -519,6 +524,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                         value={minute}
                                         useNativeAndroidPickerStyle={false}
                                         placeholder={{ label: "Select minute", value: "" }}
+                                        Icon={ChevronIcon}
                                         style={pickerSelectStyles}
                                     />
                                 </View>
@@ -532,6 +538,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                         value={period}
                                         useNativeAndroidPickerStyle={false}
                                         placeholder={{ label: "AM | PM", value: "" }}
+                                        Icon={ChevronIcon}
                                         style={pickerSelectStyles}
                                     />
                                 </View>
@@ -543,7 +550,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 items={heightOptions}
                                 value={formValues.personal_profile_height}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
+                                Icon={ChevronIcon}
                                 placeholder={{ label: "Select Height", value: null }}
                                 style={pickerSelectStyles}
                             />
@@ -568,8 +575,8 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 ]}
                                 value={formValues.personal_body_type}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
-                                placeholder={{ label: "Body Type", value: null }}
+                                Icon={ChevronIcon}
+                                placeholder={{ label: "Select Body Type", value: null }}
                                 style={pickerSelectStyles}
                             />
 
@@ -582,8 +589,8 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 ]}
                                 value={formValues.personal_eye_wear}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
-                                placeholder={{ label: "Eye Wear", value: null }}
+                                Icon={ChevronIcon}
+                                placeholder={{ label: "Select Eye Wear", value: null }}
                                 style={pickerSelectStyles}
                             />
 
@@ -593,7 +600,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 items={maritalStatusOptions}
                                 value={formValues.personal_profile_marital_status_id}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
+                                Icon={ChevronIcon}
                                 placeholder={{ label: "Select Marital Status", value: null }}
                                 style={pickerSelectStyles}
                             />
@@ -621,7 +628,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 items={complexionOptions}
                                 value={formValues.personal_profile_complexion_id}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (<Ionicons name="chevron-down" size={22} color={Colors.textMuted} style={{ marginTop: 10 }} />)}
+                                Icon={ChevronIcon}
                                 placeholder={{ label: "Select Complexion", value: null }}
                                 style={pickerSelectStyles}
                             />
@@ -636,12 +643,9 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                             />
 
                             <Text style={styles.labelNew}>Physical Status</Text>
-
                             <RNPickerSelect
                                 onValueChange={(value) => {
                                     handleChange("personal_pysically_changed", value);
-
-                                    // If user selects No, clear challenged details
                                     if (value === "no") {
                                         handleChange("Physically_challenged_details", "");
                                     }
@@ -652,14 +656,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 ]}
                                 value={formValues.personal_pysically_changed}
                                 useNativeAndroidPickerStyle={false}
-                                Icon={() => (
-                                    <Ionicons
-                                        name="chevron-down"
-                                        size={22}
-                                        color={Colors.textMuted}
-                                        style={{ marginTop: 10 }}
-                                    />
-                                )}
+                                Icon={ChevronIcon}
                                 placeholder={{
                                     label: "Physical Status",
                                     value: null,
@@ -669,10 +666,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
 
                             {formValues.personal_pysically_changed === "yes" && (
                                 <>
-                                    <Text style={styles.labelNew}>
-                                        Challenged Details
-                                    </Text>
-
+                                    <Text style={styles.labelNew}>Challenged Details</Text>
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter Challenged Details"
@@ -799,13 +793,9 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: Colors.textDark,
     },
-
-    // ── Card system matching EducationalDetails.js ──
     menuChanges: {
         width: '100%',
         backgroundColor: Colors.selectedBg,
-        paddingHorizontal: 16,
-        paddingTop: 12,
     },
     card: {
         backgroundColor: Colors.cardBackground,
@@ -891,17 +881,6 @@ const styles = StyleSheet.create({
         marginBottom: 6,
         marginTop: 10,
     },
-    valueNew: {
-        color: Colors.textDark,
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    label: {
-        color: Colors.textMuted,
-        fontSize: 14,
-        fontWeight: "700",
-        marginBottom: 10,
-    },
     input: {
         height: 48,
         borderWidth: 1,
@@ -960,6 +939,11 @@ const styles = StyleSheet.create({
         color: Colors.textDark,
         marginHorizontal: 5,
     },
+    calendarIconPosition: {
+        position: "absolute",
+        right: 12,
+        top: 14,
+    },
 });
 
 const pickerSelectStyles = StyleSheet.create({
@@ -972,7 +956,6 @@ const pickerSelectStyles = StyleSheet.create({
         borderRadius: 12,
         color: Colors.textDark,
         paddingRight: 30,
-        textAlign: 'center',
         marginBottom: 10,
         backgroundColor: Colors.surface,
     },
@@ -985,7 +968,6 @@ const pickerSelectStyles = StyleSheet.create({
         borderRadius: 12,
         color: Colors.textDark,
         paddingRight: 30,
-        textAlign: 'center',
         marginBottom: 10,
         backgroundColor: Colors.surface,
     },
