@@ -9,9 +9,10 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
+  Modal,
+  Pressable,
 } from "react-native";
 import axios from "axios";
-import { Picker } from "@react-native-picker/picker";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { handleBookmark, fetchSearchProfiles } from "../CommonApiCall/CommonApiCall";
 import config from "../API/Apiurl";
@@ -22,6 +23,129 @@ import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TopAlignedImage } from "../Components/ReuseImageAlign/TopAlignedImage";
 import { Colors, rs } from "../Reusable/Theme";
+
+// ─────────────────────────────────────────────────────────────────────────
+// Reusable custom dropdown — tapping the field opens a modal list.
+// Purely a UI swap for Picker; onSelect still sets the same state values
+// your search logic already reads (profession / selectAge / selectedLocation).
+// ─────────────────────────────────────────────────────────────────────────
+const DropdownField = ({ icon, iconSet, label, placeholder, value, options, valueKey, labelKey, onSelect }) => {
+  const [visible, setVisible] = useState(false);
+  const IconComponent = iconSet === "Ionicons" ? Ionicons : MaterialIcons;
+
+  const selectedLabel = (() => {
+    if (!value) return placeholder;
+    const found = options.find((o) => String(o[valueKey]) === String(value));
+    return found ? found[labelKey] : placeholder;
+  })();
+
+  return (
+    <View style={styles.fieldWrapper}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={styles.pickerContainer}
+        onPress={() => setVisible(true)}
+      >
+        <IconComponent name={icon} size={18} color={Colors.textMuted} style={styles.fieldIcon} />
+        <Text
+          style={[
+            styles.dropdownValueText,
+            !value && styles.dropdownPlaceholderText,
+          ]}
+          numberOfLines={1}
+        >
+          {selectedLabel}
+        </Text>
+        <MaterialIcons
+          name="keyboard-arrow-down"
+          size={22}
+          color={Colors.textMuted}
+          style={{ marginRight: 10 }}
+        />
+      </TouchableOpacity>
+
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setVisible(false)}>
+          <Pressable style={styles.modalSheet} onPress={() => {}}>
+            <View style={styles.modalHeaderRow}>
+              <Text style={styles.modalTitle}>{label}</Text>
+              <TouchableOpacity onPress={() => setVisible(false)}>
+                <MaterialIcons name="close" size={22} color={Colors.textDark} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={options}
+              keyExtractor={(item, index) => `${item[valueKey]}-${index}`}
+              style={{ maxHeight: 320 }}
+              renderItem={({ item }) => {
+                const isSelected = String(item[valueKey]) === String(value);
+                return (
+                  <TouchableOpacity
+                    style={[styles.modalItem, isSelected && styles.modalItemSelected]}
+                    onPress={() => {
+                      onSelect(item[valueKey]);
+                      setVisible(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.modalItemText,
+                        isSelected && styles.modalItemTextSelected,
+                      ]}
+                    >
+                      {item[labelKey]}
+                    </Text>
+                    {isSelected && (
+                      <MaterialIcons name="check" size={18} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Profile card image with an inline loading spinner while it fetches,
+// so the card renders instantly and the image fades in once ready.
+// ─────────────────────────────────────────────────────────────────────────
+const ProfileCardImage = ({ uri, width, height, blurRadius, borderRadius }) => {
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  return (
+    <View style={{ width, height, borderRadius, overflow: "hidden", backgroundColor: Colors.surface1 || "#F6EFE5" }}>
+      {!imgLoaded && (
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { justifyContent: "center", alignItems: "center" },
+          ]}
+        >
+          <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
+        </View>
+      )}
+      <TopAlignedImage
+        uri={uri}
+        width={width}
+        height={height}
+        blurRadius={blurRadius}
+        style={{ borderRadius, opacity: imgLoaded ? 1 : 0 }}
+        onLoadEnd={() => setImgLoaded(true)}
+        onError={() => setImgLoaded(true)}
+      />
+    </View>
+  );
+};
 
 const MatchingProfileSearch = () => {
   const navigation = useNavigation();
@@ -259,6 +383,12 @@ const MatchingProfileSearch = () => {
     );
   };
 
+  // Age difference options built once for the dropdown (label === value === "1".."10")
+  const ageOptions = [...Array(10).keys()].map((num) => ({
+    id: `${num + 1}`,
+    label: `${num + 1}`,
+  }));
+
   // ─── LIST CARD — matches FilterScreen.renderProfileCard styling ──────────
   const renderItem = ({ item: profile }) => {
     const isSaved = bookmarkedProfiles.has(profile.profile_id);
@@ -285,12 +415,12 @@ const MatchingProfileSearch = () => {
       >
         <View style={styles.cardBody}>
           <View style={styles.imageWrapper}>
-            <TopAlignedImage
+            <ProfileCardImage
               uri={getImageSource(rawImage).uri}
               width={rs(110, 120, 130)}
               height={rs(120, 130, 140)}
               blurRadius={profile.photo_protection === 1 ? 15 : 0}
-              style={{ borderRadius: 14 }}
+              borderRadius={14}
             />
             {profile.photo_protection === 1 && (
               <View style={styles.lockOverlay}>
@@ -438,78 +568,44 @@ const MatchingProfileSearch = () => {
                 </View>
               </View>
 
-              {/* Profession */}
-              <View style={styles.fieldWrapper}>
-                <Text style={styles.fieldLabel}>Profession</Text>
-                <View style={styles.pickerContainer}>
-                  <MaterialIcons
-                    name="work-outline"
-                    size={18}
-                    color={Colors.textMuted}
-                    style={styles.fieldIcon}
-                  />
-                  <Picker
-                    selectedValue={profession}
-                    onValueChange={setProfession}
-                    style={styles.picker}
-                  >
-                    <Picker.Item label="Profession" value="" enabled={false} />
-                    {Get_Profes_Pref.map((p) => (
-                      <Picker.Item
-                        key={p.Profes_Pref_id}
-                        label={p.Profes_name}
-                        value={p.Profes_Pref_id}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
+              {/* Profession — tap opens dropdown modal */}
+              <DropdownField
+                icon="work-outline"
+                iconSet="MaterialIcons"
+                label="Profession"
+                placeholder="Profession"
+                value={profession}
+                options={Get_Profes_Pref}
+                valueKey="Profes_Pref_id"
+                labelKey="Profes_name"
+                onSelect={setProfession}
+              />
 
-              {/* Age Difference */}
-              <View style={styles.fieldWrapper}>
-                <Text style={styles.fieldLabel}>Age Difference</Text>
-                <View style={styles.pickerContainer}>
-                  <MaterialIcons
-                    name="cake"
-                    size={18}
-                    color={Colors.textMuted}
-                    style={styles.fieldIcon}
-                  />
-                  <Picker
-                    selectedValue={selectAge}
-                    onValueChange={setSelectAge}
-                    style={styles.picker}
-                  >
-                    <Picker.Item label="Age Difference" value="" enabled={false} />
-                    {[...Array(10).keys()].map((num) => (
-                      <Picker.Item key={num + 1} label={`${num + 1}`} value={`${num + 1}`} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
+              {/* Age Difference — tap opens dropdown modal */}
+              <DropdownField
+                icon="cake"
+                iconSet="MaterialIcons"
+                label="Age Difference"
+                placeholder="Age Difference"
+                value={selectAge}
+                options={ageOptions}
+                valueKey="id"
+                labelKey="label"
+                onSelect={setSelectAge}
+              />
 
-              {/* Location */}
-              <View style={styles.fieldWrapper}>
-                <Text style={styles.fieldLabel}>Location</Text>
-                <View style={styles.pickerContainer}>
-                  <Ionicons
-                    name="location-outline"
-                    size={18}
-                    color={Colors.textMuted}
-                    style={styles.fieldIcon}
-                  />
-                  <Picker
-                    selectedValue={selectedLocation}
-                    onValueChange={setSelectedLocation}
-                    style={styles.picker}
-                  >
-                    <Picker.Item label="Location" value="" enabled={false} />
-                    {states.map((s) => (
-                      <Picker.Item key={s.State_Pref_id} label={s.State_name} value={s.State_Pref_id} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
+              {/* Location — tap opens dropdown modal */}
+              <DropdownField
+                icon="location-outline"
+                iconSet="Ionicons"
+                label="Location"
+                placeholder="Location"
+                value={selectedLocation}
+                options={states}
+                valueKey="State_Pref_id"
+                labelKey="State_name"
+                onSelect={setSelectedLocation}
+              />
 
               {/* Search / Clear */}
               <View style={styles.buttonContainer}>
@@ -680,19 +776,71 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 1,
   },
-  picker: {
-    flex: 1,
-    height: 52,
-    justifyContent: "center",
-    color: Colors.textDark,
-    backgroundColor: "transparent",
-  },
   searchInput: {
     flex: 1,
     height: 48,
     paddingRight: 14,
     fontSize: 15,
     color: Colors.textDark,
+  },
+
+  // ── Custom dropdown field value + modal ──────────────────────────────────
+  dropdownValueText: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.textDark,
+  },
+  dropdownPlaceholderText: {
+    color: Colors.textMuted || "#999999",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "flex-end",
+  },
+  modalSheet: {
+    backgroundColor: Colors.card || "#FFFFFF",
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 24,
+    maxHeight: "60%",
+  },
+  modalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border || "#E4E4E7",
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.textDark,
+  },
+  modalItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 13,
+    paddingHorizontal: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border || "#F0F0F0",
+  },
+  modalItemSelected: {
+    backgroundColor: Colors.selectedBg || "#FBF5ED",
+    borderRadius: 10,
+  },
+  modalItemText: {
+    fontSize: 15,
+    color: Colors.textDark,
+  },
+  modalItemTextSelected: {
+    color: Colors.primary,
+    fontWeight: "700",
   },
 
   profileScrollView: {
@@ -859,12 +1007,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   filterTag: {
-    backgroundColor: Colors.primary || "#B72024",
+    backgroundColor: Colors.profilecompetionbg,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
   },
-  filterTagText: { color: "#FFFFFF", fontSize: 13 },
+  filterTagText: { color: "#7C5A16", fontSize: 13 },
   button: { flex: 1, marginHorizontal: 5 },
   linearGradient: {
     paddingVertical: 12,
