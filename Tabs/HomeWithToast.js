@@ -154,20 +154,56 @@ export const HomeWithToast = () => {
 
   const navigation = useNavigation();
   const getOrderBy = () => (isEnabled ? "2" : "1");
+  const [searchPage, setSearchPage] = useState(1);
+  const [searchHasMore, setSearchHasMore] = useState(true);
+  const [searchLoadingMore, setSearchLoadingMore] = useState(false);
+
+
+  // ✅ Debounce ref — defined outside render
+  const searchTimerRef = useRef(null);
 
   const handleSearchChange = (text) => {
     const value = text.trimStart();
-
     setSearchProfileId(value);
 
     if (value.trim().length === 0) {
       setSearchProfileId("");
       setSearchResults([]);
-      setTotalCount(matchingProfilesList.length);
+      setTotalCount(0);
+      // ✅ Only refresh the matching profiles list, not the full page
+      fetchMatchingProfilesOnly(getOrderBy(), 1);
       return;
     }
 
-    handleSearchPress(value, getOrderBy());
+    // ✅ Debounce search
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      handleSearchPress(value, getOrderBy());
+    }, 300);
+  };
+
+  // ✅ New function — only refreshes matching profiles, not interests/vysassist
+  const fetchMatchingProfilesOnly = async (orderBy = "1", pageNum = 1) => {
+    setIsProfilesLoading(true);
+    setPage(1);
+    setHasMorePages(true);
+    try {
+      const response = await fetchProfiles(20, pageNum, orderBy);
+      if (response && response.profiles) {
+        const newProfiles = response.profiles || [];
+        const total = response.total_count || 0;
+        setTotalCount(total);
+        setMatchingProfilesList(newProfiles);
+        setHasMorePages(newProfiles.length < total);
+        setPage(pageNum);
+      } else {
+        setHasMorePages(false);
+      }
+    } catch (error) {
+      Toast.show({ type: "error", text1: "Error", text2: "Failed to refresh profiles.", position: "top" });
+    } finally {
+      setIsProfilesLoading(false);
+    }
   };
 
   const CrownOutlineIcon = ({ color = "#A00014", size = 26 }) => (
@@ -377,37 +413,52 @@ export const HomeWithToast = () => {
     };
   };
 
-  const handleSearchPress = async (pid, orderBy = null) => {
+  const handleSearchPress = async (pid, orderBy = null, isLoadMore = false) => {
     if (!pid || pid.length < MIN_SEARCH_LENGTH) {
       setSearchResults([]);
       setIsSearching(false);
       return;
     }
     const orderByValue = orderBy || getOrderBy();
+    const pageToFetch = isLoadMore ? searchPage + 1 : 1;
+
     try {
-      setIsSearching(true);
-      const response = await Search_By_profileId_matchingProfile(
-        pid,
-        orderByValue
-      );
-      if (response.Status === 1 && response.profiles) {
-        setSearchResults(response.profiles);
-        setTotalCount(response.total_count || response.profiles.length);
+      if (isLoadMore) setSearchLoadingMore(true);
+      else setIsSearching(true);
+
+      const response = await Search_By_profileId_matchingProfile(pid, orderByValue, pageToFetch);
+
+      if (response.Status === 1 && response.profiles && response.profiles.length > 0) {
+        const total = response.total_count || response.profiles.length;
+        setSearchResults((prev) =>
+          isLoadMore ? [...(prev || []), ...response.profiles] : response.profiles
+        );
+        setTotalCount(total);
+        setSearchPage(pageToFetch);
+        const loadedCount = isLoadMore ? (searchResults?.length || 0) + response.profiles.length : response.profiles.length;
+        setSearchHasMore(loadedCount < total);
       } else {
-        setSearchResults([]);
-        setTotalCount(0);
+        if (!isLoadMore) {
+          setSearchResults(null);
+          setTotalCount(0);
+        }
+        setSearchHasMore(false);
       }
     } catch (error) {
-      setSearchResults([]);
-      setTotalCount(0);
-      Toast.show({
-        type: "error",
-        text1: "Search Error",
-        text2: "Failed to fetch search results",
-        position: "top",
-      });
+      if (!isLoadMore) {
+        setSearchResults(null);
+        setTotalCount(0);
+      }
+      Toast.show({ type: "error", text1: "Search Error", text2: "Failed to fetch search results", position: "top" });
     } finally {
       setIsSearching(false);
+      setSearchLoadingMore(false);
+    }
+  };
+
+  const handleLoadMoreSearch = () => {
+    if (!searchLoadingMore && searchHasMore && searchProfileId.length > 0) {
+      handleSearchPress(searchProfileId, getOrderBy(), true);
     }
   };
 
@@ -649,7 +700,8 @@ export const HomeWithToast = () => {
             onPress={() => {
               setSearchProfileId("");
               setSearchResults([]);
-              setTotalCount(matchingProfilesList.length);
+              setTotalCount(0);
+              fetchMatchingProfilesOnly(getOrderBy(), 1);  // ✅ only profiles, not full page
             }}
           >
             <MaterialIcons
@@ -846,7 +898,7 @@ export const HomeWithToast = () => {
         <Text style={styles.matching}>
           {"Matching Profiles "}
           <Text style={styles.matchNumber}>
-            ({searchProfileId.length > 0 ? searchResults.length : totalCount})
+            ({searchProfileId.length > 0 ? (searchResults?.length || 0) : totalCount})
           </Text>
         </Text>
         <Text style={styles.sortByText}>Sort by Date:</Text>
@@ -918,8 +970,6 @@ export const HomeWithToast = () => {
     </View>
   );
 
-  // ── Footer loader for profile list pagination ─────────────────────────────
-  // Replace renderFooter with this:
   const renderListFooter = () => {
     if (loadingMore) {
       return (
@@ -955,13 +1005,14 @@ export const HomeWithToast = () => {
       return (
         <View style={styles.profileCardContainer}>
           <ProfileCard
-            searchProfiles={
-              searchProfileId.length > 0 ? searchResults : matchingProfilesList
-            }
+            searchProfiles={searchProfileId.length > 0 ? searchResults : matchingProfilesList}
             isLoadingNew={isSearching || (isProfilesLoading && page === 1)}
             orderBy={getOrderBy()}
             viewMode={viewMode}
             formatRelativeTime={formatRelativeTime}
+            onSearchEndReached={handleLoadMoreSearch}
+            searchLoadingMore={searchLoadingMore}
+            searchHasMore={searchHasMore}
           />
         </View>
       );

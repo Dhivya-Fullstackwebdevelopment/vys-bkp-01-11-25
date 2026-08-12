@@ -673,65 +673,65 @@ export const savePersonalNotes = async (profileTo, notes) => {
 };
 
 export const getAdvanceSearchResults = async (perPage, pageNumber) => {
-  try {
-    const paramsString = await AsyncStorage.getItem("searchParams");
-    if (!paramsString) {
-      console.warn("Search parameters are empty, skipping API call.");
-      return null;
+    try {
+        const paramsString = await AsyncStorage.getItem("searchParams");
+        if (!paramsString) {
+            console.warn("Search parameters are empty, skipping API call.");
+            return null;
+        }
+
+        const params = JSON.parse(paramsString);
+        const profileId = await retrieveProfileId();
+        if (!profileId) {
+            console.warn("Profile ID is empty, skipping API call.");
+            return null;
+        }
+
+        const requestData = {
+            profile_id: profileId,
+            per_page: perPage,
+            page_number: pageNumber,
+            ...params,
+        };
+
+        const response = await axios.post(`${BASE_URL}/Get_advance_search/`, requestData);
+
+        if (response.data.status === "failure") {
+            Toast.show({
+                type: "error",
+                text1: "No Results",
+                text2: response.data.message || "No records found.",
+                position: "top",
+            });
+            return response.data;
+        }
+
+        return response.data;
+    } catch (error) {
+        // Check if backend responded with a 404 or other error status code
+        if (error.response) {
+            const errorMessage = error.response.data?.message || "No records found matching your criteria.";
+
+            Toast.show({
+                type: "error",
+                text1: "No Results",
+                text2: errorMessage,
+                position: "top",
+            });
+
+            // Return structured response instead of throwing
+            return error.response.data || { status: "failure", message: errorMessage };
+        }
+
+        console.error("Error fetching search results:", error);
+        Toast.show({
+            type: "error",
+            text1: "Network Error",
+            text2: "Something went wrong. Please try again.",
+            position: "top",
+        });
+        return null;
     }
-
-    const params = JSON.parse(paramsString);
-    const profileId = await retrieveProfileId();
-    if (!profileId) {
-      console.warn("Profile ID is empty, skipping API call.");
-      return null;
-    }
-
-    const requestData = {
-      profile_id: profileId,
-      per_page: perPage,
-      page_number: pageNumber,
-      ...params,
-    };
-
-    const response = await axios.post(`${BASE_URL}/Get_advance_search/`, requestData);
-
-    if (response.data.status === "failure") {
-      Toast.show({
-        type: "error",
-        text1: "No Results",
-        text2: response.data.message || "No records found.",
-        position: "top",
-      });
-      return response.data;
-    }
-
-    return response.data;
-  } catch (error) {
-    // Check if backend responded with a 404 or other error status code
-    if (error.response) {
-      const errorMessage = error.response.data?.message || "No records found matching your criteria.";
-      
-      Toast.show({
-        type: "error",
-        text1: "No Results",
-        text2: errorMessage,
-        position: "top",
-      });
-
-      // Return structured response instead of throwing
-      return error.response.data || { status: "failure", message: errorMessage };
-    }
-
-    console.error("Error fetching search results:", error);
-    Toast.show({
-      type: "error",
-      text1: "Network Error",
-      text2: "Something went wrong. Please try again.",
-      position: "top",
-    });
-    return null;
-  }
 };
 
 export const Search_By_profileId = async (searchProfileId) => {
@@ -760,33 +760,30 @@ export const Search_By_profileId = async (searchProfileId) => {
     }
 };
 
-export const Search_By_profileId_matchingProfile = async (searchProfileId) => {
+export const Search_By_profileId_matchingProfile = async (searchTerm, orderBy = "1", pageNumber = 1) => {
+    const profileId = await AsyncStorage.getItem("loginuser_profileId");
+    const requestBody = {
+        profile_id: profileId,
+        search_profile_id: searchTerm,
+        search_profession: "",
+        search_age: "",
+        search_location: "",
+        page_number: pageNumber,
+        per_page: 20,
+        order_by: orderBy,
+    };
 
-    const profileId = await retrieveProfileId();
-    if (!profileId) {
-        console.warn('Profile ID is empty, skipping API call.');
-        return null;
-    }
-    try {
-        const response = await axios.post(
-            `${BASE_URL}/Get_prof_list_match/`,
-            {
-                profile_id: profileId, // Ensure this value is available or passed appropriately
-                search_profile_id: searchProfileId,
-            }
-        );
-        console.log("rrrrrrrrrrrrrrrrr", response.data.Status);
-        if (response.data.Status === 1) {
-            return response.data; // Return the profile data from the API response
-        } else {
-            return response.data; // Return the profile data from the API response
-        }
-    } catch (error) {
-        console.error("Error fetching profile:", error);
-        throw new Error("Profile not found. Please check the profile ID.");
-    }
+    const response = await fetch(`${config.apiUrl}/auth/Get_prof_list_match/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+    });
+
+    console.log("request body", requestBody);   // ✅ fixed — logs the actual payload
+    console.log("search profile response status", response.status);
+
+    return await response.json();
 };
-
 
 
 

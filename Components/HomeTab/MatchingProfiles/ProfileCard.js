@@ -33,7 +33,10 @@ import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
 // ← same theme tokens FilterScreen.js uses, so fonts/colors/spacing match exactly
 import { Colors, rs } from "../../../Reusable/Theme";
 
-export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewMode = "list" }) => {
+export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewMode = "list",
+  onSearchEndReached,
+  searchLoadingMore,
+  searchHasMore, }) => {
   const [profiles, setProfiles] = useState([]);
   const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,13 +107,12 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     }
   };
 
-  // Replace handleEndReached with this:
   const handleEndReached = () => {
-    // If parent is driving profiles (no search active), don't double-paginate internally
-    const isParentControlled =
-      !Array.isArray(searchProfiles) || searchProfiles.length === 0;
-    if (isParentControlled) return;
-
+    const isSearchActive = Array.isArray(searchProfiles) && searchProfiles.length > 0;
+    if (isSearchActive) {
+      onSearchEndReached?.();
+      return;
+    }
     if (!isLoadingMore && currentPage < totalPages) {
       loadProfiles(currentPage + 1, false, currentOrderBy);
     }
@@ -228,15 +230,15 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
         });
       }
 
-      const currentProfiles = Array.isArray(searchProfiles) && searchProfiles.length > 0
+      const currentProfiles = (Array.isArray(searchProfiles) && searchProfiles.length > 0)
         ? searchProfiles
-        : profiles;
+        : (Array.isArray(profiles) ? profiles : []);
 
       const profileIdsForNavigation = currentProfiles.reduce((acc, profile, index) => {
         acc[index + 1] = profile.profile_id;
         return acc;
       }, {});
-
+      
       navigation.navigate("ProfileDetails", {
         viewedProfileId,
         allProfileIds: profileIdsForNavigation,
@@ -317,47 +319,43 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
   };
 
   const renderFooter = () => {
-    // Show loader while loading next page
+    const isSearchActive = Array.isArray(searchProfiles) && searchProfiles.length > 0;
+
+    if (isSearchActive) {
+      if (searchLoadingMore) {
+        return (
+          <View style={styles.footer}>
+            <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
+            <Text style={styles.footerText}>Loading more profiles…</Text>
+          </View>
+        );
+      }
+      if (!searchHasMore) {
+        return (
+          <View style={styles.footer}>
+            <Text style={styles.noMoreText}>No more profiles</Text>
+          </View>
+        );
+      }
+      return <View style={{ height: 20 }} />;
+    }
+
     if (isLoadingMore) {
       return (
         <View style={styles.footer}>
-          <ActivityIndicator
-            size="small"
-            color={Colors.primary || "#A00014"}
-          />
-          <Text style={styles.footerText}>
-            Loading more profiles…
-          </Text>
+          <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
+          <Text style={styles.footerText}>Loading more profiles…</Text>
         </View>
       );
     }
-
-    // Search results reached the end
-    if (Array.isArray(searchProfiles) && searchProfiles.length > 0) {
+    if (profiles?.length > 0 && currentPage >= totalPages && totalPages > 1) {
       return (
         <View style={styles.footer}>
-          <Text style={styles.noMoreText}>
-            No more profiles
-          </Text>
+          <Text style={styles.noMoreText}>No more profiles</Text>
         </View>
       );
     }
-
-    // Normal matching profiles reached the last page
-    if (
-      profiles?.length > 0 &&
-      currentPage >= totalPages
-    ) {
-      return (
-        <View style={styles.footer}>
-          <Text style={styles.noMoreText}>
-            No more profiles
-          </Text>
-        </View>
-      );
-    }
-
-    return null;
+    return <View style={{ height: 20 }} />;
   };
 
   const flatListProps = {
@@ -585,6 +583,15 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
       );
     }
 
+    // ✅ Explicit no-results state (search returned nothing)
+    if (searchProfiles === null) {
+      return (
+        <View style={styles.noResultsContainer}>
+          <ProfileNotFound />
+        </View>
+      );
+    }
+
     if (profiles === null) {
       return (
         <View style={styles.noResultsContainer}>
@@ -593,13 +600,12 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
       );
     }
 
-    if (!Array.isArray(profiles) || profiles.length === 0) {
+    const isSearchActive = Array.isArray(searchProfiles) && searchProfiles.length > 0;
+    const dataToRender = isSearchActive ? searchProfiles : profiles;
+
+    if (!Array.isArray(dataToRender) || dataToRender.length === 0) {
       return <></>;
     }
-
-    const dataToRender = Array.isArray(searchProfiles) && searchProfiles.length > 0
-      ? searchProfiles
-      : profiles;
 
     return (
       <View style={styles.contentWrapper}>
@@ -608,16 +614,17 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
           {...flatListProps}
           data={dataToRender}
           numColumns={numColumns}
-          // columnWrapperStyle={viewMode === 'grid' ? styles.gridRow : null}
-          keyExtractor={(item, index) => `${item.profile_id}-${orderBy}-${viewMode}-${index}`}
-          extraData={orderBy}
-          renderItem={viewMode === 'grid' ? renderGridItem : renderSearchItem}
+          keyExtractor={(item, index) =>
+            `${item.profile_id}-${orderBy}-${viewMode}-${index}`
+          }
+          extraData={[orderBy, searchProfiles]}
+          renderItem={viewMode === "grid" ? renderGridItem : renderSearchItem}
           contentContainerStyle={styles.flatListContent}
           showsVerticalScrollIndicator={true}
           ListFooterComponent={() => (
             <>
               {renderFooter()}
-              {viewMode === 'list' && (
+              {viewMode === "list" && !isSearchActive && (
                 <View style={styles.suggestedWrapper}>
                   <SuggestedProfiles />
                   <FeaturedProfiles />
