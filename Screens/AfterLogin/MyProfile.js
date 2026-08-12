@@ -15,8 +15,9 @@ import {
     Platform,
     Easing,
     ScrollView,
+    StatusBar,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import {
     Ionicons,
     MaterialIcons,
@@ -44,19 +45,15 @@ const isTablet = SCREEN_WIDTH >= 768;
 const fs = (size) => isTablet ? Math.round(size * 1.3) : size;
 const verticalScale = (size) => (SCREEN_H / 812) * size;
 
-// Layout Constants — matches ProfileDetails hero sizing logic
+// Layout Constants
 const HERO_IMAGE_HEIGHT = Math.max(340, Math.min(460, verticalScale(420)));
 const HEADER_HEIGHT = Platform.OS === 'ios' ? 90 : 70;
 const COMPACT_HEADER_HEIGHT = 64;
-const NAV_BAR_HEIGHT = 50;
-const TOTAL_STICKY_TOP = HEADER_HEIGHT;
-const COLLAPSE_DISTANCE = HERO_IMAGE_HEIGHT - COMPACT_HEADER_HEIGHT;
 
-// Section metadata used for sticky quick-nav
+// Section metadata used for quick-nav
 const PROFILE_SECTIONS = [
     { key: 'personal', label: 'Personal', icon: 'account', lib: 'MCI' },
-    { key: 'education', label: 'Education', icon: 'school', lib: 'MCI' },
-    { key: 'profession', label: 'Profession', icon: 'briefcase', lib: 'FA5' },
+    { key: 'education', label: 'Work & Education', icon: 'school', lib: 'MCI' },
     { key: 'family', label: 'Family', icon: 'account-group', lib: 'MCI' },
     { key: 'horoscope', label: 'Horoscope', icon: 'star-four-points', lib: 'MCI' },
     { key: 'contact', label: 'Contact', icon: 'phone', lib: 'MCI' },
@@ -104,16 +101,11 @@ const ShimmerLoader = () => {
                 <Animated.View style={[styles.shimmerBar, { opacity, width: '100%', height: 16, marginTop: 12 }]} />
                 <Animated.View style={[styles.shimmerBar, { opacity, width: '85%', height: 16, marginTop: 8 }]} />
             </View>
-            <View style={styles.shimmerCard}>
-                <Animated.View style={[styles.shimmerBar, { opacity, width: '50%', height: 20, marginBottom: 12 }]} />
-                <Animated.View style={[styles.shimmerBar, { opacity, width: '100%', height: 45, marginBottom: 10 }]} />
-                <Animated.View style={[styles.shimmerBar, { opacity, width: '100%', height: 45, marginBottom: 10 }]} />
-            </View>
         </View>
     );
 };
 
-// Presentational helper for pill indicators — restyled to match ProfileDetails statusChip look
+// Presentational helper for pill indicators
 const InfoPillRow = ({ items }) => {
     const visible = items.filter((it) => it.value !== undefined && it.value !== null && it.value !== '');
     if (visible.length === 0) return null;
@@ -136,13 +128,12 @@ export const MyProfile = () => {
     const navigation = useNavigation();
     const scrollY = useRef(new Animated.Value(0)).current;
     const scrollViewRef = useRef(null);
-    const dotsScrollViewRef = useRef(null);
+    const insets = useSafeAreaInsets();
 
     const sectionOffsetsRef = useRef({
         iconBarTop: 0,
         personal: 0,
         education: 0,
-        profession: 0,
         family: 0,
         horoscope: 0,
         contact: 0,
@@ -150,12 +141,11 @@ export const MyProfile = () => {
 
     const [activeSection, setActiveSection] = useState('personal');
     const activeSectionRef = useRef('personal');
-    const scrollContainerYRef = useRef(0);
 
     const scrollToProfileSection = (key) => {
         const offsets = sectionOffsetsRef.current;
-        const targetOffset = (offsets.iconBarTop || 0) + (offsets[key] || 0);
-        const adjustedY = Math.max(0, targetOffset - (HEADER_HEIGHT + COMPACT_HEADER_HEIGHT));
+        const targetOffset = (offsets[key] || 0);
+        const adjustedY = Math.max(0, targetOffset - (HEADER_HEIGHT + 20));
 
         scrollViewRef.current?.scrollTo({ y: adjustedY, animated: true });
         setActiveSection(key);
@@ -164,12 +154,11 @@ export const MyProfile = () => {
 
     const updateActiveSectionFromScroll = useCallback((offsetY) => {
         const offsets = sectionOffsetsRef.current;
-        const base = offsets.iconBarTop || 0;
         let current = PROFILE_SECTIONS[0].key;
 
         for (const section of PROFILE_SECTIONS) {
-            const sectionY = base + (offsets[section.key] || 0);
-            if (offsetY + HEADER_HEIGHT + COMPACT_HEADER_HEIGHT + NAV_BAR_HEIGHT >= sectionY) {
+            const sectionY = offsets[section.key] || 0;
+            if (offsetY + HEADER_HEIGHT + 50 >= sectionY) {
                 current = section.key;
             }
         }
@@ -180,10 +169,6 @@ export const MyProfile = () => {
         }
     }, []);
 
-    const [isBookmarked, setIsBookmarked] = useState(false);
-    const handleSavePress = () => setIsBookmarked(!isBookmarked);
-
-    const screenWidth = Dimensions.get('window').width;
     const carouselHeight = HERO_IMAGE_HEIGHT;
 
     const [shareModalVisible, setShareModalVisible] = useState(false);
@@ -200,12 +185,6 @@ export const MyProfile = () => {
     const [selectedPdfLanguage, setSelectedPdfLanguage] = useState("english");
     const [showLanguagePopup, setShowLanguagePopup] = useState(false);
 
-    const navPaddingTop = scrollY.interpolate({
-        inputRange: [0, COLLAPSE_DISTANCE],
-        outputRange: [0, 60],
-        extrapolate: 'clamp',
-    });
-
     const handleAddOnPackagePress = () => {
         if (profileDetails?.package_name === "Free") {
             navigation.navigate('MembershipPlan');
@@ -217,16 +196,6 @@ export const MyProfile = () => {
     useEffect(() => {
         fetchAndSetImages();
     }, []);
-
-    useEffect(() => {
-        if (dotsScrollViewRef.current && data.length > 1) {
-            const dotWidth = 16;
-            dotsScrollViewRef.current.scrollTo({
-                x: Math.max(0, activeSlide * dotWidth - 50),
-                animated: true,
-            });
-        }
-    }, [activeSlide, data.length]);
 
     const fetchAndSetImages = async () => {
         try {
@@ -390,7 +359,7 @@ export const MyProfile = () => {
             >
                 <TopAlignedImage
                     uri={item.url || 'https://via.placeholder.com/150'}
-                    width={screenWidth}
+                    width={SCREEN_WIDTH}
                     height={carouselHeight}
                     style={styles.image}
                 />
@@ -402,7 +371,7 @@ export const MyProfile = () => {
             </TouchableOpacity>
 
             <View style={styles.iconContainer}>
-                <TouchableOpacity style={styles.addIconWrapper} onPress={() => handleAddNewImage()}>
+                <TouchableOpacity style={styles.addIconWrapper} onPress={() => uploadImage(null)}>
                     <MaterialIcons name="add-circle" size={24} color={Colors.primary} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleImageUpload(item.id)}>
@@ -411,8 +380,6 @@ export const MyProfile = () => {
             </View>
         </View>
     );
-
-    const handleAddNewImage = () => uploadImage(null);
 
     const handleDownloadPdf = () => {
         if (!profileDetails || !profileDetails.encrypted_profile_id) {
@@ -534,29 +501,6 @@ export const MyProfile = () => {
         }
     };
 
-    const heroTranslateY = scrollY.interpolate({
-        inputRange: [0, COLLAPSE_DISTANCE],
-        outputRange: [0, -COLLAPSE_DISTANCE],
-        extrapolate: 'clamp',
-    });
-    const heroOpacity = scrollY.interpolate({
-        inputRange: [0, COLLAPSE_DISTANCE * 0.6, COLLAPSE_DISTANCE],
-        outputRange: [1, 0.4, 0],
-        extrapolate: 'clamp',
-    });
-    const compactBarOpacity = scrollY.interpolate({
-        inputRange: [COLLAPSE_DISTANCE * 0.5, COLLAPSE_DISTANCE],
-        outputRange: [0, 1],
-        extrapolate: 'clamp',
-    });
-    const compactBarTranslateY = scrollY.interpolate({
-        inputRange: [COLLAPSE_DISTANCE * 0.5, COLLAPSE_DISTANCE],
-        outputRange: [-16, 0],
-        extrapolate: 'clamp',
-    });
-
-    const primaryImageUri = data.length > 0 ? (data[0]?.url || 'https://via.placeholder.com/150') : null;
-
     if (pageLoading) {
         return (
             <SafeAreaView style={styles.mainContainer}>
@@ -566,8 +510,10 @@ export const MyProfile = () => {
     }
 
     return (
-        <SafeAreaView style={styles.mainContainer}>
-            {/* <View style={styles.headerContainer}> */}
+        <SafeAreaView style={styles.mainContainer} edges={['left', 'right']}>
+            <StatusBar backgroundColor="#FBF5ED" barStyle="dark-content" />
+
+            {/* Main Single Static Header */}
             <LinearGradient
                 colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
                 start={{ x: 0, y: 0.5 }}
@@ -584,40 +530,6 @@ export const MyProfile = () => {
                 <View style={{ width: 40 }} />
             </LinearGradient>
 
-
-            <Animated.View
-                pointerEvents={"box-none"}
-                style={[
-                    styles.compactProfileBar,
-                    {
-                        opacity: compactBarOpacity,
-                        transform: [{ translateY: compactBarTranslateY }],
-                    },
-                ]}
-            >
-                <Image
-                    source={{ uri: primaryImageUri || 'https://via.placeholder.com/150' }}
-                    style={styles.compactAvatar}
-                />
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.compactName} numberOfLines={1}>
-                            {profileDetails?.personal_profile_name || ''}
-                        </Text>
-                        <Ionicons name="shield-checkmark" size={14} color={Colors.success} style={{ marginLeft: 6 }} />
-                    </View>
-                    <Text style={styles.compactSub} numberOfLines={1}>
-                        {profileDetails?.profile_id} {profileDetails?.personal_age ? `• ${profileDetails.personal_age} yrs` : ''}
-                    </Text>
-                </View>
-                <Pressable onPress={() => setShareModalVisible(true)} style={({ pressed }) => [styles.compactActionBtn, pressed && styles.iconButtonPressed]}>
-                    <Ionicons name="share-social" size={18} color={Colors.primary} />
-                </Pressable>
-                <Pressable onPress={handleDownloadPdf} style={({ pressed }) => [styles.compactActionBtn, pressed && styles.iconButtonPressed]}>
-                    <Ionicons name="print" size={18} color={Colors.primary} />
-                </Pressable>
-            </Animated.View>
-
             <Animated.ScrollView
                 ref={scrollViewRef}
                 onScroll={Animated.event(
@@ -626,259 +538,227 @@ export const MyProfile = () => {
                         useNativeDriver: false,
                         listener: (e) => {
                             const y = e.nativeEvent.contentOffset.y;
-                            scrollContainerYRef.current = y;
                             updateActiveSectionFromScroll(y);
                         },
                     }
                 )}
                 scrollEventThrottle={16}
                 removeClippedSubviews={Platform.OS === 'android'}
-                contentContainerStyle={{ paddingBottom: 30 }}
-                stickyHeaderIndices={[1]}
+                contentContainerStyle={{ paddingBottom: 100 }}
+                stickyHeaderIndices={[2]} // Makes the horizontal subtitle tab bar stick below header
             >
-                <View style={{ backgroundColor: Colors.selectedBg }}>
-                    <Animated.View
-                        style={[
-                            styles.heroWrapper,
-                            { transform: [{ translateY: heroTranslateY }] },
-                        ]}
-                    >
-                        <Animated.View style={{ opacity: heroOpacity }}>
-                            <View style={{ width: '100%', position: 'relative' }}>
-                                {data.length > 0 ? (
-                                    <>
-                                        <Carousel
-                                            loop
-                                            width={screenWidth}
-                                            height={carouselHeight}
-                                            style={{ width: screenWidth, height: carouselHeight }}
-                                            autoPlay={false}
-                                            data={data}
-                                            scrollAnimationDuration={600}
-                                            onSnapToItem={(index) => setActiveSlide(index)}
-                                            renderItem={renderItem}
-                                        />
-
-                                        <View style={styles.paginationOuterWrapper}>
-                                            <ScrollView
-                                                ref={dotsScrollViewRef}
-                                                horizontal
-                                                showsHorizontalScrollIndicator={false}
-                                                contentContainerStyle={styles.paginationScrollContent}
-                                            >
-                                                {data.map((_, i) => (
-                                                    <View
-                                                        key={`pagination-dot-${i}`}
-                                                        style={[
-                                                            styles.dot,
-                                                            {
-                                                                opacity: i === activeSlide ? 1 : 0.5,
-                                                                transform: [{ scale: i === activeSlide ? 1.25 : 0.8 }],
-                                                                backgroundColor: i === activeSlide ? Colors.primary : '#FFFFFF',
-                                                            },
-                                                        ]}
-                                                    />
-                                                ))}
-                                            </ScrollView>
-                                        </View>
-                                    </>
-                                ) : (
-                                    <View style={styles.emptyContainer}>
-                                        <TouchableOpacity
-                                            style={styles.uploadWrapper}
-                                            onPress={() => uploadImage(null)}
-                                        >
-                                            <View style={styles.noPhotoIconCircle}>
-                                                <MaterialIcons name="add-photo-alternate" size={30} color={Colors.primary} />
-                                            </View>
-                                            <Text style={styles.uploadText}>Upload Image</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-
-                                {isZoomVisible && (
-                                    <Modal visible={isZoomVisible} transparent={true} onRequestClose={() => setZoomVisible(false)}>
-                                        <ImageViewer
-                                            imageUrls={data.map((item) => ({ url: item.url }))}
-                                            index={selectedSlideIndex}
-                                            onClick={() => setZoomVisible(false)}
-                                        />
-                                    </Modal>
-                                )}
+                {/* HERO CAROUSEL */}
+                <View style={styles.heroWrapper}>
+                    {data.length > 0 ? (
+                        <>
+                            <Carousel
+                                loop
+                                width={SCREEN_WIDTH}
+                                height={carouselHeight}
+                                style={{ width: SCREEN_WIDTH, height: carouselHeight }}
+                                autoPlay={false}
+                                data={data}
+                                scrollAnimationDuration={600}
+                                onSnapToItem={(index) => setActiveSlide(index)}
+                                renderItem={renderItem}
+                            />
+                            {/* Uploaded Photos Count Indicator */}
+                            <View style={styles.imageCounterBadge}>
+                                <Text style={styles.imageCounterText}>
+                                    {activeSlide + 1}/{data.length}
+                                </Text>
                             </View>
-                        </Animated.View>
-                    </Animated.View>
-
-                    <View style={styles.summaryCard}>
-                        {profileDetails ? (
-                            <>
-                                <View style={styles.nameIconFlex}>
-                                    <Text style={styles.name} numberOfLines={1}>{profileDetails.personal_profile_name}</Text>
-                                    <TouchableOpacity>
-                                        <Ionicons
-                                            name="shield-checkmark"
-                                            size={18}
-                                            color={Colors.success}
-                                            style={styles.verificationIcon}
-                                        />
-                                    </TouchableOpacity>
-                                    <Pressable
-                                        style={({ pressed }) => [styles.actionButton, pressed && styles.iconButtonPressed]}
-                                        onPress={() => setShareModalVisible(true)}
-                                    >
-                                        <Ionicons
-                                            name="share-social"
-                                            size={20}
-                                            color={Colors.primary}
-                                        />
-                                    </Pressable>
-
-                                    <Pressable
-                                        style={({ pressed }) => [{ alignItems: 'center' }, pressed && styles.iconButtonPressed]}
-                                        onPress={handleDownloadPdf}
-                                    >
-                                        <Ionicons name="print" size={20} color={Colors.primary} />
-                                    </Pressable>
+                        </>
+                    ) : (
+                        <View style={styles.emptyContainer}>
+                            <TouchableOpacity
+                                style={styles.uploadWrapper}
+                                onPress={() => uploadImage(null)}
+                            >
+                                <View style={styles.noPhotoIconCircle}>
+                                    <MaterialIcons name="add-photo-alternate" size={30} color={Colors.primary} />
                                 </View>
+                                <Text style={styles.uploadText}>Upload Image</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
 
-                                <View style={styles.profileCodeChip}>
-                                    <Text style={styles.profileCodeText}>{profileDetails.profile_id}</Text>
-                                </View>
-
-                                <View style={styles.planFlex}>
-                                    {profileDetails.valid_upto &&
-                                        new Date(profileDetails.valid_upto) < new Date() &&
-                                        allowedPremiumIds.includes(currentPlanId) ? (
-                                        <TouchableOpacity
-                                            style={styles.renewButtonWrapper}
-                                            onPress={() => navigation.navigate('PayNow')}
-                                        >
-                                            <LinearGradient
-                                                colors={[Colors.primary, Colors.primary]}
-                                                start={{ x: 0, y: 0 }}
-                                                end={{ x: 1, y: 1 }}
-                                                style={styles.renewButton}
-                                            >
-                                                <Text style={styles.renewButtonText}>Renew</Text>
-                                            </LinearGradient>
-                                        </TouchableOpacity>
-                                    ) : (
-                                        <View style={styles.planFlex}>
-                                            <LinearGradient
-                                                colors={
-                                                    profileDetails.package_name === "Platinum"
-                                                        ? ["#E5E4E2", "#C0C0C0", "#FFFFFF"]
-                                                        : profileDetails.package_name === "Gold"
-                                                            ? ["#D79D32", "#FFB800", "#FDE166"]
-                                                            : profileDetails.package_name === "Diamond"
-                                                                ? ["#B9F2FF", "#FFFFFF", "#B9F2FF"]
-                                                                : ["#D79D32", "#FFB800", "#FDE166"]
-                                                }
-                                                locations={[0, 0.5, 1]}
-                                                start={{ x: 1, y: 1 }}
-                                                end={{ x: 0, y: 0 }}
-                                                style={[
-                                                    styles.goldLinearGradient,
-                                                    profileDetails.package_name === "Diamond" && styles.diamondText
-                                                ]}
-                                            >
-                                                <Text style={[
-                                                    styles.goldText,
-                                                    profileDetails.package_name === "Diamond" && { color: "#fff" }
-                                                ]}>
-                                                    {profileDetails.package_name}
-                                                </Text>
-                                            </LinearGradient>
-                                        </View>
-                                    )}
-                                    {profileDetails.valid_upto && (
-                                        <Text style={[styles.date, { marginBottom: 8, marginLeft: 10 }]}>
-                                            Valid Upto : {profileDetails.valid_upto}
-                                        </Text>
-                                    )}
-                                </View>
-
-                                <Pressable
-                                    style={styles.completeTextFlex}
-                                    onPress={handleAddOnPackagePress}
-                                >
-                                    <Text style={styles.completeText}>Add on packages</Text>
-                                    <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
-                                </Pressable>
-
-                                <InfoPillRow
-                                    items={[
-                                        {
-                                            label: 'age',
-                                            value: profileDetails.personal_age ? `${profileDetails.personal_age} Yrs` : null,
-                                            icon: <MaterialCommunityIcons name="cake-variant-outline" size={14} color={Colors.primary} />,
-                                        },
-                                        {
-                                            label: 'height',
-                                            value: profileDetails.personal_profile_height?.height_desc,
-                                            icon: <MaterialCommunityIcons name="human-male-height" size={14} color={Colors.primary} />,
-                                        },
-                                        {
-                                            label: 'star',
-                                            value: profileDetails.star,
-                                            icon: <MaterialCommunityIcons name="star-four-points-outline" size={14} color={Colors.primary} />,
-                                        },
-                                    ]}
-                                />
-
-                                <View style={styles.factsGrid}>
-                                    <View style={styles.factCardFull}>
-                                        <View style={styles.factIconBg}>
-                                            <FontAwesome5 name="briefcase" size={14} color={Colors.primary} />
-                                        </View>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={styles.factLabel}>Profession</Text>
-                                            <Text style={styles.factValue} numberOfLines={1}>{profileDetails.prosession || '—'}</Text>
-                                        </View>
-                                    </View>
-                                    <View style={styles.factCardFull}>
-                                        <View style={styles.factIconBg}>
-                                            <MaterialCommunityIcons name="school-outline" size={16} color={Colors.primary} />
-                                        </View>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={styles.factLabel}>Education</Text>
-                                            <Text style={styles.factValue} numberOfLines={1}>{profileDetails.heightest_education || '—'}</Text>
-                                        </View>
-                                    </View>
-                                </View>
-                            </>
-                        ) : (
-                            <View style={{ paddingVertical: 10 }}>
-                                <View style={[styles.shimmerBar, { width: '60%', height: 22, marginBottom: 8 }]} />
-                                <View style={[styles.shimmerBar, { width: '35%', height: 16, marginBottom: 12 }]} />
-                                <View style={[styles.shimmerBar, { width: '80%', height: 16, marginBottom: 8 }]} />
-                                <View style={[styles.shimmerBar, { width: '70%', height: 16 }]} />
-                            </View>
-                        )}
-                    </View>
+                    {isZoomVisible && (
+                        <Modal visible={isZoomVisible} transparent={true} onRequestClose={() => setZoomVisible(false)}>
+                            <ImageViewer
+                                imageUrls={data.map((item) => ({ url: item.url }))}
+                                index={selectedSlideIndex}
+                                onClick={() => setZoomVisible(false)}
+                            />
+                        </Modal>
+                    )}
                 </View>
 
-                <Animated.View
-                    style={[
-                        styles.stickyNavWrapper,
-                        { paddingTop: navPaddingTop }
-                    ]}
-                    onLayout={(e) => {
-                        sectionOffsetsRef.current.iconBarTop = e.nativeEvent.layout.y;
-                    }}
-                >
+                {/* PROFILE SUMMARY CARD */}
+                <View style={styles.summaryCard}>
+                    {profileDetails ? (
+                        <>
+                            <View style={styles.nameIconFlex}>
+                                <Text style={styles.name} numberOfLines={1}>{profileDetails.personal_profile_name}</Text>
+                                <TouchableOpacity>
+                                    <Ionicons
+                                        name="shield-checkmark"
+                                        size={18}
+                                        color={Colors.success}
+                                        style={styles.verificationIcon}
+                                    />
+                                </TouchableOpacity>
+                                <Pressable
+                                    style={({ pressed }) => [styles.actionButton, pressed && styles.iconButtonPressed]}
+                                    onPress={() => setShareModalVisible(true)}
+                                >
+                                    <Ionicons
+                                        name="share-social"
+                                        size={20}
+                                        color={Colors.primary}
+                                    />
+                                </Pressable>
+
+                                <Pressable
+                                    style={({ pressed }) => [{ alignItems: 'center' }, pressed && styles.iconButtonPressed]}
+                                    onPress={handleDownloadPdf}
+                                >
+                                    <Ionicons name="print" size={20} color={Colors.primary} />
+                                </Pressable>
+                            </View>
+
+                            <View style={styles.profileCodeChip}>
+                                <Text style={styles.profileCodeText}>{profileDetails.profile_id}</Text>
+                            </View>
+
+                            <View style={styles.planFlex}>
+                                {profileDetails.valid_upto &&
+                                    new Date(profileDetails.valid_upto) < new Date() &&
+                                    allowedPremiumIds.includes(currentPlanId) ? (
+                                    <TouchableOpacity
+                                        style={styles.renewButtonWrapper}
+                                        onPress={() => navigation.navigate('PayNow')}
+                                    >
+                                        <LinearGradient
+                                            colors={[Colors.primary, Colors.primary]}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.renewButton}
+                                        >
+                                            <Text style={styles.renewButtonText}>Renew</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <View style={styles.planFlex}>
+                                        <LinearGradient
+                                            colors={
+                                                profileDetails.package_name === "Platinum"
+                                                    ? ["#E5E4E2", "#C0C0C0", "#FFFFFF"]
+                                                    : profileDetails.package_name === "Gold"
+                                                        ? ["#D79D32", "#FFB800", "#FDE166"]
+                                                        : profileDetails.package_name === "Diamond"
+                                                            ? ["#B9F2FF", "#FFFFFF", "#B9F2FF"]
+                                                            : ["#D79D32", "#FFB800", "#FDE166"]
+                                            }
+                                            locations={[0, 0.5, 1]}
+                                            start={{ x: 1, y: 1 }}
+                                            end={{ x: 0, y: 0 }}
+                                            style={[
+                                                styles.goldLinearGradient,
+                                                profileDetails.package_name === "Diamond" && styles.diamondText
+                                            ]}
+                                        >
+                                            <Text style={[
+                                                styles.goldText,
+                                                profileDetails.package_name === "Diamond" && { color: "#fff" }
+                                            ]}>
+                                                {profileDetails.package_name}
+                                            </Text>
+                                        </LinearGradient>
+                                    </View>
+                                )}
+                                {profileDetails.valid_upto && (
+                                    <Text style={[styles.date, { marginBottom: 8, marginLeft: 10 }]}>
+                                        Valid Upto : {profileDetails.valid_upto}
+                                    </Text>
+                                )}
+                            </View>
+
+                            <Pressable
+                                style={styles.completeTextFlex}
+                                onPress={handleAddOnPackagePress}
+                            >
+                                <Text style={styles.completeText}>Add on packages</Text>
+                                <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+                            </Pressable>
+
+                            <InfoPillRow
+                                items={[
+                                    {
+                                        label: 'age',
+                                        value: profileDetails.personal_age ? `${profileDetails.personal_age} Yrs` : null,
+                                        icon: <MaterialCommunityIcons name="cake-variant-outline" size={14} color={Colors.primary} />,
+                                    },
+                                    {
+                                        label: 'height',
+                                        value: profileDetails.personal_profile_height?.height_desc,
+                                        icon: <MaterialCommunityIcons name="human-male-height" size={14} color={Colors.primary} />,
+                                    },
+                                    {
+                                        label: 'star',
+                                        value: profileDetails.star,
+                                        icon: <MaterialCommunityIcons name="star-four-points-outline" size={14} color={Colors.primary} />,
+                                    },
+                                ]}
+                            />
+
+                            <View style={styles.factsGrid}>
+                                <View style={styles.factCardFull}>
+                                    <View style={styles.factIconBg}>
+                                        <FontAwesome5 name="briefcase" size={14} color={Colors.primary} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.factLabel}>Profession</Text>
+                                        <Text style={styles.factValue} numberOfLines={1}>{profileDetails.prosession || '—'}</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.factCardFull}>
+                                    <View style={styles.factIconBg}>
+                                        <MaterialCommunityIcons name="school-outline" size={16} color={Colors.primary} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.factLabel}>Education</Text>
+                                        <Text style={styles.factValue} numberOfLines={1}>{profileDetails.heightest_education || '—'}</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        </>
+                    ) : (
+                        <View style={{ paddingVertical: 10 }}>
+                            <View style={[styles.shimmerBar, { width: '60%', height: 22, marginBottom: 8 }]} />
+                            <View style={[styles.shimmerBar, { width: '35%', height: 16, marginBottom: 12 }]} />
+                            <View style={[styles.shimmerBar, { width: '80%', height: 16, marginBottom: 8 }]} />
+                            <View style={[styles.shimmerBar, { width: '70%', height: 16 }]} />
+                        </View>
+                    )}
+                </View>
+
+                {/* HORIZONTAL SCROLLABLE STICKY SUBTITLE NAV TAB */}
+                <View style={styles.stickyNavWrapper}>
                     <ProfileIconsBar
                         onSelectSection={scrollToProfileSection}
                         activeSection={activeSection}
                         sections={PROFILE_SECTIONS}
                     />
-                </Animated.View>
+                </View>
 
+                {/* EDITABLE PROFILE SECTIONS BODY */}
                 <View style={styles.sectionsBody}>
                     <ProfileSectionsContent sectionOffsetsRef={sectionOffsetsRef} setLoading={setLoading} />
                 </View>
             </Animated.ScrollView>
 
+            {/* SHARE MODAL */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -912,6 +792,7 @@ export const MyProfile = () => {
                 </View>
             </Modal>
 
+            {/* LANGUAGE SELECT MODAL */}
             <Modal
                 visible={showLanguagePopup}
                 transparent={true}
@@ -967,14 +848,12 @@ export const MyProfile = () => {
 
             <BottomTabBarComponent />
 
-            {
-                loading && (
-                    <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="large" color={Colors.primary} />
-                    </View>
-                )
-            }
-        </SafeAreaView >
+            {loading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color={Colors.primary} />
+                </View>
+            )}
+        </SafeAreaView>
     );
 };
 
@@ -990,11 +869,11 @@ const styles = StyleSheet.create({
         borderBottomColor: Colors.border,
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
+        justify: "space-between",
         backgroundColor: Colors.selectedBg,
         zIndex: 25,
         elevation: 6,
-        paddingTop: 10,
+        paddingTop: Platform.OS === 'ios' ? 10 : 25,
         height: HEADER_HEIGHT,
     },
     headerIconBtn: {
@@ -1010,54 +889,6 @@ const styles = StyleSheet.create({
     },
     iconButtonPressed: {
         opacity: 0.6,
-    },
-    compactProfileBar: {
-        position: 'absolute',
-        top: HEADER_HEIGHT,
-        left: 0,
-        right: 0,
-        zIndex: 20,
-        backgroundColor: Colors.cardBackground,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        height: COMPACT_HEADER_HEIGHT,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    compactAvatar: {
-        width: 42,
-        height: 42,
-        borderRadius: 21,
-        backgroundColor: Colors.chipInactiveBg,
-        borderWidth: 1.5,
-        borderColor: Colors.primaryContainer,
-    },
-    compactName: {
-        color: Colors.textDark,
-        fontSize: fs(15),
-        fontWeight: '800',
-    },
-    compactSub: {
-        color: Colors.textMuted,
-        fontSize: fs(12),
-        marginTop: 2,
-        fontWeight: '500',
-    },
-    compactActionBtn: {
-        marginLeft: 10,
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.iconContainerBg,
     },
     heroWrapper: {
         zIndex: 1,
@@ -1243,39 +1074,25 @@ const styles = StyleSheet.create({
         height: "100%",
         resizeMode: "cover",
     },
-    paginationOuterWrapper: {
+    imageCounterBadge: {
         position: 'absolute',
-        bottom: 25,
-        left: 0,
-        right: 0,
-        zIndex: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    paginationScrollContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.45)',
-        borderRadius: 12,
+        bottom: 20,
+        right: 16,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         paddingHorizontal: 10,
-        paddingVertical: 5,
+        paddingVertical: 4,
+        borderRadius: 12,
+        zIndex: 10,
     },
-    dot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        marginHorizontal: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.3,
-        shadowRadius: 1,
-        elevation: 2,
+    imageCounterText: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontWeight: '600',
     },
     iconContainer: {
         position: 'absolute',
         bottom: 12,
-        right: 12,
+        left: 12,
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgba(250, 246, 240, 0.92)',
@@ -1428,17 +1245,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     stickyNavWrapper: {
-        backgroundColor: Colors.cardBackground,
+        backgroundColor: Colors.selectedBg,
         zIndex: 100,
         elevation: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
+        paddingVertical: 8,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-        minHeight: NAV_BAR_HEIGHT,
-        justifyContent: 'center',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
     },
     sectionsBody: {
         backgroundColor: Colors.selectedBg,

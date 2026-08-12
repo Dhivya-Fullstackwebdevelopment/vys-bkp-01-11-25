@@ -6,7 +6,8 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback,
     TextInput,
-    Pressable
+    Pressable,
+    ScrollView,
 } from "react-native";
 import {
     Ionicons,
@@ -28,44 +29,37 @@ import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from "../../Reusable/Theme";
 
-export const ProfileIconsBar = ({ onSelectSection }) => {
+export const ProfileIconsBar = ({ onSelectSection, activeSection, sections }) => {
+    const tabList = sections || [
+        { key: 'personal', label: 'Personal' },
+        { key: 'education', label: 'Work & Education' },
+        { key: 'family', label: 'Family' },
+        { key: 'horoscope', label: 'Horoscope' },
+        { key: 'contact', label: 'Contact' },
+    ];
+
     return (
-        <View style={styles.iconsRowContainer}>
-            <View style={styles.iconContainer}>
-                <TouchableOpacity onPress={() => onSelectSection && onSelectSection('personal')}>
-                    <FontAwesome5 name="user-circle" size={22} color={Colors.primary} style={styles.iconStyle} />
-                </TouchableOpacity>
-                <Text style={styles.iconText}>Personal</Text>
-            </View>
-
-            <View style={styles.iconContainer}>
-                <TouchableOpacity onPress={() => onSelectSection && onSelectSection('education')}>
-                    <Ionicons name="briefcase" size={20} color={Colors.primary} style={styles.iconStyle} />
-                </TouchableOpacity>
-                <Text style={styles.iconText}>Work</Text>
-            </View>
-
-            <View style={styles.iconContainer}>
-                <TouchableOpacity onPress={() => onSelectSection && onSelectSection('family')}>
-                    <FontAwesome5 name="users" size={20} color={Colors.primary} style={styles.iconStyle} />
-                    <Text style={styles.iconText}>Family</Text>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.iconContainer}>
-                <TouchableOpacity onPress={() => onSelectSection && onSelectSection('horoscope')}>
-                    <MaterialCommunityIcons name="zodiac-libra" size={20} color={Colors.primary} style={styles.iconStyle} />
-                </TouchableOpacity>
-                <Text style={styles.iconText}>Horoscope</Text>
-            </View>
-
-            <View style={styles.iconContainer}>
-                <TouchableOpacity onPress={() => onSelectSection && onSelectSection('contact')}>
-                    <MaterialIcons name="phone" size={20} color={Colors.primary} style={styles.iconStyle} />
-                </TouchableOpacity>
-                <Text style={styles.iconText}>Contact</Text>
-            </View>
-        </View>
+        <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalTabContent}
+        >
+            {tabList.map((tab) => {
+                const isActive = activeSection === tab.key;
+                return (
+                    <TouchableOpacity
+                        key={tab.key}
+                        style={[styles.tabPill, isActive && styles.tabPillActive]}
+                        onPress={() => onSelectSection && onSelectSection(tab.key)}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>
+                            {tab.label}
+                        </Text>
+                    </TouchableOpacity>
+                );
+            })}
+        </ScrollView>
     );
 };
 
@@ -767,6 +761,31 @@ export const ProfileDetailsEdit = () => {
 };
 
 const styles = StyleSheet.create({
+    horizontalTabContent: {
+        paddingHorizontal: 16,
+        paddingVertical: 4,
+        alignItems: 'center',
+    },
+    tabPill: {
+        paddingHorizontal: 18,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: Colors.cardBackground,
+        marginRight: 8,
+        alignItems: 'center',
+        elevation: 1,
+    },
+    tabPillActive: {
+        backgroundColor: Colors.primary,
+    },
+    tabPillText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.textMuted,
+    },
+    tabPillTextActive: {
+        color: '#FFFFFF',
+    },
     iconsRowContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
