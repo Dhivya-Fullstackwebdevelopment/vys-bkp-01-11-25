@@ -216,124 +216,100 @@ export const DashBoard = () => {
 
   );
 
-  const VisitorsSvg = ({ size = 24, color = Colors.matchingcirclecolor }) => (
+  // ── Quick Action SVGs ─────────────────────────────────────────────────────────
+  const PersonalNotesSvg = ({ size = 24, color }) => (
     <Svg width={size} height={size} viewBox="0 0 512 512">
-      <Circle
-        cx="130"
-        cy="150"
-        r="70"
-        fill="none"
-        stroke={color}
-        strokeWidth="28"
+      {/* Notebook body */}
+      <Path d="M100 60 Q80 60 75 80 L60 420 Q58 445 80 450 L370 490 Q395 492 400 470 L430 130 Q433 108 415 100 Z"
+        fill="none" stroke={color} strokeWidth="26" strokeLinejoin="round" />
+      {/* Rings */}
+      <Path d="M100 130 Q70 130 70 155 Q70 180 100 180" fill="none" stroke={color} strokeWidth="22" strokeLinecap="round" />
+      <Path d="M95 230 Q65 230 65 255 Q65 280 95 280" fill="none" stroke={color} strokeWidth="22" strokeLinecap="round" />
+      <Path d="M90 325 Q60 325 60 350 Q60 375 90 375" fill="none" stroke={color} strokeWidth="22" strokeLinecap="round" />
+      {/* Lines on page */}
+      <Line x1="160" y1="200" x2="360" y2="220" stroke={color} strokeWidth="20" strokeLinecap="round" />
+      <Line x1="155" y1="265" x2="345" y2="282" stroke={color} strokeWidth="20" strokeLinecap="round" />
+      <Line x1="150" y1="330" x2="330" y2="345" stroke={color} strokeWidth="20" strokeLinecap="round" />
+      {/* Pencil */}
+      <Path d="M340 370 L430 240 L470 265 L380 395 Z" fill="none" stroke={color} strokeWidth="22" strokeLinejoin="round" />
+      <Path d="M340 370 L325 410 L365 400 Z" fill="none" stroke={color} strokeWidth="18" strokeLinejoin="round" />
+      {/* Sparkle lines top-right */}
+      <Line x1="430" y1="95" x2="445" y2="75" stroke={color} strokeWidth="18" strokeLinecap="round" />
+      <Line x1="450" y1="110" x2="470" y2="100" stroke={color} strokeWidth="18" strokeLinecap="round" />
+      <Line x1="440" y1="130" x2="460" y2="135" stroke={color} strokeWidth="18" strokeLinecap="round" />
+    </Svg>
+  );
+
+  const OtherSettingsSvg = ({ size = 24, color }) => (
+    <Svg width={size} height={size} viewBox="0 0 512 512">
+      {/* Top slider line */}
+      <Line x1="60" y1="160" x2="452" y2="160" stroke={color} strokeWidth="32" strokeLinecap="round" />
+      {/* Top slider knob */}
+      <Circle cx="320" cy="160" r="48" fill="none" stroke={color} strokeWidth="28" />
+      <Circle cx="320" cy="160" r="16" fill={color} />
+      {/* Bottom slider line */}
+      <Line x1="60" y1="352" x2="452" y2="352" stroke={color} strokeWidth="32" strokeLinecap="round" />
+      {/* Bottom slider knob */}
+      <Circle cx="175" cy="352" r="48" fill="none" stroke={color} strokeWidth="28" />
+      <Circle cx="175" cy="352" r="16" fill={color} />
+    </Svg>
+  );
+
+  const VysAssistSvg = ({ size = 24, color }) => (
+    <Svg width={size} height={size} viewBox="0 0 512 512">
+      {/* Large center sparkle — filled */}
+      <Path
+        d="M265 80 C265 80 240 200 170 265 C240 330 265 450 265 450 C265 450 290 330 360 265 C290 200 265 80 265 80 Z"
+        fill={color}
       />
       <Path
-        d="M55 390 L80 300 Q95 270 130 270 Q165 270 180 300 L205 390"
-        fill="none"
-        stroke={color}
-        strokeWidth="28"
-        strokeLinecap="round"
+        d="M60 265 C60 265 190 245 265 265 C190 285 60 265 60 265 Z"
+        fill={color}
       />
       <Path
-        d="M280 95 Q330 55 380 95 Q415 125 390 165"
-        fill="none"
-        stroke={color}
-        strokeWidth="28"
-        strokeLinecap="round"
+        d="M470 265 C470 265 340 245 265 265 C340 285 470 265 470 265 Z"
+        fill={color}
+      />
+      {/* Small top-left sparkle — filled */}
+      <Path
+        d="M100 95 C100 95 88 140 60 160 C88 180 100 225 100 225 C100 225 112 180 140 160 C112 140 100 95 100 95 Z"
+        fill={color}
       />
       <Path
-        d="M290 205 H390 Q425 205 435 240 L450 290"
-        fill="none"
-        stroke={color}
-        strokeWidth="28"
-        strokeLinecap="round"
+        d="M30 160 C30 160 75 152 100 160 C75 168 30 160 30 160 Z"
+        fill={color}
+      />
+      <Path
+        d="M170 160 C170 160 125 152 100 160 C125 168 170 160 170 160 Z"
+        fill={color}
+      />
+      {/* Small top-right sparkle — filled */}
+      <Path
+        d="M390 115 C390 115 382 140 365 152 C382 164 390 190 390 190 C390 190 398 164 415 152 C398 140 390 115 390 115 Z"
+        fill={color}
+      />
+      <Path
+        d="M340 152 C340 152 368 146 390 152 C368 158 340 152 340 152 Z"
+        fill={color}
+      />
+      <Path
+        d="M440 152 C440 152 412 146 390 152 C412 158 440 152 440 152 Z"
+        fill={color}
       />
     </Svg>
   );
 
-  const GallerySvg = ({ size = 24, color = Colors.matchingcirclecolor }) => (
+  const ProfileSentSvg = ({ size = 24, color }) => (
     <Svg width={size} height={size} viewBox="0 0 512 512">
-      <Rect
-        x="100"
-        y="80"
-        width="320"
-        height="280"
-        rx="25"
-        fill="none"
-        stroke={color}
-        strokeWidth="24"
-      />
-      <Circle
-        cx="160"
-        cy="145"
-        r="25"
-        fill="none"
-        stroke={color}
-        strokeWidth="20"
-      />
-      <Polyline
-        points="110,330 220,220 275,275 350,175 420,250"
-        fill="none"
-        stroke={color}
-        strokeWidth="24"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
       <Path
-        d="M85 365 L65 425 Q62 440 80 445 L350 510"
+        d="M60 256 L440 80 L310 440 L230 270 Z"
         fill="none"
         stroke={color}
-        strokeWidth="24"
-        strokeLinecap="round"
-      />
-    </Svg>
-  );
-
-  const PhotoRequestSvg = ({ size = 24, color = Colors.matchingcirclecolor }) => (
-    <Svg width={size} height={size} viewBox="0 0 512 512">
-      <Rect
-        x="55"
-        y="70"
-        width="400"
-        height="370"
-        rx="45"
-        fill="none"
-        stroke={color}
-        strokeWidth="28"
-      />
-      <Circle
-        cx="170"
-        cy="170"
-        r="38"
-        fill="none"
-        stroke={color}
-        strokeWidth="24"
-      />
-      <Polyline
-        points="75,355 175,250 235,315 325,220 455,350"
-        fill="none"
-        stroke={color}
-        strokeWidth="28"
-        strokeLinecap="round"
+        strokeWidth="30"
         strokeLinejoin="round"
-      />
-      <Line
-        x1="405"
-        y1="55"
-        x2="405"
-        y2="145"
-        stroke={color}
-        strokeWidth="24"
         strokeLinecap="round"
       />
-      <Line
-        x1="360"
-        y1="100"
-        x2="450"
-        y2="100"
-        stroke={color}
-        strokeWidth="24"
-        strokeLinecap="round"
-      />
+      <Line x1="230" y1="270" x2="440" y2="80" stroke={color} strokeWidth="30" strokeLinecap="round" />
     </Svg>
   );
 
@@ -393,31 +369,25 @@ export const DashBoard = () => {
   const quickActions = [
     {
       label: "Personal Notes",
-      icon: "document-text",
-      iconLib: "Ionicons",
+      SvgIcon: PersonalNotesSvg,
       onPress: () => navigation.navigate("PersonalNotes"),
     },
     {
       label: "Other Settings",
-      icon: "user-gear",
-      iconLib: "FontAwesome6",
+      SvgIcon: OtherSettingsSvg,
       onPress: () => navigation.navigate("OtherSettings"),
     },
     {
       label: "Vys Assist",
-      icon: "account-voice",
-      iconLib: "MaterialCommunity",
+      SvgIcon: VysAssistSvg,
       onPress: () => navigation.navigate("VysassistResults"),
     },
   ];
 
-  const renderQAIcon = (a) => {
-    const color = Colors.dashtext;
-    const size = 24;
-    if (a.iconLib === "Ionicons") return <Ionicons name={a.icon} size={size} color={color} />;
-    if (a.iconLib === "FontAwesome6") return <FontAwesome6 name={a.icon} size={size} color={color} />;
-    return <MaterialCommunityIcons name={a.icon} size={size} color={color} />;
-  };
+  const renderQAIcon = (a) => (
+    <a.SvgIcon size={20} color={Colors.dashtext} />
+  )
+
 
   const renderQuickActions = () => (
     <View style={styles.section}>
@@ -460,7 +430,7 @@ export const DashBoard = () => {
     {
       label: "Profiles sent",
       value: dashboardData?.sent_int_count ?? 0,
-      icon: "send",
+      SvgIcon: ProfileSentSvg,
       iconLib: "MaterialIcons",
       color: Colors.dashtext,
       bgColor: Colors.profilecompetionbg,
@@ -487,25 +457,14 @@ export const DashBoard = () => {
   ];
 
   const renderActivityIcon = (a) => {
-    const size = 24;
-
-    if (a.iconLib === "Ionicons") {
-      return (
-        <Ionicons
-          name={a.icon}
-          size={size}
-          color={a.color}
-        />
-      );
+    const size = 18;
+    if (a.SvgIcon) {
+      return <a.SvgIcon size={size} color={a.color} />;
     }
-
-    return (
-      <MaterialIcons
-        name={a.icon}
-        size={size}
-        color={a.color}
-      />
-    );
+    if (a.iconLib === "Ionicons") {
+      return <Ionicons name={a.icon} size={size} color={a.color} />;
+    }
+    return <MaterialIcons name={a.icon} size={size} color={a.color} />;
   };
 
   const renderMyActivity = () => (
