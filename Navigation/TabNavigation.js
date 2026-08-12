@@ -174,7 +174,7 @@ export const TabNavigation = () => {
           headerTitle: () => <Header name="HomeWithToast" />,
           headerStyle: { backgroundColor: "#fff" },
           headerLeft: null,
-          headerShown: true,
+          headerShown: false,
         }}
       />
       {/* <Tab.Screen

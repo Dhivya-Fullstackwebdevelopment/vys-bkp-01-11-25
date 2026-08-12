@@ -173,6 +173,7 @@ export const DashBoard = () => {
           <View style={styles.completionLeft}>
             <CircularProgress
               value={completion}
+              valueSuffix="%"
               progressValueColor={Colors.primary}
               progressValueStyle={{ fontSize: fs(13), fontWeight: "700" }}
               radius={28}
@@ -684,7 +685,7 @@ export const DashBoard = () => {
               <MaterialCommunityIcons name="bookmark" size={16} color="#fff" />
             </View>
             <Text style={styles.halfCount}>{dashboardData?.wishlist_count || 0}</Text>
-            <Text style={styles.halfLabel}>Wish List</Text>
+            <Text style={styles.halfLabel}>Wishlist</Text>
             <View style={[styles.halfDecorCircle, { backgroundColor: "rgba(255,255,255,0.08)" }]} />
           </LinearGradient>
         </TouchableOpacity>
@@ -697,7 +698,7 @@ export const DashBoard = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* <Text style={styles.pageTitle}>Dashboard</Text> */}
+        <Text style={styles.pageTitle}>Dashboard</Text>
 
         {/* ── NEW SECTIONS (from screenshot design) ── */}
         {renderProfileHeader()}
@@ -726,7 +727,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.selectedBg,
   },
   scroll: {
-    paddingBottom: 40,
+    paddingBottom: 90,
   },
   pageTitle: {
     fontSize: fs(18),
@@ -736,6 +737,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 8,
+    lineSpacing: -2,
   },
 
   // ── Profile header ─────────────────────────────────────────────────────────
@@ -989,7 +991,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   activityValue: {
-    fontSize: fs(22),
+    fontSize: fs(20),
     fontWeight: "800",
     color: C.text,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
@@ -1223,8 +1225,8 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   heroGradient: {
-    padding: 16,          // ✅ reduced from 20
-    minHeight: 130,       // ✅ reduced from 170
+    padding: 12,
+    minHeight: 100,
     position: "relative",
     overflow: "hidden",
   },
@@ -1232,12 +1234,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 6,
   },
   heroIconBg: {
-    width: 32,
-    height: 32,
-    borderRadius: 19,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",
@@ -1254,51 +1256,52 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   heroCount: {
-    fontSize: fs(28),
+    fontSize: fs(22),
     fontWeight: "800",
     color: "#fff",
-    lineHeight: fs(36),
+    lineHeight: fs(26),
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   heroLabel: {
-    fontSize: fs(12),     // ✅ reduced from 13
+    fontSize: fs(13),
     color: "rgba(255,255,255,0.8)",
     fontWeight: "500",
-    marginBottom: 10,     // ✅ reduced from 14
+    marginBottom: 6,
   },
   heroAvatarRow: {
     flexDirection: "row",
     alignItems: "center",
   },
   heroAvatar: {
-    width: 26,
-    height: 26,
-    borderRadius: 16,
-    borderWidth: 2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
     borderColor: "#fff",
     backgroundColor: "#eee",
   },
   heroAvatarMore: {
-    width: 26,
-    height: 26,
-    borderRadius: 16,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: "rgba(255,255,255,0.25)",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: "#fff",
+  },
+  heroAvatarLabel: {
+    color: "rgba(255,255,255,0.75)",
+    fontSize: fs(10),
+    marginLeft: 6,
+    fontWeight: "500",
   },
   heroAvatarMoreText: {
     color: "#fff",
     fontSize: fs(9),
     fontWeight: "700",
   },
-  heroAvatarLabel: {
-    color: "rgba(255,255,255,0.75)",
-    fontSize: fs(11),
-    marginLeft: 8,
-    fontWeight: "500",
-  },
+
   heroDecorCircle1: {
     position: "absolute",
     width: 120,
@@ -1330,42 +1333,43 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   halfGradient: {
-    padding: 12,
-    minHeight: 110,
+    padding: 10,
+    minHeight: 90,
     position: "relative",
     overflow: "hidden",
   },
   halfIconBg: {
-    width: 28,            // ✅ reduced from 34
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: 4,
   },
+
   halfCount: {
-    fontSize: fs(22),
+    fontSize: fs(19),
     fontWeight: "800",
     color: "#fff",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    lineHeight: fs(30),
+    lineHeight: fs(22),
   },
   halfLabel: {
-    fontSize: fs(11),
+    fontSize: fs(12),
     color: "rgba(255,255,255,0.8)",
     fontWeight: "500",
-    marginTop: 2,
-    lineHeight: fs(15),
+    marginTop: 1,
+    lineHeight: fs(13),
   },
   halfDecorCircle: {
     position: "absolute",
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: "rgba(255,255,255,0.07)",
-    bottom: -20,
-    right: -20,
+    bottom: -15,
+    right: -15,
   },
 });
 
