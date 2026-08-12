@@ -12,6 +12,7 @@ import {
   Dimensions,
   Platform,
   StatusBar,
+  Pressable,
 } from "react-native";
 import {
   Ionicons,
@@ -392,12 +393,22 @@ export const Menu = () => {
         end={{ x: 1, y: 1 }}
         style={styles.headerBanner}
       >
-        <Text style={styles.headerTitle}>My profile</Text>
-        <Text style={styles.headerSubtitle}>
-          {profileDetails?.profile_id ||
-            dashboardData?.profile_details?.profile_id ||
-            "—"}
-        </Text>
+        <View style={styles.headerRow}>
+          <Pressable
+            style={({ pressed }) => [styles.headerIconBtn, pressed && styles.headerIconBtnPressed]}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={22} color={Colors.cardBackground} />
+          </Pressable>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>My profile</Text>
+            <Text style={styles.headerSubtitle}>
+              {profileDetails?.profile_id ||
+                dashboardData?.profile_details?.profile_id ||
+                "—"}
+            </Text>
+          </View>
+        </View>
       </LinearGradient>
 
       {loading ? (
@@ -1132,5 +1143,23 @@ const styles = StyleSheet.create({
     color: Colors.textDark || "#1E1E1E",
     fontWeight: "500",
     marginLeft: 12,
+  },
+  headerIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.04)',
+  },
+  headerIconBtnPressed: {
+    backgroundColor: 'rgba(0,0,0,0.08)',
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerTitleContainer: {
+    flex: 1,
   },
 });
