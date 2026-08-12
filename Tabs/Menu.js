@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,6 +13,7 @@ import {
   Platform,
   StatusBar,
   Pressable,
+  Animated,
 } from "react-native";
 import {
   Ionicons,
@@ -52,6 +53,56 @@ const responsiveFontSize = (size) => {
   const scale = screenWidth / 375;
   const newSize = size * scale;
   return Math.max(12, Math.min(newSize, 30));
+};
+
+// ── Shimmer Component ────────────────────────────────────────────────────────
+const Shimmer = ({ width, height, style, borderRadius }) => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: 1200,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const translateX = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-width, width],
+  });
+
+  return (
+    <View
+      style={[
+        {
+          width,
+          height,
+          backgroundColor: "#E8E8E8",
+          borderRadius: borderRadius || 0,
+          overflow: "hidden",
+        },
+        style,
+      ]}
+    >
+      <Animated.View
+        style={{
+          width: width * 2,
+          height: "100%",
+          transform: [{ translateX }],
+        }}
+      >
+        <LinearGradient
+          colors={["transparent", "rgba(255,255,255,0.6)", "transparent"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ width: "100%", height: "100%" }}
+        />
+      </Animated.View>
+    </View>
+  );
 };
 
 export const Menu = () => {
@@ -295,14 +346,13 @@ export const Menu = () => {
 
   const completionValue =
     parseInt(dashboardData?.profile_details?.completion_per || "0", 10);
+
   const handleWhatsAppShareWithoutImage = async () => {
     try {
       const profileName = dashboardData?.profile_details?.profile_name || 'Not available';
       const profileId = dashboardData?.profile_details?.profile_id || 'Not available';
       const age = dashboardData?.profile_details?.age || 'Not available';
       const starName = dashboardData?.profile_details?.star_name || 'Not available';
-      // const baseUrl = 'https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net';
-      //const baseUrl = 'https://app.vysyamala.com';
       const vysyamalaUrl = 'vysyamala.com';
       const profession = profileDetails?.prosession;
       const annualIncome = educationalDetails?.personal_ann_inc_name;
@@ -326,13 +376,10 @@ export const Menu = () => {
         }
       }
 
-      // Construct the share URL with proper encoding
       const shareUrlWithoutImage = `${config.apiUrl}/auth/profile_view/${profileId}/`
       const title = 'Check out this profile!';
 
       const message =
-        // `*Vysyamala Matrimony Profile*\n\n` +
-        // `🌟 *Profile Link:* ${shareUrl}\n` +
         `${title}\n\n` +
         `🆔 *Profile ID:* ${profileId}\n` +
         `👤 *Profile Name:* ${profileName}\n` +
@@ -340,7 +387,6 @@ export const Menu = () => {
         `✨ *Star Name:* ${starName}\n` +
         `💰 *Annual Income:* ${annualIncome || 'Not available'}\n` +
         `🎓 *Education:* ${education || 'Not available'}\n` +
-        // `💼 *Profession:* ${profession || 'Not available'}${companyName || businessName ? ` at ${companyName || businessName}` : ''}\n` +4
         professionLine +
         `📍 *Place of Stay:* ${placeOfStay || 'Not available'}\n\n` +
         `🌟 *For More Details:* ${shareUrlWithoutImage}\n` +
@@ -374,6 +420,71 @@ export const Menu = () => {
     } finally {
       setShareModalVisible(false);
     }
+  };
+
+  const renderShimmer = () => {
+    const progressWidth = screenWidth - 32; // account for card padding (16 left + 16 right)
+    const textWidth = progressWidth * 0.8;  // for the "80%" placeholder
+
+    return (
+      <>
+        {/* Profile Header Shimmer */}
+        <View style={styles.card}>
+          <View style={styles.profileHeaderRow}>
+            <Shimmer width={68} height={68} borderRadius={34} style={{ marginRight: 14 }} />
+            <View style={styles.profileMetaInfo}>
+              <Shimmer width={150} height={18} borderRadius={4} style={{ marginBottom: 6 }} />
+              <Shimmer width={120} height={14} borderRadius={4} />
+            </View>
+            <Shimmer width={40} height={40} borderRadius={20} />
+          </View>
+        </View>
+
+        {/* Profile Completeness Shimmer */}
+        <View style={styles.card}>
+          <Shimmer width={180} height={20} borderRadius={4} style={{ marginBottom: 12 }} />
+          <Shimmer width={progressWidth} height={8} borderRadius={4} style={{ marginBottom: 10 }} />
+          <Shimmer width={textWidth} height={16} borderRadius={4} />
+        </View>
+
+        {/* Basic Details Shimmer */}
+        <View style={styles.card}>
+          <Shimmer width={140} height={20} borderRadius={4} style={{ marginBottom: 12 }} />
+          {[1, 2, 3, 4, 5].map((_, i) => (
+            <View key={i} style={[styles.detailRow, i === 4 && { borderBottomWidth: 0 }]}>
+              <Shimmer width={100} height={16} borderRadius={4} />
+              <Shimmer width={120} height={16} borderRadius={4} />
+            </View>
+          ))}
+        </View>
+
+        {/* Menu Groups Shimmer */}
+        <View style={styles.menuCardGroup}>
+          {[1, 2].map((_, i) => (
+            <View key={i} style={styles.menuRow}>
+              <View style={styles.menuLeft}>
+                <Shimmer width={20} height={20} borderRadius={4} />
+                <Shimmer width={120} height={16} borderRadius={4} style={{ marginLeft: 12 }} />
+              </View>
+              <Shimmer width={20} height={20} borderRadius={4} />
+            </View>
+          ))}
+        </View>
+
+        {/* More Menu Items Shimmer */}
+        <View style={styles.menuCardGroup}>
+          {[1, 2, 3, 4, 5].map((_, i) => (
+            <View key={i} style={[styles.menuRow, i === 4 && { borderBottomWidth: 0 }]}>
+              <View style={styles.menuLeft}>
+                <Shimmer width={20} height={20} borderRadius={4} />
+                <Shimmer width={140} height={16} borderRadius={4} style={{ marginLeft: 12 }} />
+              </View>
+              <Shimmer width={20} height={20} borderRadius={4} />
+            </View>
+          ))}
+        </View>
+      </>
+    );
   };
 
   return (
@@ -412,9 +523,13 @@ export const Menu = () => {
       </LinearGradient>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary || "#A00014"} />
-        </View>
+        <ScrollView
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {renderShimmer()}
+        </ScrollView>
       ) : (
         <ScrollView
           style={styles.scrollContainer}
@@ -575,26 +690,6 @@ export const Menu = () => {
                 />
               </TouchableOpacity>
             )}
-
-            {/* <TouchableOpacity
-              style={[styles.menuRow, { borderBottomWidth: 0 }]}
-              onPress={() => navigation.navigate("HoroscopeDetails")}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <Ionicons
-                  name="star-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Horoscope & porutham</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity> */}
           </View>
 
           {/* SECONDARY SETTINGS & POLICIES GROUP */}
@@ -947,6 +1042,25 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "ios" ? 10 : 16,
     paddingBottom: 20,
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    marginRight: 8,
+  },
+  headerIconBtnPressed: {
+    backgroundColor: 'rgba(0,0,0,0.08)',
+  },
+  headerTitleContainer: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: "700",
@@ -1027,7 +1141,6 @@ const styles = StyleSheet.create({
     color: Colors.textDark || "#1E1E1E",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     marginBottom: 12,
-    lineSpacing: -1,
   },
   progressBarTrack: {
     height: 8,
@@ -1143,23 +1256,5 @@ const styles = StyleSheet.create({
     color: Colors.textDark || "#1E1E1E",
     fontWeight: "500",
     marginLeft: 12,
-  },
-  headerIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.04)',
-  },
-  headerIconBtnPressed: {
-    backgroundColor: 'rgba(0,0,0,0.08)',
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerTitleContainer: {
-    flex: 1,
   },
 });
