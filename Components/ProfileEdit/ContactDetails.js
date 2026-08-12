@@ -150,6 +150,7 @@ export const ContactDetails = ({ setLoading }) => {
         personal_prof_count_id: null,
         personal_prof_district_id: null,
         personal_prof_city_id: null,
+        personal_prof_pin:"",
     });
 
     const fetchProfileData = async () => {
@@ -184,6 +185,7 @@ export const ContactDetails = ({ setLoading }) => {
                 personal_prof_count_id: contactDetails.personal_prof_count_id || null,
                 personal_prof_district_id: contactDetails.personal_prof_district_id || null,
                 personal_prof_city_id: contactDetails.personal_prof_city_id || null,
+                personal_prof_pin:  contactDetails.personal_prof_pin || ""
             });
             setIsFetched(true);
 
@@ -378,6 +380,7 @@ export const ContactDetails = ({ setLoading }) => {
                 Profile_whatsapp: formValues.personal_prof_whats,
                 EmailId: formValues.personal_email,
                 Profile_emailid: formValues.admin_use_email,
+                Profile_pincode:formValues.personal_prof_pin,
             };
 
             try {
@@ -562,6 +565,9 @@ export const ContactDetails = ({ setLoading }) => {
                                 placeholder="Enter City"
                             />
                         )}
+
+
+
                         {formValues.personal_prof_count_id === "1" ? (
                             validationErrors.personal_prof_city_id && (
                                 <Text style={styles.error}>{validationErrors.personal_prof_city_id}</Text>
@@ -571,6 +577,15 @@ export const ContactDetails = ({ setLoading }) => {
                                 <Text style={styles.error}>{validationErrors.personal_prof_city_name}</Text>
                             )
                         )}
+
+                        <Text style={styles.labelNew}>Pincode</Text>
+                        <TextInput
+                            style={[styles.input, validationErrors.Profile_pincode && styles.inputError]}
+                            placeholder="Enter Pincode"
+                            keyboardType="numeric"
+                            value={formValues.Profile_pincode}
+                            onChangeText={(text) => handleChange('Profile_pincode', text)}
+                        />
 
                         <Text style={styles.labelNew}>Alternate Mobile</Text>
                         <TextInput
