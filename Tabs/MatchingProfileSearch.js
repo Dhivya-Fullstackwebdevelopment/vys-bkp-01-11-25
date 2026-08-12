@@ -499,13 +499,13 @@ const MatchingProfileSearch = () => {
               {renderSelectedFilters()}
               <View style={styles.buttonContainer}>
                 <TouchableOpacity onPress={() => searchProfiles(1, true)} style={styles.button}>
-                  <LinearGradient colors={["#BD1225", "#FF4050"]} style={styles.linearGradient}>
+                  <LinearGradient colors={[Colors.primary, Colors.primary]} style={styles.linearGradient}>
                     <Text style={styles.buttonText}>Search Profiles</Text>
                   </LinearGradient>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={clearFilter} style={styles.button}>
-                  <LinearGradient colors={["#BD1225", "#FF4050"]} style={styles.linearGradient}>
+                  <LinearGradient colors={[Colors.primary, Colors.primary]} style={styles.linearGradient}>
                     <Text style={styles.buttonText}>Clear Filter</Text>
                   </LinearGradient>
                 </TouchableOpacity>
