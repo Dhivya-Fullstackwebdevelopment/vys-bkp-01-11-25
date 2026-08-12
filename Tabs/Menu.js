@@ -3,33 +3,40 @@ import {
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
   Image,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Modal,
-  Button,
   Linking,
   Dimensions,
+  Platform,
+  StatusBar,
 } from "react-native";
 import {
   Ionicons,
   MaterialIcons,
   FontAwesome6,
   MaterialCommunityIcons,
+  Octicons,
 } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import CircularProgress from "react-native-circular-progress-indicator";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchDashboardData, getMyProfilePersonal, getMyEducationalDetails } from "../CommonApiCall/CommonApiCall";
+import {
+  fetchDashboardData,
+  getMyProfilePersonal,
+  getMyEducationalDetails,
+} from "../CommonApiCall/CommonApiCall";
 import Toast from "react-native-toast-message";
 import { TopAlignedImage } from "../Components/ReuseImageAlign/TopAlignedImage";
-import config from "../API/Apiurl"; // Import API URL from config
+import config from "../API/Apiurl";
+import { Colors } from "../Reusable/Theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Get device dimensions
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 // Responsive helper functions
 const wp = (percentage) => {
@@ -41,14 +48,13 @@ const hp = (percentage) => {
 };
 
 const responsiveFontSize = (size) => {
-  const scale = screenWidth / 375; // Base width (iPhone X)
+  const scale = screenWidth / 375;
   const newSize = size * scale;
-  return Math.max(12, Math.min(newSize, 30)); // Min 12, Max 30
+  return Math.max(12, Math.min(newSize, 30));
 };
 
 export const Menu = () => {
   const navigation = useNavigation();
-
 
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -56,7 +62,6 @@ export const Menu = () => {
   const [profileDetails, setProfileDetails] = useState(null);
   const [educationalDetails, setEducationalDetails] = useState(null);
   const [buttonText, setButtonText] = useState("Upgrade");
-  // const activePlanId = AsyncStorage.getItem("current_plan_id");
   const [activePlanId, setActivePlanId] = useState(null);
   const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
   const isPlan16 = activePlanId === 16;
@@ -71,7 +76,7 @@ export const Menu = () => {
         console.log("Validity Date:", validityDate);
 
         const allowedPremiumIds = [1, 2, 3, 14, 15, 17, 10, 11, 12, 13];
-        const planId = parseInt(currentPlanId || "0");
+        const planId = parseInt(currentPlanId || "0", 10);
         setActivePlanId(planId);
 
         let buttonType = "Upgrade";
@@ -83,7 +88,10 @@ export const Menu = () => {
 
             console.log("Valid Date:", validDate);
             console.log("Current Date:", currentDate);
-            console.log("Is Valid:", validDate.getTime() > currentDate.getTime());
+            console.log(
+              "Is Valid:",
+              validDate.getTime() > currentDate.getTime()
+            );
 
             if (validDate.getTime() > currentDate.getTime()) {
               buttonType = "Add-On";
@@ -111,12 +119,11 @@ export const Menu = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true); // Start loading when screen is focused
+      setLoading(true);
       try {
-        // Fetch both dashboard data and profile details in parallel
         const [dashboard, profileResult] = await Promise.all([
           fetchDashboardData(),
-          getMyProfilePersonal()
+          getMyProfilePersonal(),
         ]);
 
         console.log("Dashboard response ==>", dashboard);
@@ -143,62 +150,44 @@ export const Menu = () => {
     });
 
     return unsubscribe;
-  }, [navigation]); // Runs every time navigation focus changes
-
+  }, [navigation]);
 
   const fetchProfileData = async () => {
     try {
       const data = await getMyEducationalDetails();
       console.log("data educational details ===>", data);
-      setEducationalDetails(data.data); // Set the data in the state
+      setEducationalDetails(data.data);
     } catch (error) {
-      console.error('Failed to load profile data', error);
+      console.error("Failed to load profile data", error);
     }
   };
 
-
   useEffect(() => {
-    fetchProfileData(); // Call the function when component mounts
+    fetchProfileData();
   }, []);
 
   const handleLogout = async () => {
     try {
-      // Clear user session data from AsyncStorage
       await AsyncStorage.clear();
-
-      // Navigate to the Login screen
-      // navigation.navigate("LoginPage");
       navigation.reset({ index: 0, routes: [{ name: "LoginPage" }] });
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
 
-
   const handleUpgradeClick = () => {
     if (buttonText === "Add-On") {
-      navigation.navigate('PayNow', { isAddOnOnly: true });
+      navigation.navigate("PayNow", { isAddOnOnly: true });
     } else if (buttonText === "Renew") {
-      navigation.navigate('MembershipPlan');
+      navigation.navigate("MembershipPlan");
     } else {
-      navigation.navigate('MembershipPlan');
+      navigation.navigate("MembershipPlan");
     }
   };
 
-  // const getImageSource = (image) => {
-  //   if (!image)
-  //     return {
-  //       uri: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fstock.adobe.com%2Fsearch%2Fimages%3Fk%3Ddefault%2Bimage&psig=AOvVaw28Px6jC5wsx4TWxwOrHJT2&ust=1726388184602000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCMCfpqb_wYgDFQAAAAAdAAAAABAE",
-  //     }; // Fallback image
-  //   if (Array.isArray(image)) {
-  //     return { uri: image[0] }; // Use the first image if it's an array
-  //   }
-  //   return { uri: image }; // Direct URL case
-  // };
-
   const getImageSource = (image) => {
     const defaultImage =
-      "https://vysyamat.blob.core.windows.net/vysyamala/default_groom.png"; // fallback
+      "https://vysyamat.blob.core.windows.net/vysyamala/default_groom.png";
 
     let uri = defaultImage;
 
@@ -211,64 +200,66 @@ export const Menu = () => {
     return { uri };
   };
 
-
   const handleShare = () => {
     setShareModalVisible(true);
   };
 
   const handleWhatsAppShareWithImage = async (withImage = false) => {
-
-    const profileName = dashboardData?.profile_details?.profile_name || 'Not available';
-    const profileId = dashboardData?.profile_details?.profile_id || 'Not available';
-    const EncrytedprofileId = profileDetails?.encrypted_profile_id || 'Not available';
-    const age = dashboardData?.profile_details?.age || 'Not available';
-    const starName = dashboardData?.profile_details?.star_name || 'Not available';
-    // const baseUrl = 'https://vysyamaladevnew-aehaazdxdzegasfb.westus2-01.azurewebsites.net';
-    // const baseUrl = 'https://app.vysyamala.com';
-    const vysyamalaUrl = 'vysyamala.com';
+    const profileName =
+      dashboardData?.profile_details?.profile_name || "Not available";
+    const profileId =
+      dashboardData?.profile_details?.profile_id || "Not available";
+    const EncrytedprofileId =
+      profileDetails?.encrypted_profile_id || "Not available";
+    const age = dashboardData?.profile_details?.age || "Not available";
+    const starName =
+      dashboardData?.profile_details?.star_name || "Not available";
+    const vysyamalaUrl = "vysyamala.com";
     const profession = profileDetails?.prosession;
     const annualIncome = educationalDetails?.personal_ann_inc_name;
-    const placeOfStay = educationalDetails?.personal_work_district || educationalDetails?.personal_work_city_name
+    const placeOfStay =
+      educationalDetails?.personal_work_district ||
+      educationalDetails?.personal_work_city_name;
     const education = educationalDetails?.persoanl_degree_name;
     const companyName = educationalDetails?.personal_company_name;
     const businessName = educationalDetails?.personal_business_name;
-    let professionLine = '💼 *Profession:* Not available\n';
+    let professionLine = "💼 *Profession:* Not available\n";
 
     if (profession) {
-      if (profession.toLowerCase() === 'employed' && companyName) {
+      if (profession.toLowerCase() === "employed" && companyName) {
         professionLine = `💼 *Profession:* Employed at ${companyName}\n`;
-      } else if (profession.toLowerCase() === 'business' && businessName) {
+      } else if (profession.toLowerCase() === "business" && businessName) {
         professionLine = `💼 *Profession:* Business at ${businessName}\n`;
-      } else if (profession.toLowerCase() === 'employed/business' && businessName) {
+      } else if (
+        profession.toLowerCase() === "employed/business" &&
+        businessName
+      ) {
         professionLine = `💼 *Profession:* ${profession}-Employed at ${companyName}, Business at ${businessName}\n`;
-      } else if (profession.toLowerCase() === 'goverment/ psu' && companyName) {
+      } else if (
+        profession.toLowerCase() === "goverment/ psu" &&
+        companyName
+      ) {
         professionLine = `💼 *Profession:* Government/ PSU at ${companyName}\n`;
       } else {
         professionLine = `💼 *Profession:* ${profession}\n`;
       }
     }
 
-    // Construct the share URL with proper encoding
-    // const shareUrl = `${baseUrl}/auth/profile/${encodeURIComponent(profileId)}/`;
-    // const shareUrl = `${config.apiUrl}/auth/profile/${EncrytedprofileId}/`;
     const shareUrl = withImage
       ? `${config.apiUrl}/auth/profile/${EncrytedprofileId}/`
       : `${config.apiUrl}/auth/profile_view/${EncrytedprofileId}/`;
-    const title = 'Check out this profile!';
+    const title = "Check out this profile!";
 
     const message =
-      // `*Vysyamala Matrimony Profile*\n\n` +
-      // `🌟 *Profile Link:* ${shareUrl}\n` +
       `${title}\n\n` +
       `🆔 *Profile ID:* ${profileId}\n` +
       `👤 *Profile Name:* ${profileName}\n` +
       `🎂 *Age:* ${age} years\n` +
       `✨ *Star Name:* ${starName}\n` +
-      `💰 *Annual Income:* ${annualIncome || 'Not available'}\n` +
-      `🎓 *Education:* ${education || 'Not available'}\n` +
-      // `💼 *Profession:* ${profession || 'Not available'}${companyName || businessName ? ` at ${companyName || businessName}` : ''}\n` +4
+      `💰 *Annual Income:* ${annualIncome || "Not available"}\n` +
+      `🎓 *Education:* ${education || "Not available"}\n` +
       professionLine +
-      `📍 *Place of Stay:* ${placeOfStay || 'Not available'}\n\n` +
+      `📍 *Place of Stay:* ${placeOfStay || "Not available"}\n\n` +
       `🌟 *For More Details:* ${shareUrl}\n` +
       `-------------------------------------------\n` +
       `Click here to register your profile on Vysyamala:\n` +
@@ -277,55 +268,32 @@ export const Menu = () => {
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `whatsapp://send?text=${encodedMessage}`;
 
-    //     const supported = await Linking.canOpenURL(whatsappUrl);
-    //     if (!supported) {
-    //       Toast.show({
-    //         type: 'error',
-    //         text1: 'Error',
-    //         text2: 'WhatsApp is not installed on your device',
-    //         position: 'bottom',
-    //       });
-    //       return;
-    //     }
-
-    //     await Linking.openURL(whatsappUrl);
-    //   } catch (error) {
-    //     console.error('WhatsApp sharing error:', error);
-    //     Toast.show({
-    //       type: 'error',
-    //       text1: 'Error',
-    //       text2: 'Failed to share on WhatsApp. Please try again.',
-    //       position: 'bottom',
-    //     });
-    //   } finally {
-    //     setShareModalVisible(false);
-    //   }
-    // };
-
     try {
       const supported = await Linking.canOpenURL(whatsappUrl);
       if (!supported) {
         Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'WhatsApp is not installed',
-          position: 'bottom',
+          type: "error",
+          text1: "Error",
+          text2: "WhatsApp is not installed",
+          position: "bottom",
         });
         return;
       }
       await Linking.openURL(whatsappUrl);
     } catch (error) {
       Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to share on WhatsApp',
-        position: 'bottom',
+        type: "error",
+        text1: "Error",
+        text2: "Failed to share on WhatsApp",
+        position: "bottom",
       });
     } finally {
       setShareModalVisible(false);
     }
   };
 
+  const completionValue =
+    parseInt(dashboardData?.profile_details?.completion_per || "0", 10);
   const handleWhatsAppShareWithoutImage = async () => {
     try {
       const profileName = dashboardData?.profile_details?.profile_name || 'Not available';
@@ -409,514 +377,542 @@ export const Menu = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar
+        backgroundColor={Colors.primaryGradientStart || "#A00014"}
+        barStyle="light-content"
+      />
+
+      {/* HEADER BANNER */}
+      <LinearGradient
+        colors={[
+          Colors.primaryGradientStart || "#A00014",
+          Colors.primaryGradientEnd || "#4A000A",
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerBanner}
+      >
+        <Text style={styles.headerTitle}>My profile</Text>
+        <Text style={styles.headerSubtitle}>
+          {profileDetails?.profile_id ||
+            dashboardData?.profile_details?.profile_id ||
+            "—"}
+        </Text>
+      </LinearGradient>
+
       {loading ? (
-        // Show loading indicator while fetching data
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#BD1225" />
+          <ActivityIndicator size="large" color={Colors.primary || "#A00014"} />
         </View>
       ) : (
-        <ScrollView style={styles.menuContainer}>
-          <View style={styles.menuContainer}>
-            {/* updateProfileContainer */}
-            <View style={styles.updateProfileContainer}>
-              {/* profile Update */}
-              <TouchableOpacity
-                onPress={() => navigation.navigate("MyProfile")}
-              >
-                <View style={styles.imgContentFlex}>
-                  {/* <Image
-                    source={getImageSource(dashboardData?.profile_details?.profile_image)}
-                    style={styles.profileImage}
-                  /> */}
-                  <TopAlignedImage
-                    uri={Array.isArray(dashboardData?.profile_details?.profile_image) ? dashboardData?.profile_details?.profile_image[0] : dashboardData?.profile_details?.profile_image}
-                    width={120}
-                    height={120}
-                  />
-                  {/* New Share Icon */}
-                  <TouchableOpacity onPress={handleShare} style={{ padding: wp(2) }}>
-                    <Ionicons name="share-social" size={wp(6)} color="#535665" />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.profileContent}>
-                  <Text style={styles.profileName}>
-                    {profileDetails.personal_profile_name || " "}
-                  </Text>
-                  <Text style={styles.profileNumber}>
-                    {profileDetails.profile_id || " "}
-                  </Text>
+        <ScrollView
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* PROFILE SUMMARY CARD */}
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.profileHeaderRow}
+              onPress={() => navigation.navigate("MyProfile")}
+              activeOpacity={0.8}
+            >
+              <View style={styles.avatarRing}>
+                <TopAlignedImage
+                  uri={
+                    Array.isArray(
+                      dashboardData?.profile_details?.profile_image
+                    )
+                      ? dashboardData?.profile_details?.profile_image[0]
+                      : dashboardData?.profile_details?.profile_image
+                  }
+                  width={68}
+                  height={68}
+                />
+              </View>
 
-                  {/* Plan flex */}
-                  {/* <View style={styles.planFlex}>
-                    <LinearGradient
-                      colors={
-                        profileDetails.package_name === "Platinum"
-                          ? ["#E5E4E2", "#C0C0C0", "#FFFFFF"]
-                          : profileDetails.package_name === "Gold"
-                            ? ["#D79D32", "#FFB800", "#FDE166"]
-                            : profileDetails.package_name === "Diamond"
-                              ? ["#B9F2FF", "#FFFFFF", "#B9F2FF"]
-                              : ["#D79D32", "#FFB800", "#FDE166"]
-                      }
-                      locations={[0, 0.5, 1]}
-                      start={{ x: 1, y: 1 }}
-                      end={{ x: 0, y: 0 }}
-                      style={[
-                        styles.goldLinearGradient,
-                        profileDetails.package_name === "Diamond" && styles.diamondText
-                      ]}
-                    >
-                      <Text style={[
-                        styles.goldText,
-                        profileDetails.package_name === "Diamond" && { color: "#fff" }
-                      ]}>
-                        {profileDetails.package_name}
-                      </Text>
-                    </LinearGradient>
-                    {profileDetails.valid_upto && (
-                      <Text style={styles.date}>
-                        Valid Upto :
-                        {profileDetails.valid_upto}
-                      </Text>
-                    )}
-                  </View> */}
-                  <View style={styles.planFlex}>
-                    {profileDetails.valid_upto &&
-                      new Date(profileDetails.valid_upto) < new Date() &&
-                      allowedPremiumIds.includes(activePlanId) ? (
-                      // RENDER RENEW BUTTON (IF EXPIRED AND PREMIUM)
-                      <TouchableOpacity
-                        style={styles.renewButtonWrapper}
-                        onPress={() => navigation.navigate('MembershipPlan')} // Navigates to your upgrade screen
-                      >
-                        <LinearGradient
-                          colors={["#BD1225", "#FF4050"]}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={styles.renewButton}
-                        >
-                          <Text style={styles.renewButtonText}>Renew</Text>
-                        </LinearGradient>
-                      </TouchableOpacity>
-                    ) : (
-                      <View style={styles.planFlex}>
-                        <LinearGradient
-                          colors={
-                            profileDetails.package_name === "Platinum"
-                              ? ["#E5E4E2", "#C0C0C0", "#FFFFFF"]
-                              : profileDetails.package_name === "Gold"
-                                ? ["#D79D32", "#FFB800", "#FDE166"]
-                                : profileDetails.package_name === "Diamond"
-                                  ? ["#B9F2FF", "#FFFFFF", "#B9F2FF"]
-                                  : ["#D79D32", "#FFB800", "#FDE166"] // Fallback to Gold colors
-                          }
-                          locations={[0, 0.5, 1]}
-                          start={{ x: 1, y: 1 }}
-                          end={{ x: 0, y: 0 }}
-                          style={[styles.goldLinearGradient]}
-                        >
-                          <Text style={[styles.goldText]}>
-                            {profileDetails.package_name}
-                          </Text>
-                        </LinearGradient>
-                      </View>
-                    )}
-                    {profileDetails.valid_upto && (
-                      <Text style={[styles.date, { marginLeft: 10 }]}>
-                        Valid Upto :
-                        {profileDetails.valid_upto}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-                {/* </View> */}
-              </TouchableOpacity>
-              {/* sandalContainer */}
+              <View style={styles.profileMetaInfo}>
+                <Text style={styles.profileNameText} numberOfLines={1}>
+                  {profileDetails?.personal_profile_name ||
+                    dashboardData?.profile_details?.profile_name ||
+                    "—"}
+                </Text>
+                <Text style={styles.membershipSubText}>
+                  {profileDetails?.package_name || "Member"}{" "}
+                  {profileDetails?.valid_upto
+                    ? `· Valid till ${profileDetails.valid_upto}`
+                    : ""}
+                </Text>
+              </View>
 
               <TouchableOpacity
-                style={styles.sandalProfileContainer}
-                onPress={() =>
-                  parseInt(
-                    dashboardData?.profile_details?.completion_per,
-                    10
-                  ) !== 100 && navigation.navigate("ProfileCompletionForm")
-                }
-                disabled={
-                  parseInt(
-                    dashboardData?.profile_details?.completion_per,
-                    10
-                  ) === 100
-                } // Disable touchable if 100%
+                onPress={handleShare}
+                style={styles.editIconCircle}
               >
-                {parseInt(
-                  dashboardData?.profile_details?.completion_per,
-                  10
-                ) === 100 ? (
-                  // <View style={styles.sandalContainerFlex}>
-                  <View style={styles.percentageContent}>
-                    <Text style={styles.profilePercentage}>
-                      Your profile is now{" "}
-                      {dashboardData?.profile_details?.completion_per || " "} %
-                      complete
-                    </Text>
-                    {/* </View> */}
-                  </View>
-                ) : (
-                  <>
-                    <View style={styles.sandalContainerFlex}>
-                      <CircularProgress
-                        value={
-                          parseInt(
-                            dashboardData?.profile_details?.completion_per,
-                            10
-                          ) || 0
-                        }
-                        valueSuffix={"%"}
-                        radius={35}
-                        duration={2000}
-                        activeStrokeWidth={8}
-                        inActiveStrokeWidth={8}
-                        progressValueColor={"#535665"}
-                        progressValueStyle={{ fontSize: 14, fontWeight: "500" }}
-                        titleFontSize={16}
-                        maxValue={100}
-                        activeStrokeColor={"#2FBD12"}
-                        inActiveStrokeColor={"#2FBD12"}
-                        inActiveStrokeOpacity={0.2}
-                      />
-
-                      <View style={styles.percentageContent}>
-                        <Text style={styles.profilePercentage}>
-                          Your profile is now{" "}
-                          {dashboardData?.profile_details?.completion_per ||
-                            " "} % complete
-                        </Text>
-                        <Text style={styles.percentageText}>
-                          Complete your profile we will suggest profiles based
-                          on your preference
-                        </Text>
-
-                        <View style={styles.completeTextFlex}>
-                          <Text style={styles.completeText}>
-                            Complete Your Profile{" "}
-                          </Text>
-                          <Ionicons
-                            name="arrow-forward"
-                            size={wp(4.5)}
-                            color="#ED1E24"
-                          />
-                        </View>
-                      </View>
-                    </View>
-                  </>
-                )}
+                <Ionicons
+                  name="share-social-outline"
+                  size={18}
+                  color={Colors.primary || "#A00014"}
+                />
               </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
+
+          {/* PROFILE COMPLETENESS CARD */}
+          <View style={styles.card}>
+            <Text style={styles.cardSectionHeader}>Profile completeness</Text>
+            <View style={styles.progressBarTrack}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${Math.min(completionValue, 100)}%` },
+                ]}
+              />
+            </View>
+            <Text style={styles.completenessSubtext}>
+              {completionValue}% complete —{" "}
+              {completionValue < 100
+                ? "add more details to reach 100%."
+                : "your profile is fully complete!"}
+            </Text>
+          </View>
+
+          {/* BASIC DETAILS CARD */}
+          <View style={styles.card}>
+            <Text style={styles.cardSectionHeader}>Basic details</Text>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Date of birth</Text>
+              <Text style={styles.detailValue}>
+                {profileDetails?.personal_profile_dob || "—"}
+              </Text>
             </View>
 
-            {/* hrLine */}
-            <View style={styles.hrLine} />
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Time of birth</Text>
+              <Text style={styles.detailValue}>
+                {profileDetails?.personal_time_of_birth || "—"}
+              </Text>
+            </View>
 
-            {/* wishlist menu */}
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Place of birth</Text>
+              <Text style={styles.detailValue}>
+                {profileDetails?.personal_place_of_birth || "—"}
+              </Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Gothram</Text>
+              <Text style={styles.detailValue}>
+                {profileDetails?.gothram || "—"}
+              </Text>
+            </View>
+
+            <View style={[styles.detailRow, { borderBottomWidth: 0 }]}>
+              <Text style={styles.detailLabel}>Star / Rasi</Text>
+              <Text style={styles.detailValue}>
+                {[profileDetails?.star, profileDetails?.rasi]
+                  .filter(Boolean)
+                  .join(" / ") || "—"}
+              </Text>
+            </View>
+          </View>
+
+          {/* MAIN NAVIGATION GROUP */}
+          <View style={styles.menuCardGroup}>
             <TouchableOpacity
-              onPress={() => navigation.navigate("DashBoardWishlist")}
+              style={styles.menuRow}
+              onPress={() => navigation.navigate("Home")}
+              activeOpacity={0.7}
             >
-              <View style={styles.menuFlex}>
-                <MaterialCommunityIcons
-                  name="bookmark"
-                  size={wp(6)}
-                  color="#535665"
+              <View style={styles.menuLeft}>
+                <Ionicons
+                  name="grid-outline"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
                 />
-                <Text style={styles.menuText}>Wishlist</Text>
+                <Text style={styles.menuLabelText}>My dashboard</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
 
-            <View style={styles.hrLine1} />
+            {!isPlan16 && (
+              <TouchableOpacity
+                style={styles.menuRow}
+                onPress={handleUpgradeClick}
+                activeOpacity={0.7}
+              >
+                <View style={styles.menuLeft}>
+                  <MaterialCommunityIcons
+                    name="crown-outline"
+                    size={22}
+                    color={Colors.primary || "#A00014"}
+                  />
+                  <Text style={styles.menuLabelText}>
+                    Membership & plans ({buttonText})
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={Colors.textMuted || "#71717A"}
+                />
+              </TouchableOpacity>
+            )}
 
-            {/* other settings menu */}
-            <TouchableOpacity
-              onPress={() => navigation.navigate("OtherSettings")}
+            {/* <TouchableOpacity
+              style={[styles.menuRow, { borderBottomWidth: 0 }]}
+              onPress={() => navigation.navigate("HoroscopeDetails")}
+              activeOpacity={0.7}
             >
-              <View style={styles.menuFlex}>
-                <FontAwesome6 name="user-gear" size={wp(6)} color="#535665" />
-                <Text style={styles.menuText}>Other Settings</Text>
+              <View style={styles.menuLeft}>
+                <Ionicons
+                  name="star-outline"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
+                />
+                <Text style={styles.menuLabelText}>Horoscope & porutham</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
+            </TouchableOpacity> */}
+          </View>
+
+          {/* SECONDARY SETTINGS & POLICIES GROUP */}
+          <View style={styles.menuCardGroup}>
+            <TouchableOpacity
+              style={styles.menuRow}
+              onPress={() => navigation.navigate("DashBoardWishlist")}
+              activeOpacity={0.7}
+            >
+              <View style={styles.menuLeft}>
+                <MaterialCommunityIcons
+                  name="bookmark-outline"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
+                />
+                <Text style={styles.menuLabelText}>Wishlist</Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
 
-            <View style={styles.hrLine1} />
-
-            {/* about is settings menu */}
             <TouchableOpacity
+              style={styles.menuRow}
+              onPress={() => navigation.navigate("OtherSettings")}
+              activeOpacity={0.7}
+            >
+              <View style={styles.menuLeft}>
+                <Ionicons
+                  name="settings-outline"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
+                />
+                <Text style={styles.menuLabelText}>Other Settings</Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuRow}
               onPress={() =>
                 navigation.navigate("WebViewPage", {
-                  // url: "http://matrimonyapp.rainyseasun.com/AboutUsMobile",
                   url: "https://vysyamala.com/AboutUsMobile",
                   title: "About Us",
                 })
               }
+              activeOpacity={0.7}
             >
-              <View style={styles.menuFlex}>
-                <Ionicons name="information-circle" size={wp(6)} color="#535665" />
-                <Text style={styles.menuText}>About Us</Text>
+              <View style={styles.menuLeft}>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
+                />
+                <Text style={styles.menuLabelText}>About Us</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
 
-            <View style={styles.hrLine1} />
-
-            {/* Success Stories settings menu */}
             <TouchableOpacity
+              style={styles.menuRow}
               onPress={() =>
                 navigation.navigate("WebViewPage", {
-                  // url: "http://matrimonyapp.rainyseasun.com/HappyStoriesMobile",
-                  //url: "https://vysyamala.com/HappyStoriesMobile",
                   url: "https://vysyamala.com/HappyStoriesMobile",
                   title: "Santhosha Pendlilu",
                 })
               }
+              activeOpacity={0.7}
             >
-              <View style={styles.menuFlex}>
-                <FontAwesome6 name="star" size={wp(6)} color="#535665" />
-                <Text style={styles.menuText}>Santhosha Pendlilu</Text>
+              <View style={styles.menuLeft}>
+                <FontAwesome6
+                  name="heart"
+                  size={18}
+                  color={Colors.primary || "#A00014"}
+                />
+                <Text style={styles.menuLabelText}>Santhosha Pendlilu</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
-            <View style={styles.hrLine1} />
 
-            {/* Awards settings menu */}
             <TouchableOpacity
+              style={styles.menuRow}
               onPress={() =>
                 navigation.navigate("WebViewPage", {
-                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
                   url: "https://vysyamala.com/AwardsMobile",
                   title: "Awards",
                 })
               }
+              activeOpacity={0.7}
             >
-              <View style={styles.menuFlex}>
-                <Ionicons name="trophy" size={wp(6)} color="#535665" />
-                <Text style={styles.menuText}>Awards</Text>
+              <View style={styles.menuLeft}>
+                <Ionicons
+                  name="trophy-outline"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
+                />
+                <Text style={styles.menuLabelText}>Awards</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
-
-            <View style={styles.hrLine1} />
-
-            <TouchableOpacity onPress={() => navigation.navigate("HelpSupport")}>
-              <View style={styles.menuFlex}>
-                <Ionicons name="help-circle" size={wp(6)} color="#535665" />
-                <Text style={styles.menuText}>Help & Support</Text>
-              </View>
-            </TouchableOpacity>
-
-
-            <View style={styles.hrLine1} />
 
             <TouchableOpacity
+              style={styles.menuRow}
+              onPress={() => navigation.navigate("HelpSupport")}
+              activeOpacity={0.7}
+            >
+              <View style={styles.menuLeft}>
+                <Ionicons
+                  name="help-circle-outline"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
+                />
+                <Text style={styles.menuLabelText}>Help & Support</Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuRow}
               onPress={() =>
                 navigation.navigate("WebViewPage", {
-                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
                   url: "https://www.vysyamala.com/PrivacyPolicy",
                   title: "Privacy Policy",
                 })
               }
+              activeOpacity={0.7}
             >
-              <View style={styles.menuFlex}>
-                <Ionicons name="shield-checkmark-outline" size={wp(6)} color="#535665" />
-                <Text style={styles.menuText}>Privacy Policy</Text>
+              <View style={styles.menuLeft}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
+                />
+                <Text style={styles.menuLabelText}>Privacy Policy</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
 
-            <View style={styles.hrLine1} />
-
             <TouchableOpacity
+              style={styles.menuRow}
               onPress={() =>
                 navigation.navigate("WebViewPage", {
-                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
                   url: "https://www.vysyamala.com/TermsandConditions",
-                  title: "Terms & Condiitons",
+                  title: "Terms & Conditions",
                 })
               }
+              activeOpacity={0.7}
             >
-              <View style={styles.menuFlex}>
-                <Ionicons name="document-text-outline" size={wp(6)} color="#535665" />
-                <Text style={styles.menuText}>Terms & Condiitons</Text>
+              <View style={styles.menuLeft}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
+                />
+                <Text style={styles.menuLabelText}>Terms & Conditions</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
 
-            <View style={styles.hrLine1} />
-
             <TouchableOpacity
+              style={styles.menuRow}
               onPress={() =>
                 navigation.navigate("WebViewPage", {
-                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
                   url: "https://www.vysyamala.com/ChildSafety",
                   title: "Child Safety",
                 })
               }
+              activeOpacity={0.7}
             >
-              <View style={styles.menuFlex}>
-                {/* <Ionicons name="shield-child-outline" size={wp(6)} color="#535665" /> */}
+              <View style={styles.menuLeft}>
                 <MaterialCommunityIcons
                   name="shield-account-outline"
-                  size={wp(6)}
-                  color="#535665"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
                 />
-                <Text style={styles.menuText}>Child Safety</Text>
+                <Text style={styles.menuLabelText}>Child Safety</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
 
-            <View style={styles.hrLine1} />
-
             <TouchableOpacity
+              style={styles.menuRow}
               onPress={() =>
                 navigation.navigate("WebViewPage", {
-                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
                   url: "https://www.vysyamala.com/CommunityGuidelines",
                   title: "Community Guidelines",
                 })
               }
+              activeOpacity={0.7}
             >
-              <View style={styles.menuFlex}>
+              <View style={styles.menuLeft}>
                 <MaterialCommunityIcons
                   name="account-group-outline"
-                  size={wp(6)}
-                  color="#535665"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
                 />
-                <Text style={styles.menuText}>Community Guidelines</Text>
+                <Text style={styles.menuLabelText}>Community Guidelines</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
 
-            <View style={styles.hrLine1} />
-
             <TouchableOpacity
+              style={styles.menuRow}
               onPress={() =>
                 navigation.navigate("WebViewPage", {
-                  // url: "http://matrimonyapp.rainyseasun.com/AwardsMobile",
                   url: "https://www.vysyamala.com/AccountDeletionPolicy",
                   title: "Account Deletion Policy",
                 })
               }
+              activeOpacity={0.7}
             >
-              <View style={styles.menuFlex}>
+              <View style={styles.menuLeft}>
                 <MaterialCommunityIcons
                   name="account-remove-outline"
-                  size={wp(6)}
-                  color="#535665"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
                 />
-                <Text style={styles.menuText}>Account Deletion Policy</Text>
+                <Text style={styles.menuLabelText}>Account Deletion Policy</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
 
-            <View style={styles.hrLine1} />
-            {/* Upgrade menu */}
-            {/* <TouchableOpacity
-              onPress={() => navigation.navigate("MembershipPlan")}
+            <TouchableOpacity
+              style={[styles.menuRow, { borderBottomWidth: 0 }]}
+              onPress={handleLogout}
+              activeOpacity={0.7}
             >
-              <LinearGradient
-                colors={["#BD1225", "#FF4050"]} // Gradient colors
-                style={styles.button}
-              >
-                <Text style={styles.textUpgrade}>Upgrade</Text>
-              </LinearGradient>
-            </TouchableOpacity> */}
-            {!isPlan16 && (
-              <TouchableOpacity onPress={handleUpgradeClick}>
-                <LinearGradient
-                  colors={['#BD1225', '#FF4050']}
-                  style={styles.button}
-                >
-                  <Text style={styles.textUpgrade}>{buttonText}</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
-
-            {/* hrLine */}
-            <View style={styles.hrLine} />
-
-            {/* logout menu */}
-            <TouchableOpacity onPress={handleLogout}>
-              <View style={styles.menuFlex}>
-                <MaterialIcons name="logout" size={wp(6)} color="#535665" />
-                <Text style={styles.menuText}>Log Out</Text>
+              <View style={styles.menuLeft}>
+                <Ionicons
+                  name="log-out-outline"
+                  size={20}
+                  color={Colors.primary || "#A00014"}
+                />
+                <Text style={styles.menuLabelText}>Log Out</Text>
               </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.textMuted || "#71717A"}
+              />
             </TouchableOpacity>
           </View>
         </ScrollView>
       )}
-      {/* Modal for sharing */}
+
+      {/* SHARE MODAL */}
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={shareModalVisible}
         onRequestClose={() => setShareModalVisible(false)}
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "white",
-              borderRadius: 15,
-              padding: 20,
-              width: "80%",
-              alignItems: "center",
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                width: "100%",
-                marginBottom: 20,
-              }}
-            >
-              <Text style={{ fontSize: 18, fontWeight: "bold", color: "#000" }}>
-                Share Profile
-              </Text>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Share Profile</Text>
               <TouchableOpacity onPress={() => setShareModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#000" />
+                <Ionicons
+                  name="close"
+                  size={24}
+                  color={Colors.textDark || "#1E1E1E"}
+                />
               </TouchableOpacity>
             </View>
+
             <TouchableOpacity
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                padding: 15,
-                borderWidth: 1,
-                borderColor: "#ddd",
-                borderRadius: 10,
-                marginVertical: 5,
-                width: "100%",
-              }}
+              style={styles.modalOptionBtn}
               onPress={() => handleWhatsAppShareWithImage(true)}
             >
-              <Ionicons name="image" size={24} color="#ED1E24" />
-              <Text style={{ marginLeft: 15, fontSize: 16, color: "#000" }}>
-                Share with Image
-              </Text>
+              <Ionicons
+                name="image-outline"
+                size={22}
+                color={Colors.primary || "#A00014"}
+              />
+              <Text style={styles.modalOptionText}>Share with Image</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                padding: 15,
-                borderWidth: 1,
-                borderColor: "#ddd",
-                borderRadius: 10,
-                marginVertical: 5,
-                width: "100%",
-              }}
-              // onPress={handleWhatsAppShareWithoutImage}
+              style={styles.modalOptionBtn}
               onPress={() => handleWhatsAppShareWithImage(false)}
             >
-              <Ionicons name="document-text" size={24} color="#ED1E24" />
-              <Text style={{ marginLeft: 15, fontSize: 16, color: "#000" }}>
-                Share without Image
-              </Text>
+              <Ionicons
+                name="document-text-outline"
+                size={22}
+                color={Colors.primary || "#A00014"}
+              />
+              <Text style={styles.modalOptionText} onPress={() => handleWhatsAppShareWithoutImage(false)}>Share without Image</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -928,194 +924,184 @@ export const Menu = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F4F4",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    marginBottom: 200,
+    backgroundColor: Colors.cardBackground || "#FFFFFF",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    width: "100%", // Takes full width
-    height: "100%", // Takes full height
-    backgroundColor: "#F4F4F4", // Match the main container background
   },
-  menuContainer: {
-    width: "100%",
-    paddingHorizontal: wp(3),
-    marginVertical: hp(1.5),
+  headerBanner: {
+    paddingHorizontal: 18,
+    paddingTop: Platform.OS === "ios" ? 10 : 16,
+    paddingBottom: 20,
   },
-  imgContentFlex: {
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -1,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: "rgba(255, 255, 255, 0.8)",
+    marginTop: 2,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 110,
+  },
+
+  // CARD BASE
+  card: {
+    backgroundColor: Colors.cardBackground || "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+
+  // PROFILE HEADER
+  profileHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatarRing: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2,
+    borderColor: Colors.gold || "#E2B13C",
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  profileMetaInfo: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  profileNameText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.textDark || "#1E1E1E",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+  },
+  membershipSubText: {
+    fontSize: 12.5,
+    color: Colors.textMuted || "#71717A",
+    marginTop: 4,
+  },
+  editIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.iconContainerBg || "#FFDBD6",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // COMPLETENESS
+  cardSectionHeader: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: Colors.textDark || "#1E1E1E",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    marginBottom: 12,
+    lineSpacing: -1,
+  },
+  progressBarTrack: {
+    height: 8,
+    backgroundColor: Colors.chipInactiveBg || "#F4F4F5",
+    borderRadius: 4,
+    overflow: "hidden",
+    marginBottom: 10,
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: Colors.gold || "#E2B13C",
+    borderRadius: 4,
+  },
+  completenessSubtext: {
+    fontSize: 12.5,
+    color: Colors.textMuted || "#71717A",
+    lineHeight: 18,
+  },
+
+  // BASIC DETAILS
+  detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  updateProfileContainer: {
-    paddingHorizontal: wp(2),
-  },
-  profileContent: {
-    marginTop: hp(1.5),
-  },
-  profileName: {
-    fontSize: responsiveFontSize(16),
-    fontWeight: "700",
-    color: "#282C3F",
-    alignSelf: "flex-start",
-    marginBottom: hp(0.8),
-  },
-  profileNumber: {
-    fontSize: responsiveFontSize(12),
-    fontWeight: "300",
-    color: "#535665",
-    marginBottom: hp(1.2),
-  },
-  planFlex: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
     alignItems: "center",
-    flexWrap: "wrap",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border || "#F0E8E0",
   },
-  goldLinearGradient: {
-    borderRadius: wp(1.5),
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: hp(0.8),
-    paddingHorizontal: wp(3),
-    minWidth: wp(25),
-    marginRight: wp(3),
-    marginBottom: hp(0.5),
+  detailLabel: {
+    fontSize: 13.5,
+    color: Colors.textMuted || "#71717A",
+    flex: 1,
   },
-  goldText: {
-    color: "#202332",
-    fontSize: responsiveFontSize(14),
-    fontWeight: "700",
-    fontFamily: "inter",
-    textAlign: "center",
+  detailValue: {
+    fontSize: 13.5,
+    fontWeight: "600",
+    color: Colors.textDark || "#1E1E1E",
+    textAlign: "right",
+    flex: 1.2,
   },
-  diamondText: {
+
+  // MENU GROUPS
+  menuCardGroup: {
+    backgroundColor: Colors.cardBackground || "#FFFFFF",
+    borderRadius: 20,
+    overflow: "hidden",
+    marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  date: {
-    fontSize: responsiveFontSize(13),
-    fontWeight: "300",
-    color: "#535665",
-    flex: 1,
-    flexWrap: "wrap",
-  },
-  sandalProfileContainer: {
-    width: "100%",
-    backgroundColor: "#FFFBE3",
-    borderRadius: wp(2),
-    paddingVertical: hp(2.5),
-    paddingHorizontal: wp(3),
-    marginTop: hp(2.5),
-  },
-  sandalContainerFlex: {
+  menuRow: {
     flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
-  },
-  percentageContent: {
-    marginLeft: wp(4),
-    flex: 1,
-  },
-  profilePercentage: {
-    color: "#535665",
-    fontSize: responsiveFontSize(14),
-    fontWeight: "700",
-    fontFamily: "inter",
-    marginBottom: hp(0.8),
-    flexWrap: "wrap",
-  },
-  percentageText: {
-    color: "#535665",
-    fontSize: responsiveFontSize(12),
-    fontWeight: "300",
-    fontFamily: "inter",
-    marginBottom: hp(1.2),
-    flexWrap: "wrap",
-    lineHeight: responsiveFontSize(16),
-  },
-  completeTextFlex: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
     alignItems: "center",
-    marginVertical: hp(1.2),
-    flexWrap: "wrap",
-  },
-  completeText: {
-    color: "#ED1E24",
-    fontSize: responsiveFontSize(12),
-    fontWeight: "500",
-    fontFamily: "inter",
-  },
-  hrLine: {
-    borderBottomColor: "#D4D5D9",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    marginVertical: hp(2.5),
+    borderBottomColor: Colors.border || "#F0E8E0",
   },
-  hrLine1: {
-    borderBottomColor: "#D4D5D9",
-    borderBottomWidth: 1,
-    marginVertical: hp(0.2),
-    width: wp(60),
-  },
-  menuFlex: {
+  menuLeft: {
     flexDirection: "row",
-    justifyContent: "flex-start",
     alignItems: "center",
-    marginVertical: hp(1.5),
-    paddingHorizontal: wp(2),
   },
-  menuText: {
-    color: "#535665",
-    fontSize: responsiveFontSize(15),
-    fontWeight: "500",
-    fontFamily: "inter",
-    marginLeft: wp(3),
+  menuLabelText: {
+    fontSize: 14.5,
+    fontWeight: "600",
+    color: Colors.textDark || "#1E1E1E",
+    marginLeft: 12,
   },
-  profileImage: {
-    width: wp(25),
-    height: wp(25),
-    borderRadius: wp(2),
-    resizeMode: "cover",
-  },
-  button: {
-    borderRadius: wp(1.5),
-    paddingVertical: hp(1.5),
-    paddingHorizontal: wp(6),
-    alignSelf: "flex-start",
-    minWidth: wp(35),
-    marginTop: hp(1.5),
-  },
-  textUpgrade: {
-    color: "#ffffff",
-    fontSize: responsiveFontSize(16),
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  // Responsive Modal Styles
+
+  // MODAL
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: wp(5),
   },
-  modalContainer: {
-    backgroundColor: "white",
-    borderRadius: wp(4),
-    padding: wp(5),
-    width: "100%",
-    maxWidth: wp(85),
+  modalCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    width: "85%",
     alignItems: "center",
   },
   modalHeader: {
@@ -1123,73 +1109,28 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: hp(2.5),
+    marginBottom: 18,
   },
   modalTitle: {
-    fontSize: responsiveFontSize(18),
-    fontWeight: "bold",
-    color: "#000",
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.textDark || "#1E1E1E",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
-  modalOption: {
+  modalOptionBtn: {
     flexDirection: "row",
     alignItems: "center",
-    padding: wp(4),
+    padding: 14,
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: wp(2.5),
-    marginVertical: hp(0.8),
+    borderColor: Colors.border || "#E4E4E7",
+    borderRadius: 14,
+    marginVertical: 6,
     width: "100%",
   },
   modalOptionText: {
-    marginLeft: wp(4),
-    fontSize: responsiveFontSize(16),
-    color: "#000",
-  },
-  // Legacy styles for backward compatibility
-  modalView: {
-    margin: wp(5),
-    backgroundColor: "white",
-    borderRadius: wp(5),
-    padding: wp(8),
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modalText: {
-    marginBottom: hp(2),
-    textAlign: "center",
-    fontSize: responsiveFontSize(14),
-  },
-  modalImage: {
-    width: wp(25),
-    height: wp(25),
-    marginBottom: hp(2),
-  },
-  dottedLine: {
-    borderBottomColor: "#535665",
-    borderBottomWidth: 2,
-    borderStyle: "dotted",
-    marginVertical: hp(0.3),
-    width: wp(60),
-  },
-  renewButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-    fontFamily: "inter",
-  },
-  renewButton: {
-    borderRadius: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    minWidth: 100,
-    alignItems: 'center',
-    justifyContent: 'center',
+    fontSize: 15,
+    color: Colors.textDark || "#1E1E1E",
+    fontWeight: "500",
+    marginLeft: 12,
   },
 });

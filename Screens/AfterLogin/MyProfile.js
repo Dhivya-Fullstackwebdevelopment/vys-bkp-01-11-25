@@ -989,8 +989,9 @@ const styles = StyleSheet.create({
         fontSize: fs(18),
         fontWeight: "700",
         flex: 1,
-        textAlign: "center",
+        textAlign: "left",
         fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        lineSpacing: -1,
     },
     summaryCard: {
         width: "100%",
