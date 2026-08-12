@@ -508,46 +508,46 @@ export const DashBoard = () => {
   // );
 
   // ── Profile strength ──────────────────────────────────────────────────────
-  const strengthRows = [
-    { label: "Completeness", value: `${completion}%`, isVerified: false },
-    {
-      label: "Photos uploaded",
-      value: `${imageUrls.length} of 5`,
-      isVerified: false,
-    },
-    { label: "Horoscope", value: "Verified", isVerified: true },
-    { label: "iD proof", value: "Verified", isVerified: true },
-    // {
-    //   label: "Response rate",
-    //   value: "92%",
-    //   isVerified: false,
-    // },
-  ];
+  // const strengthRows = [
+  //   { label: "Completeness", value: `${completion}%`, isVerified: false },
+  //   {
+  //     label: "Photos uploaded",
+  //     value: `${imageUrls.length} of 5`,
+  //     isVerified: false,
+  //   },
+  //   { label: "Horoscope", value: "Verified", isVerified: true },
+  //   { label: "iD proof", value: "Verified", isVerified: true },
+  //   {
+  //     label: "Response rate",
+  //     value: "92%",
+  //     isVerified: false,
+  //   },
+  // ];
 
-  const renderProfileStrength = () => (
-    <View style={styles.section}>
-      <View style={styles.strengthCard}>
-        <Text style={[styles.sectionTitle, { marginTop: 15 }]}>Profile strength</Text>
-        {strengthRows.map((row, i) => (
+  // const renderProfileStrength = () => (
+  //   <View style={styles.section}>
+  //     <View style={styles.strengthCard}>
+  //       <Text style={[styles.sectionTitle, { marginTop: 15 }]}>Profile strength</Text>
+  //       {strengthRows.map((row, i) => (
 
-          <View
-            key={i}
-            style={[styles.strengthRow, i < strengthRows.length - 1 && styles.strengthDivider]}
-          >
-            <Text style={styles.strengthLabel}>{row.label}</Text>
-            <View style={styles.strengthValueRow}>
-              {/* {row.isVerified && (
-                <MaterialIcons name="verified" size={14} color={C.verified} style={{ marginRight: 3 }} />
-              )} */}
-              <Text style={[styles.strengthValue]}>
-                {row.value}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
+  //         <View
+  //           key={i}
+  //           style={[styles.strengthRow, i < strengthRows.length - 1 && styles.strengthDivider]}
+  //         >
+  //           <Text style={styles.strengthLabel}>{row.label}</Text>
+  //           <View style={styles.strengthValueRow}>
+  //             {/* {row.isVerified && (
+  //               <MaterialIcons name="verified" size={14} color={C.verified} style={{ marginRight: 3 }} />
+  //             )} */}
+  //             <Text style={[styles.strengthValue]}>
+  //               {row.value}
+  //             </Text>
+  //           </View>
+  //         </View>
+  //       ))}
+  //     </View>
+  //   </View>
+  // );
 
   // ── Received interests (horizontal scroll) ────────────────────────────────
   const receivedProfiles = profileData.filter((p) => p.int_status === 1);
@@ -674,7 +674,7 @@ export const DashBoard = () => {
         {renderQuickActions()}
         {renderMyActivity()}
         {/* {renderContactViews()} */}
-        {renderProfileStrength()}
+        {/* {renderProfileStrength()} */}
         {renderReceivedInterests()}
 
         {/* ── EXISTING COLOURED SUMMARY CARDS (untouched) ── */}
