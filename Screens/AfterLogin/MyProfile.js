@@ -3,7 +3,6 @@ import {
     StyleSheet,
     Text,
     View,
-    Image,
     TouchableOpacity,
     Pressable,
     Dimensions,
@@ -17,7 +16,7 @@ import {
     ScrollView,
     StatusBar,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
     Ionicons,
     MaterialIcons,
@@ -30,11 +29,10 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { ProfileIconsBar, ProfileSectionsContent } from '../../Components/MenuTab/ProfileDetailsEdit';
-import { uploadImageToServer, removeProfileImage, fetchImages, downloadPdfmyprofile, getMyProfilePersonal } from '../../CommonApiCall/CommonApiCall';
+import { uploadImageToServer, removeProfileImage, fetchImages, downloadPdfmyprofile, getMyProfilePersonal, getMyEducationalDetails } from '../../CommonApiCall/CommonApiCall';
 import config from '../../API/Apiurl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from "react-native-toast-message";
-import { getMyEducationalDetails } from '../../CommonApiCall/CommonApiCall';
 import { TopAlignedImage } from '../../Components/ReuseImageAlign/TopAlignedImage';
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { Colors } from "../../Reusable/Theme";
@@ -48,18 +46,15 @@ const verticalScale = (size) => (SCREEN_H / 812) * size;
 // Layout Constants
 const HERO_IMAGE_HEIGHT = Math.max(340, Math.min(460, verticalScale(420)));
 const HEADER_HEIGHT = Platform.OS === 'ios' ? 90 : 70;
-const COMPACT_HEADER_HEIGHT = 64;
 
-// Section metadata used for quick-nav
 const PROFILE_SECTIONS = [
-    { key: 'personal', label: 'Personal', icon: 'account', lib: 'MCI' },
-    { key: 'education', label: 'Work & Education', icon: 'school', lib: 'MCI' },
-    { key: 'family', label: 'Family', icon: 'account-group', lib: 'MCI' },
-    { key: 'horoscope', label: 'Horoscope', icon: 'star-four-points', lib: 'MCI' },
-    { key: 'contact', label: 'Contact', icon: 'phone', lib: 'MCI' },
+    { key: 'personal', label: 'Personal' },
+    { key: 'education', label: 'Work & Education' },
+    { key: 'family', label: 'Family' },
+    { key: 'horoscope', label: 'Horoscope' },
+    { key: 'contact', label: 'Contact' },
 ];
 
-// Shimmer Loader for smooth initial page skeleton state
 const ShimmerLoader = () => {
     const animatedValue = useRef(new Animated.Value(0)).current;
 
@@ -105,7 +100,6 @@ const ShimmerLoader = () => {
     );
 };
 
-// Presentational helper for pill indicators
 const InfoPillRow = ({ items }) => {
     const visible = items.filter((it) => it.value !== undefined && it.value !== null && it.value !== '');
     if (visible.length === 0) return null;
@@ -128,10 +122,8 @@ export const MyProfile = () => {
     const navigation = useNavigation();
     const scrollY = useRef(new Animated.Value(0)).current;
     const scrollViewRef = useRef(null);
-    const insets = useSafeAreaInsets();
 
     const sectionOffsetsRef = useRef({
-        iconBarTop: 0,
         personal: 0,
         education: 0,
         family: 0,
@@ -158,7 +150,7 @@ export const MyProfile = () => {
 
         for (const section of PROFILE_SECTIONS) {
             const sectionY = offsets[section.key] || 0;
-            if (offsetY + HEADER_HEIGHT + 50 >= sectionY) {
+            if (offsetY + HEADER_HEIGHT + 60 >= sectionY) {
                 current = section.key;
             }
         }
@@ -370,12 +362,12 @@ export const MyProfile = () => {
                 />
             </TouchableOpacity>
 
-            <View style={styles.iconContainer}>
-                <TouchableOpacity style={styles.addIconWrapper} onPress={() => uploadImage(null)}>
-                    <MaterialIcons name="add-circle" size={24} color={Colors.primary} />
+            <View style={styles.floatingActionPill}>
+                <TouchableOpacity style={styles.addIconCircle} onPress={() => uploadImage(null)}>
+                    <Ionicons name="add" size={16} color="#FFFFFF" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleImageUpload(item.id)}>
-                    <MaterialIcons name="edit" size={24} color={Colors.primary} style={styles.editIcon} />
+                    <Ionicons name="pencil" size={15} color="#A00014" />
                 </TouchableOpacity>
             </View>
         </View>
@@ -513,7 +505,6 @@ export const MyProfile = () => {
         <SafeAreaView style={styles.mainContainer} edges={['left', 'right']}>
             <StatusBar backgroundColor="#FBF5ED" barStyle="dark-content" />
 
-            {/* Main Single Static Header */}
             <LinearGradient
                 colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
                 start={{ x: 0, y: 0.5 }}
@@ -545,9 +536,9 @@ export const MyProfile = () => {
                 scrollEventThrottle={16}
                 removeClippedSubviews={Platform.OS === 'android'}
                 contentContainerStyle={{ paddingBottom: 100 }}
-                stickyHeaderIndices={[2]} // Makes the horizontal subtitle tab bar stick below header
+                stickyHeaderIndices={[2]}
             >
-                {/* HERO CAROUSEL */}
+                {/* HERO CAROUSEL WITH BOTTOM CORNER CURVES */}
                 <View style={styles.heroWrapper}>
                     {data.length > 0 ? (
                         <>
@@ -562,7 +553,6 @@ export const MyProfile = () => {
                                 onSnapToItem={(index) => setActiveSlide(index)}
                                 renderItem={renderItem}
                             />
-                            {/* Uploaded Photos Count Indicator */}
                             <View style={styles.imageCounterBadge}>
                                 <Text style={styles.imageCounterText}>
                                     {activeSlide + 1}/{data.length}
@@ -743,7 +733,7 @@ export const MyProfile = () => {
                     )}
                 </View>
 
-                {/* HORIZONTAL SCROLLABLE STICKY SUBTITLE NAV TAB */}
+                {/* HORIZONTAL STICKY MENU BAR */}
                 <View style={styles.stickyNavWrapper}>
                     <ProfileIconsBar
                         onSelectSection={scrollToProfileSection}
@@ -758,7 +748,6 @@ export const MyProfile = () => {
                 </View>
             </Animated.ScrollView>
 
-            {/* SHARE MODAL */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -792,7 +781,6 @@ export const MyProfile = () => {
                 </View>
             </Modal>
 
-            {/* LANGUAGE SELECT MODAL */}
             <Modal
                 visible={showLanguagePopup}
                 transparent={true}
@@ -869,7 +857,7 @@ const styles = StyleSheet.create({
         borderBottomColor: Colors.border,
         flexDirection: "row",
         alignItems: "center",
-        justify: "space-between",
+        justifyContent: "space-between",
         backgroundColor: Colors.selectedBg,
         zIndex: 25,
         elevation: 6,
@@ -1076,9 +1064,9 @@ const styles = StyleSheet.create({
     },
     imageCounterBadge: {
         position: 'absolute',
-        bottom: 20,
+        bottom: 28,
         right: 16,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: 'rgba(0, 0, 0, 0.65)',
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 12,
@@ -1089,25 +1077,31 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
     },
-    iconContainer: {
+    floatingActionPill: {
         position: 'absolute',
-        bottom: 12,
-        left: 12,
+        bottom: 22,
+        left: 16,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(250, 246, 240, 0.92)',
-        borderRadius: 20,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        gap: 8,
-        elevation: 3,
+        backgroundColor: 'rgba(255, 255, 255, 0.92)',
+        borderRadius: 24,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        gap: 12,
+        zIndex: 10,
+        elevation: 4,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 3,
     },
-    addIconWrapper: {
-        padding: 2,
+    addIconCircle: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        backgroundColor: '#A00014',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     itemContainer: {
         position: 'relative',

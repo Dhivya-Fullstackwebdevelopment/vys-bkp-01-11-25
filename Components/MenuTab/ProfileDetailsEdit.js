@@ -8,6 +8,7 @@ import {
     TextInput,
     Pressable,
     ScrollView,
+    Dimensions
 } from "react-native";
 import {
     Ionicons,
@@ -29,7 +30,12 @@ import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from "../../Reusable/Theme";
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 export const ProfileIconsBar = ({ onSelectSection, activeSection, sections }) => {
+    const tabScrollViewRef = useRef(null);
+    const tabLayouts = useRef({});
+
     const tabList = sections || [
         { key: 'personal', label: 'Personal' },
         { key: 'education', label: 'Work & Education' },
@@ -38,8 +44,17 @@ export const ProfileIconsBar = ({ onSelectSection, activeSection, sections }) =>
         { key: 'contact', label: 'Contact' },
     ];
 
+    useEffect(() => {
+        if (activeSection && tabLayouts.current[activeSection]) {
+            const { x, width } = tabLayouts.current[activeSection];
+            const targetX = Math.max(0, x - SCREEN_WIDTH / 2 + width / 2);
+            tabScrollViewRef.current?.scrollTo({ x: targetX, animated: true });
+        }
+    }, [activeSection]);
+
     return (
         <ScrollView
+            ref={tabScrollViewRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalTabContent}
@@ -51,6 +66,12 @@ export const ProfileIconsBar = ({ onSelectSection, activeSection, sections }) =>
                         key={tab.key}
                         style={[styles.tabPill, isActive && styles.tabPillActive]}
                         onPress={() => onSelectSection && onSelectSection(tab.key)}
+                        onLayout={(e) => {
+                            tabLayouts.current[tab.key] = {
+                                x: e.nativeEvent.layout.x,
+                                width: e.nativeEvent.layout.width,
+                            };
+                        }}
                         activeOpacity={0.8}
                     >
                         <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>
