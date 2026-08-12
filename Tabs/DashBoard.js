@@ -600,7 +600,7 @@ export const DashBoard = () => {
 
   const renderExistingCards = () => (
     <View style={styles.summaryGrid}>
-      {/* Matching Profiles — large full-width hero card */}
+      {/* Matching Profiles — hero card below */}
       <TouchableOpacity
         style={styles.heroCard}
         onPress={() => navigation.navigate("Home")}
@@ -612,33 +612,23 @@ export const DashBoard = () => {
           end={{ x: 1, y: 1 }}
           style={styles.heroGradient}
         >
-          {/* Top row */}
           <View style={styles.heroTop}>
             <View style={styles.heroIconBg}>
-              <FontAwesome6 name="user-group" size={20} color="#fff" />
+              <FontAwesome6 name="user-group" size={18} color="#fff" />
             </View>
             <View style={styles.heroBadge}>
               <Text style={styles.heroBadgeText}>View All →</Text>
             </View>
           </View>
-
-          {/* Count + label */}
-          <Text style={styles.heroCount}>
-            {dashboardData?.matching_profile_count || 0}
-          </Text>
+          <Text style={styles.heroCount}>{dashboardData?.matching_profile_count || 0}</Text>
           <Text style={styles.heroLabel}>Matching Profiles</Text>
-
-          {/* Avatar stack */}
           {imageUrls.length > 0 && (
             <View style={styles.heroAvatarRow}>
               {imageUrls.slice(0, 5).map((url, idx) => (
                 <Image
                   key={idx}
                   source={{ uri: url }}
-                  style={[
-                    styles.heroAvatar,
-                    { marginLeft: idx === 0 ? 0 : -12, zIndex: 5 - idx },
-                  ]}
+                  style={[styles.heroAvatar, { marginLeft: idx === 0 ? 0 : -12, zIndex: 5 - idx }]}
                 />
               ))}
               {imageUrls.length > 5 && (
@@ -651,14 +641,11 @@ export const DashBoard = () => {
               </Text>
             </View>
           )}
-
-          {/* Decorative circle */}
           <View style={styles.heroDecorCircle1} />
           <View style={styles.heroDecorCircle2} />
         </LinearGradient>
       </TouchableOpacity>
-
-      {/* Mutual Interest + Wishlist — side by side */}
+      {/* Mutual Interest + Wishlist — top horizontal row */}
       <View style={styles.summaryRow}>
         {/* Mutual Interest */}
         <TouchableOpacity
@@ -673,12 +660,10 @@ export const DashBoard = () => {
             style={styles.halfGradient}
           >
             <View style={styles.halfIconBg}>
-              <MaterialCommunityIcons name="heart-multiple" size={18} color="#fff" />
+              <MaterialCommunityIcons name="heart-multiple" size={16} color="#fff" />
             </View>
-            <Text style={styles.halfCount}>
-              {dashboardData?.mutual_int_count || 0}
-            </Text>
-            <Text style={styles.halfLabel}>Mutual{"\n"}Interest</Text>
+            <Text style={styles.halfCount}>{dashboardData?.mutual_int_count || 0}</Text>
+            <Text style={styles.halfLabel}>Mutual Interest</Text>
             <View style={styles.halfDecorCircle} />
           </LinearGradient>
         </TouchableOpacity>
@@ -696,16 +681,15 @@ export const DashBoard = () => {
             style={styles.halfGradient}
           >
             <View style={styles.halfIconBg}>
-              <MaterialCommunityIcons name="bookmark" size={18} color="#fff" />
+              <MaterialCommunityIcons name="bookmark" size={16} color="#fff" />
             </View>
-            <Text style={styles.halfCount}>
-              {dashboardData?.wishlist_count || 0}
-            </Text>
-            <Text style={styles.halfLabel}>Wish{"\n"}List</Text>
+            <Text style={styles.halfCount}>{dashboardData?.wishlist_count || 0}</Text>
+            <Text style={styles.halfLabel}>Wish List</Text>
             <View style={[styles.halfDecorCircle, { backgroundColor: "rgba(255,255,255,0.08)" }]} />
           </LinearGradient>
         </TouchableOpacity>
       </View>
+
     </View>
   );
 
@@ -720,6 +704,7 @@ export const DashBoard = () => {
         {renderProfileCompletion()}
         {/* ── EXISTING COLOURED SUMMARY CARDS (untouched) ── */}
         <Text style={styles.sectionTitle2}>Summary</Text>
+
         {renderExistingCards()}
         {renderStatistics()}
         {renderQuickActions()}
@@ -1238,8 +1223,8 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   heroGradient: {
-    padding: 20,
-    minHeight: 170,
+    padding: 16,          // ✅ reduced from 20
+    minHeight: 130,       // ✅ reduced from 170
     position: "relative",
     overflow: "hidden",
   },
@@ -1250,8 +1235,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   heroIconBg: {
-    width: 38,
-    height: 38,
+    width: 32,
+    height: 32,
     borderRadius: 19,
     backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
@@ -1269,33 +1254,33 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   heroCount: {
-    fontSize: fs(42),
+    fontSize: fs(28),
     fontWeight: "800",
     color: "#fff",
-    lineHeight: fs(46),
+    lineHeight: fs(36),
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   heroLabel: {
-    fontSize: fs(13),
+    fontSize: fs(12),     // ✅ reduced from 13
     color: "rgba(255,255,255,0.8)",
     fontWeight: "500",
-    marginBottom: 14,
+    marginBottom: 10,     // ✅ reduced from 14
   },
   heroAvatarRow: {
     flexDirection: "row",
     alignItems: "center",
   },
   heroAvatar: {
-    width: 32,
-    height: 32,
+    width: 26,
+    height: 26,
     borderRadius: 16,
     borderWidth: 2,
     borderColor: "#fff",
     backgroundColor: "#eee",
   },
   heroAvatarMore: {
-    width: 32,
-    height: 32,
+    width: 26,
+    height: 26,
     borderRadius: 16,
     backgroundColor: "rgba(255,255,255,0.25)",
     justifyContent: "center",
@@ -1345,33 +1330,33 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   halfGradient: {
-    padding: 16,
-    minHeight: 140,
+    padding: 12,
+    minHeight: 110,
     position: "relative",
     overflow: "hidden",
   },
   halfIconBg: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 28,            // ✅ reduced from 34
+    height: 28,
+    borderRadius: 14,
     backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 6,
   },
   halfCount: {
-    fontSize: fs(34),
+    fontSize: fs(22),
     fontWeight: "800",
     color: "#fff",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    lineHeight: fs(38),
+    lineHeight: fs(30),
   },
   halfLabel: {
-    fontSize: fs(12),
+    fontSize: fs(11),
     color: "rgba(255,255,255,0.8)",
     fontWeight: "500",
-    marginTop: 4,
-    lineHeight: fs(17),
+    marginTop: 2,
+    lineHeight: fs(15),
   },
   halfDecorCircle: {
     position: "absolute",
