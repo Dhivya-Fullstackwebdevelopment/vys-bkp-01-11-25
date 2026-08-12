@@ -5,7 +5,7 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
+  Modal,
   StyleSheet,
   Platform,
   StatusBar,
@@ -18,7 +18,7 @@ import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   Ionicons,
-  MaterialCommunityIcons,
+  MaterialIcons,
   FontAwesome5,
 } from "@expo/vector-icons";
 import { Colors } from '../../Reusable/Theme';
@@ -34,6 +34,8 @@ export const NotificationsCard = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [clearModalVisible, setClearModalVisible] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const onEndReachedCalledDuringMomentum = useRef(true);
 
   const clearAllNotificationsAPI = async () => {
@@ -71,24 +73,11 @@ export const NotificationsCard = () => {
     }
   };
 
-  const handleClearNotifications = async () => {
-    Alert.alert(
-      'Clear All Notifications',
-      'Are you sure you want to clear all notifications?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            await clearAllNotificationsAPI();
-            setLoading(false);
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+  const confirmClearAll = async () => {
+    setClearing(true);
+    await clearAllNotificationsAPI();
+    setClearing(false);
+    setClearModalVisible(false);
   };
 
   const handleMessage = async (fromProfileId) => {
@@ -122,16 +111,16 @@ export const NotificationsCard = () => {
             await AsyncStorage.setItem('selectedProfile', JSON.stringify(selectedProfileData));
             navigation.navigate('Message');
           } else {
-            Alert.alert('Error', 'Chat details not found.');
+            Toast.show({ type: "error", text1: "Error", text2: "Chat details not found." });
           }
         } else {
-          Alert.alert('Error', chatListResponse.data.message || 'Chat list not found');
+          Toast.show({ type: "error", text1: "Error", text2: chatListResponse.data.message || 'Chat list not found' });
         }
       } else {
-        Alert.alert('Error', response.data.Message || 'Chat room not created');
+        Toast.show({ type: "error", text1: "Error", text2: response.data.Message || 'Chat room not created' });
       }
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to start chat');
+      Toast.show({ type: "error", text1: "Error", text2: error.message || 'Failed to start chat' });
     }
   };
 
@@ -169,7 +158,7 @@ export const NotificationsCard = () => {
       setHasMore(page * 10 < total);
     } catch (error) {
       console.error('Notification Error:', error);
-      Alert.alert('Error', 'Failed to load notifications');
+      Toast.show({ type: "error", text1: "Error", text2: "Failed to load notifications" });
     } finally {
       setLoading(false);
       setIsLoadingMore(false);
@@ -196,12 +185,7 @@ export const NotificationsCard = () => {
     getNotifications(1, true);
   };
 
-  
-  const handleUpdatePhoto = () => {
-    navigation.navigate('MyProfile');
-  };
   useEffect(() => {
-    // Update the header title when totalRecords changes
     navigation.setOptions({
       headerTitle: `Notifications (${totalRecords})`,
     });
@@ -331,8 +315,8 @@ export const NotificationsCard = () => {
             item.message_titile && item.message_titile.trim() !== ""
               ? item.message_titile
               : item.notify_profile_name
-                ? `${item.notify_profile_name}`
-                : "Notification";
+              ? `${item.notify_profile_name}`
+              : "Notification";
 
           const bodyText =
             [item.from_profile_id, item.to_message].filter(Boolean).join(" ") ||
@@ -382,17 +366,6 @@ export const NotificationsCard = () => {
     );
   };
 
-   if (!loading && notifications.length === 0 && !refreshing) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }}>
-        <Text style={{ fontSize: 18, color: '#666', fontWeight: '500' }}>
-          No notifications found
-        </Text>
-        {/* <BottomTabBarComponent /> */}
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor={Colors.primaryGradientStart || "#A00014"} barStyle="light-content" />
@@ -419,7 +392,7 @@ export const NotificationsCard = () => {
 
           {totalRecords > 0 && (
             <TouchableOpacity
-              onPress={handleClearNotifications}
+              onPress={() => setClearModalVisible(true)}
               style={styles.clearAllBtn}
               activeOpacity={0.8}
             >
@@ -468,6 +441,55 @@ export const NotificationsCard = () => {
           You have reached the end of notifications
         </Text>
       )}
+
+      {/* CUSTOM CLEAR ALL MODAL */}
+      <Modal
+        visible={clearModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setClearModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconRing}>
+              <View style={styles.modalIconCircle}>
+                <Ionicons name="trash-outline" size={26} color="#FFFFFF" />
+              </View>
+            </View>
+
+            <Text style={styles.modalTitle}>Clear All Notifications?</Text>
+            <Text style={styles.modalBody}>
+              Are you sure you want to remove all notifications? This action cannot be undone.
+            </Text>
+
+            <View style={styles.modalGoldRule} />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => setClearModalVisible(false)}
+                activeOpacity={0.8}
+                disabled={clearing}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.confirmBtn}
+                onPress={confirmClearAll}
+                activeOpacity={0.85}
+                disabled={clearing}
+              >
+                {clearing ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.confirmBtnText}>Clear All</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -492,12 +514,11 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#FFFFFF",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    letterSpacing: -1,
   },
-  headerSubtitle: {
-    fontSize: 13,
-    color: "rgba(255, 255, 255, 0.8)",
-    marginTop: 2,
+  headerCount: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.75)",
   },
   clearAllBtn: {
     backgroundColor: "rgba(255, 255, 255, 0.2)",
@@ -528,7 +549,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginLeft: 4,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    lineSpacing: -1,
   },
   cardGroup: {
     backgroundColor: Colors.cardBackground || "#FFFFFF",
@@ -623,9 +643,97 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 20,
   },
-  headerCount: {
-    fontSize: 14,          // adjust as needed
-    fontWeight: "600",
-    color: "rgba(255,255,255,0.7)",
+
+  // MODAL POPUP STYLES
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.55)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalCard: {
+    backgroundColor: "#FFFFFF",
+    width: "85%",
+    maxWidth: 320,
+    borderRadius: 24,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  modalIconRing: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.iconContainerBg || "rgba(255, 219, 214, 0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  modalIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: Colors.primary || "#A00014",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.textDark || "#1E1E1E",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalBody: {
+    fontSize: 13.5,
+    color: Colors.textMuted || "#71717A",
+    textAlign: "center",
+    lineHeight: 19,
+    paddingHorizontal: 6,
+  },
+  modalGoldRule: {
+    marginTop: 16,
+    marginBottom: 20,
+    height: 2,
+    width: 44,
+    borderRadius: 2,
+    backgroundColor: Colors.gold || "#E2B13C",
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.chipInactiveBg || "#F4F4F5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelBtnText: {
+    color: Colors.textDark || "#1E1E1E",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  confirmBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.primary || "#A00014",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmBtnText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
   },
 });
