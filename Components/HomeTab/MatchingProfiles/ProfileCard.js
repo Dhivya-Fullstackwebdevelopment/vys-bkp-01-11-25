@@ -238,7 +238,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
         acc[index + 1] = profile.profile_id;
         return acc;
       }, {});
-      
+
       navigation.navigate("ProfileDetails", {
         viewedProfileId,
         allProfileIds: profileIdsForNavigation,
@@ -319,43 +319,66 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
   };
 
   const renderFooter = () => {
-    const isSearchActive = Array.isArray(searchProfiles) && searchProfiles.length > 0;
+    const isSearchActive =
+      Array.isArray(searchProfiles) && searchProfiles.length > 0;
 
     if (isSearchActive) {
       if (searchLoadingMore) {
         return (
           <View style={styles.footer}>
-            <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
-            <Text style={styles.footerText}>Loading more profiles…</Text>
+            <ActivityIndicator
+              size="small"
+              color={Colors.primary || "#A00014"}
+            />
+            <Text style={styles.footerText}>
+              Loading more profiles…
+            </Text>
           </View>
         );
       }
+
       if (!searchHasMore) {
         return (
           <View style={styles.footer}>
-            <Text style={styles.noMoreText}>No more profiles</Text>
+            <Text style={styles.noMoreText}>
+              No more profiles
+            </Text>
           </View>
         );
       }
-      return <View style={{ height: 20 }} />;
+
+      return null;
     }
 
     if (isLoadingMore) {
       return (
         <View style={styles.footer}>
-          <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
-          <Text style={styles.footerText}>Loading more profiles…</Text>
+          <ActivityIndicator
+            size="small"
+            color={Colors.primary || "#A00014"}
+          />
+          <Text style={styles.footerText}>
+            Loading more profiles…
+          </Text>
         </View>
       );
     }
-    if (profiles?.length > 0 && currentPage >= totalPages && totalPages > 1) {
+
+    if (
+      profiles?.length > 0 &&
+      currentPage >= totalPages &&
+      totalPages > 1
+    ) {
       return (
         <View style={styles.footer}>
-          <Text style={styles.noMoreText}>No more profiles</Text>
+          <Text style={styles.noMoreText}>
+            No more profiles
+          </Text>
         </View>
       );
     }
-    return <View style={{ height: 20 }} />;
+
+    return null;
   };
 
   const flatListProps = {
@@ -843,8 +866,11 @@ const styles = StyleSheet.create({
 
   // ── Loading / empty states ──
   footer: {
-    paddingVertical: 20,
+    width: "100%",
     alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 15,
+    paddingBottom: 60,
   },
   footerText: {
     color: Colors.textMuted || "#666",
