@@ -372,7 +372,7 @@ export const DashBoard = () => {
         <Ionicons
           name={a.icon}
           size={size}
-          color={Colors.iconContainerBg}
+          color={a.color}   
         />
       );
     }
