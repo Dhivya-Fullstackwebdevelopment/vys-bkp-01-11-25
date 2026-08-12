@@ -1005,14 +1005,16 @@ export const HomeWithToast = () => {
       return (
         <View style={styles.profileCardContainer}>
           <ProfileCard
-            searchProfiles={searchProfileId.length > 0 ? searchResults : matchingProfilesList}
+            data={searchProfileId.length > 0 ? searchResults : matchingProfilesList}
+            isSearchMode={searchProfileId.length > 0}
             isLoadingNew={isSearching || (isProfilesLoading && page === 1)}
             orderBy={getOrderBy()}
             viewMode={viewMode}
-            formatRelativeTime={formatRelativeTime}
-            onSearchEndReached={handleLoadMoreSearch}
-            searchLoadingMore={searchLoadingMore}
-            searchHasMore={searchHasMore}
+            onEndReachedMore={
+              searchProfileId.length > 0 ? handleLoadMoreSearch : handleLoadMoreProfiles
+            }
+            loadingMore={searchProfileId.length > 0 ? searchLoadingMore : loadingMore}
+            hasMore={searchProfileId.length > 0 ? searchHasMore : hasMorePages}
           />
         </View>
       );

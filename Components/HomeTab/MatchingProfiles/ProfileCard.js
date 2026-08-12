@@ -15,15 +15,11 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
 import {
-  fetchProfiles,
   handleBookmark,
   logProfileVisit,
   getWishlistProfiles,
-  fetchProfileData,
-
   fetchProfileDataCheck,
 } from "../../../CommonApiCall/CommonApiCall";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ProfileNotFound } from "../../ProfileNotFound";
 import { SuggestedProfiles } from "../SuggestedProfiles";
 import { FeaturedProfiles } from "../FeaturedProfiles";
@@ -33,126 +29,46 @@ import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
 // ← same theme tokens FilterScreen.js uses, so fonts/colors/spacing match exactly
 import { Colors, rs } from "../../../Reusable/Theme";
 
-export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewMode = "list",
-  onSearchEndReached,
-  searchLoadingMore,
-  searchHasMore, }) => {
-  const [profiles, setProfiles] = useState([]);
+// ─────────────────────────────────────────────────────────────────────────
+// ProfileCard is now a PURE display component.
+// It does NOT fetch its own data or manage its own pagination anymore.
+// All data + pagination state comes from the parent (HomeWithToast).
+//
+// Props:
+//   data            → array to render (matchingProfilesList OR searchResults), or null (no results)
+//   isSearchMode    → true when the user has typed a search term
+//   isLoadingNew    → true while a brand-new search/list fetch is in flight
+//   orderBy         → "1" | "2" sort order (used only for keyExtractor cache-busting)
+//   viewMode        → "list" | "grid"
+//   onEndReachedMore→ callback to fetch the next page (parent decides which fn)
+//   loadingMore     → true while a "load more" page fetch is in flight
+//   hasMore         → true if there are more pages to load
+// ─────────────────────────────────────────────────────────────────────────
+export const ProfileCard = ({
+  data,
+  isSearchMode = false,
+  isLoadingNew,
+  orderBy = "1",
+  viewMode = "list",
+  onEndReachedMore,
+  loadingMore,
+  hasMore,
+}) => {
   const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [currentOrderBy, setCurrentOrderBy] = useState(orderBy);
   const navigation = useNavigation();
-  const [allProfileIds, setAllProfileIds] = useState({});
-  const numColumns = viewMode === 'grid' ? 1 : 1;
   const key = `flatlist-${viewMode}`;
   const SCREEN_WIDTH = Dimensions.get("window").width;
   const [showPlatinumModal, setShowPlatinumModal] = useState(false);
 
-  const loadProfiles = async (page = 1, isInitialLoad = false, sortOrder) => {
-    if ((isLoading && isInitialLoad) || (isLoadingMore && !isInitialLoad)) return;
-
-    if (isInitialLoad) {
-      setIsLoading(true);
-    } else {
-      setIsLoadingMore(true);
-    }
-
-    try {
-      const perPage = 10;
-      const response = await fetchProfiles(perPage, page, sortOrder);
-
-      if (response?.Status === 0) {
-        setProfiles(null);
-        setTotalPages(1);
-        setTotalRecords(0);
-        setCurrentPage(1);
-        setAllProfileIds({});
-      } else if (response?.profiles) {
-        const newProfiles = response.profiles || [];
-
-        if (isInitialLoad) {
-          setProfiles(newProfiles);
-          setAllProfileIds(response.all_profile_ids || {});
-        } else {
-          setProfiles((prevProfiles) => [...prevProfiles, ...(newProfiles || [])]);
-          setAllProfileIds((prevIds) => ({
-            ...prevIds,
-            ...(response.all_profile_ids || {})
-          }));
-        }
-        const wishlistedIds = newProfiles
-          .filter((p) => p.wish_list === 1 || p.wish_list === "1")
-          .map((p) => p.profile_id);
-
-        if (wishlistedIds.length > 0) {
-          setBookmarkedProfiles((prevSet) => {
-            const updated = new Set(prevSet);
-            wishlistedIds.forEach((id) => updated.add(id));
-            return updated;
-          });
-        }
-        setTotalPages(Math.ceil(response.total_count / perPage));
-        setTotalRecords(response.total_count || 0);
-        setCurrentPage(page);
-      }
-    } catch (error) {
-      console.error("Error loading profiles:", error);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  };
-
-  const handleEndReached = () => {
-    const isSearchActive = Array.isArray(searchProfiles) && searchProfiles.length > 0;
-    if (isSearchActive) {
-      onSearchEndReached?.();
-      return;
-    }
-    if (!isLoadingMore && currentPage < totalPages) {
-      loadProfiles(currentPage + 1, false, currentOrderBy);
-    }
-  };
-
-  useEffect(() => {
-    setCurrentOrderBy(orderBy);
-    loadProfiles(1, true, orderBy);
-  }, []);
-
-  useEffect(() => {
-    if (orderBy !== currentOrderBy) {
-      setCurrentOrderBy(orderBy);
-      setProfiles([]);
-      setCurrentPage(1);
-      loadProfiles(1, true, orderBy);
-    }
-  }, [orderBy]);
-
-  const getImageSource = (image) => {
-    if (!image)
-      return {
-        uri: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fstock.adobe.com%2Fsearch%2Fimages%3Fk%3Ddefault%2Bimage&psig=AOvVaw28Px6jC5wsx4TWxwOrHJT2&ust=1726388184602000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCMCfpqb_wYgDFQAAAAAdAAAAABAE",
-      };
-    if (Array.isArray(image)) {
-      return { uri: image[0] };
-    }
-    return { uri: image };
-  };
-
+  // ── Load wishlist/bookmark state once on mount ────────────────────────────
   useEffect(() => {
     const loadWishlistProfiles = async () => {
       try {
         const response = await getWishlistProfiles();
-
         if (response) {
-          const profileIds = response.map(
-            (profile) => profile.wishlist_profileid
+          const profileIdsSet = new Set(
+            response.map((profile) => profile.wishlist_profileid)
           );
-          const profileIdsSet = new Set(profileIds);
           setBookmarkedProfiles(profileIdsSet);
         } else {
           console.log("No profiles found in response.");
@@ -165,6 +81,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     loadWishlistProfiles();
   }, []);
 
+  // ── Bookmark toggle ────────────────────────────────────────────────────────
   const handleSavePress = async (viewedProfileId) => {
     const newStatus = bookmarkedProfiles.has(viewedProfileId) ? "0" : "1";
     const success = await handleBookmark(viewedProfileId, newStatus);
@@ -189,13 +106,6 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
         });
       }
       setBookmarkedProfiles(updatedBookmarkedProfiles);
-      setProfiles((prev) =>
-        prev.map((p) =>
-          p.profile_id === viewedProfileId
-            ? { ...p, wish_list: newStatus === "1" ? 1 : 0 }
-            : p
-        )
-      );
     } else {
       Toast.show({
         type: "error",
@@ -206,38 +116,41 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     }
   };
 
+  // ── Profile click → navigate ────────────────────────────────────────────────
   const handleProfileClick = async (viewedProfileId) => {
     try {
-      const data = await fetchProfileDataCheck(viewedProfileId, "1");
+      const dataCheck = await fetchProfileDataCheck(viewedProfileId, "1");
 
-      if (data?.status === "failure") {
+      if (dataCheck?.status === "failure") {
         Toast.show({
           type: "error",
-          text1: data.message,
+          text1: dataCheck.message,
           position: "top",
         });
         return;
       }
-      const success = await logProfileVisit(viewedProfileId);
-      console.log("Log visit success 2:", success);
 
-      if (data.Status === "failure") {
+      const success = await logProfileVisit(viewedProfileId);
+      console.log("Log visit success:", success);
+
+      if (dataCheck.Status === "failure") {
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: data.data.Message || "Limit reached to view profile",
+          text2: dataCheck.data?.Message || "Limit reached to view profile",
           position: "top",
         });
       }
 
-      const currentProfiles = (Array.isArray(searchProfiles) && searchProfiles.length > 0)
-        ? searchProfiles
-        : (Array.isArray(profiles) ? profiles : []);
+      const currentProfiles = Array.isArray(data) ? data : [];
 
-      const profileIdsForNavigation = currentProfiles.reduce((acc, profile, index) => {
-        acc[index + 1] = profile.profile_id;
-        return acc;
-      }, {});
+      const profileIdsForNavigation = currentProfiles.reduce(
+        (acc, profile, index) => {
+          acc[index + 1] = profile.profile_id;
+          return acc;
+        },
+        {}
+      );
 
       navigation.navigate("ProfileDetails", {
         viewedProfileId,
@@ -245,9 +158,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
       });
     } catch (error) {
       const serverMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "";
+        error?.response?.data?.message || error?.message || "";
 
       if (serverMessage === "Profile visibility restricted") {
         setShowPlatinumModal(true);
@@ -268,112 +179,50 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
 
     const date = new Date(viewed_date);
     const now = new Date();
-
     const diffMs = now - date;
-
     if (diffMs < 0) return null;
 
-    const diffDays = Math.floor(
-      diffMs / (1000 * 60 * 60 * 24)
-    );
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    // Today
-    if (diffDays === 0) {
-      return "Active today";
-    }
+    if (diffDays === 0) return "Active today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
 
-    // Yesterday
-    if (diffDays === 1) {
-      return "Yesterday";
-    }
-
-    // Days
-    if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    }
-
-    // Weeks
     const diffWeeks = Math.floor(diffDays / 7);
-
     if (diffWeeks < 4) {
-      return diffWeeks === 1
-        ? "1 week ago"
-        : `${diffWeeks} weeks ago`;
+      return diffWeeks === 1 ? "1 week ago" : `${diffWeeks} weeks ago`;
     }
 
-    // Months
     const diffMonths = Math.floor(diffDays / 30);
-
     if (diffMonths < 12) {
-      return diffMonths === 1
-        ? "1 month ago"
-        : `${diffMonths} months ago`;
+      return diffMonths === 1 ? "1 month ago" : `${diffMonths} months ago`;
     }
 
-    // Years
     const diffYears = Math.floor(diffDays / 365);
+    return diffYears === 1 ? "1 year ago" : `${diffYears} years ago`;
+  };
 
-    return diffYears === 1
-      ? "1 year ago"
-      : `${diffYears} years ago`;
+  // ── Pagination: end reached + footer ─────────────────────────────────────
+  const handleEndReached = () => {
+    if (!loadingMore && hasMore) {
+      onEndReachedMore?.();
+    }
   };
 
   const renderFooter = () => {
-    const isSearchActive =
-      Array.isArray(searchProfiles) && searchProfiles.length > 0;
-
-    if (isSearchActive) {
-      if (searchLoadingMore) {
-        return (
-          <View style={styles.footer}>
-            <ActivityIndicator
-              size="small"
-              color={Colors.primary || "#A00014"}
-            />
-            <Text style={styles.footerText}>
-              Loading more profiles…
-            </Text>
-          </View>
-        );
-      }
-
-      if (!searchHasMore) {
-        return (
-          <View style={styles.footer}>
-            <Text style={styles.noMoreText}>
-              No more profiles
-            </Text>
-          </View>
-        );
-      }
-
-      return null;
-    }
-
-    if (isLoadingMore) {
+    if (loadingMore) {
       return (
         <View style={styles.footer}>
-          <ActivityIndicator
-            size="small"
-            color={Colors.primary || "#A00014"}
-          />
-          <Text style={styles.footerText}>
-            Loading more profiles…
-          </Text>
+          <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
+          <Text style={styles.footerText}>Loading more profiles…</Text>
         </View>
       );
     }
 
-    if (
-      profiles?.length > 0 &&
-      currentPage >= totalPages &&
-      totalPages > 1
-    ) {
+    if (Array.isArray(data) && data.length > 0 && !hasMore) {
       return (
         <View style={styles.footer}>
-          <Text style={styles.noMoreText}>
-            No more profiles
-          </Text>
+          <Text style={styles.noMoreText}>No more profiles</Text>
         </View>
       );
     }
@@ -384,7 +233,6 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
   const flatListProps = {
     onEndReached: handleEndReached,
     onEndReachedThreshold: 0.5,
-    ListFooterComponent: renderFooter,
     removeClippedSubviews: true,
     initialNumToRender: 10,
     maxToRenderPerBatch: 5,
@@ -397,10 +245,6 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     const isSaved = bookmarkedProfiles.has(item.profile_id);
     const matchScore = item.matching_score ?? item.matchScore ?? 0;
     const lastActive = formatLastActive(item.viewed_date);
-    const degreeProfession =
-      [item.degree, item.profession]
-        .filter((v) => v && v !== "Not mentioned" && v !== "Not working")
-        .join(" · ") || item.profession || "N/A";
 
     return (
       <TouchableOpacity
@@ -432,7 +276,12 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
               {item.profile_name || "N/A"}
             </Text>
             {item.verified === 1 && (
-              <MaterialIcons name="verified" size={16} color={Colors.primary} style={{ marginLeft: 4 }} />
+              <MaterialIcons
+                name="verified"
+                size={16}
+                color={Colors.primary}
+                style={{ marginLeft: 4 }}
+              />
             )}
             {Number(matchScore) > 50 && (
               <View style={styles.matchChip}>
@@ -445,18 +294,6 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
             {item.profile_id} · {item.profile_age} yrs ·{" "}
             {item.height?.height_desc || item.profile_height?.height_desc || "N/A"}
           </Text>
-
-          {/* <Text style={styles.professionText} numberOfLines={1}>
-            {degreeProfession}
-          </Text>
-
-          {item.star ? (
-            <View style={styles.tagsRow}>
-              <View style={styles.tag}>
-                <Text style={styles.tagText}>{item.star}</Text>
-              </View>
-            </View>
-          ) : null} */}
         </View>
 
         <View style={styles.cardFooter}>
@@ -475,7 +312,12 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
               size={16}
               color={isSaved ? Colors.chipActiveText : Colors.textDark}
             />
-            <Text style={[styles.shortlistBtnText, isSaved && styles.shortlistBtnTextSaved]}>
+            <Text
+              style={[
+                styles.shortlistBtnText,
+                isSaved && styles.shortlistBtnTextSaved,
+              ]}
+            >
               {isSaved ? "Saved" : "Shortlist"}
             </Text>
           </TouchableOpacity>
@@ -585,7 +427,10 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
                 color={isSaved ? Colors.chipActiveText : Colors.textDark}
               />
               <Text
-                style={[styles.shortlistBtnText, isSaved && styles.shortlistBtnTextSaved]}
+                style={[
+                  styles.shortlistBtnText,
+                  isSaved && styles.shortlistBtnTextSaved,
+                ]}
               >
                 {isSaved ? "Saved" : "Shortlist"}
               </Text>
@@ -596,6 +441,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
     );
   };
 
+  // ── Main content renderer ────────────────────────────────────────────────
   const renderContent = () => {
     if (isLoadingNew) {
       return (
@@ -606,8 +452,8 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
       );
     }
 
-    // ✅ Explicit no-results state (search returned nothing)
-    if (searchProfiles === null) {
+    // Explicit "no results" state (search returned nothing, or list fetch failed)
+    if (data === null) {
       return (
         <View style={styles.noResultsContainer}>
           <ProfileNotFound />
@@ -615,18 +461,7 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
       );
     }
 
-    if (profiles === null) {
-      return (
-        <View style={styles.noResultsContainer}>
-          <ProfileNotFound />
-        </View>
-      );
-    }
-
-    const isSearchActive = Array.isArray(searchProfiles) && searchProfiles.length > 0;
-    const dataToRender = isSearchActive ? searchProfiles : profiles;
-
-    if (!Array.isArray(dataToRender) || dataToRender.length === 0) {
+    if (!Array.isArray(data) || data.length === 0) {
       return <></>;
     }
 
@@ -635,19 +470,19 @@ export const ProfileCard = ({ searchProfiles, isLoadingNew, orderBy = "1", viewM
         <FlatList
           key={key}
           {...flatListProps}
-          data={dataToRender}
-          numColumns={numColumns}
+          data={data}
+          numColumns={1}
           keyExtractor={(item, index) =>
             `${item.profile_id}-${orderBy}-${viewMode}-${index}`
           }
-          extraData={[orderBy, searchProfiles]}
+          extraData={[orderBy, data, loadingMore, hasMore]}
           renderItem={viewMode === "grid" ? renderGridItem : renderSearchItem}
           contentContainerStyle={styles.flatListContent}
           showsVerticalScrollIndicator={true}
           ListFooterComponent={() => (
             <>
               {renderFooter()}
-              {viewMode === "list" && !isSearchActive && (
+              {viewMode === "list" && !isSearchMode && (
                 <View style={styles.suggestedWrapper}>
                   <SuggestedProfiles />
                   <FeaturedProfiles />
@@ -898,7 +733,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 20,
+    paddingTop: 10,
+    paddingBottom:42,
   },
   gridRow: {
     justifyContent: 'space-between',

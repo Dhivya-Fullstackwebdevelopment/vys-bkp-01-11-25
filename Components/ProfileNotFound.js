@@ -12,11 +12,15 @@ export const ProfileNotFound = () => {
                 <Image source={noResultFound} style={styles.image} />
                 <View style={styles.textContainer}>
                     <Text style={styles.title}>No Results Found</Text>
+
                     <Text style={styles.description}>
-                        Sorry, there are no results for this search. Please try another filter. Click
-                        <TouchableOpacity onPress={() => navigation.navigate('Search')}>
-                            <Text style={styles.link}> advanced Search</Text>
-                        </TouchableOpacity>
+                        Sorry, there are no results for this search. Please try another filter. Click{' '}
+                        <Text
+                            style={styles.link}
+                            onPress={() => navigation.navigate('Search')}
+                        >
+                            advanced Search
+                        </Text>
                     </Text>
                 </View>
             </View>
