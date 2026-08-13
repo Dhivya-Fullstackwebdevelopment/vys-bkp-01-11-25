@@ -1,28 +1,65 @@
-// GalleryCard
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   FlatList,
   View,
   Text,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
+  Platform,
+  Animated,
 } from "react-native";
 
-import { MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import {
   logProfileVisit,
   getGalleryList,
-  fetchProfileDataCheck
+  fetchProfileDataCheck,
 } from "../../CommonApiCall/CommonApiCall";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ProfileNotFound } from "../ProfileNotFound";
-import { SuggestedProfiles } from "../HomeTab/SuggestedProfiles";
 import { TopAlignedImage } from "../ReuseImageAlign/TopAlignedImage";
-import { Dimensions } from "react-native";
+import { PlatinumModalPopup } from "../ReusePopups/PlatinumModalPopup";
+import { Colors, rs } from "../../Reusable/Theme";
+
+// ─── Shimmer / Skeleton Loader Component ──────────────────────────────────
+const GalleryCardSkeleton = () => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const shimmerAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    shimmerAnimation.start();
+    return () => shimmerAnimation.stop();
+  }, [animatedValue]);
+
+  const opacity = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <View style={styles.card}>
+      <Animated.View style={[styles.skeletonImage, { opacity }]} />
+      <Animated.View
+        style={[styles.skeletonText, { width: 120, height: 16, marginTop: 10 }, { opacity }]}
+      />
+    </View>
+  );
+};
 
 export const GalleryCard = () => {
   const [profiles, setProfiles] = useState([]);
@@ -33,12 +70,12 @@ export const GalleryCard = () => {
   const [error, setError] = useState(null);
   const [allProfileIds, setAllProfileIds] = useState({});
   const [totalRecords, setTotalRecords] = useState(0);
+  const [isPlatinumModalVisible, setIsPlatinumModalVisible] = useState(false);
 
   const navigation = useNavigation();
   const SCREEN_WIDTH = Dimensions.get("window").width;
 
   const loadProfiles = async (page = 1, isInitialLoad = false) => {
-    console.log("Loading profiles:", { page, isInitialLoad });
     if ((isLoading && isInitialLoad) || (isLoadingMore && !isInitialLoad))
       return;
 
@@ -51,10 +88,7 @@ export const GalleryCard = () => {
     try {
       const perPage = 10;
       const response = await getGalleryList(perPage, page);
-      console.log(
-        "Api response.data.image_data ==>",
-        JSON.stringify(response)
-      );
+
       if (response && response.data && response.data.image_data) {
         if (isInitialLoad) {
           setProfiles(response.data.image_data || []);
@@ -64,16 +98,19 @@ export const GalleryCard = () => {
             ...(response.data.image_data || []),
           ]);
         }
-        // Update profile IDs mapping
-        const profileIds = response.data.image_data.reduce((acc, profile, index) => {
-          const globalIndex = (page - 1) * 10 + index; // Calculate global index based on page
-          acc[globalIndex] = profile.profile_id;
-          return acc;
-        }, {});
 
-        setAllProfileIds(prev => ({
+        const profileIds = response.data.image_data.reduce(
+          (acc, profile, index) => {
+            const globalIndex = (page - 1) * 10 + index;
+            acc[globalIndex] = profile.profile_id;
+            return acc;
+          },
+          {}
+        );
+
+        setAllProfileIds((prev) => ({
           ...prev,
-          ...profileIds
+          ...profileIds,
         }));
         setTotalPages(response.data.total_pages || 1);
         setTotalRecords(response.data.total_records || 0);
@@ -83,89 +120,20 @@ export const GalleryCard = () => {
         setProfiles([]);
         setError("No profiles found or error in response.");
       }
-      console.log(
-        "Api response.data.image_data ==>",
-        JSON.stringify(response)
-      );
+    } catch (err) {
+      console.error("Error loading gallery profiles:", err);
+      setError("Failed to load gallery profiles.");
+      setProfiles([]);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
   };
 
-  // const loadProfiles = async (page = 1, isInitialLoad = false) => {
-  //   if ((isLoading && isInitialLoad) || (isLoadingMore && !isInitialLoad)) return;
-
-  //   if (isInitialLoad) {
-  //     setIsLoading(true);
-  //   } else {
-  //     setIsLoadingMore(true);
-  //   }
-
-  //   try {
-  //     const count = await AsyncStorage.getItem("totalcount");
-  //     const totalCount = parseInt(count, 10);
-  //     const perPage = 10;
-
-  //     const response = await getGalleryList(perPage, page);
-  //     console.log(
-  //       "Api response.data.image_data ==>",
-  //       JSON.stringify(response)
-  //     );
-  //     if (response && response.data && response.data.image_data) {
-  //       if (isInitialLoad) {
-  //         setProfiles(response.data.image_data || []);
-  //       } else {
-  //         setProfiles((prevProfiles) => [
-  //           ...prevProfiles,
-  //           ...(response.data.image_data || []),
-  //         ]);
-  //       }
-  //       // Update current page only if the API call was successful
-  //       setCurrentPage(page);
-
-  //       // Update profile IDs mapping
-  //       const profileIds = response.data.image_data.reduce((acc, profile, index) => {
-  //         const globalIndex = (page - 1) * 10 + index; // Calculate global index based on page
-  //         acc[globalIndex] = profile.profile_id;
-  //         return acc;
-  //       }, {});
-
-  //       setAllProfileIds(prev => ({
-  //         ...prev,
-  //         ...profileIds
-  //       }));
-  //       setTotalPages(Math.ceil(totalCount / perPage));
-  //     } else {
-  //       console.log("No profiles found or error in response.", profiles);
-  //       setProfiles([]);
-  //       setError("No profiles found or error in response.");
-  //     }
-  //     console.log(
-  //       "Api response.data.image_data ==>",
-  //       JSON.stringify(response)
-  //     );
-  //   }
-  //   catch (error) {
-  //     console.error("Error loading profiles:", error);
-  //     setError("Failed to load gallery. Please try again later.");
-  //     setProfiles([]);
-  //   } finally {
-  //     setIsLoading(false);
-  //     setIsLoadingMore(false);
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   loadProfiles(1, true);
-  // }, []);
-
   const loadProfilesCallback = useCallback(() => {
-    // Reset to page 1 and load initially when the screen is focused
     loadProfiles(1, true);
-  }, []); // Dependency array should include sortBy
+  }, []);
 
-  // Use useFocusEffect to call loadProfiles every time the screen is focused
   useFocusEffect(loadProfilesCallback);
 
   const handleEndReached = () => {
@@ -174,323 +142,195 @@ export const GalleryCard = () => {
     }
   };
 
-  // const handleProfileClick = async (viewedProfileId) => {
-  //   const success = await logProfileVisit(viewedProfileId);
-
-  //   if (success) {
-  //     navigation.navigate("ProfileDetails", { viewedProfileId, allProfileIds });
-  //   } else {
-  //     Toast.show({
-  //       type: "error",
-  //       text1: "Error",
-  //       text2: "Failed to log profile visit.",
-  //       position: "top",
-  //     });
-  //   }
-  // };
-
   const handleProfileClick = async (viewedProfileId) => {
-    const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
-    console.log('profile view msg', profileCheckResponse)
+    try {
+      const profileCheckResponse = await fetchProfileDataCheck(
+        viewedProfileId
+      );
 
-    // 2. Check if the API returned any failure
-    if (profileCheckResponse?.status === "failure") {
-      Toast.show({
-        type: "error",
-        // text1: "Profile Error", // You can keep this general
-        text1: profileCheckResponse.message, // <-- This displays the exact API message
-        position: "top",
-      });
-      return; // Stop the function
-    }
+      if (
+        profileCheckResponse?.status === "failure" &&
+        profileCheckResponse.message === "Profile visibility restricted"
+      ) {
+        setIsPlatinumModalVisible(true);
+        return;
+      }
 
-    const success = await logProfileVisit(viewedProfileId);
+      if (profileCheckResponse?.status === "failure") {
+        Toast.show({
+          type: "error",
+          text1: profileCheckResponse.message,
+          position: "top",
+        });
+        return;
+      }
 
-    if (success) {
-      // Toast.show({
-      //   type: "success",
-      //   text1: "Profile Viewed",
-      //   text2: `You have viewed profile ${viewedProfileId}.`,
-      //   position: "top",
-      // });
-      // navigation.navigate("ProfileDetails", { id });
-      navigation.navigate("ProfileDetails", {
-        viewedProfileId,
-        allProfileIds,
-      });
-    } else {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to log profile visit.",
-        position: "top",
-      });
+      const success = await logProfileVisit(viewedProfileId);
+
+      if (success) {
+        navigation.navigate("ProfileDetails", {
+          viewedProfileId,
+          allProfileIds,
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to log profile visit.",
+          position: "top",
+        });
+      }
+    } catch (err) {
+      console.error("Profile Click Error:", err);
+      const serverMessage =
+        err?.response?.data?.message || err?.message || "";
+      if (serverMessage === "Profile visibility restricted") {
+        setIsPlatinumModalVisible(true);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Unable to open profile. Please check your connection.",
+          position: "top",
+        });
+      }
     }
   };
 
+  const renderItem = ({ item }) => {
+    const rawImage = Array.isArray(item.img_url)
+      ? item.img_url[0]
+      : item.img_url;
 
-  const getImageSource = (image) => {
-    if (!image)
-      return {
-        uri: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fstock.adobe.com%2Fsearch%2Fimages%3Fk%3Ddefault%2Bimage&psig=AOvVaw28Px6jC5wsx4TWxwOrHJT2&ust=1726388184602000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCMCfpqb_wYgDFQAAAAAdAAAAABAE",
-      };
-    if (Array.isArray(image)) {
-      return { uri: image[0] };
-    }
-    return { uri: image };
-  };
+    return (
+      <TouchableOpacity
+        key={item.profile_id}
+        onPress={() => handleProfileClick(item.profile_id)}
+        activeOpacity={0.92}
+        style={styles.profileDiv}
+      >
+        <View style={styles.card}>
+          <View style={styles.imageWrapper}>
+            <TopAlignedImage
+              uri={rawImage}
+              width={SCREEN_WIDTH - rs(32, 36, 40)}
+              height={380}
+              style={{ borderRadius: rs(12, 14, 16) }}
+            />
+          </View>
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      key={item.req_profileid}
-      onPress={() => handleProfileClick(item.profile_id)}
-      style={styles.profileDiv}
-    >
-      <View style={styles.cardContainer}>
-
-        {/* Profile Image Container (Needs relative positioning for the button overlay) */}
-        <View style={styles.imageWrapper}>
-          {/* <Image
-            source={getImageSource(item.img_url)}
-            style={styles.profileImage}
-            resizeMode="cover"
-          /> */}
-          {/* <Image
-            source={getImageSource(item.img_url)}
-            style={styles.profileImage}
-            resizeMode="cover"
-            imageStyle={{ alignSelf: 'flex-start' }} // This positions image from top
-          /> */}
-          <TopAlignedImage
-            uri={Array.isArray(item.img_url) ? item.img_url[0] : item.img_url}
-            width={SCREEN_WIDTH - 30}   // numeric value only
-            height={400}
-          />
-          {/* VIEW BUTTON OVERLAY (New Element) */}
-          {/* <View style={styles.viewButtonOverlay}>
-            <Text style={styles.viewButtonText}>View</Text>
-          </View> */}
+          <Text style={styles.profileIdCentered}>{item.profile_id}</Text>
         </View>
-
-        {/* Profile ID centered beneath the image (New Element) */}
-        <Text style={styles.profileIdCentered}>
-          {item.profile_id}
-        </Text>
-
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const renderFooter = () => {
     if (!isLoadingMore) return null;
     return (
-      <View style={styles.footer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.footerText}>Loading more profiles...</Text>
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
+        <Text style={styles.loadingMoreText}>Loading more photos…</Text>
       </View>
     );
   };
 
-  if (isLoading && profiles.length === 0) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
   return (
-    // <View style={styles.listContent}>
-    <FlatList
-      data={profiles}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.profile_id}
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.2}
-      contentContainerStyle={styles.profileScrollView}
-      showsVerticalScrollIndicator={true}
-      initialNumToRender={10}
-      maxToRenderPerBatch={10}
-      windowSize={10}
-      ListFooterComponent={renderFooter}
-      // ListFooterComponent={() => (
-      //           <>
-      //             {renderFooter()}
-      //             {/* <View style={styles.suggestedWrapper}>
-      //               <SuggestedProfiles />
-      //             </View> */}
-      //           </>
-      //         )}
-      ListEmptyComponent={
-        isLoading ? (
-          <View style={styles.emptyContainer}>
-            <ActivityIndicator size="large" color="#0000ff" />
-          </View>
-        ) : (
-          <ProfileNotFound />
-        )
-      }
-    />
-    // </View>
+    <View style={styles.profileScrollView}>
+      <FlatList
+        data={profiles}
+        keyExtractor={(item) => String(item.profile_id)}
+        renderItem={renderItem}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.2}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={
+          isLoading ? (
+            <View style={{ width: "100%" }}>
+              <GalleryCardSkeleton />
+              <GalleryCardSkeleton />
+            </View>
+          ) : (
+            <ProfileNotFound />
+          )
+        }
+      />
+
+      <PlatinumModalPopup
+        visible={isPlatinumModalVisible}
+        onClose={() => setIsPlatinumModalVisible(false)}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 80,
-  },
-  listContent: {
-    width: "100%",
-    paddingBottom: 80,
-  },
   profileScrollView: {
+    flex: 1,
     width: "100%",
-    paddingBottom: 50,
+  },
+  scrollContent: {
+    paddingVertical: 12,
+    paddingHorizontal: rs(12, 14, 16),
+    paddingBottom: 100,
   },
   profileDiv: {
     width: "100%",
-    paddingHorizontal: 10,
-    marginBottom: 5,
   },
-  suggestedWrapper: {
-    width: '100%',
-    backgroundColor: '#FFDE594D',
-    paddingTop: 10,
-    marginTop: 20,
-  },
-  cardContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 8, // Padding around the image and ID
-    marginVertical: 6,
-    // Center alignment for the profile ID below the image
-    alignItems: 'center',
+  card: {
+    backgroundColor: Colors.cardBackground || "#FFFFFF",
+    borderRadius: 20,
+    marginBottom: 20,
+    padding: 10,
+    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  profileContainer: {
-    width: "100%",
-    aspectRatio: 16 / 9,
-    borderRadius: 8,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
     overflow: "hidden",
-    marginVertical: 10,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  // imageWrapper: {
-  //   width: "100%",
-  //   aspectRatio: 3 / 3,
-  //   borderRadius: 8,
-  //   overflow: "hidden",
-  //   position: 'relative',
-  //   justifyContent: 'flex-start',
-  // },
   imageWrapper: {
     width: "100%",
+    borderRadius: 14,
     overflow: "hidden",
-    aspectRatio: 3 / 3,
-    borderRadius: 8,
-  },
-  profileImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 8,
-    resizeMode: 'cover',
-    overflow: 'hidden',
-  },
-  saveIcon: {
-    position: "absolute",
-    right: 10,
-    top: 10,
-  },
-  profileContent: {
-    paddingLeft: 10,
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#FF6666",
-  },
-  profileId: {
-    fontSize: 14,
-    color: "#85878C",
-  },
-  profileAge: {
-    fontSize: 14,
-    color: "#4F515D",
-    marginBottom: 5,
-  },
-  line: {},
-  zodiac: {
-    fontSize: 14,
-    color: "#4F515D",
-    marginBottom: 5,
-  },
-  employed: {
-    fontSize: 14,
-    color: "#4F515D",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#666",
-    marginTop: 20,
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: "#999",
-    marginTop: 8,
-    textAlign: "center",
-  },
-  footer: {
-    paddingVertical: 20,
-    alignItems: "center",
-  },
-  footerText: {
-    color: "#666",
-    marginTop: 5,
-  },
-  viewButtonOverlay: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -50 }, { translateY: -50 }], // Center it exactly
-    backgroundColor: 'rgba(255, 255, 255, 0.85)', // Semi-transparent white
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 50,
-    borderWidth: 1,
-    // borderColor: '#ED1E24',
-  },
-
-  viewButtonText: {
-    // color: '#ED1E24', // Red text color
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   profileIdCentered: {
-    fontSize: 14,
-    color: "#4F515D",
-    fontWeight: 'bold',
-    marginTop: 5, // Small gap between image and ID
-    marginBottom: 5, // Gap before the next card
-    textAlign: 'center',
+    fontSize: 15,
+    color: Colors.textDark || "#2D2D2D",
+    fontWeight: "700",
+    marginTop: 10,
+    marginBottom: 4,
+    textAlign: "center",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    paddingBottom: 40,
+    alignItems: "center",
+    minHeight: 60,
+  },
+  loadingMoreText: {
+    marginTop: 10,
+    fontSize: 13,
+    color: Colors.textMuted || "#71717A",
+    fontWeight: "600",
+  },
+  // ── Skeleton Loader Styles ──
+  skeletonImage: {
+    width: "100%",
+    height: 380,
+    borderRadius: 14,
+    backgroundColor: "#E1E9EE",
+  },
+  skeletonText: {
+    backgroundColor: "#E1E9EE",
+    borderRadius: 4,
   },
 });

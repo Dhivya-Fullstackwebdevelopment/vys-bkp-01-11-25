@@ -517,8 +517,8 @@ export const DashBoard = () => {
       onPress: () => navigation.navigate("InterestSent"),
     },
     {
-      label: "Interests received",
-      value: dashboardData?.received_int_count ?? 0,
+      label: "Mutual Interest",
+      value: dashboardData?.mutual_int_count ?? 0,
       icon: "heart-outline",
       iconLib: "Ionicons",
       color: Colors.dashtext,
@@ -723,7 +723,7 @@ export const DashBoard = () => {
       </TouchableOpacity>
 
       {/* Mutual Interest + Wishlist */}
-      <View style={styles.summaryRow}>
+      {/* <View style={styles.summaryRow}>
         <TouchableOpacity
           style={styles.halfCard}
           onPress={() => navigation.navigate("DashBoardMutualInterest")}
@@ -763,7 +763,7 @@ export const DashBoard = () => {
             <View style={[styles.halfDecorCircle, { backgroundColor: "rgba(255,255,255,0.08)" }]} />
           </LinearGradient>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View>
   );
 
@@ -778,7 +778,7 @@ export const DashBoard = () => {
 
           {renderProfileHeader()}
           {renderProfileCompletion()}
-          <Text style={styles.sectionTitle2}>Summary</Text>
+          {/* <Text style={styles.sectionTitle2}>Summary</Text> */}
 
           {renderExistingCards()}
           {renderStatistics()}
