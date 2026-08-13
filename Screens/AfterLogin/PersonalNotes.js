@@ -4,34 +4,33 @@ import {
   Text,
   View,
   Switch,
-  ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
-  Modal
+  StatusBar,
+  Platform,
 } from "react-native";
 import { PersonalNotesCard } from "../../Components/DashBoardTab/PersonalNotes/PersonalNotesCard";
-import { SuggestedProfiles } from "../../Components/HomeTab/SuggestedProfiles";
 import { fetchPersonalNotesCount } from "../../CommonApiCall/CommonApiCall";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
+import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors, rs } from "../../Reusable/Theme";
 
 export const PersonalNotes = () => {
   const navigation = useNavigation();
-  const [count, setCount] = useState(null);
+  const [count, setCount] = useState(0);
   const [isEnabled, setIsEnabled] = useState(false); // false = datetime, true = profile_id
   const [isLoading, setIsLoading] = useState(false);
   const sortBy = isEnabled ? "profile_id" : "datetime";
-  console.log("Personal Notes sortBy", sortBy)
 
   const toggleSwitch = async () => {
     setIsLoading(true);
     try {
-      // Simulate the time it takes to fetch/update data
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setIsEnabled(previousState => !previousState);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setIsEnabled((previousState) => !previousState);
     } catch (error) {
-      console.error('Error toggling sort:', error);
+      console.error("Error toggling sort:", error);
     } finally {
       setIsLoading(false);
     }
@@ -49,133 +48,125 @@ export const PersonalNotes = () => {
     };
 
     loadPersonalNotes();
-  }, []); // Empty dependency array to run only once on mount
+  }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#ED1E24" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}> Personal Notes<Text style={styles.profileId}> ({count})</Text></Text>
-      </View>
+    <SafeAreaView style={styles.rootContainer} edges={["top"]}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={Colors.primary}
+        translucent={false}
+      />
 
-      <View style={styles.sortContainer}>
-        <Text style={styles.sortLabel}>
-          Sort by: {isEnabled ? "Profile ID" : "Date"}
-        </Text>
-        <Switch
-          trackColor={{ false: '#767577', true: '#7f0909ff' }}
-          thumbColor={isEnabled ? '#e80909ff' : '#f4f3f4'}
-          ios_backgroundColor="#3e3e3e"
-          onValueChange={toggleSwitch}
-          value={isEnabled}
-          disabled={isLoading}
-        />
-      </View>
-
-      {/* Loading Modal */}
-      <Modal
-        transparent={true}
-        animationType="fade"
-        visible={isLoading}
+      {/* Header */}
+      <LinearGradient
+        colors={[
+          Colors.primaryGradientStart || "#A00014",
+          Colors.primaryGradientEnd || "#4A000A",
+        ]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={styles.header}
       >
-        <View style={styles.loaderContainer}>
-          <View style={styles.loaderBox}>
-            <ActivityIndicator size="large" color="#ED1E24" />
-            <Text style={styles.loaderText}>Updating...</Text>
-          </View>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+        >
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Personal Notes</Text>
+          <Text style={styles.headerSubtitle}>{count} profiles saved</Text>
         </View>
-      </Modal>
+      </LinearGradient>
 
-      <View style={styles.cardContainer}>
-        <PersonalNotesCard sortBy={sortBy} />
+      <View style={styles.bodyContainer}>
+        {/* Sort Container Bar */}
+        <View style={styles.sortContainer}>
+          <Text style={styles.sortLabel}>
+            Sort by: {isEnabled ? "Profile ID" : "Date"}
+          </Text>
+          <Switch
+            trackColor={{ false: "#767577", true: Colors.primary }}
+            thumbColor={isEnabled ? Colors.secondaryGold : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleSwitch}
+            value={isEnabled}
+            disabled={isLoading}
+            style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+          />
+        </View>
+
+        {/* Notes List Container */}
+        <View style={styles.cardContainer}>
+          <PersonalNotesCard sortBy={sortBy} />
+        </View>
       </View>
+
       <BottomTabBarComponent />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  rootContainer: {
     flex: 1,
-    backgroundColor: "#F4F4F4",
-    paddingBottom: 80,
+    backgroundColor: "#FFFFFF",
   },
-  headerContainer: {
-    padding: 3,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 15,
-    marginLeft: 10,
+    paddingHorizontal: rs(12, 16, 20),
+    paddingTop: rs(14, 16, 18),
+    paddingBottom: rs(14, 16, 18),
   },
-  headerText: {
-    color: "#000000",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 10,
-  },
-  contentConatiner: {
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-  cardContainer: {
-    width: "100%",
-  },
-  profileName: {
-    fontSize: 16,
+  backBtn: { padding: 4 },
+  headerCenter: { flex: 1, marginLeft: 12 },
+  headerTitle: {
+    fontSize: 20,
     fontWeight: "700",
-    color: "#282C3F",
-    fontFamily: "inter",
-    paddingTop: 10,
+    color: "#FFFFFF",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -1,
   },
-  profileId: {
-    fontSize: 14,
-    color: "#85878C",
+  headerSubtitle: {
+    fontSize: rs(12, 13, 14),
+    color: "rgba(255,255,255,0.80)",
+    marginTop: 2,
+  },
+  filterIconBtn: {
+    backgroundColor: "rgba(255,255,255,0.18)",
+    borderRadius: 20,
+    padding: 9,
+  },
+  bodyContainer: {
+    flex: 1,
+    backgroundColor: Colors.selectedBg ?? "#FAF6F0",
   },
   sortContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: "#FFFFFF",
-    marginHorizontal: 10,
-    marginTop: 10,
-    borderRadius: 8,
-  },
-  loaderText: {
-    marginTop: 15,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#282C3F",
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  cardContainer: {
-    width: "100%",
-  },
-  loaderBox: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    paddingVertical: 30,
-    paddingHorizontal: 40,
-    alignItems: "center",
+    backgroundColor: Colors.cardBackground || "#FFFFFF",
+    marginHorizontal: rs(12, 14, 16),
+    marginTop: 12,
+    marginBottom: 4,
+    borderRadius: 14,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   sortLabel: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#282C3F",
+    fontWeight: "700",
+    color: Colors.textDark,
+  },
+  cardContainer: {
+    flex: 1,
+    width: "100%",
   },
 });
