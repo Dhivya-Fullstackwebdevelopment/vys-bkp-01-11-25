@@ -5,8 +5,6 @@ import {
   View,
   Switch,
   TouchableOpacity,
-  ActivityIndicator,
-  Modal,
   StatusBar,
   Platform,
 } from "react-native";
@@ -29,7 +27,7 @@ export const DashBoardWishlist = () => {
   const toggleSwitch = async () => {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       setIsEnabled((previousState) => !previousState);
     } catch (error) {
       console.error("Error toggling sort:", error);
@@ -60,7 +58,7 @@ export const DashBoardWishlist = () => {
         translucent={false}
       />
 
-      {/* Header duplicated from FilterScreen */}
+      {/* Header */}
       <LinearGradient
         colors={[
           Colors.primaryGradientStart || "#A00014",
@@ -104,20 +102,6 @@ export const DashBoardWishlist = () => {
             style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
           />
         </View>
-
-        {/* Loading Modal */}
-        <Modal
-          transparent={true}
-          animationType="fade"
-          visible={isLoading}
-        >
-          <View style={styles.loaderContainer}>
-            <View style={styles.loaderBox}>
-              <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={styles.loaderText}>Updating...</Text>
-            </View>
-          </View>
-        </Modal>
 
         {/* Wishlist Card List */}
         <View style={styles.cardContainer}>
@@ -190,29 +174,5 @@ const styles = StyleSheet.create({
   cardContainer: {
     flex: 1,
     width: "100%",
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.45)",
-  },
-  loaderBox: {
-    backgroundColor: Colors.cardBackground || "#FFFFFF",
-    borderRadius: 16,
-    paddingVertical: 24,
-    paddingHorizontal: 36,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  loaderText: {
-    marginTop: 12,
-    fontSize: 15,
-    fontWeight: "600",
-    color: Colors.textDark,
   },
 });

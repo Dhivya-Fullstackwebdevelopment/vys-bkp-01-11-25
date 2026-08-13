@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
+  Animated,
 } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import {
@@ -27,6 +28,66 @@ import { Colors, rs } from "../../../Reusable/Theme";
 const MARRIAGE_BADGE_URI =
   "https://vysyamat.blob.core.windows.net/vysyamala/marriage_settled.jpeg";
 Image.prefetch(MARRIAGE_BADGE_URI).catch(() => {});
+
+// ─── Shimmer / Skeleton Loader for Card ─────────────────────────────────────
+const WishlistCardSkeleton = () => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const shimmerAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    shimmerAnimation.start();
+    return () => shimmerAnimation.stop();
+  }, [animatedValue]);
+
+  const opacity = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardBody}>
+        {/* Profile Image Skeleton */}
+        <Animated.View style={[styles.skeletonImage, { opacity }]} />
+
+        {/* Info Column Skeleton */}
+        <View style={styles.infoCol}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Animated.View style={[styles.skeletonText, { width: "55%", height: 16 }, { opacity }]} />
+            <Animated.View style={[styles.skeletonText, { width: "25%", height: 16 }, { opacity }]} />
+          </View>
+
+          <Animated.View style={[styles.skeletonText, { width: "70%", height: 12, marginTop: 10 }, { opacity }]} />
+          <Animated.View style={[styles.skeletonText, { width: "85%", height: 12, marginTop: 8 }, { opacity }]} />
+          <Animated.View style={[styles.skeletonText, { width: "40%", height: 12, marginTop: 8 }, { opacity }]} />
+
+          <View style={styles.tagsRow}>
+            <Animated.View style={[styles.skeletonText, { width: 60, height: 20, borderRadius: 10 }, { opacity }]} />
+          </View>
+        </View>
+      </View>
+
+      {/* Card Footer Skeleton */}
+      <View style={styles.cardFooter}>
+        <Animated.View style={[styles.skeletonText, { width: "45%", height: 12 }, { opacity }]} />
+        <Animated.View style={[styles.skeletonText, { width: 70, height: 28, borderRadius: 16 }, { opacity }]} />
+      </View>
+    </View>
+  );
+};
 
 export const WishlistCard = ({ sortBy = "datetime" }) => {
   const [profiles, setProfiles] = useState([]);
@@ -260,8 +321,10 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
         )}
         ListEmptyComponent={
           isLoading ? (
-            <View style={styles.emptyContainer}>
-              <ActivityIndicator size="large" color={Colors.primary} />
+            <View style={{ width: "100%" }}>
+              <WishlistCardSkeleton />
+              <WishlistCardSkeleton />
+              <WishlistCardSkeleton />
             </View>
           ) : (
             <WishlistNotFound />
@@ -282,7 +345,7 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
             item.wishlist_profile_age || "N/A"
           } yrs · ${item.wishlist_height?.height_desc || "N/A"}`;
 
-          // Format profession with degree fallback (matching SearchCard pattern)
+          // Format profession with degree fallback
           const professionText =
             [item.wishlist_degree, item.wishlist_profession]
               .filter((v) => v && v !== "Not mentioned" && v !== "Not working")
@@ -607,5 +670,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFDE594D",
     paddingTop: 10,
     marginTop: 20,
+  },
+  // ── Skeleton Loader Styles ──
+  skeletonImage: {
+    width: rs(110, 120, 130),
+    height: rs(120, 130, 140),
+    borderRadius: 14,
+    backgroundColor: "#E1E9EE",
+  },
+  skeletonText: {
+    backgroundColor: "#E1E9EE",
+    borderRadius: 4,
   },
 });
