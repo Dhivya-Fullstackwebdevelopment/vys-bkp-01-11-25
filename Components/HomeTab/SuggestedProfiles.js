@@ -90,7 +90,7 @@ export const SuggestedProfiles = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFDE594D",
+        backgroundColor: "transparent",
         // paddingBottom: 80,
     },
     errorContainer: {

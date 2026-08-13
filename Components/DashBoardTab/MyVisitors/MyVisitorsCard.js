@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
   },
   suggestedWrapper: {
     width: "100%",
-    backgroundColor: "#FFDE594D",
+    backgroundColor: "transparent",
     paddingTop: 10,
     marginTop: 20,
   },
