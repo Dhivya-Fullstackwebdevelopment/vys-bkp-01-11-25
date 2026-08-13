@@ -569,7 +569,7 @@ export const DashBoard = () => {
     </View>
   );
 
-   // ── Contact views ─────────────────────────────────────────────────────────
+  // ── Contact views ─────────────────────────────────────────────────────────
   // const renderContactViews = () => (
   //   <View style={styles.section}>
   //     <Text style={styles.sectionTitle}>Contact views</Text>
@@ -638,38 +638,58 @@ export const DashBoard = () => {
           Received Interest{" "}
           <Text style={styles.sectionCount}>({receivedProfiles.length})</Text>
         </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {receivedProfiles.map((profile) => (
-            <View key={profile.int_profileid} style={styles.intCard}>
+
+        {receivedProfiles.map((profile) => (
+          <View key={profile.int_profileid} style={styles.intCard}>
+
+            {/* ── Top row: image + name/age ── */}
+            <View style={styles.intTopRow}>
               <Image
                 source={getImageSource(profile.int_Profile_img)}
-                style={styles.intAvatar}
+                style={styles.intThumb}
               />
-              <View style={styles.intInfo}>
-                <Text style={styles.intName}>
-                  {profile.int_profile_name}{" "}
-                  <Text style={styles.intId}>({profile.int_profileid})</Text>
+              <View style={styles.intTopInfo}>
+                <Text style={styles.intName} numberOfLines={1}>
+                  {profile.int_profile_name}
                 </Text>
-                <Text style={styles.intAge}>{profile.int_profile_age} Yrs</Text>
-                <Text style={styles.intNotes}>
-                  {formatProfileNotes(profile.int_profile_notes)}
+                <Text style={styles.intMeta}>
+                  {profile.int_profileid} · {profile.int_profile_age} Yrs
                 </Text>
-                <View style={styles.intActions}>
-                  <TouchableWithoutFeedback
-                    onPress={() => handleSavePress(profile.int_profileid, "2")}
-                  >
-                    <MaterialIcons name="check-circle" size={28} color="#53C840" style={{ marginRight: 16 }} />
-                  </TouchableWithoutFeedback>
-                  <TouchableWithoutFeedback
-                    onPress={() => handleSavePress(profile.int_profileid, "3")}
-                  >
-                    <MaterialCommunityIcons name="close-circle" size={28} color="#FF3333" />
-                  </TouchableWithoutFeedback>
-                </View>
               </View>
             </View>
-          ))}
-        </ScrollView>
+
+            {/* ── Notes quote block ── */}
+            {profile.int_profile_notes ? (
+              <View style={styles.intQuoteBox}>
+                <Text style={styles.intQuoteText} numberOfLines={4}>
+                  "{profile.int_profile_notes}"
+                </Text>
+              </View>
+            ) : null}
+
+            {/* ── Accept / Decline buttons ── */}
+            <View style={styles.intActions}>
+              <TouchableOpacity
+                onPress={() => handleSavePress(profile.int_profileid, "2")}
+                style={styles.intAcceptBtn}
+                activeOpacity={0.82}
+              >
+                <MaterialIcons name="check" size={16} color="#fff" />
+                <Text style={styles.intAcceptText}>Accept</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handleSavePress(profile.int_profileid, "3")}
+                style={styles.intRejectBtn}
+                activeOpacity={0.82}
+              >
+                <MaterialCommunityIcons name="close" size={16} color={C.primary} />
+                <Text style={styles.intRejectText}>Decline</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        ))}
       </View>
     );
   };
@@ -1080,51 +1100,96 @@ const styles = StyleSheet.create({
   },
 
   // ── Received interests ─────────────────────────────────────────────────────
+  // ── Received interests ─────────────────────────────────────────────────────
   intCard: {
     backgroundColor: C.card,
-    borderRadius: 14,
-    padding: 12,
-    marginRight: 12,
-    width: 220,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 5,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  intAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 8,
-    marginBottom: 8,
+  intTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  intThumb: {
+    width: 72,
+    height: 82,
+    borderRadius: 10,
+    resizeMode: "cover",
     backgroundColor: "#f0e8e8",
+    marginRight: 12,
   },
-  intInfo: {},
+  intTopInfo: {
+    flex: 1,
+    justifyContent: "center",
+  },
   intName: {
-    fontSize: fs(14),
+    fontSize: fs(16),
     fontWeight: "700",
     color: C.text,
-    marginBottom: 2,
-  },
-  intId: {
-    fontSize: fs(12),
-    color: C.sub,
-    fontWeight: "400",
-  },
-  intAge: {
-    fontSize: fs(12),
-    color: C.sub,
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     marginBottom: 4,
   },
-  intNotes: {
+  intMeta: {
+    fontSize: fs(12),
+    color: C.sub,
+    fontWeight: "500",
+  },
+  intQuoteBox: {
+    backgroundColor: "#FFF5F5",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 14,
+    borderLeftWidth: 3,
+    borderLeftColor: C.primary,
+  },
+  intQuoteText: {
     fontSize: fs(12),
     color: "#4F515D",
-    lineHeight: 17,
-    marginBottom: 8,
+    fontStyle: "italic",
+    lineHeight: 18,
   },
   intActions: {
     flexDirection: "row",
+    gap: 10,
+  },
+  intAcceptBtn: {
+    flex: 1,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    backgroundColor: C.primary,
+    borderRadius: 25,
+    paddingVertical: 11,
+  },
+  intAcceptText: {
+    fontSize: fs(13),
+    fontWeight: "700",
+    color: "#fff",
+  },
+  intRejectBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    backgroundColor: "#fff",
+    borderRadius: 25,
+    paddingVertical: 11,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  intRejectText: {
+    fontSize: fs(13),
+    fontWeight: "700",
+    color: C.text,
   },
 
   // ── Summary redesign ───────────────────────────────────────────────────────
