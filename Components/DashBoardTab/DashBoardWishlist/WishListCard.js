@@ -272,11 +272,26 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
           const rawImage = Array.isArray(item.wishlist_Profile_img)
             ? item.wishlist_Profile_img[0]
             : item.wishlist_Profile_img;
-          const matchScore = item.matching_score ?? item.matchScore ?? 0;
+          const matchScore =
+            item.wishlist_match_score ??
+            item.matching_score ??
+            item.matchScore ??
+            0;
 
           const ageHeightText = `${item.wishlist_profileid || "N/A"} · ${
             item.wishlist_profile_age || "N/A"
           } yrs · ${item.wishlist_height?.height_desc || "N/A"}`;
+
+          // Format profession with degree fallback (matching SearchCard pattern)
+          const professionText =
+            [item.wishlist_degree, item.wishlist_profession]
+              .filter((v) => v && v !== "Not mentioned" && v !== "Not working")
+              .join(" · ") ||
+            item.wishlist_profession ||
+            "N/A";
+
+          // Location extraction
+          const locationText = item.wishlist_city || item.wishlist_location;
 
           return (
             <TouchableOpacity
@@ -314,7 +329,7 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
                         item?.mutint_profile_name ||
                         "N/A"}
                     </Text>
-                    {item.verified === 1 && (
+                    {item.wishlist_verified === 1 && (
                       <MaterialIcons
                         name="verified"
                         size={16}
@@ -334,8 +349,19 @@ export const WishlistCard = ({ sortBy = "datetime" }) => {
                   <Text style={styles.subtext}>{ageHeightText}</Text>
 
                   <Text style={styles.professionText} numberOfLines={1}>
-                    {item.wishlist_profession || "N/A"}
+                    {professionText}
                   </Text>
+
+                  {locationText ? (
+                    <View style={styles.locationRow}>
+                      <Ionicons
+                        name="location-outline"
+                        size={13}
+                        color={Colors.textMuted || "#888888"}
+                      />
+                      <Text style={styles.locationText}>{locationText}</Text>
+                    </View>
+                  ) : null}
 
                   {item.wishlist_star ? (
                     <View style={styles.tagsRow}>
@@ -491,6 +517,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textMuted || "#888888",
     marginTop: 4,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    marginTop: 4,
+  },
+  locationText: {
+    fontSize: 12,
+    color: Colors.textMuted || "#888888",
   },
   tagsRow: {
     flexDirection: "row",
