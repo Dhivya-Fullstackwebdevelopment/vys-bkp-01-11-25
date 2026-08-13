@@ -155,7 +155,7 @@ export const UploadWedding = () => {
                     type: 'error',
                     text1: 'Upload Failed',
                     text2: imageResponse.data?.message || 'Failed to process crop imagery properties.',
-                    position: 'bottom'
+                    position: 'top'
                 });
             }
         } catch (err) {
@@ -239,7 +239,7 @@ export const UploadWedding = () => {
                 type: 'error',
                 text1: 'Unexpected Error',
                 text2: error?.response?.data?.message || 'An error occurred during submission.',
-                position: 'bottom'
+                position: 'top'
             });
         } finally {
             setIsSubmitting(false);

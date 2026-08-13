@@ -359,7 +359,7 @@ export const OtherSettings = () => {
                     type: 'success',
                     text1: 'Success',
                     text2: 'Password updated successfully.',
-                    position: 'bottom'
+                    position: 'top'
                 });
                 // Optionally reset form fields here
                 setOldPassword('');
@@ -370,7 +370,7 @@ export const OtherSettings = () => {
                     type: 'error',
                     text1: 'Error',
                     text2: result.message || 'Failed to update password.',
-                    position: 'bottom'
+                    position: 'top'
 
                 });
             }
@@ -393,7 +393,7 @@ export const OtherSettings = () => {
                 type: 'error',
                 text1: 'Error',
                 text2: errorMessage,
-                position: 'bottom'
+                position: 'top'
             });
         }
     };
@@ -495,7 +495,7 @@ export const OtherSettings = () => {
                     type: 'success',
                     text1: 'Success',
                     text2: 'Photo Settings Updated Successfully',
-                    position: 'bottom'
+                    position: 'top'
                 });
 
                 // Optional: Update the UI with the new URLs returned by the API
@@ -513,7 +513,7 @@ export const OtherSettings = () => {
                     type: 'error',
                     text1: 'Update Failed',
                     text2: result.message || 'Photo Settings Update Failed',
-                    position: 'bottom'
+                    position: 'top'
                 });
             }
         } catch (error) {
@@ -522,7 +522,7 @@ export const OtherSettings = () => {
                 type: 'error',
                 text1: 'Network Error',
                 text2: 'Failed to upload settings',
-                position: 'bottom'
+                position: 'top'
             });
         }
     };
@@ -558,7 +558,7 @@ export const OtherSettings = () => {
                     type: 'error',
                     text1: 'Error',
                     text2: 'Password must be at least 8 characters long.',
-                    position: 'bottom'
+                    position: 'top'
                 });
                 return;
             }
@@ -571,7 +571,7 @@ export const OtherSettings = () => {
                     type: 'success',
                     text1: 'Success',
                     text2: result.data.message,
-                    position: 'bottom'
+                    position: 'top'
                 });
             } else {
                 console.error('Update failed:', result.data.message);
@@ -579,7 +579,7 @@ export const OtherSettings = () => {
                     type: 'error',
                     text1: 'Error',
                     text2: result.data.message || 'Failed to update password.',
-                    position: 'bottom'
+                    position: 'top'
                 });
             }
         } catch (error) {
@@ -588,7 +588,7 @@ export const OtherSettings = () => {
                 type: 'error',
                 text1: 'Error',
                 text2: error.message || 'Failed to update password.',
-                position: 'bottom'
+                position: 'top'
             });
         }
     };
@@ -673,7 +673,7 @@ export const OtherSettings = () => {
                     type: 'success',
                     text1: 'Success',
                     text2: result.message,
-                    position: 'bottom'
+                    position: 'top'
                 });
                 // Show success message, update state, etc.
             } else {
@@ -682,7 +682,7 @@ export const OtherSettings = () => {
                     type: 'error',
                     text1: 'Error',
                     text2: result.message || 'Failed to update alert settings.',
-                    position: 'bottom'
+                    position: 'top'
                 });
                 // Show error message, etc.
             }
@@ -692,7 +692,7 @@ export const OtherSettings = () => {
                 type: 'error',
                 text1: 'Error',
                 text2: error.message || 'Failed to update alert settings.',
-                position: 'bottom'
+                position: 'top'
             });
             // Handle unexpected errors
         }
@@ -1059,7 +1059,7 @@ export const OtherSettings = () => {
     };
 
     return (
-        <SafeAreaView  style={{ flex: 1, backgroundColor: Colors.cardBackground || "#FAF6F0" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cardBackground || "#FAF6F0" }}>
             <ScrollView>
                 <View style={styles.container}>
 
@@ -1080,6 +1080,7 @@ export const OtherSettings = () => {
                     </LinearGradient>
 
                     {/* Alert Settings */}
+                    {/* Alert Settings */}
                     <View style={styles.accordionCard}>
                         <SectionHeader
                             icon="notifications"
@@ -1090,131 +1091,63 @@ export const OtherSettings = () => {
 
                         {pMenuOpen && (
                             <View style={styles.accordionContent}>
+                                {/* Email Alerts */}
+                                <Text style={styles.fieldLabel}>Email Alert</Text>
+                                {emailAlerts.map((alert) => {
+                                    const key = `email_${alert.id}`;
+                                    return (
+                                        <View key={key} style={styles.checkboxItem}>
+                                            <Pressable
+                                                style={[
+                                                    styles.checkboxBase,
+                                                    checkedAlerts[key] && styles.checkboxChecked,
+                                                ]}
+                                                onPress={() => handleCheckboxToggle(key)}
+                                            >
+                                                {checkedAlerts[key] && (
+                                                    <Ionicons name="checkmark" size={14} color="white" />
+                                                )}
+                                            </Pressable>
+                                            <Pressable onPress={() => handleCheckboxToggle(key)}>
+                                                <Text style={styles.checkboxLabel}>{alert.alert_name}</Text>
+                                            </Pressable>
+                                        </View>
+                                    );
+                                })}
 
-                                {/* Hide Reason */}
-                                <Text style={styles.fieldLabel}>
-                                    HIDE REASON <Text style={{ color: "red" }}>*</Text>
-                                </Text>
+                                {/* SMS Alerts */}
+                                <Text style={[styles.fieldLabel, { marginTop: 12 }]}>SMS Alert</Text>
+                                {smsAlerts.map((alert) => {
+                                    const key = `sms_${alert.id}`;
+                                    return (
+                                        <View key={key} style={styles.checkboxItem}>
+                                            <Pressable
+                                                style={[
+                                                    styles.checkboxBase,
+                                                    checkedAlerts[key] && styles.checkboxChecked,
+                                                ]}
+                                                onPress={() => handleCheckboxToggle(key)}
+                                            >
+                                                {checkedAlerts[key] && (
+                                                    <Ionicons name="checkmark" size={14} color="white" />
+                                                )}
+                                            </Pressable>
+                                            <Pressable onPress={() => handleCheckboxToggle(key)}>
+                                                <Text style={styles.checkboxLabel}>{alert.alert_name}</Text>
+                                            </Pressable>
+                                        </View>
+                                    );
+                                })}
 
-                                <View style={styles.pickerWrapper}>
-                                    <Picker
-                                        selectedValue={hideReason}
-                                        onValueChange={(itemValue) =>
-                                            setHideReason(itemValue)
-                                        }
-                                    >
-                                        <Picker.Item
-                                            label="Select Reason"
-                                            value=""
-                                        />
-
-                                        <Picker.Item
-                                            label="Temporary Hide"
-                                            value="Temporary Hide"
-                                        />
-
-                                        <Picker.Item
-                                            label="Take a Break"
-                                            value="Take a Break"
-                                        />
-
-                                        <Picker.Item
-                                            label="Marriage Settled"
-                                            value="Marriage Settled"
-                                        />
-
-                                        <Picker.Item
-                                            label="Personal Reason"
-                                            value="Personal Reason"
-                                        />
-
-                                        <Picker.Item
-                                            label="Others"
-                                            value="Others"
-                                        />
-                                    </Picker>
-                                </View>
-
-                                {/* Others Reason */}
-                                {hideReason === "Others" && (
-                                    <>
-                                        <Text style={styles.fieldLabel}>
-                                            ENTER REASON
-                                        </Text>
-
-                                        <TextInput
-                                            style={[styles.input, { height: 100 }]}
-                                            multiline
-                                            value={otherReason}           // ✅ FIXED
-                                            onChangeText={setOtherReason} // ✅ FIXED
-                                            placeholder="Enter your reason"
-                                            placeholderTextColor="#71717A"
-                                        />
-                                    </>
-                                )}
-
-                                {/* Profile ID */}
-                                <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
-                                    VYSYAMALA GROOM/BRIDE ID
-                                    <Text style={{ color: "red" }}> *</Text>
-                                </Text>
-
-                                <TextInput
-                                    style={styles.input}
-                                    value={profileId}
-                                    onChangeText={setProfileId}
-                                    placeholder="Enter Profile ID"
-                                    placeholderTextColor="#71717A"
-                                />
-
-                                {/* Engagement Date */}
-                                <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
-                                    ENGAGEMENT DATE
-                                    <Text style={{ color: "red" }}> *</Text>
-                                </Text>
-
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="YYYY-MM-DD"
-                                    placeholderTextColor="#71717A"
-                                    value={engagementDate}
-                                    onChangeText={setEngagementDate}
-                                />
-
-                                {/* Comments */}
-                                <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
-                                    COMMENTS
-                                </Text>
-
-                                <TextInput
-                                    style={[
-                                        styles.input,
-                                        { height: 100 }
-                                    ]}
-                                    multiline
-                                    value={comments}
-                                    onChangeText={setComments}
-                                    placeholder="Comments"
-                                    placeholderTextColor="#71717A"
-                                />
-
-                                <TouchableOpacity
-                                    style={styles.btn}
-                                    onPress={handleHideProfile}
-                                    disabled={hideLoading}
-                                >
+                                {/* Update Button */}
+                                <TouchableOpacity style={styles.btn} onPress={handleSave}>
                                     <LinearGradient
                                         colors={[Colors.primary, Colors.primary]}
                                         style={styles.linearGradient}
                                     >
-                                        <Text style={styles.login}>
-                                            {hideLoading
-                                                ? "Submitting..."
-                                                : "Submit"}
-                                        </Text>
+                                        <Text style={styles.login}>Update</Text>
                                     </LinearGradient>
                                 </TouchableOpacity>
-
                             </View>
                         )}
                     </View>
@@ -2074,5 +2007,10 @@ const styles = StyleSheet.create({
         color: "#ED1E24",
         fontWeight: "700",
         fontSize: 14
-    }
+    },
+    checkboxItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
 });
