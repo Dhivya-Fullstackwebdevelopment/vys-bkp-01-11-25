@@ -587,6 +587,7 @@ const styles = StyleSheet.create({
     color: Colors.textDark,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     marginBottom: 4,
+    lineSpacing: -1,
   },
   heroSubtitle: {
     fontSize: rs(14, 15, 16),
@@ -609,6 +610,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: Colors.textDark,
     marginBottom: 8,
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    lineSpacing: -3,
   },
   textInput: {
     borderWidth: 1,
