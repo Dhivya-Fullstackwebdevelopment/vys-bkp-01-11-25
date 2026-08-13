@@ -7,8 +7,9 @@ import {
     Pressable,
     ScrollView,
     TouchableOpacity,
+    Modal,
+    FlatList,
 } from "react-native";
-import { Dropdown } from "react-native-element-dropdown";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -35,6 +36,95 @@ const schema = z.object({
     annualIncomeMax: z.string().optional().default(''),
     foreignInterest: z.string().optional().default(''),
 });
+
+/* Custom Modal Dropdown Popup Component */
+const CustomSelectDropdown = ({
+    placeholder,
+    data = [],
+    selectedValue,
+    onSelect,
+    style,
+}) => {
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const selectedItem = data.find((item) => String(item.value) === String(selectedValue));
+    const displayLabel = selectedItem && selectedItem.value !== '' ? selectedItem.label : placeholder;
+
+    return (
+        <>
+            <TouchableOpacity
+                style={[styles.dropdownStyle, style]}
+                activeOpacity={0.7}
+                onPress={() => setModalVisible(true)}
+            >
+                <Text
+                    style={
+                        selectedItem && selectedItem.value !== ''
+                            ? styles.dropdownSelectedText
+                            : styles.dropdownPlaceholder
+                    }
+                    numberOfLines={1}
+                >
+                    {displayLabel}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color="#71717A" />
+            </TouchableOpacity>
+
+            <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalHeaderTitle}>{placeholder}</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Ionicons name="close" size={20} color="#18181B" />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={data}
+                            keyExtractor={(item, index) => item.value !== undefined && item.value !== null ? item.value.toString() : index.toString()}
+                            renderItem={({ item }) => {
+                                const isSelected = String(item.value) === String(selectedValue);
+                                return (
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.dropdownOptionItem,
+                                            isSelected && styles.dropdownOptionSelected,
+                                        ]}
+                                        onPress={() => {
+                                            onSelect(item);
+                                            setModalVisible(false);
+                                        }}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.dropdownItemText,
+                                                isSelected && styles.dropdownItemTextSelected,
+                                            ]}
+                                        >
+                                            {item.label}
+                                        </Text>
+                                        {isSelected && (
+                                            <Ionicons name="checkmark" size={16} color="#BD1225" />
+                                        )}
+                                    </TouchableOpacity>
+                                );
+                            }}
+                        />
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+        </>
+    );
+};
 
 export const ProfileVisibility = () => {
     const navigation = useNavigation();
@@ -72,7 +162,6 @@ export const ProfileVisibility = () => {
         { value: '7', label: 'Goverment/ PSU' },
     ];
 
-    // Fetch functions (unchanged)
     const fetchHeightOptions = async () => {
         try {
             const response = await axios.post(`${config.apiUrl}/auth/Get_Height/`);
@@ -85,16 +174,6 @@ export const ProfileVisibility = () => {
             console.error("Error fetching height options:", error);
         }
     };
-
-    useEffect(() => {
-        fetchMaritalStatus();
-        fetchHighestEdu();
-        fetchAnnualIncome();
-        fetchHeightOptions();
-        // fetchMatchList();
-        //fetchMatchStars();
-    }, []);
-
 
     const fetchMaritalStatus = async () => {
         try {
@@ -131,7 +210,7 @@ export const ProfileVisibility = () => {
             }));
             setAnnualIncomeOptions(annualIncomeArray);
         } catch (error) {
-            console.error("Error fetching UG Degree:", error);
+            console.error("Error fetching annual income:", error);
         }
     };
 
@@ -142,7 +221,6 @@ export const ProfileVisibility = () => {
         fetchHeightOptions();
     }, []);
 
-    // Form submission (unchanged)
     const onSubmit = async (data) => {
         try {
             const professionValues = data.profession.map(p => {
@@ -195,7 +273,6 @@ export const ProfileVisibility = () => {
         }
     };
 
-    // Fetch initial data (unchanged)
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
@@ -284,17 +361,11 @@ export const ProfileVisibility = () => {
                                 control={control}
                                 name="heightFrom"
                                 render={({ field: { onChange, value } }) => (
-                                    <Dropdown
-                                        style={styles.dropdown}
-                                        placeholderStyle={styles.placeholderStyle}
-                                        selectedTextStyle={styles.selectedTextStyle}
-                                        data={heightOptions}
-                                        maxHeight={300}
-                                        labelField="label"
-                                        valueField="value"
+                                    <CustomSelectDropdown
                                         placeholder="From"
-                                        value={value}
-                                        onChange={(item) => onChange(item.value)}
+                                        data={heightOptions}
+                                        selectedValue={value}
+                                        onSelect={(item) => onChange(item.value)}
                                     />
                                 )}
                             />
@@ -305,17 +376,11 @@ export const ProfileVisibility = () => {
                                 control={control}
                                 name="heightTo"
                                 render={({ field: { onChange, value } }) => (
-                                    <Dropdown
-                                        style={styles.dropdown}
-                                        placeholderStyle={styles.placeholderStyle}
-                                        selectedTextStyle={styles.selectedTextStyle}
-                                        data={heightOptions}
-                                        maxHeight={300}
-                                        labelField="label"
-                                        valueField="value"
+                                    <CustomSelectDropdown
                                         placeholder="To"
-                                        value={value}
-                                        onChange={(item) => onChange(item.value)}
+                                        data={heightOptions}
+                                        selectedValue={value}
+                                        onSelect={(item) => onChange(item.value)}
                                     />
                                 )}
                             />
@@ -477,17 +542,11 @@ export const ProfileVisibility = () => {
                         control={control}
                         name="annualIncomeMin"
                         render={({ field: { onChange, value } }) => (
-                            <Dropdown
-                                style={styles.dropdown}
-                                placeholderStyle={styles.placeholderStyle}
-                                selectedTextStyle={styles.selectedTextStyle}
-                                data={annualIncomeOptions}
-                                maxHeight={180}
-                                labelField="label"
-                                valueField="value"
+                            <CustomSelectDropdown
                                 placeholder="Select min Annual Income"
-                                value={value}
-                                onChange={(item) => {
+                                data={annualIncomeOptions}
+                                selectedValue={value}
+                                onSelect={(item) => {
                                     onChange(item.value);
                                     setSelectedIncomeMinIds(item.value);
                                 }}
@@ -503,17 +562,11 @@ export const ProfileVisibility = () => {
                         control={control}
                         name="annualIncomeMax"
                         render={({ field: { onChange, value } }) => (
-                            <Dropdown
-                                style={styles.dropdown}
-                                placeholderStyle={styles.placeholderStyle}
-                                selectedTextStyle={styles.selectedTextStyle}
-                                data={annualIncomeOptions}
-                                maxHeight={180}
-                                labelField="label"
-                                valueField="value"
+                            <CustomSelectDropdown
                                 placeholder="Select max Annual Income"
-                                value={value}
-                                onChange={(item) => {
+                                data={annualIncomeOptions}
+                                selectedValue={value}
+                                onSelect={(item) => {
                                     onChange(item.value);
                                     setSelectedIncomeMaxIds(item.value);
                                 }}
@@ -529,21 +582,15 @@ export const ProfileVisibility = () => {
                         control={control}
                         name="chevvai"
                         render={({ field: { onChange, value } }) => (
-                            <Dropdown
-                                style={styles.dropdown}
+                            <CustomSelectDropdown
+                                placeholder="Select Chevvai"
                                 data={[
                                     { label: "Unknown", value: "Unknown" },
                                     { label: "Yes", value: "Yes" },
                                     { label: "No", value: "No" }
                                 ]}
-                                maxHeight={180}
-                                labelField="label"
-                                valueField="value"
-                                placeholder="Select Chevvai"
-                                placeholderStyle={styles.placeholderStyle}
-                                selectedTextStyle={styles.selectedTextStyle}
-                                value={value}
-                                onChange={(item) => onChange(item.value)}
+                                selectedValue={value}
+                                onSelect={(item) => onChange(item.value)}
                             />
                         )}
                     />
@@ -557,21 +604,15 @@ export const ProfileVisibility = () => {
                         control={control}
                         name="rehu"
                         render={({ field: { onChange, value } }) => (
-                            <Dropdown
-                                style={styles.dropdown}
+                            <CustomSelectDropdown
+                                placeholder="Select Rahu/Ketu"
                                 data={[
                                     { label: "Unknown", value: "Unknown" },
                                     { label: "Yes", value: "Yes" },
                                     { label: "No", value: "No" }
                                 ]}
-                                maxHeight={180}
-                                labelField="label"
-                                valueField="value"
-                                placeholder="Select Rahu/Ketu"
-                                placeholderStyle={styles.placeholderStyle}
-                                selectedTextStyle={styles.selectedTextStyle}
-                                value={value}
-                                onChange={(item) => onChange(item.value)}
+                                selectedValue={value}
+                                onSelect={(item) => onChange(item.value)}
                             />
                         )}
                     />
@@ -585,21 +626,15 @@ export const ProfileVisibility = () => {
                         control={control}
                         name="foreignInterest"
                         render={({ field: { onChange, value } }) => (
-                            <Dropdown
-                                style={styles.dropdown}
+                            <CustomSelectDropdown
+                                placeholder="Select Foreign Interest"
                                 data={[
                                     { label: 'Yes', value: 'YES' },
                                     { label: 'No', value: 'NO' },
                                     { label: 'Both', value: 'BOTH' }
                                 ]}
-                                maxHeight={180}
-                                labelField="label"
-                                valueField="value"
-                                placeholder="Select Foreign Interest"
-                                placeholderStyle={styles.placeholderStyle}
-                                selectedTextStyle={styles.selectedTextStyle}
-                                value={value}
-                                onChange={(item) => onChange(item.value)}
+                                selectedValue={value}
+                                onSelect={(item) => onChange(item.value)}
                             />
                         )}
                     />
@@ -661,22 +696,75 @@ const styles = StyleSheet.create({
         color: "#18181B",
         fontSize: 14,
     },
-    dropdown: {
+    dropdownStyle: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         borderWidth: 1,
         borderColor: "#E4E4E7",
         borderRadius: 16,
         paddingHorizontal: 12,
         paddingVertical: 10,
         backgroundColor: Colors.selectedBg || "#F4F4F5",
-        color: "#18181B",
     },
-    placeholderStyle: {
+    dropdownPlaceholder: {
         fontSize: 14,
         color: "#71717A",
     },
-    selectedTextStyle: {
+    dropdownSelectedText: {
         fontSize: 14,
         color: "#18181B",
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.4)",
+        justifyContent: "center",
+        paddingHorizontal: 24,
+    },
+    modalContent: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 16,
+        maxHeight: "60%",
+        paddingVertical: 12,
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+    },
+    modalHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingBottom: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#F4F4F5",
+    },
+    modalHeaderTitle: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#18181B",
+    },
+    dropdownOptionItem: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: "#F4F4F5",
+    },
+    dropdownOptionSelected: {
+        backgroundColor: "#FEF2F2",
+    },
+    dropdownItemText: {
+        fontSize: 14,
+        color: "#3F3F46",
+    },
+    dropdownItemTextSelected: {
+        color: "#BD1225",
+        fontWeight: "700",
     },
     rowContainer: {
         flexDirection: "row",
