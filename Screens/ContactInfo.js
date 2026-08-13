@@ -4,11 +4,13 @@ import {
   Text,
   View,
   TextInput,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  FlatList,
+  Platform,
 } from "react-native";
-import { Dropdown } from "react-native-element-dropdown";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -18,12 +20,68 @@ import * as z from "zod";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import config from "../API/Apiurl";
-// import CountryPicker from 'react-native-country-picker-modal';
 import { CountryButton, CountryPicker } from "react-native-country-codes-picker";
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { Tooltip } from "react-native-elements"; // Install react-native-elements for the Tooltip component if not already installed
+import { Tooltip } from "react-native-elements"; // ✅ import Tooltip
+import { Colors, rs } from "../Reusable/Theme";
 
+// ── Custom Modal Dropdown ──────────────────────────────────────────────────
+const CustomDropdown = ({ placeholder, data = [], selectedValue, onSelect, style, labelField = "label", valueField = "value" }) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const selectedItem = data.find((item) => String(item[valueField]) === String(selectedValue));
+  const displayLabel = selectedItem ? selectedItem[labelField] : placeholder;
 
+  return (
+    <>
+      <TouchableOpacity
+        style={[styles.dropdownStyle, style]}
+        activeOpacity={0.7}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text
+          style={selectedItem ? styles.dropdownSelectedText : styles.dropdownPlaceholder}
+          numberOfLines={1}
+        >
+          {displayLabel}
+        </Text>
+        <Ionicons name="chevron-down" size={16} color="#71717A" />
+      </TouchableOpacity>
+
+      <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setModalVisible(false)}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>{placeholder}</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={20} color="#18181B" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={data}
+              keyExtractor={(item, index) => (item[valueField] ? String(item[valueField]) : index.toString())}
+              renderItem={({ item }) => {
+                const isSelected = String(item[valueField]) === String(selectedValue);
+                return (
+                  <TouchableOpacity
+                    style={[styles.dropdownOptionItem, isSelected && styles.dropdownOptionSelected]}
+                    onPress={() => { onSelect(item); setModalVisible(false); }}
+                  >
+                    <Text style={[styles.dropdownItemText, isSelected && styles.dropdownItemTextSelected]}>
+                      {item[labelField]}
+                    </Text>
+                    {isSelected && <Ionicons name="checkmark" size={16} color="#BD1225" />}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
+  );
+};
+
+// ── Zod validation ──────────────────────────────────────────────────────────
 const phoneRegex = /^[0-9]{10}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const pincodeRegex = /^[0-9]{6}$/;
@@ -34,104 +92,45 @@ const schema = z.object({
   state: z.string().optional(),
   district: z.string().optional(),
   city: z.string().optional(),
-  pincode: z.string().optional().refine(
-    (value) => !value || pincodeRegex.test(value),
-    { message: "Pincode must be 6 digits" }
-  ),
-  alternateMobile: z
-    .string()
-    .optional()
-    .refine(
-      (value) => !value || phoneRegex.test(value),
-      { message: "Alternate mobile number must be 10 digits" }
-    ),
-  whatsappNumber: z
-    .string()
-    .optional()
-    .refine(
-      (value) => !value || phoneRegex.test(value),
-      { message: "WhatsApp number must be 10 digits" }
-    ),
-  daughterMobile: z
-    .string()
-    .optional().refine(
-      (value) => !value || phoneRegex.test(value),
-      { message: "Mobile number must be 10 digits" }
-    ),
-  daughterEmail: z
-    .string()
-    .optional()
-    .refine(
-      (value) => !value || emailRegex.test(value),
-      { message: "Invalid email address" }
-    ),
+  pincode: z.string().optional().refine((value) => !value || pincodeRegex.test(value), { message: "Pincode must be 6 digits" }),
+  alternateMobile: z.string().optional().refine((value) => !value || phoneRegex.test(value), { message: "Alternate mobile number must be 10 digits" }),
+  whatsappNumber: z.string().optional().refine((value) => !value || phoneRegex.test(value), { message: "WhatsApp number must be 10 digits" }),
+  daughterMobile: z.string().optional().refine((value) => !value || phoneRegex.test(value), { message: "Mobile number must be 10 digits" }),
+  daughterEmail: z.string().optional().refine((value) => !value || emailRegex.test(value), { message: "Invalid email address" }),
 });
-
-
 
 function ListHeaderComponent({ countries, lang, onPress }) {
   return (
-    <View
-      style={{
-        paddingBottom: 20,
-      }}
-    >
-      <Text>
-        Popular countries
-      </Text>
-      {countries?.map((country, index) => {
-        return (
-          <CountryButton
-            key={index}
-            item={country}
-            name={country?.name?.[lang || 'en']}
-            onPress={() => onPress(country)}
-          />
-        )
-      })}
+    <View style={{ paddingBottom: 20 }}>
+      <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8 }}>Popular countries</Text>
+      {countries?.map((country, index) => (
+        <CountryButton key={index} item={country} name={country?.name?.[lang || 'en']} onPress={() => onPress(country)} />
+      ))}
     </View>
-  )
+  );
 }
 
 export const ContactInfo = () => {
-
-  const [showPicker, setShowPicker] = useState(false); // Initialize state here
-  const [countryCode, setCountryCode] = useState("+91"); // Default to India
-
-  // const [countryCode, setCountryCode] = useState('1'); // Default to USA
-  const [country, setCountry] = useState(null);
-
-
-  const [mobileNumber, setMobileNumber] = useState('');
-  // const [showPicker, setShowPicker] = useState(false); // Initialize state here
+  const navigation = useNavigation();
+  const [showPicker, setShowPicker] = useState(false);
+  const [countryCode, setCountryCode] = useState("+91");
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedState, setSelectedState] = useState(null);
-
-
-  // const onSelect = (country) => {
-  //   setCountryCode(country.callingCode[0]);
-  //   setCountry(country);
-  // };
-
-
-  const navigation = useNavigation();
   const [ProfileId, setProfileId] = useState("");
   const [ProfileOwner, setProfileOwner] = useState("");
   const [countryList, setCountryList] = useState([]);
   const [stateList, setStateList] = useState([]);
-  const [districtList, setDistrictList] = useState([]); // District dropdown data
+  const [districtList, setDistrictList] = useState([]);
   const [cityList, setCityList] = useState([]);
   const [MobileNo, setMobileNo] = useState("");
   const [isOtherSelected, setIsOtherSelected] = useState(false);
-  const [submitting, setSubmitting] = useState(false); // Add state to track submission
-  // const [selectedState, setSelectedState] = useState(null); // Selected state value
+  const [submitting, setSubmitting] = useState(false);
 
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitted },
     setError,
-    clearErrors,
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -159,12 +158,9 @@ export const ContactInfo = () => {
       const profileId = await AsyncStorage.getItem("profile_id_new");
       const mobileno = await AsyncStorage.getItem("Mobile_no");
       setMobileNo(mobileno);
-      // Replace "ownself" with "yourself"
       profileValue = profileValue === "Ownself" ? "yourself" : profileValue;
       setProfileId(profileId);
       setProfileOwner(profileValue);
-      console.log("Retrieved Profile Value:", profileValue);
-      console.log("Retrieved Profile ID:", profileId);
     } catch (error) {
       console.error("Error retrieving data from session:", error);
     }
@@ -174,8 +170,6 @@ export const ContactInfo = () => {
     try {
       const response = await axios.post(`${config.apiUrl}/auth/Get_Country/`);
       const countryData = response.data;
-
-      // Assuming countryData is an object with country_id as keys
       const formattedCountryList = Object.keys(countryData).map((key) => ({
         label: countryData[key].country_name,
         value: countryData[key].country_id.toString(),
@@ -188,17 +182,12 @@ export const ContactInfo = () => {
 
   const fetchStateList = async (countryId) => {
     try {
-      const response = await axios.post(`${config.apiUrl}/auth/Get_State/`, {
-        country_id: countryId,
-      });
+      const response = await axios.post(`${config.apiUrl}/auth/Get_State/`, { country_id: countryId });
       const stateData = response.data;
-
-      // Convert stateData object to array
       const formattedStateList = Object.keys(stateData).map((key) => ({
         label: stateData[key].state_name,
         value: stateData[key].state_id.toString(),
       }));
-
       setStateList(formattedStateList);
     } catch (error) {
       console.error("Error fetching state list:", error);
@@ -206,45 +195,37 @@ export const ContactInfo = () => {
   };
 
   const fetchDistrictList = async (state_id) => {
-    await axios.post(`${config.apiUrl}/auth/Get_District/`, { state_id })
-      .then(response => {
-        const districtData = Object.values(response.data).map(district => ({
-          label: district.disctict_name,
-          value: district.disctict_id.toString(),
-        }));
-        setDistrictList(districtData);
-
-      })
-      .catch(error => {
-        console.error('Error fetching districts:', error);
-      });
+    try {
+      const response = await axios.post(`${config.apiUrl}/auth/Get_District/`, { state_id });
+      const districtData = Object.values(response.data).map(district => ({
+        label: district.disctict_name,
+        value: district.disctict_id.toString(),
+      }));
+      setDistrictList(districtData);
+    } catch (error) {
+      console.error('Error fetching districts:', error);
+    }
   };
 
   const fetchCityList = async (districtId) => {
-    await axios.post(`${config.apiUrl}/auth/Get_City/`, { district_id: districtId })
-      .then(response => {
-        // Extract cities from response object using Object.values
-        if (response.data) {
-          const cityData = Object.values(response.data).map(city => ({
-            label: city.city_name.trim(), // Trim whitespace around city names
-            value: city.city_id.toString(),
-          }));
-          setCityList(cityData); // Assuming setCityList updates the dropdown options
-          setIsOtherSelected(false); // Reset "Other" option
-
-        } else {
-          console.error('Error: Unexpected response structure:', response.data);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching cities:', error);
-      });
+    try {
+      const response = await axios.post(`${config.apiUrl}/auth/Get_City/`, { district_id: districtId });
+      if (response.data) {
+        const cityData = Object.values(response.data).map(city => ({
+          label: city.city_name.trim(),
+          value: city.city_id.toString(),
+        }));
+        setCityList(cityData);
+        setIsOtherSelected(false);
+      }
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+    }
   };
 
   const onSubmit = async (data) => {
     setSubmitting(true);
 
-    // Check if alternate mobile matches main mobile
     if (MobileNo === data.alternateMobile) {
       setError("alternateMobile", {
         type: "manual",
@@ -256,33 +237,13 @@ export const ContactInfo = () => {
 
     try {
       let cityValue = data.city;
-
-      // If it's a city ID (numeric), find the city name
-      // if (selectedCountry === "1" &&
-      //   ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) &&
-      //   !isOtherSelected &&
-      //   data.city &&
-      //   data.city !== "Other") {
-
-      //   const selectedCity = cityList.find(city => city.value === data.city);
-      //   if (selectedCity) {
-      //     cityValue = selectedCity.name || selectedCity.label;
-      //   }
-      // }
-      // // If it's "Other" or free text, use the input value directly
-      // else if (isOtherSelected && cityInputValue) {
-      //   cityValue = cityInputValue;
-      // }
       if (selectedCountry === "1" &&
         ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) &&
         !isOtherSelected &&
         data.city &&
         data.city !== "Other") {
-
         const selectedCity = cityList.find(city => city.value === data.city);
-        if (selectedCity) {
-          cityValue = selectedCity.label; // Use the city name
-        }
+        if (selectedCity) cityValue = selectedCity.label;
       }
 
       const requestBody = {
@@ -299,15 +260,10 @@ export const ContactInfo = () => {
         Profile_emailid: data.daughterEmail || "",
       };
 
-      console.log("Request Body:", requestBody);
-
       const response = await axios.post(`${config.apiUrl}/auth/Contact_registration/`, requestBody, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' }
       });
 
-      console.log("Contact_registration API Response:", response.data);
       if (response.data.Status === 1) {
         navigation.navigate("UploadImages");
       }
@@ -318,163 +274,127 @@ export const ContactInfo = () => {
     }
   };
 
-
   return (
-    <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.contactInfoHead}>Contact Information</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        <View style={styles.textContainer}>
+          <View style={styles.brandBadge}><Text style={styles.brandBadgeText}>CONTACT INFORMATION</Text></View>
+          <Text style={styles.headingText}>Contact Information</Text>
+        </View>
 
-        <View style={styles.formContainer}>
-
+        <View style={styles.cardContainer}>
+          {/* Country */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Country<Text style={styles.redText}>*</Text>
-            </Text>
+            <Text style={styles.fieldLabel}>Country <Text style={styles.requiredStar}>*</Text></Text>
             <Controller
               name="country"
               control={control}
               render={({ field: { onChange, value } }) => (
-                <Dropdown
-                  style={styles.dropdown}
-                  data={countryList}
-                  maxHeight={180}
-                  labelField="label"
-                  valueField="value"
+                <CustomDropdown
                   placeholder="Select country"
-                  value={value}
-                  onChange={(item) => {
-                    onChange(item.value);
-                    fetchStateList(item.value);
-                    setSelectedCountry(item.value); // Store the selected country value to conditionally render the fields
-                  }}
+                  data={countryList}
+                  selectedValue={value}
+                  onSelect={(item) => { onChange(item.value); fetchStateList(item.value); setSelectedCountry(item.value); }}
                 />
               )}
             />
-            {errors.country && <Text style={styles.error}>{errors.country.message}</Text>}
+            {errors.country && <Text style={styles.errorText}>{errors.country.message}</Text>}
           </View>
 
-
-
-
+          {/* Address */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Address
-            </Text>
+            <Text style={styles.fieldLabel}>Address</Text>
             <Controller
               name="address"
               control={control}
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your address"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
-                  onBlur={onBlur}
                   onChangeText={onChange}
+                  multiline
+                  numberOfLines={2}
                 />
               )}
             />
           </View>
 
-
-
-          {/* State Dropdown */}
-          {/* {selectedCountry && ( */}
+          {/* State (only for India) */}
           {selectedCountry === "1" && (
-            <>
-              {/* State Dropdown or TextInput */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>
-                  State<Text style={styles.redText}></Text>
-                </Text>
-                <Controller
-                  name="state"
-                  control={control}
-                  render={({ field: { onChange, value } }) =>
-                    <Dropdown
-                      style={styles.dropdown}
-                      data={stateList}
-                      maxHeight={180}
-                      labelField="label"
-                      valueField="value"
-                      placeholder="Select state"
-                      value={value}
-                      onChange={(item) => {
-                        onChange(item.value);
-                        fetchDistrictList(item.value); // Fetch districts based on selected state
-                        setSelectedState(item.value); // Store selected state
-                      }}
-                    />
-                  }
-                />
-                {/* Uncomment for error messages */}
-                {/* {errors.state && <Text style={styles.error}>{errors.state.message}</Text>} */}
-              </View>
-
-              {/* District Dropdown or TextInput */}
-              {["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) && (
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>
-                    District<Text style={styles.redText}></Text>
-                  </Text>
-                  <Controller
-                    name="district"
-                    control={control}
-                    render={({ field: { onChange, value } }) =>
-                      <Dropdown
-                        style={styles.dropdown}
-                        data={districtList}
-                        maxHeight={180}
-                        labelField="label"
-                        valueField="value"
-                        placeholder="Select district"
-                        value={value}
-                        onChange={(item) => {
-                          onChange(item.value); // Update selected district
-                          fetchCityList(item.value); // Fetch cities based on selected district
-                        }}
-                      />
-                    }
+            <View style={styles.inputContainer}>
+              <Text style={styles.fieldLabel}>State</Text>
+              <Controller
+                name="state"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <CustomDropdown
+                    placeholder="Select state"
+                    data={stateList}
+                    selectedValue={value}
+                    onSelect={(item) => { onChange(item.value); fetchDistrictList(item.value); setSelectedState(item.value); }}
                   />
-                  {/* Uncomment for error messages */}
-                  {/* {errors.district && <Text style={styles.error}>{errors.district.message}</Text>} */}
-                </View>
-              )}
-            </>
+                )}
+              />
+            </View>
           )}
 
+          {/* District (only for specific states) */}
+          {selectedCountry === "1" && ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) && (
+            <View style={styles.inputContainer}>
+              <Text style={styles.fieldLabel}>District</Text>
+              <Controller
+                name="district"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <CustomDropdown
+                    placeholder="Select district"
+                    data={districtList}
+                    selectedValue={value}
+                    onSelect={(item) => { onChange(item.value); fetchCityList(item.value); }}
+                  />
+                )}
+              />
+            </View>
+          )}
 
-
+          {/* City with Tooltip on the left */}
           <View style={styles.inputContainer}>
             <View style={styles.labelWrapper}>
-              <Text style={styles.label}>
+              <Text style={styles.fieldLabel}>
                 City
-                {selectedCountry === "1" &&
-                  ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) && (
-                    <Tooltip
-                      popover={
-                        <Text>
-                          Select your city from the list. If your city is not listed, select Others.
-                        </Text>
-                      }
-                      backgroundColor="#fff"
-                      overlayColor="rgba(0, 0, 0, 0.5)"
-                      width={200}
-                      height={70}
-                      placement="bottom"
-                    >
-                      <Icon name="info-circle" size={16} color="#555" style={styles.infoIcon} />
-                    </Tooltip>
-                  )}
               </Text>
-              {/* Conditionally render Tooltip */}
 
+              {selectedCountry === "1" &&
+                ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) && (
+                  <Tooltip
+                    popover={
+                      <Text>
+                        Select your city from the list. If your city is not listed,
+                        select Others.
+                      </Text>
+                    }
+                    backgroundColor="#fff"
+                    overlayColor="rgba(0, 0, 0, 0.5)"
+                    width={200}
+                    height={70}
+                    placement="bottom"
+                  >
+                    <Icon
+                      name="info-circle"
+                      size={16}
+                      color={Colors.textMuted}
+                      style={styles.tooltipIcon}
+                    />
+                  </Tooltip>
+                )}
             </View>
 
             <Controller
               name="city"
               control={control}
               render={({ field: { onChange, value } }) => {
-                // Add "Other" option dynamically
                 const cityListWithOther = [...cityList, { label: "Other", value: "Other" }];
 
                 if (isOtherSelected) {
@@ -482,30 +402,25 @@ export const ContactInfo = () => {
                     <TextInput
                       style={styles.input}
                       placeholder="Enter your city"
+                      placeholderTextColor={Colors.textMuted}
                       value={value}
-                      onChangeText={(text) => onChange(text)} // Update city as text input
+                      onChangeText={(text) => onChange(text)}
                     />
-
                   );
                 }
 
-                return selectedCountry === "1" &&
-                  ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) ? (
-                  <Dropdown
-                    style={styles.dropdown}
-                    data={cityListWithOther} // Use dynamically modified city list
-                    maxHeight={180}
-                    labelField="label"
-                    valueField="value"
+                return selectedCountry === "1" && ["1", "2", "3", "4", "5", "6", "7"].includes(selectedState) ? (
+                  <CustomDropdown
                     placeholder="Select city"
-                    value={value}
-                    onChange={(item) => {
+                    data={cityListWithOther}
+                    selectedValue={value}
+                    onSelect={(item) => {
                       if (item.value === "Other") {
-                        setIsOtherSelected(true); // Switch to text input
-                        onChange(""); // Clear the current value
+                        setIsOtherSelected(true);
+                        onChange("");
                       } else {
-                        onChange(item.value); // Update selected city
-                        setIsOtherSelected(false); // Ensure dropdown remains for other selections
+                        onChange(item.value);
+                        setIsOtherSelected(false);
                       }
                     }}
                   />
@@ -513,28 +428,19 @@ export const ContactInfo = () => {
                   <TextInput
                     style={styles.input}
                     placeholder="Enter your city"
+                    placeholderTextColor={Colors.textMuted}
                     value={value}
-                    onChangeText={(text) => onChange(text)} // Update city as text input
+                    onChangeText={(text) => onChange(text)}
                   />
                 );
               }}
-
             />
-            {errors.city && <Text style={styles.error}>{errors.city.message}</Text>}
-
+            {errors.city && <Text style={styles.errorText}>{errors.city.message}</Text>}
           </View>
 
-
-
-
-
-
-
-          {/* Pincode Field */}
+          {/* Pincode */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Pincode<Text style={styles.redText}></Text>
-            </Text>
+            <Text style={styles.fieldLabel}>Pincode</Text>
             <Controller
               name="pincode"
               control={control}
@@ -542,398 +448,410 @@ export const ContactInfo = () => {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter pincode"
+                  placeholderTextColor={Colors.textMuted}
                   keyboardType="numeric"
                   value={value}
                   onChangeText={onChange}
                 />
               )}
             />
-            {errors.pincode && <Text style={styles.error}>{errors.pincode.message}</Text>}
+            {errors.pincode && <Text style={styles.errorText}>{errors.pincode.message}</Text>}
           </View>
 
-
-
-
-
+          {/* Alternate Mobile */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Alternate Mobile Number<Text style={styles.redText}></Text>
-            </Text>
-
+            <Text style={styles.fieldLabel}>Alternate Mobile Number</Text>
             <View style={styles.inputWrapper}>
-
-
-              {/* TouchableOpacity to show country list directly */}
-              <TouchableOpacity
-                onPress={() => setShowPicker(true)}
-                style={styles.countryCodeContainer}
-              >
+              <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.countryCodeContainer} activeOpacity={0.7}>
                 <Text style={styles.countryCode}>{countryCode}</Text>
-                <Icon name="chevron-down" size={16} color="#000" style={styles.downArrow} />
+                <Icon name="chevron-down" size={16} color={Colors.textMuted} style={styles.downArrow} />
               </TouchableOpacity>
-
-
-
               <CountryPicker
-                countryCodesPickerSearchInput  // Enables search input in the country picker modal
+                countryCodesPickerSearchInput
                 show={showPicker}
-                // when picker button press you will get the country object with dial code
-                pickerButtonOnPress={(item) => {
-                  setCountryCode(item.dial_code); // Sets the selected country code
-                  setShowPicker(false); // Closes the picker modal
-                }}
+                pickerButtonOnPress={(item) => { setCountryCode(item.dial_code); setShowPicker(false); }}
                 ListHeaderComponent={ListHeaderComponent}
-                // popularCountries={['en', 'ua', 'pl', 'in']}
-                popularCountries={['en', 'in']} // Popular countries list
+                popularCountries={['en', 'in']}
+                lang="en"
+                style={{ modal: { backgroundColor: Colors.card || '#FFFFFF' }, searchInput: { backgroundColor: Colors.selectedBg || '#F4F4F5' } }}
               />
-
-              {/* Mobile Number Input */}
               <Controller
                 name="alternateMobile"
                 control={control}
                 render={({ field: { onChange, value } }) => (
                   <TextInput
                     style={styles.mobileInput}
-                    placeholder="Mobile Number"
-                    keyboardType="numeric"
+                    placeholder="Enter alternate mobile"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="phone-pad"
                     value={value}
                     onChangeText={onChange}
                   />
                 )}
               />
             </View>
-            {isSubmitted && errors.alternateMobile && (
-              <Text style={styles.error}>{errors.alternateMobile.message}</Text>
-            )}
-
-
-            {/* {errors.alternateMobile && (
-              <Text style={styles.error}>
-                {errors.alternateMobile.message}
-              </Text>
-            )} */}
+            {isSubmitted && errors.alternateMobile && <Text style={styles.errorText}>{errors.alternateMobile.message}</Text>}
           </View>
 
-
-
-
+          {/* WhatsApp Number */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              WhatsApp Number<Text style={styles.redText}></Text>
-            </Text>
-
+            <Text style={styles.fieldLabel}>WhatsApp Number</Text>
             <View style={styles.inputWrapper}>
-              {/* TouchableOpacity to show country list directly */}
-              {/* <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.countryCodeContainer}>
-                <Text style={styles.countryCode}>+{countryCode}</Text>
-                <Icon name="chevron-down" size={16} color="#000" style={styles.downArrow} />
-              </TouchableOpacity> */}
-
-              {/* TouchableOpacity to show country list directly */}
-              <TouchableOpacity
-                onPress={() => setShowPicker(true)}
-                style={styles.countryCodeContainer}
-              >
+              <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.countryCodeContainer} activeOpacity={0.7}>
                 <Text style={styles.countryCode}>{countryCode}</Text>
-                <Icon name="chevron-down" size={16} color="#000" style={styles.downArrow} />
+                <Icon name="chevron-down" size={16} color={Colors.textMuted} style={styles.downArrow} />
               </TouchableOpacity>
-
-              {/* CountryPicker */}
-              {/* {showPicker && (
-                <CountryPicker
-                  withFilter
-                  withFlag
-                  withAlphaFilter
-                  onSelect={(country) => {
-                    onSelect(country);
-                    setShowPicker(false); // Close after selection
-                  }}
-                  countryCode={country?.cca2}
-                  onClose={() => setShowPicker(false)}
-                  visible={showPicker} // Control visibility with the state
-                  style={styles.countryPicker}
-                />
-              )} */}
-
-
               <CountryPicker
-                countryCodesPickerSearchInput  // Enables search input in the country picker modal
+                countryCodesPickerSearchInput
                 show={showPicker}
-                // when picker button press you will get the country object with dial code
-                pickerButtonOnPress={(item) => {
-                  setCountryCode(item.dial_code); // Sets the selected country code
-                  setShowPicker(false); // Closes the picker modal
-                }}
+                pickerButtonOnPress={(item) => { setCountryCode(item.dial_code); setShowPicker(false); }}
                 ListHeaderComponent={ListHeaderComponent}
-                // popularCountries={['en', 'ua', 'pl', 'in']}
-                popularCountries={['en', 'in']} // Popular countries list
+                popularCountries={['en', 'in']}
+                lang="en"
+                style={{ modal: { backgroundColor: Colors.card || '#FFFFFF' }, searchInput: { backgroundColor: Colors.selectedBg || '#F4F4F5' } }}
               />
-
-              {/* WhatsApp Number Input */}
               <Controller
                 name="whatsappNumber"
                 control={control}
-                render={({ field: { onChange, onBlur, value } }) => (
+                render={({ field: { onChange, value } }) => (
                   <TextInput
                     style={styles.mobileInput}
                     placeholder="Enter WhatsApp number"
-                    keyboardType="numeric"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="phone-pad"
                     value={value}
-                    onBlur={onBlur}
                     onChangeText={onChange}
                   />
                 )}
               />
             </View>
-            {isSubmitted && errors.whatsappNumber && (
-              <Text style={styles.error}>{errors.whatsappNumber.message}</Text>
-            )}
-
-            {/* {errors.whatsappNumber && (
-              <Text style={styles.error}>
-                {errors.whatsappNumber.message}
-              </Text>
-            )} */}
+            {isSubmitted && errors.whatsappNumber && <Text style={styles.errorText}>{errors.whatsappNumber.message}</Text>}
           </View>
-
         </View>
 
-        <Text style={styles.contactInfoHead}>For admin purpose only(This information will not be displayed online)</Text>
+        {/* Admin purpose section */}
+        <View style={styles.textContainer}>
+          <Text style={styles.adminNote}>For admin purpose only (This information will not be displayed online)</Text>
+        </View>
 
-        <View style={styles.formContainer}>
+        <View style={styles.cardContainer}>
+          {/* Daughter / Profile Owner Mobile */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              {/* {`Enter ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Number`}<Text style={styles.redText}>*</Text> */}
-              {`Enter ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Number`}
-            </Text>
-
+            <Text style={styles.fieldLabel}>{`Enter ${ProfileOwner === "yourself" ? "your" : ProfileOwner} Number`}</Text>
             <View style={styles.inputWrapper}>
-              <TouchableOpacity
-                onPress={() => setShowPicker(true)}
-                style={styles.countryCodeContainer}
-              >
+              <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.countryCodeContainer} activeOpacity={0.7}>
                 <Text style={styles.countryCode}>{countryCode}</Text>
-                <Icon name="chevron-down" size={16} color="#000" style={styles.downArrow} />
+                <Icon name="chevron-down" size={16} color={Colors.textMuted} style={styles.downArrow} />
               </TouchableOpacity>
-
               <CountryPicker
-                countryCodesPickerSearchInput  // Enables search input in the country picker modal
+                countryCodesPickerSearchInput
                 show={showPicker}
-                // when picker button press you will get the country object with dial code
-                pickerButtonOnPress={(item) => {
-                  setCountryCode(item.dial_code); // Sets the selected country code
-                  setShowPicker(false); // Closes the picker modal
-                }}
+                pickerButtonOnPress={(item) => { setCountryCode(item.dial_code); setShowPicker(false); }}
                 ListHeaderComponent={ListHeaderComponent}
-                // popularCountries={['en', 'ua', 'pl', 'in']}
-                popularCountries={['en', 'in']} // Popular countries list
+                popularCountries={['en', 'in']}
+                lang="en"
+                style={{ modal: { backgroundColor: Colors.card || '#FFFFFF' }, searchInput: { backgroundColor: Colors.selectedBg || '#F4F4F5' } }}
               />
-
-              {/* Mobile Number Input */}
               <Controller
                 name="daughterMobile"
                 control={control}
-                render={({ field: { onChange, onBlur, value } }) => (
+                render={({ field: { onChange, value } }) => (
                   <TextInput
                     style={styles.mobileInput}
-                    placeholder={`Enter ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Number`}
-                    keyboardType="numeric"
+                    placeholder={`Enter ${ProfileOwner === "yourself" ? "your" : ProfileOwner} number`}
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="phone-pad"
                     value={value}
-                    onBlur={onBlur}
                     onChangeText={onChange}
                   />
                 )}
               />
             </View>
-
-            {errors.daughterMobile && (
-              <Text style={styles.error}>{errors.daughterMobile.message}</Text>
-            )}
+            {errors.daughterMobile && <Text style={styles.errorText}>{errors.daughterMobile.message}</Text>}
           </View>
 
-
+          {/* Daughter / Profile Owner Email */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              {/* {`Enter ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Email`}<Text style={styles.redText}>*</Text> */}
-              {`Enter ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Email`}
-            </Text>
+            <Text style={styles.fieldLabel}>{`Enter ${ProfileOwner === "yourself" ? "your" : ProfileOwner} Email`}</Text>
             <Controller
               name="daughterEmail"
               control={control}
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={styles.input}
-                  placeholder={`Enter ${ProfileOwner} Email`}
+                  placeholder={`Enter ${ProfileOwner} email`}
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
-                  onBlur={onBlur}
                   onChangeText={onChange}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
               )}
             />
-            {/* {errors.daughterEmail && (
-              <Text style={styles.error}>{errors.daughterEmail.message}</Text>
-            )} */}
+            {errors.daughterEmail && <Text style={styles.errorText}>{errors.daughterEmail.message}</Text>}
           </View>
 
+          {/* Next Button */}
           <TouchableOpacity
             style={styles.btn}
             onPress={handleSubmit(onSubmit)}
-            disabled={submitting} // Disable button when submitting
-
+            disabled={submitting}
+            activeOpacity={0.85}
           >
             <LinearGradient
-              colors={["#BD1225", "#FF4050"]}
+              colors={[Colors.primary, Colors.primary || "#FF4050"]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              useAngle={true}
-              angle={92.08}
-              angleCenter={{ x: 0.5, y: 0.5 }}
+              end={{ x: 1, y: 0 }}
               style={styles.linearGradient}
             >
-              <View style={styles.loginContainer}>
-                {/* <Text style={styles.login}>Next</Text> */}
-                <Text style={styles.login}>{submitting ? "Submitting..." : "Next"}</Text>
-                <Ionicons name="arrow-forward" size={18} color="white" />
+              <View style={styles.buttonContent}>
+                <Text style={styles.buttonText}>{submitting ? "Submitting..." : "Next"}</Text>
+                <Ionicons name="arrow-forward" size={18} color={Colors.primaryForeground || "#FFFFFF"} />
               </View>
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.selectedBg || "#FBF5ED",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingVertical: rs(20, 30, 40),
     alignItems: "center",
-    justifyContent: "center",
   },
-  contactInfoHead: {
-    color: "#535665",
-    fontSize: 14,
-    fontWeight: "700",
-    alignSelf: "flex-start",
-    paddingHorizontal: 20,
-    marginVertical: 10,
-  },
-  formContainer: {
+  textContainer: {
     width: "100%",
-    paddingHorizontal: 20,
+    paddingHorizontal: rs(20, 24, 28),
+    marginBottom: rs(12, 16, 20),
+  },
+  brandBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: Colors.goldContainer || "#F2DEAC",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginBottom: 10,
+  },
+  brandBadgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.chipActiveText || "#5D4220",
+    letterSpacing: 0.5,
+  },
+  headingText: {
+    color: Colors.textDark || "#1E1E1E",
+    fontSize: rs(22, 24, 26),
+    fontWeight: "700",
+    letterSpacing: -0.5,
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+  },
+  cardContainer: {
+    width: "90%",
+    backgroundColor: Colors.card || "#FFFFFF",
+    borderRadius: 24,
+    padding: rs(18, 22, 26),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
+    marginBottom: rs(12, 16, 20),
   },
   inputContainer: {
     width: "100%",
-    marginBottom: 20,
+    marginBottom: rs(14, 18, 20),
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.textMuted || "#71717A",
+    textTransform: "uppercase",
+    marginBottom: 6,
+    letterSpacing: 0.3,
+  },
+  requiredStar: {
+    color: Colors.destructive || "#EF4444",
+  },
+  adminNote: {
+    fontSize: 13,
+    color: Colors.textMuted || "#71717A",
+    fontStyle: "italic",
+    marginTop: 4,
   },
   input: {
-    color: "#535665",
+    color: Colors.textDark || "#1E1E1E",
     borderWidth: 1,
-    borderRadius: 4,
-    borderColor: "#D4D5D9",
-    padding: 10,
-    // marginBottom: 10,
-  },
-  dropdown: {
-    width: "100%",
-    color: "#535665",
-    borderWidth: 1,
-    borderRadius: 4,
-    borderColor: "#D4D5D9",
-    paddingHorizontal: 10,
-    paddingVertical: 13,
-    // marginBottom: 10,
-  },
-  label: {
-    color: "#535665",
+    borderRadius: 16,
+    borderColor: Colors.border || "#E4E4E7",
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    paddingHorizontal: 12,
+    paddingVertical: rs(10, 12, 14),
     fontSize: 14,
-    fontWeight: "600",
-  },
-  redText: {
-    color: "#FF6666",
-  },
-  btn: {
-    width: "100%",
-    alignSelf: "center",
-    borderRadius: 6,
-    marginTop: 15,
-    marginBottom: 30,
-  },
-  loginContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  login: {
-    textAlign: "center",
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-    letterSpacing: 1,
-    marginRight: 5,
-  },
-  linearGradient: {
-    borderRadius: 5,
-    justifyContent: "center",
-    padding: 15,
-  },
-  error: {
-    color: "#FF0000",
-    fontSize: 12,
-    fontFamily: "inter",
+    textAlignVertical: "top",
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   countryCodeContainer: {
-    // backgroundColor: "#C3C3BB", // Background color for the country code box
-    backgroundColor: "#FFF", // Background color for the country code box
-    borderTopLeftRadius: 4,
-    borderBottomLeftRadius: 4,
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    borderWidth: 1,
+    borderColor: Colors.border || "#E4E4E7",
+    borderRightWidth: 0,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
     justifyContent: 'center',
     paddingHorizontal: 10,
-    height: 50, // Match the height of the mobile number input
-    borderWidth: 1,
-    borderColor: "#D4D5D9",
+    height: 48,
+    minWidth: 70,
   },
-
   countryCode: {
-    fontSize: 16,
-    top: '15%', // Center it vertically
-
+    fontSize: 14,
+    color: Colors.textDark || "#1E1E1E",
+  },
+  downArrow: {
+    position: "absolute",
+    right: 6,
+    top: '50%',
+    transform: [{ translateY: -8 }],
   },
   mobileInput: {
     flex: 1,
-    height: 50, // Match the height of the country code box
+    height: 48,
     borderWidth: 1,
-    borderColor: "#D4D5D9",
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
+    borderColor: Colors.border || "#E4E4E7",
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
     paddingHorizontal: 10,
+    fontSize: 14,
+    color: Colors.textDark || "#1E1E1E",
   },
-  downArrow: {
-    marginLeft: 30, // Adjust margin as needed
-    marginRight: 0, // Ensure no right margin
-    right: 0, // Adjust as needed to position it correctly
-    alignSelf: 'center', // Center the icon vertically
-    bottom: '25%', // Center it vertically
+  // ── Dropdown styles ──────────────────────────────────────────────────────
+  dropdownStyle: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: Colors.border || "#E4E4E7",
+    borderRadius: 16,
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    paddingHorizontal: 12,
+    paddingVertical: rs(8, 10, 12),
   },
-  tooltip: {
-    position: "absolute",
-    backgroundColor: "#333",
-    padding: 8,
-    borderRadius: 4,
-    top: 20,
-    left: 0,
-    zIndex: 10,
+  dropdownPlaceholder: {
+    fontSize: 14,
+    color: Colors.textMuted || "#71717A",
   },
-  tooltipText: {
-    color: "#000",
+  dropdownSelectedText: {
+    fontSize: 14,
+    color: Colors.textDark || "#1E1E1E",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    maxHeight: "60%",
+    paddingVertical: 12,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F4F4F5",
+  },
+  modalHeaderTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#18181B",
+  },
+  dropdownOptionItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F4F4F5",
+  },
+  dropdownOptionSelected: {
+    backgroundColor: "#FEF2F2",
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: "#3F3F46",
+  },
+  dropdownItemTextSelected: {
+    color: "#BD1225",
+    fontWeight: "700",
+  },
+  // ──────────────────────────────────────────────────────────────────────────
+  labelWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tooltipIcon: {
+    marginLeft: 8,     // space between City and icon
+    padding: 3,        // padding around icon 
+    marginBottom:2,
+  },
+  errorText: {
+    color: Colors.destructive || "#EF4444",
     fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+    fontWeight: "500",
   },
-  infoIcon: {
-    marginLeft: 8,
+  btn: {
+    width: "100%",
+    borderRadius: 26,
+    shadowColor: Colors.primary || "#B72024",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+    marginTop: rs(8, 10, 12),
+    marginBottom: 10,
+  },
+  linearGradient: {
+    borderRadius: 26,
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonText: {
+    textAlign: "center",
+    color: Colors.primaryForeground || "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 16,
+    letterSpacing: 0.5,
+    marginRight: 6,
   },
 });
 

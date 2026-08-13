@@ -4,21 +4,23 @@ import {
   Text,
   View,
   TextInput,
-  SafeAreaView,
   TouchableOpacity,
   Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useRoute } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
-import axios from "axios"; // Import axios
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors, rs } from "../Reusable/Theme";
 import config from "../API/Apiurl";
-
 
 export const OtpVerify = () => {
   const navigation = useNavigation();
-  const route = useRoute();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const otpRefs = useRef([]);
@@ -29,17 +31,23 @@ export const OtpVerify = () => {
   const [email, setEmail] = useState("");
   const [resendDisabled, setResendDisabled] = useState(true);
   const [resendMessage, setResendMessage] = useState("");
-  const [timer, setTimer] = useState(60); // Add timer state
-  const [isEditing, setIsEditing] = useState(false); // State to track if we are editing the number/email
-  const [fullNumber, setFullNumber] = useState(""); // State to store the entered mobile number or email
+  const [timer, setTimer] = useState(60);
+  const [isEditing, setIsEditing] = useState(false);
+  const [fullNumber, setFullNumber] = useState("");
   const [mobileError, setMobileError] = useState("");
   const [emailError, setEmailError] = useState("");
-  const [submitting, setSubmitting] = useState(false); // Add state to track submission
-
+  const [submitting, setSubmitting] = useState(false);
+  const [state, setState] = useState({
+    password: '',
+    countryCode: '',
+    email: '',
+    gender: '',
+    profileFor: '',
+  });
 
   useEffect(() => {
     retrieveDataFromSession();
-    startResendTimer(60); // Initially disable resend for 60 seconds
+    startResendTimer(60);
   }, []);
 
   useEffect(() => {
@@ -55,27 +63,18 @@ export const OtpVerify = () => {
           }
         });
       }, 1000);
+      return () => clearInterval(interval);
     }
   }, [resendDisabled]);
 
-
   const getMaskedMobileNo = (mobile) => {
-    if (!mobile) return ""; // Handle null or undefined values
-    if (mobile.length <= 5) return mobile; // No masking if length <= 5
-    const visiblePart = mobile.slice(-5); // Last 5 digits
-    const maskedPart = "x".repeat(mobile.length - 5); // Mask the rest
+    if (!mobile) return "";
+    if (mobile.length <= 5) return mobile;
+    const visiblePart = mobile.slice(-5);
+    const maskedPart = "x".repeat(mobile.length - 5);
     return maskedPart + visiblePart;
   };
 
-  const [state, setState] = useState({
-    password: '',
-    countryCode: '',
-    email: '',
-    gender: '',
-    profileFor: '',
-  });
-
-  // Function to fetch data from AsyncStorage
   const fetchData = async () => {
     try {
       const password = await AsyncStorage.getItem('passwordnNew');
@@ -84,11 +83,9 @@ export const OtpVerify = () => {
       const gender = await AsyncStorage.getItem('gendernew');
       const mobile = await AsyncStorage.getItem('Mobile_no');
       setFullNumber(mobile);
-      const profileFor = JSON.parse(await AsyncStorage.getItem('profilefornew')); // Parse back to original type
-
-      // Update state
+      const profileFor = JSON.parse(await AsyncStorage.getItem('profilefornew'));
       setState({
-        password: password || '', // Fallback to empty string if null
+        password: password || '',
         countryCode: countryCode || '',
         email: email || '',
         gender: gender || '',
@@ -99,7 +96,6 @@ export const OtpVerify = () => {
     }
   };
 
-  // Fetch data when the component mounts
   useEffect(() => {
     fetchData();
   }, []);
@@ -166,8 +162,7 @@ export const OtpVerify = () => {
     console.log(ProfileId);
 
     try {
-      setSubmitting(true); // Set submitting state to true
-
+      setSubmitting(true);
       const response = await axios.post(
         `${config.apiUrl}/auth/Otp_verify/`,
         {
@@ -188,7 +183,6 @@ export const OtpVerify = () => {
       if (jsonResponse.message === "OTP verified successfully.") {
         Alert.alert("Success", "OTP verified successfully.");
         navigation.navigate("BasicDetails");
-        // navigation.navigate("ContactInfo");
       } else {
         Alert.alert("Error", jsonResponse.message || "OTP verification failed.");
       }
@@ -196,7 +190,7 @@ export const OtpVerify = () => {
       console.error("OTP verification error:", error);
       Alert.alert("Error", "An error occurred during OTP verification.");
     } finally {
-      setSubmitting(false); // Reset submitting state after API call
+      setSubmitting(false);
     }
   };
 
@@ -235,20 +229,19 @@ export const OtpVerify = () => {
   };
 
   const handleEditNumber = () => {
-    setIsEditing(true); // Start editing
+    setIsEditing(true);
   };
   const handleEditNumber1 = () => {
-    setIsEditing(false); // Start editing
+    setIsEditing(false);
   };
 
   const validateMobileNumber = () => {
     if (fullNumber.length !== 10 || !/^\d+$/.test(fullNumber)) {
       setMobileError("Mobile number must be exactly 10 digits.");
-      return false; // Validation fails
+      return false;
     } else {
       setMobileError("");
-      return true; // Validation passes
-
+      return true;
     }
   };
 
@@ -256,38 +249,29 @@ export const OtpVerify = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setEmailError("Please enter a valid email address.");
-      return false; // Validation fails
+      return false;
     } else {
       setEmailError("");
-      return true; // Validation passes
-
+      return true;
     }
   };
 
   const handleSendOtp = async () => {
     if (countryCode === "91") {
-      // Validate mobile number if countryCode is "91"
       const isMobileValid = validateMobileNumber();
-      if (!isMobileValid) {
-        return; // If mobile number is invalid, stop further execution
-      }
+      if (!isMobileValid) return;
     } else {
-      // Validate email if countryCode is not "91"
       const isEmailValid = validateEmail();
-      if (!isEmailValid) {
-        return; // If email is invalid, stop further execution
-      }
+      if (!isEmailValid) return;
     }
 
-
     try {
-
       const registrationData = {
         Mobile_no: fullNumber,
-        EmailId: email, // If it's a mobile number, it won't be used, and if it's an email, this will be used.
-        Profile_for: state.profileFor, // Assuming this is the profile owner
-        Gender: state.gender, // Assuming gender value, you can adjust as per your state
-        Password: state.password, // Example password, adjust accordingly
+        EmailId: email,
+        Profile_for: state.profileFor,
+        Gender: state.gender,
+        Password: state.password,
         mobile_country: state.countryCode,
       };
 
@@ -308,12 +292,7 @@ export const OtpVerify = () => {
         await AsyncStorage.setItem('profile_owner', jsonResponse.profile_owner);
         await AsyncStorage.setItem('Mobile_no', jsonResponse.Mobile_no);
         await AsyncStorage.setItem('countrycode', countryCode);
-        // await AsyncStorage.setItem('email', jsonResponse.EmailId);
-
-        // Navigate to OTP verification page after registration
-        //navigation.navigate("OtpVerify");
-        setIsEditing(false); // Start editing
-
+        setIsEditing(false);
       } else {
         Alert.alert("Error", "Registration failed");
       }
@@ -321,293 +300,347 @@ export const OtpVerify = () => {
       console.error("Registration error:", error);
       Alert.alert("Error", "An error occurred during registration.");
     }
-
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.textContainer}>
-        <Text style={styles.mobile}>Mobile Verification</Text>
-        <Text style={styles.mobileText}>
-          Please verify your mobile number and say why we need mobile verification
-        </Text>
-      </View>
-
-      <View style={styles.otpContainer}>
-        <Text style={styles.otp}>OTP Verification</Text>
-        <Text style={styles.otpText}>
-          {countryCode === "91"
-            ? `We have sent a verification code to your mobile number ${getMaskedMobileNo(fullNumber)}`
-            : `We have sent a verification code to your email ${email}`}
-        </Text>
-        <TouchableOpacity onPress={handleEditNumber}>
-          <Text style={styles.otpTextEdit}>
-            {!isEditing
-              ? `Edit ${countryCode === "91" ? "Number" : "Email"}`
-              : ""}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleEditNumber1}>
-          <Text style={styles.otpTextEdit}>
-            {isEditing ? "Cancel Edit" : ""}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {isEditing ? (
-        <View>
-          {/* Render Mobile Number Input if countryCode is "91" */}
-          {countryCode === "91" && (
-            <TextInput
-              style={[styles.input, mobileError && styles.inputError]}
-              placeholder="Enter number"
-              value={fullNumber}
-              onChangeText={setFullNumber}
-              onBlur={validateMobileNumber} // Validate on blur
-              keyboardType="numeric"
-            />
-          )}
-          {mobileError ? <Text style={styles.errorText}>{mobileError}</Text> : null}
-
-          {/* Render Email Input if countryCode is not "91" */}
-          {countryCode !== "91" && (
-            <View>
-              <TextInput
-                style={[styles.input, emailError && styles.inputError]}
-                placeholder="Enter your email"
-                value={email}
-                onChangeText={setEmail}
-                onBlur={validateEmail} // Validate on blur
-                keyboardType="email-address"
-              />
-              {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
-            </View>
-          )}
-        </View>
-
-      ) : (
-        <View style={styles.otpInputContainer}>
-          {otp.map((value, index) => (
-            <TextInput
-              key={index}
-              style={[
-                styles.otpInput,
-                index === focusedIndex && styles.focusedOtpInput,
-              ]}
-              value={value}
-              onChangeText={(text) => handleOtpChange(text, index)}
-              maxLength={1}
-              keyboardType="numeric"
-              ref={(el) => (otpRefs.current[index] = el)}
-              onFocus={() => setFocusedIndex(index)}
-              onKeyPress={({ nativeEvent }) => {
-                if (nativeEvent.key === "Backspace" && value === "") {
-                  handleBackspace(index);
-                }
-              }}
-            />
-          ))}
-        </View>
-      )}
-
-
-      {resendMessage ? (
-        <Text style={styles.successMessage}>{resendMessage}</Text>
-      ) : (
-        <Text style={styles.existing}>
-          Didn't receive OTP?{" "}
-          <Text
-            style={resendDisabled ? styles.redText : styles.redText}
-            onPress={!resendDisabled ? handleResendOtp : null}
-          >
-            Resend OTP {resendDisabled && <Text style={styles.redText}>({timer}s)</Text>}
-          </Text>
-        </Text>
-      )}
-
-      {isEditing ? (
-        <TouchableOpacity style={styles.btn} onPress={handleSendOtp}>
-          <LinearGradient
-            colors={["#BD1225", "#FF4050"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            useAngle={true}
-            angle={92.08}
-            angleCenter={{ x: 0.5, y: 0.5 }}
-            style={styles.linearGradient}
-          >
-            <Text style={styles.verify}>Send OTP</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity style={styles.btn} onPress={handleVerify} disabled={submitting} // Disable button when submitting
+    <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={{ flex: 1, width: "100%" }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <LinearGradient
-            colors={["#BD1225", "#FF4050"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            useAngle={true}
-            angle={92.08}
-            angleCenter={{ x: 0.5, y: 0.5 }}
-            style={styles.linearGradient}
-          >
-            {/* <Text style={styles.verify}>Verify</Text> */}
-            <Text style={styles.verify}>{submitting ? "Submitting..." : "Verify"}</Text>
+          {/* Header */}
+          <View style={styles.textContainer}>
+            <Text style={styles.welcomeText}>Mobile Verification</Text>
+            <Text style={styles.welcome}>
+              Please verify your mobile number to continue
+            </Text>
+          </View>
 
-          </LinearGradient>
-        </TouchableOpacity>
-      )}
+          {/* Form Card */}
+          <View style={styles.cardContainer}>
+            <View style={styles.otpHeaderContainer}>
+              <Text style={styles.fieldLabel}>OTP Verification</Text>
+              <Text style={styles.otpSubText}>
+                {countryCode === "91"
+                  ? `We have sent a verification code to your mobile number ${getMaskedMobileNo(fullNumber)}`
+                  : `We have sent a verification code to your email ${email}`}
+              </Text>
+              {!isEditing ? (
+                <TouchableOpacity onPress={handleEditNumber} activeOpacity={0.7}>
+                  <Text style={styles.editLink}>Edit {countryCode === "91" ? "Number" : "Email"}</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity onPress={handleEditNumber1} activeOpacity={0.7}>
+                  <Text style={styles.editLink}>Cancel Edit</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {isEditing ? (
+              <View style={styles.editContainer}>
+                {countryCode === "91" && (
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.fieldLabel}>Mobile Number</Text>
+                    <TextInput
+                      style={[styles.input, mobileError && styles.inputError]}
+                      placeholder="Enter 10-digit mobile number"
+                      placeholderTextColor={Colors.textMuted}
+                      value={fullNumber}
+                      onChangeText={setFullNumber}
+                      onBlur={validateMobileNumber}
+                      keyboardType="phone-pad"
+                    />
+                    {mobileError && <Text style={styles.errorText}>{mobileError}</Text>}
+                  </View>
+                )}
+
+                {countryCode !== "91" && (
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.fieldLabel}>Email</Text>
+                    <TextInput
+                      style={[styles.input, emailError && styles.inputError]}
+                      placeholder="Enter your email address"
+                      placeholderTextColor={Colors.textMuted}
+                      value={email}
+                      onChangeText={setEmail}
+                      onBlur={validateEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                    {emailError && <Text style={styles.errorText}>{emailError}</Text>}
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  style={styles.btn}
+                  onPress={handleSendOtp}
+                  activeOpacity={0.85}
+                >
+                  <LinearGradient
+                    colors={[Colors.primary, Colors.primary || "#FF4050"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.linearGradient}
+                  >
+                    <View style={styles.buttonContent}>
+                      <Text style={styles.buttonText}>Send OTP</Text>
+                      <Ionicons name="arrow-forward" size={18} color={Colors.primaryForeground || "#FFFFFF"} />
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                {/* OTP Input Fields */}
+                <View style={styles.otpInputContainer}>
+                  {otp.map((value, index) => (
+                    <TextInput
+                      key={index}
+                      style={[
+                        styles.otpInput,
+                        focusedIndex === index && styles.focusedOtpInput,
+                      ]}
+                      value={value}
+                      onChangeText={(text) => handleOtpChange(text, index)}
+                      onFocus={() => setFocusedIndex(index)}
+                      maxLength={1}
+                      keyboardType="numeric"
+                      ref={(el) => (otpRefs.current[index] = el)}
+                      onKeyPress={({ nativeEvent }) => {
+                        if (nativeEvent.key === "Backspace" && value === "") {
+                          handleBackspace(index);
+                        }
+                      }}
+                    />
+                  ))}
+                </View>
+
+                {/* Resend OTP */}
+                {resendMessage ? (
+                  <Text style={styles.successMessage}>{resendMessage}</Text>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.resendContainer}
+                    onPress={!resendDisabled ? handleResendOtp : null}
+                    activeOpacity={resendDisabled ? 0.5 : 0.7}
+                  >
+                    <Text style={styles.resendText}>
+                      Didn't receive OTP?{" "}
+                      <Text
+                        style={[
+                          styles.resendLink,
+                          resendDisabled && styles.resendLinkDisabled,
+                        ]}
+                      >
+                        Resend OTP {resendDisabled && `(${timer}s)`}
+                      </Text>
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Verify Button */}
+                <TouchableOpacity
+                  style={styles.btn}
+                  onPress={handleVerify}
+                  disabled={submitting}
+                  activeOpacity={0.85}
+                >
+                  <LinearGradient
+                    colors={[Colors.primary, Colors.primary || "#FF4050"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.linearGradient}
+                  >
+                    <View style={styles.buttonContent}>
+                      <Text style={styles.buttonText}>
+                        {submitting ? "Verifying..." : "Verify"}
+                      </Text>
+                      {!submitting && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={18}
+                          color={Colors.primaryForeground || "#FFFFFF"}
+                        />
+                      )}
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
+    backgroundColor: Colors.selectedBg || "#FBF5ED",
+  },
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: rs(20, 30, 40),
   },
-  input: {
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 10,
-    marginVertical: 20,
-    fontSize: 16,
-  },
-
   textContainer: {
     width: "100%",
-    paddingHorizontal: 20,
+    paddingHorizontal: rs(20, 24, 28),
+    marginBottom: rs(16, 20, 24),
   },
-
-  mobile: {
-    color: "#535665",
-    fontFamily: "inter",
-    fontSize: 24,
+  welcomeText: {
+    color: Colors.textDark || "#1E1E1E",
+    fontSize: 22,
     fontWeight: "700",
-    marginBottom: 10,
+    letterSpacing: -1,
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
-
-  mobileText: {
-    color: "#535665",
-    fontFamily: "inter",
-    fontSize: 16,
-    marginBottom: 50,
+  welcome: {
+    color: Colors.textMuted || "#71717A",
+    fontSize: rs(14, 15, 16),
+    marginTop: 4,
   },
-
-  otpContainer: {
+  cardContainer: {
+    width: "90%",
+    backgroundColor: Colors.card || "#FFFFFF",
+    borderRadius: 24,
+    padding: rs(18, 22, 26),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  otpHeaderContainer: {
+    marginBottom: rs(14, 18, 20),
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.textMuted || "#71717A",
+    textTransform: "uppercase",
+    marginBottom: 4,
+    letterSpacing: 0.3,
+  },
+  otpSubText: {
+    fontSize: 14,
+    color: Colors.textMuted || "#71717A",
+  },
+  editLink: {
+    fontSize: 14,
+    color: Colors.primary || "#B72024",
+    fontWeight: "600",
+    marginTop: 4,
+    textDecorationLine: "underline",
+  },
+  editContainer: {
+    marginBottom: rs(12, 16, 20),
+  },
+  inputContainer: {
     width: "100%",
-    textAlign: "center",
-    alignSelf: "center",
-    paddingHorizontal: 20,
+    marginBottom: rs(14, 18, 20),
   },
-
-  otp: {
-    color: "#535665",
-    fontFamily: "inter",
-    fontSize: 24,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 10,
+  input: {
+    color: Colors.textDark || "#1E1E1E",
+    borderWidth: 1,
+    borderRadius: 16,
+    borderColor: Colors.border || "#E4E4E7",
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    paddingHorizontal: 12,
+    paddingVertical: rs(10, 12, 14),
+    fontSize: 14,
   },
-
-  otpText: {
-    color: "#535665",
-    fontFamily: "inter",
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 10,
+  inputError: {
+    borderColor: Colors.destructive || "#EF4444",
   },
-
   otpInputContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: rs(12, 16, 20),
   },
   otpInput: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 48,
     borderWidth: 1,
-    borderColor: "#D4D5D9",
-    borderRadius: 6,
-    backgroundColor: "#fff",
+    borderColor: Colors.border || "#E4E4E7",
+    borderRadius: 16,
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
     textAlign: "center",
-    fontSize: 16,
-    color: "#535665",
+    fontSize: 18,
+    color: Colors.textDark || "#1E1E1E",
     fontFamily: "inter",
     fontWeight: "700",
-    marginHorizontal: 5,
-    marginVertical: 20,
+    marginHorizontal: 4,
   },
-
   focusedOtpInput: {
-    borderColor: "#BD1225", // Highlight color
-    borderWidth: 2, // Highlight border width
+    borderColor: Colors.primary || "#B72024",
+    borderWidth: 2,
   },
-
-  existing: {
+  resendContainer: {
+    alignSelf: "center",
+    marginBottom: rs(16, 20, 24),
+  },
+  resendText: {
     fontSize: 14,
-    color: "#000",
-    textAlign: "center",
-    fontFamily: "inter",
-    marginBottom: 50,
+    color: Colors.textMuted || "#71717A",
   },
-
-  redText: {
-    color: "#ED1E24",
-    fontFamily: "inter",
+  resendLink: {
+    color: Colors.primary || "#B72024",
     fontWeight: "700",
   },
-
-  disabledResendText: {
-    color: "#D4D5D9",
-    fontFamily: "inter",
-    fontWeight: "700",
+  resendLinkDisabled: {
+    color: Colors.textMuted || "#71717A",
   },
-
   successMessage: {
     fontSize: 14,
-    color: "green",
+    color: Colors.success || "#10B981",
     textAlign: "center",
-    fontFamily: "inter",
-    marginBottom: 50,
+    marginBottom: rs(16, 20, 24),
   },
-
   btn: {
     width: "100%",
-    alignSelf: "center",
-    borderRadius: 6,
-    shadowColor: "#EE1E2440",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 5,
-    marginBottom: 30,
+    borderRadius: 26,
+    shadowColor: Colors.primary || "#B72024",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+    marginTop: rs(8, 10, 12),
+    marginBottom: rs(14, 18, 20),
+  },
+  linearGradient: {
+    borderRadius: 26,
+    justifyContent: "center",
+    paddingVertical: 14,
     paddingHorizontal: 20,
   },
-
-  verify: {
-    textAlign: "center",
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-    letterSpacing: 1,
-    fontFamily: "inter",
-  },
-
-  linearGradient: {
-    borderRadius: 5,
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
-    padding: 15,
   },
-
-  otpTextEdit: {
-    fontSize: 16,
+  buttonText: {
     textAlign: "center",
-    color: '#0000FF', // Change to your desired style
-    textDecorationLine: 'underline', // To make it look like a link
+    color: Colors.primaryForeground || "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 16,
+    letterSpacing: 0.5,
+    marginRight: 6,
+  },
+  errorText: {
+    color: Colors.destructive || "#EF4444",
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+    fontWeight: "500",
   },
 });
 
