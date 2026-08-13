@@ -1554,9 +1554,32 @@ export const ProfileDetails = () => {
                     <Text style={styles.stateCardTitle}>Photo Locked</Text>
                   </View>
                   <Text style={styles.stateCardBody}>
-                    Click here to request password to view profile photo
+                    Tap the photo to enter the password, or request access below.
                   </Text>
+                  {!isPlan16 && photoRequest === 1 && (
+                    <>
+                      {photoRequestSent || photoRequestAlreadySent ? (
+                        <View style={styles.noPhotoReqSentPill}>
+                          <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                          <Text style={styles.noPhotoReqSentText}>
+                            {photoRequestAlreadySent ? "Request Already Sent" : "Request Sent!"}
+                          </Text>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.noPhotoReqBtn}
+                          onPress={handleSendPhotoRequest}
+                          activeOpacity={0.85}
+                          disabled={loading}
+                        >
+                          <MaterialIcons name="insert-photo" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                          <Text style={styles.noPhotoReqBtnText}>Request Photo</Text>
+                        </TouchableOpacity>
+                      )}
+                    </>
+                  )}
                 </View>
+
               </View>
             </TouchableOpacity>
             // ) : photoState === "restricted" ? (
@@ -3455,6 +3478,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   messageButton: {
+    flex: 1,                    
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
