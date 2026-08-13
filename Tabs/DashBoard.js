@@ -508,7 +508,7 @@ export const DashBoard = () => {
       onPress: () => navigation.navigate("ViewedProfiles"),
     },
     {
-      label: "Profiles sent",
+      label: "Interests sent",
       value: dashboardData?.sent_int_count ?? 0,
       SvgIcon: ProfileSentSvg,
       iconLib: "MaterialIcons",

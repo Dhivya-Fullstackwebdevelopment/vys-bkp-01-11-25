@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,21 +7,86 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Platform,
+  Animated,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import {
   getInterestsList,
-  markProfileWishlist,
   handleBookmark,
   logProfileVisit,
-  fetchProfileDataCheck
-} from "../../../CommonApiCall/CommonApiCall"; // Import the functions
+  fetchProfileDataCheck,
+} from "../../../CommonApiCall/CommonApiCall";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { ProfileNotFound } from "../../ProfileNotFound";
 import { SuggestedProfiles } from "../../HomeTab/SuggestedProfiles";
-import { FeaturedProfiles } from "../../HomeTab/FeaturedProfiles";
 import Toast from "react-native-toast-message";
 import { TopAlignedImage } from "../../ReuseImageAlign/TopAlignedImage";
+import { PlatinumModalPopup } from "../../ReusePopups/PlatinumModalPopup";
+import { Colors, rs } from "../../../Reusable/Theme";
+
+const MARRIAGE_BADGE_URI =
+  "https://vysyamat.blob.core.windows.net/vysyamala/marriage_settled.jpeg";
+
+// ─── Shimmer / Skeleton Loader Component ──────────────────────────────────
+const InterestSentCardSkeleton = () => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const shimmerAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    shimmerAnimation.start();
+    return () => shimmerAnimation.stop();
+  }, [animatedValue]);
+
+  const opacity = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardBody}>
+        {/* Profile Image Skeleton */}
+        <Animated.View style={[styles.skeletonImage, { opacity }]} />
+
+        {/* Info Column Skeleton */}
+        <View style={styles.infoCol}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Animated.View style={[styles.skeletonText, { width: "55%", height: 16 }, { opacity }]} />
+            <Animated.View style={[styles.skeletonText, { width: "25%", height: 16 }, { opacity }]} />
+          </View>
+
+          <Animated.View style={[styles.skeletonText, { width: "70%", height: 12, marginTop: 10 }, { opacity }]} />
+          <Animated.View style={[styles.skeletonText, { width: "85%", height: 12, marginTop: 8 }, { opacity }]} />
+          <Animated.View style={[styles.skeletonText, { width: "40%", height: 12, marginTop: 8 }, { opacity }]} />
+
+          <View style={styles.tagsRow}>
+            <Animated.View style={[styles.skeletonText, { width: 60, height: 20, borderRadius: 10 }, { opacity }]} />
+          </View>
+        </View>
+      </View>
+
+      {/* Card Footer Skeleton */}
+      <View style={styles.cardFooter}>
+        <Animated.View style={[styles.skeletonText, { width: "45%", height: 12 }, { opacity }]} />
+        <Animated.View style={[styles.skeletonText, { width: 70, height: 28, borderRadius: 16 }, { opacity }]} />
+      </View>
+    </View>
+  );
+};
 
 export const InterestSentCard = ({ sortBy = "datetime" }) => {
   const navigation = useNavigation();
@@ -29,12 +94,12 @@ export const InterestSentCard = ({ sortBy = "datetime" }) => {
   const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  // Add new state variables for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
   const [allProfileIds, setAllProfileIds] = useState({});
+  const [isPlatinumModalVisible, setIsPlatinumModalVisible] = useState(false);
 
   const loadProfiles = async (page = 1, isInitialLoad = false) => {
     if ((isLoading && isInitialLoad) || (isLoadingMore && !isInitialLoad))
@@ -59,7 +124,7 @@ export const InterestSentCard = ({ sortBy = "datetime" }) => {
       } else if (response && response.data) {
         const newProfiles = response.data.profiles || [];
         const bookmarkedIds = new Set();
-        newProfiles.forEach(profile => {
+        newProfiles.forEach((profile) => {
           if (profile.myint_profile_wishlist === 1) {
             bookmarkedIds.add(profile.myint_profileid);
           }
@@ -72,22 +137,22 @@ export const InterestSentCard = ({ sortBy = "datetime" }) => {
             ...prevProfiles,
             ...newProfiles,
           ]);
-          setBookmarkedProfiles(prev => new Set([...prev, ...bookmarkedIds]));
+          setBookmarkedProfiles((prev) => new Set([...prev, ...bookmarkedIds]));
         }
 
         setTotalPages(response.data.total_pages || 1);
         setTotalRecords(response.data.total_records || 0);
         setCurrentPage(page);
-        // Update profile IDs mapping
+
         const profileIds = response.data.profiles.reduce((acc, profile, index) => {
-          const globalIndex = (page - 1) * perPage + index; // Calculate global index based on page
+          const globalIndex = (page - 1) * perPage + index;
           acc[globalIndex] = profile.myint_profileid;
           return acc;
         }, {});
 
-        setAllProfileIds(prev => ({
+        setAllProfileIds((prev) => ({
           ...prev,
-          ...profileIds
+          ...profileIds,
         }));
       } else {
         setError("No profiles found or error in response.");
@@ -103,15 +168,10 @@ export const InterestSentCard = ({ sortBy = "datetime" }) => {
     }
   };
 
-  // useEffect(() => {
-  //   loadProfiles(1, true);
-  // }, [sortBy]);
   const loadProfilesCallback = useCallback(() => {
-    // Reset to page 1 and load initially when the screen is focused
     loadProfiles(1, true);
-  }, [sortBy]); // Dependency array should include sortBy
+  }, [sortBy]);
 
-  // Use useFocusEffect to call loadProfiles every time the screen is focused
   useFocusEffect(loadProfilesCallback);
 
   const handleEndReached = () => {
@@ -120,30 +180,9 @@ export const InterestSentCard = ({ sortBy = "datetime" }) => {
     }
   };
 
-  const renderFooter = () => {
-    if (!isLoadingMore) return null;
-
-    return (
-      <View style={styles.footer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.footerText}>Loading more profiles...</Text>
-      </View>
-    );
-  };
-
-  const getImageSource = (image) => {
-    if (!image)
-      return {
-        uri: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fstock.adobe.com%2Fsearch%2Fimages%3Fk%3Ddefault%2Bimage&psig=AOvVaw28Px6jC5wsx4TWxwOrHJT2&ust=1726388184602000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCMCfpqb_wYgDFQAAAAAdAAAAABAE",
-      }; // Fallback image
-    if (Array.isArray(image)) {
-      return { uri: image[0] }; // Use the first image if it's an array
-    }
-    return { uri: image }; // Direct URL case
-  };
-
   const handleSavePress = async (profileId) => {
-    const newStatus = bookmarkedProfiles.has(profileId) ? "0" : "1";
+    const isCurrentlySaved = bookmarkedProfiles.has(profileId);
+    const newStatus = isCurrentlySaved ? "0" : "1";
     const success = await handleBookmark(profileId, newStatus);
 
     if (success) {
@@ -167,11 +206,10 @@ export const InterestSentCard = ({ sortBy = "datetime" }) => {
       }
       setBookmarkedProfiles(updatedBookmarkedProfiles);
 
-      // Update the profiles state to reflect the bookmark change
-      setProfiles(prevProfiles =>
-        prevProfiles.map(profile =>
-          profile.viwed_profileid === profileId
-            ? { ...profile, viwed_profile_wishlist: newStatus === "1" ? 1 : 0 }
+      setProfiles((prevProfiles) =>
+        prevProfiles.map((profile) =>
+          profile.myint_profileid === profileId
+            ? { ...profile, myint_profile_wishlist: newStatus === "1" ? 1 : 0 }
             : profile
         )
       );
@@ -185,185 +223,461 @@ export const InterestSentCard = ({ sortBy = "datetime" }) => {
     }
   };
 
-  // const handleProfileClick = async (viewedProfileId) => {
-  //   navigation.navigate("ProfileDetails", {
-  //     viewedProfileId,
-  //     allProfileIds,
-  //   });
-  // };
-
   const handleProfileClick = async (viewedProfileId) => {
-    const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
-    console.log('profile view msg', profileCheckResponse)
+    try {
+      const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
 
-    // 2. Check if the API returned any failure
-    if (profileCheckResponse?.status === "failure") {
-      Toast.show({
-        type: "error",
-        // text1: "Profile Error", // You can keep this general
-        text1: profileCheckResponse.message, // <-- This displays the exact API message
-        position: "top",
-      });
-      return; // Stop the function
-    }
+      if (
+        profileCheckResponse?.status === "failure" &&
+        profileCheckResponse.message === "Profile visibility restricted"
+      ) {
+        setIsPlatinumModalVisible(true);
+        return;
+      }
 
-    const success = await logProfileVisit(viewedProfileId);
+      if (profileCheckResponse?.status === "failure") {
+        Toast.show({
+          type: "error",
+          text1: profileCheckResponse.message,
+          position: "top",
+        });
+        return;
+      }
 
-    if (success) {
-      // Toast.show({
-      //   type: "success",
-      //   text1: "Profile Viewed",
-      //   text2: `You have viewed profile ${viewedProfileId}.`,
-      //   position: "top",
-      // });
-      // navigation.navigate("ProfileDetails", { id });
-      navigation.navigate("ProfileDetails", {
-        viewedProfileId,
-        allProfileIds
-      });
-    } else {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to log profile visit.",
-        position: "top",
-      });
+      const success = await logProfileVisit(viewedProfileId);
+
+      if (success) {
+        navigation.navigate("ProfileDetails", {
+          viewedProfileId,
+          allProfileIds,
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to log profile visit.",
+          position: "top",
+        });
+      }
+    } catch (error) {
+      console.error("Profile Click Error:", error);
+      const serverMessage =
+        error?.response?.data?.message || error?.message || "";
+      if (serverMessage === "Profile visibility restricted") {
+        setIsPlatinumModalVisible(true);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Unable to open profile. Please check your connection.",
+          position: "top",
+        });
+      }
     }
   };
 
+  const MarriageBadge = ({ badgeUrl }) => {
+    const [badgeLoaded, setBadgeLoaded] = useState(false);
 
-  const renderItem = ({ item: profile }) => (
-    <TouchableOpacity
-      key={profile.myint_profileid}
-      style={styles.profileDiv}
-      onPress={() =>
-        !profile.visited_marriage_check &&
-        handleProfileClick(profile.myint_profileid)
-      }
-      activeOpacity={profile.visited_marriage_check ? 1 : 0.7}
-    >
-      <View style={styles.profileContainer}>
-        {/* <Image
-          source={getImageSource(profile.myint_Profile_img)}
-          style={styles.profileImage}
-        /> */}
-        {/* <TopAlignedImage
-          uri={Array.isArray(profile.myint_Profile_img) ? profile.myint_Profile_img[0] : profile.myint_Profile_img}
-          width={120}
-          height={120}
-        /> */}
-        <View style={styles.imageWrapper}>
-          <TopAlignedImage
-            uri={
-              Array.isArray(profile.myint_Profile_img)
-                ? profile.myint_Profile_img[0]
-                : profile.myint_Profile_img
-            }
-            width={120}
-            height={120}
+    return (
+      <View style={styles.marriageBadgeOverlay}>
+        <View style={styles.marriageBadgeCircle}>
+          {!badgeLoaded && (
+            <ActivityIndicator size="small" color={Colors.secondaryGold} />
+          )}
+          <Image
+            source={{ uri: badgeUrl || MARRIAGE_BADGE_URI }}
+            style={[
+              styles.marriageBadgeImg,
+              !badgeLoaded && { opacity: 0 },
+            ]}
+            resizeMode="contain"
+            onLoad={() => setBadgeLoaded(true)}
+            fadeDuration={150}
           />
-
-          {profile.visited_marriage_check && (
-            <View style={styles.badgeOverlay}>
-              <Image
-                source={{ uri: profile.visited_marriage_badge }}
-                style={styles.marriageBadge}
-                resizeMode="contain"
-              />
-            </View>
-          )}
-
-          {!profile.visited_marriage_check && (
-            <TouchableOpacity
-              onPress={() => handleSavePress(profile.myint_profileid)}
-              style={styles.saveIconContainer}
-            >
-              <MaterialIcons
-                name={
-                  bookmarkedProfiles.has(profile.myint_profileid)
-                    ? "bookmark"
-                    : "bookmark-border"
-                }
-                size={20}
-                color="red"
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <View style={styles.profileContent}>
-          <View style={styles.nameContainer}>
-            <Text
-              style={[styles.profileName, { flexShrink: 1 }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {profile.myint_profile_name || "N/A"}
-            </Text>
-
-            <Text style={styles.profileId}>
-              ({profile.myint_profileid || "N/A"})
-            </Text>
-          </View>
-          <Text style={styles.profileAge}>
-            {profile.myint_profile_age || "N/A"} Yrs <Text style={styles.line}>|</Text>{" "}
-            {profile.myint_height?.height_desc || "N/A"}
-          </Text>
-          <Text style={styles.zodiac}> {profile.myint_star || "N/A"}</Text>
-          <Text style={styles.employed}> {profile.myint_profession || "N/A"}</Text>
-          <Text style={styles.lastVisit}>
-            Express Interest on {profile.myint_lastvisit || "N/A"}
-          </Text>
         </View>
       </View>
-    </TouchableOpacity>
-  );
+    );
+  };
+
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
+        <Text style={styles.loadingMoreText}>Loading more profiles…</Text>
+      </View>
+    );
+  };
 
   return (
-    <FlatList
-      data={profiles}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.myint_profileid.toString()}
-      style={styles.profileScrollView}
-      showsVerticalScrollIndicator={false}
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.2}
-      ListFooterComponent={() => (
-        <>
-          {renderFooter()}
-          <View style={styles.suggestedWrapper}>
-            <SuggestedProfiles />
-            {/* <FeaturedProfiles /> */}
-          </View>
-        </>
-      )}
-      initialNumToRender={10}
-      maxToRenderPerBatch={10}
-      windowSize={10}
-      ListEmptyComponent={
-        isLoading ? (
-          <View style={styles.emptyContainer}>
-            <ActivityIndicator size="large" color="#0000ff" />
-          </View>
-        ) : (
-          <ProfileNotFound />
-        )
-      }
-    />
+    <View style={styles.profileScrollView}>
+      <FlatList
+        data={profiles}
+        keyExtractor={(item) => String(item.myint_profileid)}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.2}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        ListFooterComponent={() => (
+          <>
+            {renderFooter()}
+            <View style={styles.suggestedWrapper}>
+              <SuggestedProfiles />
+            </View>
+          </>
+        )}
+        ListEmptyComponent={
+          isLoading ? (
+            <View style={{ width: "100%" }}>
+              <InterestSentCardSkeleton />
+              <InterestSentCardSkeleton />
+              <InterestSentCardSkeleton />
+            </View>
+          ) : (
+            <ProfileNotFound />
+          )
+        }
+        renderItem={({ item: profile }) => {
+          const isMarried = Boolean(profile.visited_marriage_check);
+          const isSaved = bookmarkedProfiles.has(profile.myint_profileid);
+          const rawImage = Array.isArray(profile.myint_Profile_img)
+            ? profile.myint_Profile_img[0]
+            : profile.myint_Profile_img;
+
+          const matchScore =
+            profile.myint_match_score ??
+            profile.matching_score ??
+            profile.matchScore ??
+            0;
+
+          const ageHeightText = `${profile.myint_profileid || "N/A"} · ${
+            profile.myint_profile_age || "N/A"
+          } yrs · ${profile.myint_height?.height_desc || "N/A"}`;
+
+          // Formatted Profession Text with Degree Fallback
+          const professionText =
+            [profile.myint_degree, profile.myint_profession]
+              .filter((v) => v && v !== "Not mentioned" && v !== "Not working")
+              .join(" · ") ||
+            profile.myint_profession ||
+            "N/A";
+
+          // Location extraction
+          const locationText = profile.myint_city || profile.myint_location;
+
+          return (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() =>
+                !isMarried && handleProfileClick(profile.myint_profileid)
+              }
+              activeOpacity={isMarried ? 1 : 0.92}
+            >
+              <View style={styles.cardBody}>
+                {/* Profile Image Wrapper */}
+                <View style={styles.imageWrapper}>
+                  <TopAlignedImage
+                    uri={rawImage}
+                    width={rs(110, 120, 130)}
+                    height={rs(120, 130, 140)}
+                    blurRadius={profile.photo_protection === 1 ? 15 : 0}
+                    style={{ borderRadius: 14 }}
+                  />
+
+                  {profile.photo_protection === 1 && (
+                    <View style={styles.lockOverlay}>
+                      <MaterialIcons name="lock" size={22} color="#FFFFFF" />
+                    </View>
+                  )}
+
+                  {isMarried ? (
+                    <MarriageBadge badgeUrl={profile.visited_marriage_badge} />
+                  ) : null}
+                </View>
+
+                {/* Profile Information Column */}
+                <View style={styles.infoCol}>
+                  <View style={styles.nameRow}>
+                    <Text style={styles.profileName} numberOfLines={1}>
+                      {profile?.myint_profile_name || "N/A"}
+                    </Text>
+
+                    {profile.myint_verified === 1 && (
+                      <MaterialIcons
+                        name="verified"
+                        size={16}
+                        color={Colors.primary}
+                        style={{ marginLeft: 4 }}
+                      />
+                    )}
+
+                    {Number(matchScore) > 50 && (
+                      <View style={styles.matchChip}>
+                        <Text style={styles.matchChipText}>
+                          {matchScore}% match
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <Text style={styles.subtext}>{ageHeightText}</Text>
+
+                  <Text style={styles.professionText} numberOfLines={1}>
+                    {professionText}
+                  </Text>
+
+                  {locationText ? (
+                    <View style={styles.locationRow}>
+                      <Ionicons
+                        name="location-outline"
+                        size={13}
+                        color={Colors.textMuted || "#888888"}
+                      />
+                      <Text style={styles.locationText}>{locationText}</Text>
+                    </View>
+                  ) : null}
+
+                  {profile.myint_star ? (
+                    <View style={styles.tagsRow}>
+                      <View style={styles.tag}>
+                        <Text style={styles.tagText}>{profile.myint_star}</Text>
+                      </View>
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+
+              {/* Card Footer Actions */}
+              <View style={styles.cardFooter}>
+                <Text style={styles.lastActiveText}>
+                  Expressed Interest on {profile.myint_lastvisit || "N/A"}
+                </Text>
+
+                <View style={styles.btnGroup}>
+                  {!isMarried && (
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e?.stopPropagation?.();
+                        handleSavePress(profile.myint_profileid);
+                      }}
+                      style={[
+                        styles.shortlistBtn,
+                        isSaved && styles.shortlistBtnSaved,
+                      ]}
+                    >
+                      <MaterialIcons
+                        name={isSaved ? "bookmark" : "bookmark-border"}
+                        size={16}
+                        color={
+                          isSaved ? Colors.chipActiveText : Colors.textDark
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.shortlistBtnText,
+                          isSaved && styles.shortlistBtnTextSaved,
+                        ]}
+                      >
+                        {isSaved ? "Saved" : "Shortlist"}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        }}
+      />
+
+      <PlatinumModalPopup
+        visible={isPlatinumModalVisible}
+        onClose={() => setIsPlatinumModalVisible(false)}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-
   profileScrollView: {
+    flex: 1,
     width: "100%",
-    paddingBottom: 50,
+  },
+  scrollContent: {
+    paddingVertical: 12,
+    paddingHorizontal: rs(12, 14, 16),
+    paddingBottom: 100,
+  },
+  card: {
+    backgroundColor: Colors.cardBackground || "#FFFFFF",
+    borderRadius: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+    overflow: "hidden",
+  },
+  cardBody: {
+    flexDirection: "row",
+    padding: 12,
+    gap: 12,
+  },
+  imageWrapper: {
+    borderRadius: 14,
+    overflow: "hidden",
+    position: "relative",
+    alignSelf: "flex-start",
+  },
+  marriageBadgeOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(160,160,160,0.45)",
+    borderRadius: 14,
+  },
+  marriageBadgeCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#F0EFEB",
+    borderWidth: 2.5,
+    borderColor: "#E2B13C",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  marriageBadgeImg: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+  },
+  lockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  infoCol: { flex: 1 },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "nowrap",
+  },
+  profileName: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: Colors.textDark,
+    flexShrink: 1,
+    maxWidth: "50%",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -1,
+  },
+  matchChip: {
+    marginLeft: "auto",
+    backgroundColor: Colors.secondaryGold,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  matchChipText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 11,
+  },
+  subtext: {
+    fontSize: 13,
+    color: Colors.textMuted || "#888888",
+    marginTop: 3,
+  },
+  professionText: {
+    fontSize: 13,
+    color: Colors.textMuted || "#888888",
+    marginTop: 4,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    marginTop: 4,
+  },
+  locationText: {
+    fontSize: 12,
+    color: Colors.textMuted || "#888888",
+  },
+  tagsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 6,
+    gap: 4,
+  },
+  tag: {
+    backgroundColor: Colors.selectedBg ?? "#E8E0D5",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  tagText: {
+    fontSize: 11,
+    color: Colors.textMuted,
+    fontWeight: "500",
+  },
+  cardFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  lastActiveText: {
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
+  btnGroup: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  shortlistBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  shortlistBtnSaved: {
+    backgroundColor: Colors.chipActiveBg,
+    borderColor: "transparent",
+  },
+  shortlistBtnText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.textDark,
+  },
+  shortlistBtnTextSaved: {
+    color: Colors.chipActiveText,
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    paddingBottom: 40,
+    alignItems: "center",
+    minHeight: 60,
+  },
+  loadingMoreText: {
+    marginTop: 10,
+    fontSize: 13,
+    color: Colors.textMuted || "#71717A",
+    fontWeight: "600",
   },
   suggestedWrapper: {
     width: "100%",
@@ -371,152 +685,15 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     marginTop: 20,
   },
-  profileDiv: {
-    width: "100%",
-    paddingHorizontal: 10,
+  // ── Skeleton Loader Styles ──
+  skeletonImage: {
+    width: rs(110, 120, 130),
+    height: rs(120, 130, 140),
+    borderRadius: 14,
+    backgroundColor: "#E1E9EE",
   },
-
-  profileContainer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    borderRadius: 8,
-    padding: 8,
-    marginVertical: 7,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-
-  saveIcon: {
-    position: "absolute",
-    left: -25,
-    top: 5,
-  },
-
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 0,
-  },
-
-  nameContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-  },
-
-  profileContent: {
-    paddingLeft: 10,
-    flex: 1,
-  },
-
-  profileName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#FF6666",
-    fontFamily: "inter",
-    marginBottom: 10,
-    flexShrink: 1,
-  },
-
-  profileId: {
-    fontSize: 14,
-    color: "#85878C",
-    fontWeight: "700",
-    marginBottom: 10,
-    marginLeft: 0,
-  },
-
-  profileAge: {
-    fontSize: 14,
-    color: "#4F515D",
-    marginBottom: 5,
-  },
-
-  line: {},
-
-  zodiac: {
-    fontSize: 14,
-    color: "#4F515D",
-    marginBottom: 5,
-  },
-
-  employed: {
-    fontSize: 14,
-    color: "#4F515D",
-  },
-  loader: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorText: {
-    color: "red",
-    textAlign: "center",
-    margin: 20,
-    fontSize: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#000000",
-    textAlign: "center",
-    fontweight: "bold",
-  },
-  footer: {
-    paddingVertical: 20,
-    alignItems: "center",
-  },
-  footerText: {
-    color: "#666",
-    marginTop: 5,
-  },
-  lastVisit: {
-    fontSize: 14,
-    color: "#4F515D",
-    marginTop: 5,
-    marginLeft: 2,
-  },
-  imageWrapper: {
-    width: 120,
-    height: 120,
-    borderRadius: 8,
-    overflow: "hidden",
-    position: "relative",
-  },
-
-  badgeOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  marriageBadge: {
-    width: 60,
-    height: 60,
-    backgroundColor: "#F8EFE0",
-    borderRadius: 30,
-    padding: 5,
-  },
-
-  saveIconContainer: {
-    position: "absolute",
-    top: 5,
-    right: 5,
-    zIndex: 10,
+  skeletonText: {
+    backgroundColor: "#E1E9EE",
+    borderRadius: 4,
   },
 });

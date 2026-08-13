@@ -77,12 +77,6 @@ export const VysassistResults = () => {
           <Text style={styles.headerTitle}>Vysassist Notes</Text>
           <Text style={styles.headerSubtitle}>{count} profiles matched</Text>
         </View>
-        <TouchableOpacity
-          style={styles.filterIconBtn}
-          onPress={() => navigation.navigate("Search")}
-        >
-          <Ionicons name="options-outline" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
       </LinearGradient>
 
       <View style={styles.bodyContainer}>

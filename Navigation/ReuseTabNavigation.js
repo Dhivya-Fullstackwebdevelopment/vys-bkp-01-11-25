@@ -19,16 +19,16 @@ const tabs = [
     route: 'Search',
   },
   {
-    name: 'DashBoard',
-    activeIcon: 'grid',
-    inactiveIcon: 'grid-outline',
-    route: 'DashBoard',
-  },
-  {
     name: 'Alerts',
     activeIcon: 'notifications',
     inactiveIcon: 'notifications-outline',
     route: 'Notifications',
+  },
+  {
+    name: 'DashBoard',
+    activeIcon: 'grid',
+    inactiveIcon: 'grid-outline',
+    route: 'DashBoard',
   },
   {
     name: 'Profile',
