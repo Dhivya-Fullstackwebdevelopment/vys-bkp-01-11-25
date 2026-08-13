@@ -219,7 +219,7 @@ export const UploadImages = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* ── Gradient Header (like Search) ────────────────────────────────── */}
+      {/* ── Gradient Header ────────────────────────────────────────────── */}
       <LinearGradient
         colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
         start={{ x: 0, y: 0.5 }}
@@ -279,7 +279,7 @@ export const UploadImages = () => {
             Total Available Space: {(((totalSpace - usedSpace) / totalSpace) * 100).toFixed(0)}%
           </Text>
 
-          {/* Password protection checkbox */}
+          {/* ── Password protection checkbox ── */}
           <View style={styles.checkboxContainer}>
             <Pressable
               style={[styles.checkboxBase, checked && styles.checkboxChecked]}
@@ -287,7 +287,7 @@ export const UploadImages = () => {
             >
               {checked && <Ionicons name="checkmark" size={14} color="white" />}
             </Pressable>
-            <Pressable onPress={handleCheckboxToggle}>
+            <Pressable onPress={handleCheckboxToggle} style={styles.checkboxLabelWrapper}>
               <Text style={styles.checkboxLabel}>
                 Protect my images with password (only people you share the password can view the images)
               </Text>
@@ -299,7 +299,7 @@ export const UploadImages = () => {
               <Text style={styles.fieldLabel}>Enter Password</Text>
               <View style={styles.passwordContainer}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, styles.passwordInput]}
                   placeholder="Password"
                   placeholderTextColor={Colors.textMuted}
                   secureTextEntry={!showPassword}
@@ -446,7 +446,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.selectedBg || "#FBF5ED",
   },
-  // ── Header ──────────────────────────────────────────────────────────────
   headerBanner: {
     flexDirection: "row",
     alignItems: "center",
@@ -469,7 +468,6 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.7)",
     marginTop: 2,
   },
-  // ── Scroll content ─────────────────────────────────────────────────────
   scrollContainer: {
     flexGrow: 1,
     paddingVertical: rs(12, 16, 20),
@@ -582,10 +580,12 @@ const styles = StyleSheet.create({
     color: Colors.textMuted || "#71717A",
     textAlign: "right",
   },
+  // ── Fixed checkbox container ──
   checkboxContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
     marginVertical: 10,
+    width: "100%",
   },
   checkboxBase: {
     width: 20,
@@ -598,20 +598,31 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginTop: 2,
     backgroundColor: "transparent",
+    flexShrink: 0, // prevent checkbox from shrinking
   },
   checkboxChecked: {
     backgroundColor: Colors.primary || "#BD1225",
     borderColor: Colors.primary || "#BD1225",
   },
+  checkboxLabelWrapper: {
+    flex: 1,
+    flexShrink: 1,
+  },
   checkboxLabel: {
     fontSize: 14,
     color: Colors.textDark || "#1E1E1E",
-    flex: 1,
+    flexShrink: 1,
+    flexWrap: "wrap",
   },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
     position: "relative",
+  },
+  passwordInput: {
+    flex: 1,
+    paddingRight: 40,
   },
   passwordIcon: {
     position: "absolute",

@@ -5,13 +5,13 @@ import {
   View,
   TextInput,
   Pressable,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Platform,
   Modal,
   FlatList,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 import { AntDesign, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";

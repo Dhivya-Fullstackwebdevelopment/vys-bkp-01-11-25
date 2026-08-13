@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TextInput,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Platform,
@@ -24,6 +23,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../API/Apiurl";
 import CountryPicker from "react-native-country-picker-modal";
 import { Colors, rs } from "../Reusable/Theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export const EduDetails = () => {
   const navigation = useNavigation();
