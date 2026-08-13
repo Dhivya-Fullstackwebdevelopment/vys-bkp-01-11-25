@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
   StyleSheet,
+  Modal,
 } from "react-native";
 import * as ImagePicker from "react-native-image-picker";
 import { useNavigation } from "@react-navigation/native";
@@ -24,6 +25,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { Colors, rs } from "../../Reusable/Theme";
 import { SafeAreaView } from "react-native-safe-area-context";
+import axios from "axios";
 
 export const ProfileCompletionForm = () => {
   const [formData, setFormData] = useState({
@@ -31,7 +33,7 @@ export const ProfileCompletionForm = () => {
     Profile_idproof: null,
     horoscope_file: null,
     EmailId: "",
-    anual_income: "",
+    anual_income: "",        // Stores the annual income id directly
     property_worth: "",
     about_self: "",
     about_family: "",
@@ -44,11 +46,14 @@ export const ProfileCompletionForm = () => {
   const [error, setError] = useState("");
   const [formSubmitting, setFormSubmitting] = useState(false);
   const navigation = useNavigation();
+  const [annualIncomeOptions, setAnnualIncomeOptions] = useState([]);
+  const [incomeDropdownVisible, setIncomeDropdownVisible] = useState(false);
+  const [incomeLoading, setIncomeLoading] = useState(false);
 
   // ── Map API field → state key ────────────────────────────────────────
   const getStateKey = (apiField) => {
     if (apiField === "image") return "photo_upload";
-    return apiField; // horoscope_file, Profile_idproof, etc.
+    return apiField;
   };
 
   // Reverse map: state key → API field (for file submission)
@@ -56,6 +61,45 @@ export const ProfileCompletionForm = () => {
     if (stateKey === "photo_upload") return "image";
     return stateKey;
   };
+
+  useEffect(() => {
+    const fetchAnnualIncome = async () => {
+      try {
+        setIncomeLoading(true);
+
+        const response = await axios.post(
+          "https://app.vysyamala.com/auth/Get_Annual_Income/"
+        );
+
+        console.log(
+          "Annual Income API ===>",
+          JSON.stringify(response.data)
+        );
+
+        const options = Object.values(response.data || {}).map((item) => ({
+          id: item.income_id,
+          description: item.income_description,
+        }));
+
+        setAnnualIncomeOptions(options);
+      } catch (error) {
+        console.error(
+          "Annual Income API Error ===>",
+          error?.response?.data || error.message
+        );
+
+        Toast.show({
+          type: "error",
+          text1: "Failed to load annual income",
+          position: "top",
+        });
+      } finally {
+        setIncomeLoading(false);
+      }
+    };
+
+    fetchAnnualIncome();
+  }, []);
 
   useEffect(() => {
     const fetchEmptyFields = async () => {
@@ -81,8 +125,6 @@ export const ProfileCompletionForm = () => {
   // ── File upload with mapping ──────────────────────────────────────────
   const handleFileChange = (apiField) => {
     ImagePicker.launchImageLibrary({ mediaType: "photo" }, (response) => {
-      console.log("Response = ", response);
-
       if (
         !response.didCancel &&
         !response.errorCode &&
@@ -109,10 +151,20 @@ export const ProfileCompletionForm = () => {
     // Check if at least one field is filled
     const isAnyFieldFilled = Object.keys(formData).some((key) => {
       const value = formData[key];
-      return (
-        (typeof value === "string" && value.trim() !== "") ||
-        (typeof value === "object" && value?.uri)
-      );
+
+      if (value === null || value === undefined) return false;
+
+      // Handle string or numeric values (e.g., income_id = 12)
+      if (typeof value === "string" || typeof value === "number") {
+        return String(value).trim() !== "";
+      }
+
+      // Handle file upload objects
+      if (typeof value === "object" && value?.uri) {
+        return true;
+      }
+
+      return false;
     });
 
     if (!isAnyFieldFilled) {
@@ -128,17 +180,21 @@ export const ProfileCompletionForm = () => {
     const formDataToSend = new FormData();
     formDataToSend.append("profile_id", profileId || "");
 
-    // Text fields
+    // Text & dropdown fields (anual_income sends the income_id directly)
     Object.keys(formData).forEach((key) => {
       const value = formData[key];
-      if (typeof value === "string" && value.trim() !== "") {
-        // Map state key back to API field name if needed
+
+      if (value !== null && value !== undefined && value !== "") {
         const apiKey = getApiField(key);
-        formDataToSend.append(apiKey, value);
+
+        formDataToSend.append(
+          apiKey,
+          String(value)
+        );
       }
     });
 
-    // File fields – use original API field names
+    // File fields
     const fileFields = ["image", "horoscope_file", "Profile_idproof"];
     fileFields.forEach((apiField) => {
       const stateKey = getStateKey(apiField);
@@ -196,15 +252,27 @@ export const ProfileCompletionForm = () => {
 
   const renderField = (apiField) => {
     const stateKey = getStateKey(apiField);
+
     const isFileUpload =
       apiField === "image" ||
       apiField === "horoscope_file" ||
       apiField === "Profile_idproof";
+
     const value = formData[stateKey] || "";
+
+    // Find the description matching the selected income_id stored in formData.anual_income
+    const selectedIncome = annualIncomeOptions.find(
+      (opt) => String(opt.id) === String(value)
+    );
+    const displayIncomeText = selectedIncome
+      ? selectedIncome.description
+      : "Select annual income";
 
     return (
       <View style={styles.fieldCard} key={apiField}>
-        <Text style={styles.fieldLabel}>{getFieldLabel(apiField)}</Text>
+        <Text style={styles.fieldLabel}>
+          {getFieldLabel(apiField)}
+        </Text>
 
         {isFileUpload ? (
           <TouchableOpacity
@@ -213,7 +281,10 @@ export const ProfileCompletionForm = () => {
             activeOpacity={0.7}
           >
             {value?.uri ? (
-              <Image source={{ uri: value.uri }} style={styles.uploadPreview} />
+              <Image
+                source={{ uri: value.uri }}
+                style={styles.uploadPreview}
+              />
             ) : (
               <View style={styles.uploadPlaceholder}>
                 <Ionicons
@@ -221,16 +292,117 @@ export const ProfileCompletionForm = () => {
                   size={32}
                   color={Colors.primary}
                 />
-                <Text style={styles.uploadText}>Tap to upload</Text>
+                <Text style={styles.uploadText}>
+                  Tap to upload
+                </Text>
               </View>
             )}
           </TouchableOpacity>
+        ) : apiField === "anual_income" ? (
+
+          // ==============================
+          // ANNUAL INCOME DROPDOWN
+          // ==============================
+          <>
+            <TouchableOpacity
+              style={styles.dropdown}
+              onPress={() => setIncomeDropdownVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.dropdownText,
+                  !selectedIncome && styles.dropdownPlaceholder,
+                ]}
+              >
+                {displayIncomeText}
+              </Text>
+
+              <Ionicons
+                name="chevron-down"
+                size={20}
+                color={Colors.textMuted}
+              />
+            </TouchableOpacity>
+
+            <Modal
+              visible={incomeDropdownVisible}
+              transparent
+              animationType="fade"
+              onRequestClose={() =>
+                setIncomeDropdownVisible(false)
+              }
+            >
+              <TouchableOpacity
+                style={styles.modalOverlay}
+                activeOpacity={1}
+                onPress={() =>
+                  setIncomeDropdownVisible(false)
+                }
+              >
+                <View style={styles.dropdownModal}>
+                  <Text style={styles.dropdownModalTitle}>
+                    Select Annual Income
+                  </Text>
+
+                  {incomeLoading ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={Colors.primary}
+                      style={{ paddingVertical: 20 }}
+                    />
+                  ) : (
+                    <ScrollView
+                      showsVerticalScrollIndicator={false}
+                      style={styles.incomeList}
+                    >
+                      {annualIncomeOptions.map((item) => (
+                        <TouchableOpacity
+                          key={item.id}
+                          style={styles.incomeOption}
+                          onPress={() => {
+                            // Stores income_id in formData.anual_income
+                            handleInputChange(
+                              "anual_income",
+                              item.id
+                            );
+
+                            setIncomeDropdownVisible(false);
+                          }}
+                        >
+                          <Text style={styles.incomeOptionText}>
+                            {item.description}
+                          </Text>
+
+                          {String(value) === String(item.id) && (
+                            <Ionicons
+                              name="checkmark"
+                              size={20}
+                              color={Colors.primary}
+                            />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  )}
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </>
         ) : (
+
+          // ==============================
+          // NORMAL TEXT INPUT
+          // ==============================
           <TextInput
             style={styles.textInput}
             value={value}
-            onChangeText={(text) => handleInputChange(stateKey, text)}
-            placeholder={`Enter ${getFieldLabel(apiField).toLowerCase()}`}
+            onChangeText={(text) =>
+              handleInputChange(stateKey, text)
+            }
+            placeholder={`Enter ${getFieldLabel(
+              apiField
+            ).toLowerCase()}`}
             placeholderTextColor={Colors.textMuted}
             multiline={
               apiField === "about_self" ||
@@ -239,15 +411,15 @@ export const ProfileCompletionForm = () => {
             }
             numberOfLines={
               apiField === "about_self" ||
-              apiField === "about_family" ||
-              apiField === "career_plans"
+                apiField === "about_family" ||
+                apiField === "career_plans"
                 ? 3
                 : 1
             }
             textAlignVertical={
               apiField === "about_self" ||
-              apiField === "about_family" ||
-              apiField === "career_plans"
+                apiField === "about_family" ||
+                apiField === "career_plans"
                 ? "top"
                 : "center"
             }
@@ -279,7 +451,6 @@ export const ProfileCompletionForm = () => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        {/* Gradient Header */}
         <LinearGradient
           colors={[
             Colors.primaryGradientStart || "#A00014",
@@ -299,7 +470,6 @@ export const ProfileCompletionForm = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Hero message */}
           <View style={styles.heroContainer}>
             <Text style={styles.heroTitle}>
               Your perfect match is waiting.{"\n"}Complete your profile now!
@@ -309,7 +479,6 @@ export const ProfileCompletionForm = () => {
             </Text>
           </View>
 
-          {/* Fields */}
           {emptyFields.length > 0 ? (
             emptyFields.map((field) => renderField(field))
           ) : (
@@ -325,7 +494,6 @@ export const ProfileCompletionForm = () => {
             </View>
           )}
 
-          {/* Submit Button */}
           {emptyFields.length > 0 && (
             <TouchableOpacity
               style={styles.submitWrapper}
@@ -342,7 +510,7 @@ export const ProfileCompletionForm = () => {
                 {formSubmitting ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.submitText}>Update Profile</Text>
+                  <Text style={styles.submitText}>Submit</Text>
                 )}
               </LinearGradient>
             </TouchableOpacity>
@@ -396,12 +564,11 @@ const styles = StyleSheet.create({
     color: Colors.cardBackground,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     marginLeft: 8,
-    lineSpacing: -1,
   },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 20,
-    paddingBottom: 120,   // ✅ Extra bottom spacing to avoid bottom tab overlap
+    paddingBottom: 120,
   },
   heroContainer: {
     marginBottom: 24,
@@ -414,7 +581,6 @@ const styles = StyleSheet.create({
     color: Colors.textDark,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     marginBottom: 4,
-    lineSpacing: -1,
   },
   heroSubtitle: {
     fontSize: rs(14, 15, 16),
@@ -477,6 +643,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   submitWrapper: {
+    width: "60%",
+    alignSelf: "center",
     marginTop: 8,
     marginBottom: 20,
     borderRadius: 30,
@@ -509,5 +677,61 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginTop: 12,
     textAlign: "center",
+  },
+  dropdown: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    minHeight: 44,
+    backgroundColor: Colors.background,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  dropdownText: {
+    flex: 1,
+    fontSize: rs(14, 15, 16),
+    color: Colors.textDark,
+  },
+  dropdownPlaceholder: {
+    color: Colors.textMuted,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  dropdownModal: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    maxHeight: "75%",
+    padding: 16,
+  },
+  dropdownModalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.textDark,
+    marginBottom: 12,
+  },
+  incomeList: {
+    maxHeight: 450,
+  },
+  incomeOption: {
+    minHeight: 48,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  incomeOptionText: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.textDark,
   },
 });
