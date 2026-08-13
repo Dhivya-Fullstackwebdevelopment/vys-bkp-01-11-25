@@ -27,6 +27,7 @@ import {
     FontAwesome5,
     FontAwesome6,
     MaterialCommunityIcons,
+    Feather,
 } from "@expo/vector-icons";
 import { launchImageLibrary } from "react-native-image-picker";
 import * as Progress from "react-native-progress";
@@ -47,6 +48,7 @@ import config from '../../API/Apiurl';
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Alert } from "react-native";
+import { Colors, rs } from '../../Reusable/Theme';
 
 export const OtherSettings = () => {
     const navigation = useNavigation();
@@ -93,192 +95,6 @@ export const OtherSettings = () => {
     const rotationDelete = useRef(new Animated.Value(0)).current;
     const [showHideCalendar, setShowHideCalendar] = useState(false);
     const [calendarDate, setCalendarDate] = useState(new Date());
-    // const handleHideProfile = async () => {
-    //     try {
-    //         // Validation
-    //         if (!hideReason) {
-    //             Toast.show({
-    //                 type: "error",
-    //                 text1: "Hide Reason is required",
-    //                 position: "top",
-    //             });
-    //             return;
-    //         }
-
-    //         if (!profileId) {
-    //             Toast.show({
-    //                 type: "error",
-    //                 text1: "Profile ID is required",
-    //                 position: "top",
-    //             });
-    //             return;
-    //         }
-
-    //         if (!engagementDate) {
-    //             Toast.show({
-    //                 type: "error",
-    //                 text1: "Engagement Date is required",
-    //                 position: "top",
-    //             });
-    //             return;
-    //         }
-
-    //         if (hideReason === "Others" && !comments.trim()) {
-    //             Toast.show({
-    //                 type: "error",
-    //                 text1: "Please enter reason",
-    //                 position: "top",
-    //             });
-    //             return;
-    //         }
-
-    //         setHideLoading(true);
-
-    //         // Hide Profile API Payload
-    //         const payload = {
-    //             profile_id: profileId,
-    //             reason: hideReason === "Others" ? otherReason : hideReason,  // ✅
-    //             other_text: otherReason,       // ✅
-    //         };
-
-    //         console.log("Hide Profile Payload:", payload);
-
-    //         const response = await axios.post(
-    //             `${config.apiUrl}/auth/hide-profile/`,
-    //             payload,
-    //             {
-    //                 headers: {
-    //                     "Content-Type": "application/json",
-    //                 },
-    //             }
-    //         );
-
-    //         console.log(
-    //             "Hide Profile Response:",
-    //             response.data
-    //         );
-
-    //         if (response?.data?.Status === 1) {
-
-    //             // Call Marriage Settle API only for Marriage Settled
-    //             if (hideReason === "Marriage Settled") {
-
-    //                 const formData = new FormData();
-
-    //                 formData.append(
-    //                     "marriage_settled_comment",
-    //                     comments || ""
-    //                 );
-
-    //                 formData.append(
-    //                     "engagement_date",
-    //                     engagementDate
-    //                 );
-
-    //                 formData.append(
-    //                     "profile_id",
-    //                     profileId
-    //                 );
-
-    //                 console.log(
-    //                     "Marriage Settle Payload:",
-    //                     {
-    //                         marriage_settled_comment:
-    //                             comments || "",
-    //                         engagement_date:
-    //                             engagementDate,
-    //                         profile_id:
-    //                             profileId,
-    //                     }
-    //                 );
-
-    //                 await axios.post(
-    //                     `${config.apiUrl}/api/marriage-settle-details/create/`,
-    //                     formData,
-    //                     {
-    //                         headers: {
-    //                             "Content-Type":
-    //                                 "multipart/form-data",
-    //                         },
-    //                     }
-    //                 );
-
-    //                 Alert.alert(
-    //                     "Congratulations 💐",
-    //                     "May Lord Vasavi Kanyakaparameswari bless your married life.",
-    //                     [
-    //                         {
-    //                             text: "OK",
-    //                             onPress: () => {
-    //                                 navigation.navigate(
-    //                                     "UploadWedding"
-    //                                 );
-    //                             },
-    //                         },
-    //                     ]
-    //                 );
-
-    //                 return;
-    //             }
-
-    //             // Other Reasons
-    //             Alert.alert(
-    //                 "Success",
-    //                 response?.data?.message ||
-    //                 "Your profile has been hidden successfully.",
-    //                 [
-    //                     {
-    //                         text: "OK",
-    //                         onPress: async () => {
-    //                             try {
-    //                                 await AsyncStorage.clear();
-
-    //                                 navigation.reset({
-    //                                     index: 0,
-    //                                     routes: [
-    //                                         {
-    //                                             name: "LoginPage",
-    //                                         },
-    //                                     ],
-    //                                 });
-    //                             } catch (err) {
-    //                                 console.log(
-    //                                     "Logout Error:",
-    //                                     err
-    //                                 );
-    //                             }
-    //                         },
-    //                     },
-    //                 ]
-    //             );
-    //         } else {
-    //             Toast.show({
-    //                 type: "error",
-    //                 text1: "Error",
-    //                 text2:
-    //                     response?.data?.message ||
-    //                     "Failed to hide profile",
-    //                 position: "top",
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.log(
-    //             "Hide Profile Error:",
-    //             error?.response?.data || error
-    //         );
-
-    //         Toast.show({
-    //             type: "error",
-    //             text1: "Error",
-    //             text2:
-    //                 error?.response?.data?.message ||
-    //                 "Something went wrong",
-    //             position: "top",
-    //         });
-    //     } finally {
-    //         setHideLoading(false);
-    //     }
-    // };
 
     const onHideDateChange = (event, selectedDate) => {
         if (Platform.OS === 'android') {
@@ -784,33 +600,6 @@ export const OtherSettings = () => {
     const [checkedAlerts, setCheckedAlerts] = useState({}); // To track checked state
     const [pMenuOpen, setPMenuOpen] = useState(false);
 
-
-    // useEffect(() => {
-    //     const getAlertSettings = async () => {
-    //         try {
-    //             const alerts = await fetchAlertSettings();
-    //             console.log("alerts", alerts);
-    //             // Set the checked state based on the fetched alert IDs
-    //             const initialCheckedAlerts = {};
-    //             alerts.forEach(alert => {
-    //                 initialCheckedAlerts[`email_${alert.id}`] = true; // Assuming email and SMS have the same IDs
-    //                 initialCheckedAlerts[`sms_${alert.id}`] = true;
-    //             });
-
-    //             setCheckedAlerts(initialCheckedAlerts);
-
-    //             // Separate email and SMS alerts if needed
-    //             setEmailAlerts(alerts); // For simplicity, assuming all alerts are for email in this case
-    //             setSmsAlerts(alerts); // Same for SMS alerts
-    //         } catch (error) {
-    //             console.error('Error setting up alert settings:', error);
-    //         }
-    //     };
-
-    //     getAlertSettings();
-    // }, []);
-
-
     useEffect(() => {
         const fetchAlertSettings = async () => {
             try {
@@ -848,10 +637,6 @@ export const OtherSettings = () => {
 
         fetchAlertSettings();
     }, []);
-
-
-
-    // Function to handle file selection for different types
 
     // Function to handle checkbox toggle
     const handleCheckboxToggle = (id) => {
@@ -1249,673 +1034,69 @@ export const OtherSettings = () => {
         }
     };
 
+    // ── UI-only helper: section icon circle + chevron circle used across all accordions ──
+    const SectionHeader = ({ icon, iconLib, title, open, onPress }) => {
+        const IconLib = iconLib || MaterialIcons;
+        return (
+            <TouchableWithoutFeedback onPress={onPress}>
+                <View style={styles.detailsMenu}>
+                    <View style={styles.iconMenuFlex}>
+                        <View style={styles.accordionIconCircle}>
+                            <IconLib name={icon} size={18} color={Colors.matchingcirclecolor} />
+                        </View>
+                        <Text style={styles.menuName}>{title}</Text>
+                    </View>
+                    <View style={styles.chevronCircle}>
+                        <MaterialIcons
+                            name={open ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                            size={20}
+                            color="#8B0000"
+                        />
+                    </View>
+                </View>
+            </TouchableWithoutFeedback>
+        );
+    };
+
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: Colors.background || "#FAF6F0" }}>
             <ScrollView>
                 <View style={styles.container}>
-                    <View style={styles.headerContainer}>
-                        <TouchableOpacity onPress={() => navigation.goBack()}>
-                            <Ionicons name="arrow-back" size={24} color="#ED1E24" />
-                        </TouchableOpacity>
 
-                        <Text style={styles.headerText}>
-                            {"Other Settings"}
-                        </Text>
-                    </View>
-                    {/* <View style={styles.contentContainer}>
-                    <Text style={styles.profileName}>Other Settings */}
-                    {/* <Text style={styles.profileId}> (05)</Text> */}
-                    {/* </Text>
-                </View> */}
+                    {/* Gradient Header Banner — matches Home/Search style */}
+                    <LinearGradient
+                        colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={styles.headerBanner}
+                    >
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                            <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+                        </TouchableOpacity>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.headerTitle}>Other Settings</Text>
+                            <Text style={styles.headerSubtitle}>Manage your account & preferences</Text>
+                        </View>
+                    </LinearGradient>
 
                     {/* Alert Settings */}
-                    <View>
-                        <TouchableWithoutFeedback onPress={() => toggleMenu(pMenuOpen, setPMenuOpen, animatedHeightP, rotationP, 200)}>
-                            <View style={styles.detailsMenu}>
-                                <View style={styles.iconMenuFlex}>
-                                    <MaterialIcons name="notifications" size={18} color="#fff" style={styles.saveIcon} />
-                                    <Text style={styles.menuName}>Alert Settings</Text>
-                                </View>
-                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationP) }] }}>
-                                    <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
-                                </Animated.View>
-                            </View>
-                        </TouchableWithoutFeedback>
+                    <View style={styles.accordionCard}>
+                        <SectionHeader
+                            icon="notifications"
+                            title="Alert Settings"
+                            open={pMenuOpen}
+                            onPress={() => toggleMenu(pMenuOpen, setPMenuOpen, animatedHeightP, rotationP, 200)}
+                        />
 
-                        <Animated.View style={[styles.menuContainer, { height: pMenuOpen ? 'auto' : 0 }]}>
-                            {pMenuOpen && (
-                                <View style={styles.editOptions}>
-
-                                    {/* Hide Reason */}
-                                    <Text style={styles.label}>
-                                        Hide Reason <Text style={{ color: "red" }}>*</Text>
-                                    </Text>
-
-                                    <View
-                                        style={{
-                                            borderWidth: 1,
-                                            borderColor: "#D4D5D9",
-                                            borderRadius: 5,
-                                            marginBottom: 15,
-                                        }}
-                                    >
-                                        <Picker
-                                            selectedValue={hideReason}
-                                            onValueChange={(itemValue) =>
-                                                setHideReason(itemValue)
-                                            }
-                                        >
-                                            <Picker.Item
-                                                label="Select Reason"
-                                                value=""
-                                            />
-
-                                            <Picker.Item
-                                                label="Temporary Hide"
-                                                value="Temporary Hide"
-                                            />
-
-                                            <Picker.Item
-                                                label="Take a Break"
-                                                value="Take a Break"
-                                            />
-
-                                            <Picker.Item
-                                                label="Marriage Settled"
-                                                value="Marriage Settled"
-                                            />
-
-                                            <Picker.Item
-                                                label="Personal Reason"
-                                                value="Personal Reason"
-                                            />
-
-                                            <Picker.Item
-                                                label="Others"
-                                                value="Others"
-                                            />
-                                        </Picker>
-                                    </View>
-
-                                    {/* Others Reason */}
-                                    {hideReason === "Others" && (
-                                        <>
-                                            <Text style={styles.label}>
-                                                Enter Reason
-                                            </Text>
-
-                                            <TextInput
-                                                style={[styles.input, { height: 100 }]}
-                                                multiline
-                                                value={otherReason}           // ✅ FIXED
-                                                onChangeText={setOtherReason} // ✅ FIXED
-                                                placeholder="Enter your reason"
-                                            />
-                                        </>
-                                    )}
-
-                                    {/* Profile ID */}
-                                    <Text style={[styles.label, { marginTop: 10 }]}>
-                                        Vysyamala Groom/Bride ID
-                                        <Text style={{ color: "red" }}> *</Text>
-                                    </Text>
-
-                                    <TextInput
-                                        style={styles.input}
-                                        value={profileId}
-                                        onChangeText={setProfileId}
-                                        placeholder="Enter Profile ID"
-                                    />
-
-                                    {/* Engagement Date */}
-                                    <Text style={[styles.label, { marginTop: 10 }]}>
-                                        Engagement Date
-                                        <Text style={{ color: "red" }}> *</Text>
-                                    </Text>
-
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="YYYY-MM-DD"
-                                        value={engagementDate}
-                                        onChangeText={setEngagementDate}
-                                    />
-
-                                    {/* Comments */}
-                                    <Text style={[styles.label, { marginTop: 10 }]}>
-                                        Comments
-                                    </Text>
-
-                                    <TextInput
-                                        style={[
-                                            styles.input,
-                                            { height: 100 }
-                                        ]}
-                                        multiline
-                                        value={comments}
-                                        onChangeText={setComments}
-                                        placeholder="Comments"
-                                    />
-
-                                    <TouchableOpacity
-                                        style={styles.btn}
-                                        onPress={handleHideProfile}
-                                        disabled={hideLoading}
-                                    >
-                                        <LinearGradient
-                                            colors={["#BD1225", "#FF4050"]}
-                                            style={styles.linearGradient}
-                                        >
-                                            <Text style={styles.login}>
-                                                {hideLoading
-                                                    ? "Submitting..."
-                                                    : "Submit"}
-                                            </Text>
-                                        </LinearGradient>
-                                    </TouchableOpacity>
-
-                                </View>
-                            )}
-                        </Animated.View>
-                    </View>
-
-                    {/* Education & Profession Details */}
-                    <View>
-                        <TouchableWithoutFeedback onPress={() => toggleMenu(eduMenuOpen, setEduMenuOpen, animatedHeightEdu, rotationEdu, 800)}>
-                            <View style={styles.detailsMenu}>
-                                <View style={styles.iconMenuFlex}>
-                                    <MaterialIcons name="image" size={18} color="#fff" style={styles.saveIcon} />
-                                    <Text style={styles.menuName}>Photo / ID Settings</Text>
-                                </View>
-
-                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationEdu) }] }}>
-                                    <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
-                                </Animated.View>
-                            </View>
-                        </TouchableWithoutFeedback>
-
-                        {/* {eduMenuOpen && (
-                            <View style={styles.editOptions}>
-                                <View style={styles.formContainer}>
-                                    <View style={styles.checkboxContainer}>
-                                        <Pressable
-                                            style={[styles.checkboxBase, checked && styles.checkboxChecked]}
-                                            onPress={handleCheckboxTogglePassword}
-                                        >
-                                            {checked && <Ionicons name="checkmark" size={14} color="white" />}
-                                        </Pressable>
-
-                                        <Pressable onPress={handleCheckboxTogglePassword}>
-                                            <Text style={styles.checkboxLabel}>
-                                                Protect my images with password (only people you share the password can view the images)
-                                            </Text>
-                                        </Pressable>
-                                    </View>
-
-                                    {checked && (
-                                        <View>
-                                            <Text style={styles.label}>
-                                                Enter Password<Text style={styles.redText}>*</Text>
-                                            </Text>
-                                            <TextInput
-                                                style={styles.input}
-                                                placeholder="Password"
-                                                secureTextEntry={!showPassword}
-                                                value={password}
-                                                onChangeText={setPassword}
-                                            />
-                                            <Pressable
-                                                onPress={togglePasswordVisibility}
-                                                style={styles.passwordIDIcon}
-                                            >
-                                                <AntDesign
-                                                    name={showPassword ? 'eye' : 'eyeo'}
-                                                    size={18}
-                                                    color="#535665"
-                                                />
-                                            </Pressable>
-                                        </View>
-                                    )}
-                                    {checked && (
-                                        <Button title="Save" onPress={handleSavePassword} />
-                                    )}
-                                </View>
-                            </View>
-                        )} */}
-                        {eduMenuOpen && (
-                            <View style={styles.editOptions}>
-
-                                {/* Horoscope Image */}
-                                <View style={{ marginBottom: 20 }}>
-                                    <Text style={styles.label}>Horoscope Image</Text>
-                                    <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage('horoscope')}>
-                                        <Text style={styles.uploadText}>
-                                            {horoscopeFile ? horoscopeFile.fileName : `Select Horoscope Image`}
-                                        </Text>
-                                    </TouchableOpacity>
-                                    {uploadedHoroscope && !horoscopeFile && (
-                                        <View style={styles.fileItem}>
-                                            <Image source={{ uri: uploadedHoroscope }} style={styles.fileImage} />
-                                            <View style={styles.fileDetails}>
-                                                <Text style={styles.checkboxLabel} numberOfLines={1}>
-                                                    {uploadedHoroscope.split('/').pop()}
-                                                </Text>
-                                                <Text style={styles.uploadedStatus}>Uploaded Files</Text>
-                                            </View>
-                                        </View>
-                                    )}
-                                </View>
-
-                                {/* ID Proof */}
-                                <View style={{ marginBottom: 20 }}>
-                                    <Text style={styles.label}>ID Proof</Text>
-                                    <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage('idproof')}>
-                                        <Text style={styles.uploadText}>
-                                            {idProofFile ? idProofFile.fileName : `Select ID Proof`}
-                                        </Text>
-                                    </TouchableOpacity>
-                                    {uploadedIDProof && !idProofFile && (
-                                        <View style={styles.fileItem}>
-                                            <Image source={{ uri: uploadedIDProof }} style={styles.fileImage} />
-                                            <View style={styles.fileDetails}>
-                                                <Text style={styles.checkboxLabel} numberOfLines={1}>
-                                                    {uploadedIDProof.split('/').pop()}
-                                                </Text>
-                                                <Text style={styles.uploadedStatus}>Uploaded Files</Text>
-                                            </View>
-                                        </View>
-                                    )}
-                                </View>
-
-                                {/* Divorce Proof - only for marital status 2 */}
-                                {maritalStatus === "2" && (
-                                    <View style={{ marginBottom: 20 }}>
-                                        <Text style={styles.label}>Divorce Proof</Text>
-                                        <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage('divorce')}>
-                                            <Text style={styles.uploadText}>
-                                                {divorceFile ? divorceFile.fileName : `Select Divorce Proof`}
-                                            </Text>
-                                        </TouchableOpacity>
-                                        {uploadedDivorceProof && !divorceFile && (
-                                            <View style={styles.fileItem}>
-                                                <Image source={{ uri: uploadedDivorceProof }} style={styles.fileImage} />
-                                                <View style={styles.fileDetails}>
-                                                    <Text style={styles.checkboxLabel} numberOfLines={1}>
-                                                        {uploadedDivorceProof.split('/').pop()}
-                                                    </Text>
-                                                    <Text style={styles.uploadedStatus}>Uploaded Files</Text>
-                                                </View>
-                                            </View>
-                                        )}
-                                    </View>
-                                )}
-
-                                {/* Password Protection */}
-                                <View style={styles.checkboxContainer}>
-                                    <Pressable style={[styles.checkboxBase, checked && styles.checkboxChecked]} onPress={() => setChecked(!checked)}>
-                                        {checked && <Ionicons name="checkmark" size={14} color="white" />}
-                                    </Pressable>
-                                    <Text style={styles.checkboxLabel}>Protect my images with password (only people you share the password with can view the images)</Text>
-                                </View>
-
-                                {checked && (
-                                    <View style={styles.passwordInputContainer}>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Enter Password"
-                                            secureTextEntry={!showPassword}
-                                            value={password}
-                                            onChangeText={setPassword}
-                                        />
-                                        <Pressable
-                                            onPress={() => setShowPassword(!showPassword)}
-                                            style={styles.passwordIcon}
-                                        >
-                                            <Ionicons
-                                                name={showPassword ? "eye" : "eye-off"}
-                                                size={18}
-                                                color="#535665"
-                                            />
-                                        </Pressable>
-                                    </View>
-                                )}
-
-                                {/* Video URL */}
-                                <Text style={[styles.label, { marginTop: 15 }]}>Upload Video Link</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="URL"
-                                    value={videoUrl}
-                                    onChangeText={setVideoUrl}
-                                />
-                                <Text style={styles.checkboxLabel}>
-                                    Note: If video link is not available, you can share the videos to Vysyamala's admin WhatsApp No.9043085524.
-                                </Text>
-
-                                {currentPlanId === "16" && (
-                                    <>
-                                        <Text style={[styles.label, { marginTop: 10 }]}>Delight Visibility Setting</Text>
-                                        <View style={styles.radioRow}>
-                                            <TouchableOpacity style={styles.radioOption} onPress={() => setAllowVisit(1)}>
-                                                <View style={[styles.radioOuter, allowVisit === 1 && styles.radioOuterActive]}>
-                                                    {allowVisit === 1 && <View style={styles.radioInner} />}
-                                                </View>
-                                                <Text style={styles.radioText}>Yes</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity style={styles.radioOption} onPress={() => setAllowVisit(0)}>
-                                                <View style={[styles.radioOuter, allowVisit === 0 && styles.radioOuterActive]}>
-                                                    {allowVisit === 0 && <View style={styles.radioInner} />}
-                                                </View>
-                                                <Text style={styles.radioText}>No</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </>
-                                )}
-
-                                <TouchableOpacity style={styles.btn} onPress={handleSubmitPhotoSettings}>
-                                    <LinearGradient colors={["#BD1225", "#FF4050"]} style={styles.linearGradient}>
-                                        <Text style={styles.login}>Save</Text>
-                                    </LinearGradient>
-                                </TouchableOpacity>
-
-                            </View>
-                        )}
-                    </View>
-
-                    {/* Partner Settings */}
-                    <View style={{ flex: 1 }}>
-                        <TouchableWithoutFeedback onPress={() => toggleMenu(famMenuOpen, setFamMenuOpen, animatedHeightFam, rotationFam, 900)}>
-                            <View style={styles.detailsMenu}>
-                                <View style={styles.iconMenuFlex}>
-                                    <FontAwesome6 name="user-gear" size={18} color="#fff" style={styles.saveIcon} />
-                                    <Text style={styles.menuName}>Partner Settings</Text>
-                                </View>
-
-                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationFam) }] }}>
-                                    <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
-                                </Animated.View>
-                            </View>
-                        </TouchableWithoutFeedback>
-
-                        <Animated.View >
-                            {famMenuOpen && (
-                                <ScrollView style={styles.scrollView}>
-                                    <PartnerSettings />
-                                </ScrollView>
-                            )}
-                        </Animated.View>
-                    </View>
-
-                    {(planId === "3" || planId === "17") && (
-                        <View style={{ flex: 1 }}>
-                            <TouchableWithoutFeedback onPress={() => toggleMenu(pvMenuOpen, setPvMenuOpen, animatedHeightPv, rotationPv, 900)}>
-                                <View style={styles.detailsMenu}>
-                                    <View style={styles.iconMenuFlex}>
-                                        <FontAwesome6 name="user-gear" size={18} color="#fff" style={styles.saveIcon} />
-                                        <Text style={styles.menuName}>Profile Visibility</Text>
-                                    </View>
-
-                                    <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationPv) }] }}>
-                                        <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
-                                    </Animated.View>
-                                </View>
-                            </TouchableWithoutFeedback>
-
-                            <Animated.View >
-                                {pvMenuOpen && (
-                                    <ScrollView style={styles.scrollView}>
-                                        <ProfileVisibility />
-                                    </ScrollView>
-                                )}
-                            </Animated.View>
-                        </View>
-                    )}
-
-                    {/* Change Password */}
-                    <View>
-                        <TouchableWithoutFeedback onPress={() => toggleMenu(horMenuOpen, setHorMenuOpen, animatedHeightHor, rotationHor, 1360)}>
-                            <View style={styles.detailsMenu}>
-                                <View style={styles.iconMenuFlex}>
-                                    <MaterialIcons name="lock" size={18} color="#fff" style={styles.saveIcon} />
-                                    <Text style={styles.menuName}>Change Password</Text>
-                                </View>
-
-                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationHor) }] }}>
-                                    <MaterialIcons name="arrow-drop-down" size={18} color="#fff" style={styles.saveIcon} />
-                                </Animated.View>
-                            </View>
-                        </TouchableWithoutFeedback>
-
-                        <Animated.View style={[styles.menuContainer, { height: heightInterpolate(animatedHeightHor, 1360) }]}>
-
-                            {/* <Text style={styles.redText}>Edit</Text> */}
-
-                            {horMenuOpen && (
-
-                                <View style={styles.editOptions}>
-                                    <View>
-                                        {/* Enter Old Password */}
-                                        <View>
-                                            <Text style={styles.subCaption}>Enter Old Password</Text>
-                                            <View style={styles.passwordInputContainer}>
-                                                <TextInput
-                                                    style={styles.input}
-                                                    placeholder="Enter Old Password"
-                                                    secureTextEntry={!showOldPassword}
-                                                    value={oldPassword}
-                                                    onChangeText={setOldPassword}
-                                                />
-                                                <Pressable
-                                                    onPress={() => setShowOldPassword((prev) => !prev)}
-                                                    style={styles.passwordIcon}
-                                                >
-                                                    <Ionicons name={showOldPassword ? "eye" : "eye-off"} size={18} color="#535665" />
-
-                                                </Pressable>
-                                            </View>
-                                            {oldPasswordError ? <Text style={styles.errorText}>{oldPasswordError}</Text> : null}
-                                        </View>
-
-                                        {/* Enter New Password */}
-                                        <View>
-                                            <Text style={styles.subCaption}>Enter New Password</Text>
-                                            <View style={styles.passwordInputContainer}>
-                                                <TextInput
-                                                    style={styles.input}
-                                                    placeholder="Enter New Password"
-                                                    secureTextEntry={!showNewPassword}
-                                                    value={newPassword}
-                                                    onChangeText={setNewPassword}
-                                                />
-                                                <Pressable
-                                                    onPress={() => setShowNewPassword((prev) => !prev)}
-                                                    style={styles.passwordIcon}
-                                                >
-                                                    <Ionicons name={showNewPassword ? "eye" : "eye-off"} size={18} color="#535665" />
-                                                </Pressable>
-                                            </View>
-                                            {newPasswordError ? <Text style={styles.errorText}>{newPasswordError}</Text> : null}
-                                        </View>
-
-                                        {/* Confirm New Password */}
-                                        <View>
-                                            <Text style={styles.subCaption}>Confirm New Password</Text>
-                                            <View style={styles.passwordInputContainer}>
-                                                <TextInput
-                                                    style={styles.input}
-                                                    placeholder="Confirm New Password"
-                                                    secureTextEntry={!showConfirmPassword}
-                                                    value={confirmPassword}
-                                                    onChangeText={setConfirmPassword}
-                                                />
-                                                <Pressable
-                                                    onPress={() => setShowConfirmPassword((prev) => !prev)}
-                                                    style={styles.passwordIcon}
-                                                >
-                                                    <Ionicons name={showConfirmPassword ? "eye" : "eye-off"} size={18} color="#535665" />
-                                                </Pressable>
-                                            </View>
-                                            {confirmPasswordError ? <Text style={styles.errorText}>{confirmPasswordError}</Text> : null}
-                                        </View>
-
-                                        {/* Save Button */}
-                                        {/* <Button title="Save" onPress={handleChangePassword} /> */}
-                                        <View style={styles.formContainer1}>
-                                            <TouchableOpacity
-                                                style={styles.btn}
-                                                onPress={handleChangePassword}>
-                                                <LinearGradient
-                                                    colors={["#BD1225", "#FF4050"]}
-                                                    start={{ x: 0, y: 0 }}
-                                                    end={{ x: 1, y: 1 }}
-                                                    useAngle={true}
-                                                    angle={92.08}
-                                                    angleCenter={{ x: 0.5, y: 0.5 }}
-                                                    style={styles.linearGradient}>
-                                                    <View style={styles.loginContainer}>
-                                                        <Text style={styles.login}>Save</Text>
-                                                    </View>
-                                                </LinearGradient>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                </View>
-                            )}
-                            {/* Rasi Component */}
-                            {/* <Rasi /> */}
-                        </Animated.View>
-                    </View>
-
-                    {/* Delete Account Menu */}
-                    <View>
-                        <TouchableWithoutFeedback onPress={() => toggleMenu(deleteMenuOpen, setDeleteMenuOpen, new Animated.Value(0), rotationDelete, 300)}>
-                            <View style={styles.detailsMenu}>
-                                <View style={styles.iconMenuFlex}>
-                                    <MaterialIcons name="delete-forever" size={18} color="#fff" style={styles.saveIcon} />
-                                    <Text style={styles.menuName}>Delete Account</Text>
-                                </View>
-                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate(rotationDelete) }] }}>
-                                    <MaterialIcons name="arrow-drop-down" size={18} color="#fff" />
-                                </Animated.View>
-                            </View>
-                        </TouchableWithoutFeedback>
-
-                        {deleteMenuOpen && (
-                            <View style={styles.editOptions}>
-                                <Text style={styles.label}>
-                                    Reason <Text style={{ color: "red" }}>*</Text>
-                                </Text>
-                                <View style={{
-                                    borderWidth: 1,
-                                    borderColor: "#D4D5D9",
-                                    borderRadius: 5,
-                                    marginBottom: 15,
-                                }}>
-                                    <Picker
-                                        selectedValue={deleteReason}
-                                        onValueChange={(itemValue) => setDeleteReason(itemValue)}
-                                    >
-                                        <Picker.Item label="Select Reason" value="" />
-                                        <Picker.Item label="Marriage Settled" value="Marriage Settled" />
-                                        <Picker.Item label="Personal Reason" value="Personal Reason" />
-                                        <Picker.Item label="Others" value="Others" />
-                                    </Picker>
-                                </View>
-
-                                {deleteReason !== "" && (
-                                    <>
-                                        <Text style={styles.label}>Comments</Text>
-                                        <TextInput
-                                            style={[styles.input, { height: 80, marginBottom: 15 }]}
-                                            multiline
-                                            value={deleteComments}
-                                            onChangeText={setDeleteComments}
-                                            placeholder="Enter your comments"
-                                        />
-                                    </>
-                                )}
-
-                                <TouchableOpacity
-                                    style={styles.btn}
-                                    onPress={handleDeleteAccount}
-                                    disabled={deleteLoading}
-                                >
-                                    <LinearGradient
-                                        colors={["#BD1225", "#FF4050"]}
-                                        style={styles.linearGradient}
-                                    >
-                                        <Text style={styles.login}>
-                                            {deleteLoading ? "Deleting..." : "Delete Account"}
-                                        </Text>
-                                    </LinearGradient>
-                                </TouchableOpacity>
-                            </View>
-                        )}
-                    </View>
-
-
-                    {/* Delete Account Menu */}
-
-                    <View>
-                        <TouchableWithoutFeedback
-                            onPress={() =>
-                                toggleMenu(
-                                    hideMenuOpen,
-                                    setHideMenuOpen,
-                                    animatedHeightHide,
-                                    rotationHide,
-                                    600
-                                )
-                            }
-                        >
-                            <View style={styles.detailsMenu}>
-                                <View style={styles.iconMenuFlex}>
-                                    <MaterialIcons
-                                        name="visibility-off"
-                                        size={18}
-                                        color="#fff"
-                                    />
-                                    <Text style={styles.menuName}>
-                                        Hide My Profile
-                                    </Text>
-                                </View>
-
-                                <Animated.View
-                                    style={{
-                                        transform: [
-                                            {
-                                                rotate:
-                                                    rotateInterpolate(
-                                                        rotationHide
-                                                    ),
-                                            },
-                                        ],
-                                    }}
-                                >
-                                    <MaterialIcons
-                                        name="arrow-drop-down"
-                                        size={18}
-                                        color="#fff"
-                                    />
-                                </Animated.View>
-                            </View>
-                        </TouchableWithoutFeedback>
-
-                        {hideMenuOpen && (
-                            <View style={styles.editOptions}>
+                        {pMenuOpen && (
+                            <View style={styles.accordionContent}>
 
                                 {/* Hide Reason */}
-                                <Text style={styles.label}>
-                                    Hide Reason <Text style={{ color: "red" }}>*</Text>
+                                <Text style={styles.fieldLabel}>
+                                    HIDE REASON <Text style={{ color: "red" }}>*</Text>
                                 </Text>
 
-                                <View
-                                    style={{
-                                        borderWidth: 1,
-                                        borderColor: "#D4D5D9",
-                                        borderRadius: 5,
-                                        marginBottom: 15,
-                                    }}
-                                >
+                                <View style={styles.pickerWrapper}>
                                     <Picker
                                         selectedValue={hideReason}
                                         onValueChange={(itemValue) =>
@@ -1957,8 +1138,508 @@ export const OtherSettings = () => {
                                 {/* Others Reason */}
                                 {hideReason === "Others" && (
                                     <>
-                                        <Text style={styles.label}>
-                                            Enter Reason
+                                        <Text style={styles.fieldLabel}>
+                                            ENTER REASON
+                                        </Text>
+
+                                        <TextInput
+                                            style={[styles.input, { height: 100 }]}
+                                            multiline
+                                            value={otherReason}           // ✅ FIXED
+                                            onChangeText={setOtherReason} // ✅ FIXED
+                                            placeholder="Enter your reason"
+                                            placeholderTextColor="#71717A"
+                                        />
+                                    </>
+                                )}
+
+                                {/* Profile ID */}
+                                <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                                    VYSYAMALA GROOM/BRIDE ID
+                                    <Text style={{ color: "red" }}> *</Text>
+                                </Text>
+
+                                <TextInput
+                                    style={styles.input}
+                                    value={profileId}
+                                    onChangeText={setProfileId}
+                                    placeholder="Enter Profile ID"
+                                    placeholderTextColor="#71717A"
+                                />
+
+                                {/* Engagement Date */}
+                                <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                                    ENGAGEMENT DATE
+                                    <Text style={{ color: "red" }}> *</Text>
+                                </Text>
+
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="YYYY-MM-DD"
+                                    placeholderTextColor="#71717A"
+                                    value={engagementDate}
+                                    onChangeText={setEngagementDate}
+                                />
+
+                                {/* Comments */}
+                                <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                                    COMMENTS
+                                </Text>
+
+                                <TextInput
+                                    style={[
+                                        styles.input,
+                                        { height: 100 }
+                                    ]}
+                                    multiline
+                                    value={comments}
+                                    onChangeText={setComments}
+                                    placeholder="Comments"
+                                    placeholderTextColor="#71717A"
+                                />
+
+                                <TouchableOpacity
+                                    style={styles.btn}
+                                    onPress={handleHideProfile}
+                                    disabled={hideLoading}
+                                >
+                                    <LinearGradient
+                                        colors={[Colors.primary, Colors.primary]}
+                                        style={styles.linearGradient}
+                                    >
+                                        <Text style={styles.login}>
+                                            {hideLoading
+                                                ? "Submitting..."
+                                                : "Submit"}
+                                        </Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Photo / ID Settings */}
+                    <View style={styles.accordionCard}>
+                        <SectionHeader
+                            icon="image"
+                            title="Photo / ID Settings"
+                            open={eduMenuOpen}
+                            onPress={() => toggleMenu(eduMenuOpen, setEduMenuOpen, animatedHeightEdu, rotationEdu, 800)}
+                        />
+
+                        {eduMenuOpen && (
+                            <View style={styles.accordionContent}>
+
+                                {/* Horoscope Image */}
+                                <View style={{ marginBottom: 20 }}>
+                                    <Text style={styles.fieldLabel}>HOROSCOPE IMAGE</Text>
+                                    <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage('horoscope')}>
+                                        <Feather name="upload-cloud" size={20} color="#71717A" style={{ marginBottom: 6 }} />
+                                        <Text style={styles.uploadText}>
+                                            {horoscopeFile ? horoscopeFile.fileName : `Select Horoscope Image`}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    {uploadedHoroscope && !horoscopeFile && (
+                                        <View style={styles.fileItem}>
+                                            <Image source={{ uri: uploadedHoroscope }} style={styles.fileImage} />
+                                            <View style={styles.fileDetails}>
+                                                <Text style={styles.checkboxLabel} numberOfLines={1}>
+                                                    {uploadedHoroscope.split('/').pop()}
+                                                </Text>
+                                                <Text style={styles.uploadedStatus}>Uploaded Files</Text>
+                                            </View>
+                                        </View>
+                                    )}
+                                </View>
+
+                                {/* ID Proof */}
+                                <View style={{ marginBottom: 20 }}>
+                                    <Text style={styles.fieldLabel}>ID PROOF</Text>
+                                    <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage('idproof')}>
+                                        <Feather name="upload-cloud" size={20} color="#71717A" style={{ marginBottom: 6 }} />
+                                        <Text style={styles.uploadText}>
+                                            {idProofFile ? idProofFile.fileName : `Select ID Proof`}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    {uploadedIDProof && !idProofFile && (
+                                        <View style={styles.fileItem}>
+                                            <Image source={{ uri: uploadedIDProof }} style={styles.fileImage} />
+                                            <View style={styles.fileDetails}>
+                                                <Text style={styles.checkboxLabel} numberOfLines={1}>
+                                                    {uploadedIDProof.split('/').pop()}
+                                                </Text>
+                                                <Text style={styles.uploadedStatus}>Uploaded Files</Text>
+                                            </View>
+                                        </View>
+                                    )}
+                                </View>
+
+                                {/* Divorce Proof - only for marital status 2 */}
+                                {maritalStatus === "2" && (
+                                    <View style={{ marginBottom: 20 }}>
+                                        <Text style={styles.fieldLabel}>DIVORCE PROOF</Text>
+                                        <TouchableOpacity style={styles.uploadContainer} onPress={() => pickImage('divorce')}>
+                                            <Feather name="upload-cloud" size={20} color="#71717A" style={{ marginBottom: 6 }} />
+                                            <Text style={styles.uploadText}>
+                                                {divorceFile ? divorceFile.fileName : `Select Divorce Proof`}
+                                            </Text>
+                                        </TouchableOpacity>
+                                        {uploadedDivorceProof && !divorceFile && (
+                                            <View style={styles.fileItem}>
+                                                <Image source={{ uri: uploadedDivorceProof }} style={styles.fileImage} />
+                                                <View style={styles.fileDetails}>
+                                                    <Text style={styles.checkboxLabel} numberOfLines={1}>
+                                                        {uploadedDivorceProof.split('/').pop()}
+                                                    </Text>
+                                                    <Text style={styles.uploadedStatus}>Uploaded Files</Text>
+                                                </View>
+                                            </View>
+                                        )}
+                                    </View>
+                                )}
+
+                                {/* Password Protection */}
+                                <TouchableOpacity style={styles.checkboxContainer} activeOpacity={0.8} onPress={() => setChecked(!checked)}>
+                                    <View style={[styles.checkboxBase, checked && styles.checkboxChecked]}>
+                                        {checked && <Ionicons name="checkmark" size={14} color="white" />}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Protect my images with password (only people you share the password with can view the images)</Text>
+                                </TouchableOpacity>
+
+                                {checked && (
+                                    <View style={styles.passwordInputContainer}>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Enter Password"
+                                            placeholderTextColor="#71717A"
+                                            secureTextEntry={!showPassword}
+                                            value={password}
+                                            onChangeText={setPassword}
+                                        />
+                                        <Pressable
+                                            onPress={() => setShowPassword(!showPassword)}
+                                            style={styles.passwordIcon}
+                                        >
+                                            <Ionicons
+                                                name={showPassword ? "eye" : "eye-off"}
+                                                size={18}
+                                                color="#535665"
+                                            />
+                                        </Pressable>
+                                    </View>
+                                )}
+
+                                {/* Video URL */}
+                                <Text style={[styles.fieldLabel, { marginTop: 15 }]}>UPLOAD VIDEO LINK</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="URL"
+                                    placeholderTextColor="#71717A"
+                                    value={videoUrl}
+                                    onChangeText={setVideoUrl}
+                                />
+                                <Text style={styles.helperNote}>
+                                    Note: If video link is not available, you can share the videos to Vysyamala's admin WhatsApp No.9043085524.
+                                </Text>
+
+                                {currentPlanId === "16" && (
+                                    <>
+                                        <Text style={[styles.fieldLabel, { marginTop: 14 }]}>DELIGHT VISIBILITY SETTING</Text>
+                                        <View style={styles.segmentedContainer}>
+                                            <TouchableOpacity
+                                                style={[styles.segmentedBtn, allowVisit === 1 && styles.segmentedBtnActive]}
+                                                onPress={() => setAllowVisit(1)}
+                                            >
+                                                <Text style={[styles.segmentedText, allowVisit === 1 && styles.segmentedTextActive]}>Yes</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={[styles.segmentedBtn, allowVisit === 0 && styles.segmentedBtnActive]}
+                                                onPress={() => setAllowVisit(0)}
+                                            >
+                                                <Text style={[styles.segmentedText, allowVisit === 0 && styles.segmentedTextActive]}>No</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </>
+                                )}
+
+                                <TouchableOpacity style={styles.btn} onPress={handleSubmitPhotoSettings}>
+                                    <LinearGradient colors={[Colors.primary, Colors.primary]} style={styles.linearGradient}>
+                                        <Text style={styles.login}>Save</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Partner Settings */}
+                    <View style={styles.accordionCard}>
+                        <SectionHeader
+                            icon="user-gear"
+                            iconLib={FontAwesome6}
+                            title="Partner Settings"
+                            open={famMenuOpen}
+                            onPress={() => toggleMenu(famMenuOpen, setFamMenuOpen, animatedHeightFam, rotationFam, 900)}
+                        />
+
+                        {famMenuOpen && (
+                            <View style={styles.accordionContent}>
+                                <PartnerSettings />
+                            </View>
+                        )}
+                    </View>
+
+                    {(planId === "3" || planId === "17") && (
+                        <View style={styles.accordionCard}>
+                            <SectionHeader
+                                icon="user-gear"
+                                iconLib={FontAwesome6}
+                                title="Profile Visibility"
+                                open={pvMenuOpen}
+                                onPress={() => toggleMenu(pvMenuOpen, setPvMenuOpen, animatedHeightPv, rotationPv, 900)}
+                            />
+
+                            {pvMenuOpen && (
+                                <View style={styles.accordionContent}>
+                                    <ProfileVisibility />
+                                </View>
+                            )}
+                        </View>
+                    )}
+
+                    {/* Change Password */}
+                    <View style={styles.accordionCard}>
+                        <SectionHeader
+                            icon="lock"
+                            title="Change Password"
+                            open={horMenuOpen}
+                            onPress={() => toggleMenu(horMenuOpen, setHorMenuOpen, animatedHeightHor, rotationHor, 1360)}
+                        />
+
+                        {horMenuOpen && (
+
+                            <View style={styles.accordionContent}>
+                                <View>
+                                    {/* Enter Old Password */}
+                                    <View>
+                                        <Text style={styles.fieldLabel}>ENTER OLD PASSWORD</Text>
+                                        <View style={styles.passwordInputContainer}>
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder="Enter Old Password"
+                                                placeholderTextColor="#71717A"
+                                                secureTextEntry={!showOldPassword}
+                                                value={oldPassword}
+                                                onChangeText={setOldPassword}
+                                            />
+                                            <Pressable
+                                                onPress={() => setShowOldPassword((prev) => !prev)}
+                                                style={styles.passwordIcon}
+                                            >
+                                                <Ionicons name={showOldPassword ? "eye" : "eye-off"} size={18} color="#535665" />
+
+                                            </Pressable>
+                                        </View>
+                                        {oldPasswordError ? <Text style={styles.errorText}>{oldPasswordError}</Text> : null}
+                                    </View>
+
+                                    {/* Enter New Password */}
+                                    <View>
+                                        <Text style={[styles.fieldLabel, { marginTop: 10 }]}>ENTER NEW PASSWORD</Text>
+                                        <View style={styles.passwordInputContainer}>
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder="Enter New Password"
+                                                placeholderTextColor="#71717A"
+                                                secureTextEntry={!showNewPassword}
+                                                value={newPassword}
+                                                onChangeText={setNewPassword}
+                                            />
+                                            <Pressable
+                                                onPress={() => setShowNewPassword((prev) => !prev)}
+                                                style={styles.passwordIcon}
+                                            >
+                                                <Ionicons name={showNewPassword ? "eye" : "eye-off"} size={18} color="#535665" />
+                                            </Pressable>
+                                        </View>
+                                        {newPasswordError ? <Text style={styles.errorText}>{newPasswordError}</Text> : null}
+                                    </View>
+
+                                    {/* Confirm New Password */}
+                                    <View>
+                                        <Text style={[styles.fieldLabel, { marginTop: 10 }]}>CONFIRM NEW PASSWORD</Text>
+                                        <View style={styles.passwordInputContainer}>
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder="Confirm New Password"
+                                                placeholderTextColor="#71717A"
+                                                secureTextEntry={!showConfirmPassword}
+                                                value={confirmPassword}
+                                                onChangeText={setConfirmPassword}
+                                            />
+                                            <Pressable
+                                                onPress={() => setShowConfirmPassword((prev) => !prev)}
+                                                style={styles.passwordIcon}
+                                            >
+                                                <Ionicons name={showConfirmPassword ? "eye" : "eye-off"} size={18} color="#535665" />
+                                            </Pressable>
+                                        </View>
+                                        {confirmPasswordError ? <Text style={styles.errorText}>{confirmPasswordError}</Text> : null}
+                                    </View>
+
+                                    {/* Save Button */}
+                                    <View style={styles.formContainer1}>
+                                        <TouchableOpacity
+                                            style={styles.btn}
+                                            onPress={handleChangePassword}>
+                                            <LinearGradient
+                                                colors={[Colors.primary, Colors.primary]}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                useAngle={true}
+                                                angle={92.08}
+                                                angleCenter={{ x: 0.5, y: 0.5 }}
+                                                style={styles.linearGradient}>
+                                                <View style={styles.loginContainer}>
+                                                    <Text style={styles.login}>Save</Text>
+                                                </View>
+                                            </LinearGradient>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Delete Account Menu */}
+                    <View style={styles.accordionCard}>
+                        <SectionHeader
+                            icon="delete-forever"
+                            title="Delete Account"
+                            open={deleteMenuOpen}
+                            onPress={() => toggleMenu(deleteMenuOpen, setDeleteMenuOpen, new Animated.Value(0), rotationDelete, 300)}
+                        />
+
+                        {deleteMenuOpen && (
+                            <View style={styles.accordionContent}>
+                                <Text style={styles.fieldLabel}>
+                                    REASON <Text style={{ color: "red" }}>*</Text>
+                                </Text>
+                                <View style={styles.pickerWrapper}>
+                                    <Picker
+                                        selectedValue={deleteReason}
+                                        onValueChange={(itemValue) => setDeleteReason(itemValue)}
+                                    >
+                                        <Picker.Item label="Select Reason" value="" />
+                                        <Picker.Item label="Marriage Settled" value="Marriage Settled" />
+                                        <Picker.Item label="Personal Reason" value="Personal Reason" />
+                                        <Picker.Item label="Others" value="Others" />
+                                    </Picker>
+                                </View>
+
+                                {deleteReason !== "" && (
+                                    <>
+                                        <Text style={styles.fieldLabel}>COMMENTS</Text>
+                                        <TextInput
+                                            style={[styles.input, { height: 80, marginBottom: 15 }]}
+                                            multiline
+                                            value={deleteComments}
+                                            onChangeText={setDeleteComments}
+                                            placeholder="Enter your comments"
+                                            placeholderTextColor="#71717A"
+                                        />
+                                    </>
+                                )}
+
+                                <TouchableOpacity
+                                    style={styles.btndelete}
+                                    onPress={handleDeleteAccount}
+                                    disabled={deleteLoading}
+                                >
+                                    <LinearGradient
+                                        colors={[Colors.primary, Colors.primary]}
+                                        style={styles.linearGradient}
+                                    >
+                                        <Text style={styles.login}>
+                                            {deleteLoading ? "Deleting..." : "Delete Account"}
+                                        </Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                    </View>
+
+
+                    {/* Hide My Profile Menu */}
+                    <View style={styles.accordionCard}>
+                        <SectionHeader
+                            icon="visibility-off"
+                            title="Hide My Profile"
+                            open={hideMenuOpen}
+                            onPress={() =>
+                                toggleMenu(
+                                    hideMenuOpen,
+                                    setHideMenuOpen,
+                                    animatedHeightHide,
+                                    rotationHide,
+                                    600
+                                )
+                            }
+                        />
+
+                        {hideMenuOpen && (
+                            <View style={styles.accordionContent}>
+
+                                {/* Hide Reason */}
+                                <Text style={styles.fieldLabel}>
+                                    HIDE REASON <Text style={{ color: "red" }}>*</Text>
+                                </Text>
+
+                                <View style={styles.pickerWrapper}>
+                                    <Picker
+                                        selectedValue={hideReason}
+                                        onValueChange={(itemValue) =>
+                                            setHideReason(itemValue)
+                                        }
+                                    >
+                                        <Picker.Item
+                                            label="Select Reason"
+                                            value=""
+                                        />
+
+                                        <Picker.Item
+                                            label="Temporary Hide"
+                                            value="Temporary Hide"
+                                        />
+
+                                        <Picker.Item
+                                            label="Take a Break"
+                                            value="Take a Break"
+                                        />
+
+                                        <Picker.Item
+                                            label="Marriage Settled"
+                                            value="Marriage Settled"
+                                        />
+
+                                        <Picker.Item
+                                            label="Personal Reason"
+                                            value="Personal Reason"
+                                        />
+
+                                        <Picker.Item
+                                            label="Others"
+                                            value="Others"
+                                        />
+                                    </Picker>
+                                </View>
+
+                                {/* Others Reason */}
+                                {hideReason === "Others" && (
+                                    <>
+                                        <Text style={styles.fieldLabel}>
+                                            ENTER REASON
                                         </Text>
 
                                         <TextInput
@@ -1970,13 +1651,14 @@ export const OtherSettings = () => {
                                             value={comments}
                                             onChangeText={setComments}
                                             placeholder="Enter your reason"
+                                            placeholderTextColor="#71717A"
                                         />
                                     </>
                                 )}
 
                                 {/* Profile ID */}
-                                <Text style={[styles.label, { marginTop: 10 }]}>
-                                    Vysyamala Groom/Bride ID
+                                <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                                    VYSYAMALA GROOM/BRIDE ID
                                     <Text style={{ color: "red" }}> *</Text>
                                 </Text>
 
@@ -1985,12 +1667,13 @@ export const OtherSettings = () => {
                                     value={profileId}
                                     onChangeText={setProfileId}
                                     placeholder="Enter Profile ID"
+                                    placeholderTextColor="#71717A"
                                 />
 
                                 {/* Engagement Date */}
                                 {/* Engagement Date Selector Row */}
-                                <Text style={[styles.label, { marginTop: 10 }]}>
-                                    Engagement Date <Text style={{ color: "red" }}> *</Text>
+                                <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                                    ENGAGEMENT DATE <Text style={{ color: "red" }}> *</Text>
                                 </Text>
 
                                 <TouchableOpacity
@@ -2024,8 +1707,8 @@ export const OtherSettings = () => {
                                 )}
 
                                 {/* Comments */}
-                                <Text style={[styles.label, { marginTop: 10 }]}>
-                                    Comments
+                                <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                                    COMMENTS
                                 </Text>
 
                                 <TextInput
@@ -2037,6 +1720,7 @@ export const OtherSettings = () => {
                                     value={comments}
                                     onChangeText={setComments}
                                     placeholder="Comments"
+                                    placeholderTextColor="#71717A"
                                 />
 
                                 <TouchableOpacity
@@ -2045,7 +1729,7 @@ export const OtherSettings = () => {
                                     disabled={hideLoading}
                                 >
                                     <LinearGradient
-                                        colors={["#BD1225", "#FF4050"]}
+                                        colors={[Colors.primary, Colors.primary]}
                                         style={styles.linearGradient}
                                     >
                                         <Text style={styles.login}>
@@ -2069,10 +1753,8 @@ export const OtherSettings = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F4F4F4",
-        paddingBottom: 80,
-        // alignItems: "center",
-        // justifyContent: "flex-start",
+        backgroundColor: Colors.background || "#F4F4F4",
+        paddingBottom: 200,
     },
     errorText: {
         color: "#ED1E24",
@@ -2081,233 +1763,145 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         fontFamily: "inter",
         fontWeight: "bold",
-        // marginTop: 10,
     },
-    headerContainer: {
-        padding: 3,
-        borderBottomWidth: 1,
-        borderBottomColor: "#E5E5E5",
+
+    // ── Gradient Header — matches Search.js headerBanner ─────────────────────
+    headerBanner: {
         flexDirection: "row",
         alignItems: "center",
-        marginTop: 15,
-        marginLeft: 10,
+        paddingHorizontal: 16,
+        paddingTop: rs(12, 16, 20),
+        paddingBottom: 24,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
     },
-    headerText: {
-        color: "#000000",
-        fontSize: 18,
-        fontWeight: "bold",
-        marginLeft: 10,
+    backBtn: {
+        marginRight: 12,
     },
-    contentContainer: {
-        width: "100%",
-        paddingHorizontal: 10,
-    },
-
-    profileCardContainer: {
-        width: "100%",
-    },
-
-    profileName: {
-        fontSize: 16,
+    headerTitle: {
+        fontSize: 20,
         fontWeight: "700",
-        color: "#282C3F",
-        fontFamily: "inter",
-        // marginBottom: 10,
-        marginVertical: 15,
-        paddingTop: 10,
+        color: "#FFFFFF",
+        fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+        letterSpacing: -1,
+    },
+    headerSubtitle: {
+        fontSize: 13,
+        color: "rgba(255, 255, 255, 0.7)",
+        marginTop: 2,
     },
 
-    profileId: {
-        fontSize: 14,
-        color: "#85878C",
+    // ── Accordion Card — matches Search.js accordionCard ─────────────────────
+    accordionCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 28,
+        marginHorizontal: 16,
+        marginVertical: 6,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        elevation: 2,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
     },
-
     detailsMenu: {
         width: "100%",
-        backgroundColor: "#4F515D",
-        paddingHorizontal: 10,
-        paddingVertical: 20,
-        // paddingTop: 20,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         alignSelf: "center",
-        borderBottomWidth: 0.5,
-        borderColor: "#fff",
+    },
+    accordionIconCircle: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        backgroundColor: Colors.iconContainerBg,
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 12,
+    },
+    chevronCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: Colors.selectedBg,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    accordionContent: {
+        marginTop: 14,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: "#F4F4F5",
     },
 
     menuName: {
-        color: "#fff",
+        color: "#18181B",
         fontSize: 15,
-        fontWeight: "500",
-        fontFamily: "inter",
-        marginLeft: 5,
+        fontWeight: "700",
+        fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     },
 
     iconMenuFlex: {
         flexDirection: "row",
         justifyContent: "flex-start",
         alignItems: "center",
-        // width: "100%",
+        flex: 1,
     },
 
-    redText: {
-        color: "#ED1E24",
-        fontSize: 14,
+    fieldLabel: {
+        fontSize: 11,
         fontWeight: "700",
-        fontFamily: "inter",
-        marginVertical: 15,
-        alignSelf: "flex-start",
-        // paddingHorizontal: 10,
+        color: "#71717A",
+        textTransform: "uppercase",
+        marginBottom: 8,
+        letterSpacing: 0.3,
     },
 
-    editOptions: {
-        width: "100%",
-        alignSelf: "flex-start",
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-    },
-
-    menuContainer: {
-        // width: "100%",
-        overflow: 'hidden', // Ensure content doesn't overflow
-    },
-
-    subCaption: {
-        color: "#535665",
-        fontSize: 14,
-        fontWeight: "700",
-        fontFamily: "inter",
-        marginVertical: 10,
-        alignSelf: "flex-start",
-        // paddingHorizontal: 10,
+    helperNote: {
+        fontSize: 12,
+        color: "#71717A",
+        marginTop: 6,
+        lineHeight: 17,
     },
 
     checkboxContainer: {
         flexDirection: "row",
-        // justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 20,
-        // paddingHorizontal: 10,
-        // textAlign: "left",
-        // alignSelf: "center",
-    },
-
-    singleCheckboxContainer: {
-        flexDirection: "row",
-        // justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 20,
-        paddingHorizontal: 10,
-        // textAlign: "left",
-        // alignSelf: "center",
-    },
-
-    dhosamFlex: {
-        flexDirection: "row",
-        // justifyContent: "space-between",
-        // alignItems: "flex-start",
-        // alignSelf: "flex-start",
-        // borderColor: "#D4D5D9",
-        // fontFamily: "inter",
     },
 
     checkboxBase: {
-        width: 18,
-        height: 18,
+        width: 20,
+        height: 20,
         justifyContent: "center",
         alignItems: "center",
-        borderRadius: 2,
+        borderRadius: 6,
         borderWidth: 2,
-        borderColor: "#535665",
+        borderColor: "#E4E4E7",
         backgroundColor: "transparent",
-        marginRight: 6,
+        marginRight: 10,
     },
 
     checkboxChecked: {
-        backgroundColor: "#535665",
+        backgroundColor: Colors.primary || "#BD1225",
+        borderColor: Colors.primary || "#BD1225",
     },
 
     checkboxLabel: {
         fontSize: 14,
-        color: "#535665",
+        color: "#3F3F46",
+        flex: 1,
     },
 
-    label: {
-        color: "#535665",
-        fontSize: 14,
-        fontWeight: "700",
-        fontFamily: "inter",
-        marginBottom: 10,
-    },
-
-    value: {
-        color: "#535665",
-        fontSize: 14,
-        fontWeight: "500",
-        fontFamily: "inter",
-    },
-
-    formContainer: {
-        width: "100%",
-        paddingHorizontal: 10,
-        // flexDirection: "row",
-        // alignItems: "center",
-    },
-
-    searchContainer: {
-        width: "100%",
+    pickerWrapper: {
+        borderWidth: 1,
+        borderColor: "#E4E4E7",
+        borderRadius: 16,
         marginBottom: 15,
-        textAlign: "left",
-    },
-
-    redText: {
-        color: "#535665",
-        fontSize: 14,
-        fontWeight: "700",
-        fontFamily: "inter",
-        alignSelf: "flex-start",
-        paddingHorizontal: 20,
-        // marginBottom: 10,
-    },
-
-    inputFlexContainer: {
-        flexDirection: "row", // Change to row
-        justifyContent: "space-between", // Apply space between
-        alignItems: "center",
-        width: "100%",
-        // borderColor: "#D4D5D9",
-        // fontFamily: "inter",
-    },
-
-    inputStyle: {
-        flex: 1,
-        color: "#535665",
-        padding: 10, // Adjust padding
-        marginRight: 10, // Adjust margin right
-        fontFamily: "inter",
-        borderWidth: 1,
-        borderRadius: 4,
-        borderColor: "#D4D5D9",
-    },
-
-    inputFlex: {
-        flex: 1,
-        color: "#535665",
-        padding: 10, // Adjust padding
-        fontFamily: "inter",
-        borderWidth: 1,
-        borderRadius: 4,
-        borderColor: "#D4D5D9",
-    },
-
-    // inputStyle: {
-    //     width: "100%",
-    // },
-
-    radioContainer: {
-        justifyContent: "center",
-        alignItems: "flex-start",
+        backgroundColor: Colors.selectedBg,
+        overflow: "hidden",
     },
 
     passwordInputContainer: {
@@ -2315,86 +1909,94 @@ const styles = StyleSheet.create({
     },
 
     input: {
-        color: "#535665",
+        color: "#18181B",
         borderWidth: 1,
-        borderRadius: 4,
-        borderColor: "#D4D5D9",
-        padding: 10,
+        borderRadius: 16,
+        borderColor: "#E4E4E7",
+        padding: 12,
         fontFamily: "inter",
+        backgroundColor: Colors.selectedBg,
+        marginBottom: 6,
     },
 
     passwordIcon: {
         position: "absolute",
-        right: 10,
-        top: 15,
+        right: 14,
+        top: 16,
     },
 
     // Upload Images Style
     uploadContainer: {
-        borderWidth: 1,
-        borderColor: "#ccc",
+        borderWidth: 1.5,
+        borderColor: "#E4E4E7",
         borderStyle: "dashed",
-        borderRadius: 5,
-        padding: 20,
+        borderRadius: 20,
+        padding: 22,
         alignItems: "center",
         justifyContent: "center",
-        marginBottom: 20,
+        marginBottom: 14,
+        backgroundColor: Colors.selectedBg,
     },
 
     uploadText: {
-        color: "#888",
-    },
-
-    filesContainer: {
-        // marginBottom: 20,
+        color: "#71717A",
+        fontSize: 13,
     },
 
     fileItem: {
         flexDirection: "row",
         alignItems: "center",
+        backgroundColor: Colors.selectedBg,
+        padding: 10,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "#F4F4F5",
         marginBottom: 10,
     },
-
     fileImage: {
-        width: 50,
-        height: 50,
-        marginRight: 10,
+        width: 45,
+        height: 45,
+        borderRadius: 10,
+        marginRight: 12,
     },
-
     fileDetails: {
         flex: 1,
+        justifyContent: 'center'
+    },
+    uploadedStatus: {
+        fontSize: 11,
+        color: "#2E7D32",
+        fontWeight: "600",
+        marginTop: 2
     },
 
-    removeButton: {
-        color: "#FF5666",
-        marginTop: 5,
+    // ── Segmented control — matches Search.js SegmentedRadio ────────────────
+    segmentedContainer: {
+        flexDirection: "row",
+        backgroundColor: Colors.selectedBg,
+        borderRadius: 20,
+        padding: 8,
+        marginTop: 4,
+        marginBottom: 15,
+    },
+    segmentedBtn: {
+        flex: 1,
+        paddingVertical: 10,
+        alignItems: "center",
+        borderRadius: 18,
+    },
+    segmentedBtnActive: {
+        backgroundColor: Colors.primary || "#BD1225",
+    },
+    segmentedText: {
+        fontSize: 13,
+        color: "#71717A",
+        fontWeight: "600",
+    },
+    segmentedTextActive: {
+        color: "#FFFFFF",
     },
 
-    progressBar: {
-        marginBottom: 10,
-    },
-
-    spaceText: {
-        fontSize: 14,
-        color: "#888",
-    },
-
-    basicText: {
-        color: "#535665",
-        fontFamily: "inter",
-        fontSize: 16,
-        fontWeight: "700",
-        alignSelf: "flex-start",
-        paddingHorizontal: 10,
-        marginVertical: 10,
-        marginBottom: 10,
-    },
-
-    passwordIDIcon: {
-        position: "absolute",
-        right: 10,
-        top: 45,
-    },
     loginContainer: {
         flexDirection: "row",
         alignItems: "center",
@@ -2412,161 +2014,48 @@ const styles = StyleSheet.create({
     },
     formContainer1: {
         width: "100%",
-        paddingHorizontal: 20,
     },
 
     linearGradient: {
-        borderRadius: 5,
+        borderRadius: 26,
         justifyContent: "center",
         padding: 15,
     },
-    btn: {
-        width: "100%",
+    btndelete: {
+        width: "60%",
         alignSelf: "center",
-        borderRadius: 6,
-        marginBottom: 30,
-        marginTop: 10,
-    },
-    fileItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#fff",
-        padding: 10,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: "#E5E5E5",
-        marginTop: -10,
+        borderRadius: 26,
         marginBottom: 10,
-    },
-    fileImage: {
-        width: 45,
-        height: 45,
-        borderRadius: 4,
-        marginRight: 12,
-    },
-    fileDetails: {
-        flex: 1,
-        justifyContent: 'center'
-    },
-    uploadedStatus: {
-        fontSize: 11,
-        color: "#2E7D32", // Green to indicate success
-        fontWeight: "600",
-        marginTop: 2
-    },
-    radioRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        marginTop: 8,
-        marginBottom: 15,
+        marginTop: 10,
+        elevation: 3,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
     },
 
-    radioOption: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginRight: 25,
+    btn: {
+        width: "50%",
+        alignSelf: "center",
+        borderRadius: 26,
+        marginBottom: 10,
+        marginTop: 10,
+        elevation: 3,
+        shadowColor: "#BD1225",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
     },
 
-    radioOuter: {
-        width: 18,
-        height: 18,
-        borderRadius: 50,
-        borderWidth: 2,
-        borderColor: "#535665",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 8,
-    },
-
-    radioOuterActive: {
-        borderColor: "#ED1E24",
-    },
-
-    radioInner: {
-        width: 10,
-        height: 10,
-        borderRadius: 50,
-        backgroundColor: "#ED1E24",
-    },
-
-    radioText: {
-        fontSize: 14,
-        color: "#535665",
-        fontWeight: "600",
-        fontFamily: "inter",
-    },
-
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 20,
-    },
-
-    modalContainer: {
-        backgroundColor: "#fff",
-        width: "100%",
-        borderRadius: 18,
-        padding: 25,
-        alignItems: "center",
-    },
-
-    modalTitle: {
-        fontSize: 22,
-        fontWeight: "700",
-        color: "#000",
-        marginBottom: 12,
-    },
-
-    modalDescription: {
-        fontSize: 15,
-        color: "#555",
-        textAlign: "center",
-        lineHeight: 22,
-    },
-
-    modalButtonRow: {
-        flexDirection: "row",
-        marginTop: 25,
-    },
-
-    cancelBtn: {
-        flex: 1,
-        backgroundColor: "#E5E5E5",
-        padding: 14,
-        borderRadius: 10,
-        marginRight: 10,
-        alignItems: "center",
-    },
-
-    deleteBtn: {
-        flex: 1,
-        backgroundColor: "#ED1E24",
-        padding: 14,
-        borderRadius: 10,
-        alignItems: "center",
-    },
-
-    cancelText: {
-        color: "#333",
-        fontWeight: "700",
-    },
-
-    deleteBtnText: {
-        color: "#fff",
-        fontWeight: "700",
-    },
     calendarTriggerButton: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
         borderWidth: 1,
-        borderColor: "#D4D5D9",
-        borderRadius: 4,
+        borderColor: "#E4E4E7",
+        borderRadius: 16,
         padding: 12,
-        backgroundColor: "#fff",
+        backgroundColor: Colors.selectedBg,
         marginBottom: 10
     },
     calendarTriggerText: {
@@ -2579,7 +2068,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#F3F4F6",
         alignItems: "center",
         marginTop: 5,
-        borderRadius: 6
+        borderRadius: 16
     },
     iosConfirmButtonText: {
         color: "#ED1E24",

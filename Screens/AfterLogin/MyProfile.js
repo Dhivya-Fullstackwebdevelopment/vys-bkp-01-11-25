@@ -547,7 +547,7 @@ export const MyProfile = () => {
                     type: 'error',
                     text1: 'Error',
                     text2: 'WhatsApp is not installed',
-                    position: 'bottom',
+                    position: 'top',
                 });
                 return;
             }
@@ -557,7 +557,7 @@ export const MyProfile = () => {
                 type: 'error',
                 text1: 'Error',
                 text2: 'Failed to share on WhatsApp',
-                position: 'bottom',
+                position: 'top',
             });
         } finally {
             setShareModalVisible(false);

@@ -403,7 +403,7 @@ export const Menu = () => {
           type: 'error',
           text1: 'Error',
           text2: 'WhatsApp is not installed on your device',
-          position: 'bottom',
+          position: 'top',
         });
         return;
       }
@@ -415,7 +415,7 @@ export const Menu = () => {
         type: 'error',
         text1: 'Error',
         text2: 'Failed to share on WhatsApp. Please try again.',
-        position: 'bottom',
+        position: 'top',
       });
     } finally {
       setShareModalVisible(false);

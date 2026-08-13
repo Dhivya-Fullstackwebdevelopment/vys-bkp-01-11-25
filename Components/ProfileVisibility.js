@@ -5,7 +5,6 @@ import {
     View,
     TextInput,
     Pressable,
-    SafeAreaView,
     ScrollView,
     TouchableOpacity,
 } from "react-native";
@@ -19,8 +18,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../API/Apiurl";
-import { updateProfileVisibility, fetchProfileVisibility, } from '../CommonApiCall/CommonApiCall';
+import { updateProfileVisibility, fetchProfileVisibility } from '../CommonApiCall/CommonApiCall';
 import Toast from 'react-native-toast-message';
+import { Colors } from '../Reusable/Theme'; // adjust path if needed
 
 const schema = z.object({
     ageDifference: z.string().min(1, "Age difference is required"),
@@ -29,32 +29,12 @@ const schema = z.object({
     heightTo: z.string().optional().default(''),
     chevvai: z.string().optional().default(''),
     rehu: z.string().optional().default(''),
-    // maritalStatus: z.array(z.string()).min(1, "At least one marital status is required"),
     education: z.array(z.string()).optional().default([]),
     profession: z.array(z.string()).optional().default([]),
     annualIncomeMin: z.string().optional().default(''),
     annualIncomeMax: z.string().optional().default(''),
     foreignInterest: z.string().optional().default(''),
 });
-
-const age = [
-    { label: '1', value: '1' },
-    { label: '2', value: '2' },
-    { label: '3', value: '3' },
-    { label: '4', value: '4' },
-    { label: '5', value: '5' },
-    { label: '6', value: '6' },
-    { label: '7', value: '7' },
-    { label: '8', value: '8' },
-    { label: '9', value: '9' },
-    { label: '10', value: '10' }
-];
-
-const foreignInterest = [
-    { label: 'Yes', value: 'Yes' },
-    { label: 'No', value: 'No' },
-    { label: 'both', value: 'both' },
-];
 
 export const ProfileVisibility = () => {
     const navigation = useNavigation();
@@ -65,16 +45,13 @@ export const ProfileVisibility = () => {
             toage: '',
             heightFrom: '',
             heightTo: '',
-            // maritalStatus: [],
             education: [],
             profession: [],
-            annualIncome: [],
-            nativeState: [],
+            annualIncomeMin: '',
+            annualIncomeMax: '',
             foreignInterest: '',
-            // dhosam: [],
             chevvai: '',
             rehu: '',
-            workLocation: '',
         },
     });
 
@@ -85,7 +62,17 @@ export const ProfileVisibility = () => {
     const [selectedIncomeMaxIds, setSelectedIncomeMaxIds] = useState('');
     const [heightOptions, setHeightOptions] = useState([]);
 
-    //Height dropdown
+    const professionOptions = [
+        { value: '1', label: 'Employed' },
+        { value: '2', label: 'Business' },
+        { value: '3', label: 'Student' },
+        { value: '4', label: 'Not working' },
+        { value: '5', label: 'Not mentioned' },
+        { value: '6', label: 'Employed/ Business' },
+        { value: '7', label: 'Goverment/ PSU' },
+    ];
+
+    // Fetch functions (unchanged)
     const fetchHeightOptions = async () => {
         try {
             const response = await axios.post(`${config.apiUrl}/auth/Get_Height/`);
@@ -108,10 +95,6 @@ export const ProfileVisibility = () => {
         //fetchMatchStars();
     }, []);
 
-    const professionOptions = [
-        { value: '1', label: 'Employed' },
-        { value: '2', label: 'Student' }
-    ];
 
     const fetchMaritalStatus = async () => {
         try {
@@ -126,7 +109,6 @@ export const ProfileVisibility = () => {
         }
     };
 
-
     const fetchHighestEdu = async () => {
         try {
             const response = await axios.post(`${config.apiUrl}/auth/Get_Highest_Education/`);
@@ -139,7 +121,6 @@ export const ProfileVisibility = () => {
             console.error("Error fetching highest education:", error);
         }
     };
-
 
     const fetchAnnualIncome = async () => {
         try {
@@ -154,7 +135,14 @@ export const ProfileVisibility = () => {
         }
     };
 
+    useEffect(() => {
+        fetchMaritalStatus();
+        fetchHighestEdu();
+        fetchAnnualIncome();
+        fetchHeightOptions();
+    }, []);
 
+    // Form submission (unchanged)
     const onSubmit = async (data) => {
         try {
             const professionValues = data.profession.map(p => {
@@ -184,14 +172,14 @@ export const ProfileVisibility = () => {
             if (result.data.Status === 1) {
                 Toast.show({
                     type: 'success',
-                    position: 'bottom',
+                    position: 'top',
                     text1: 'Successfully updated',
                     text2: 'Your partner preferences have been updated successfully.',
                 });
             } else {
                 Toast.show({
                     type: 'error',
-                    position: 'bottom',
+                    position: 'top',
                     text1: 'Unsuccessful',
                     text2: 'There was a problem updating your preferences. Please try again.',
                 });
@@ -207,29 +195,23 @@ export const ProfileVisibility = () => {
         }
     };
 
+    // Fetch initial data (unchanged)
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
                 const partnerProfileData = await fetchProfileVisibility();
 
-                // Set the form values using the data returned from the API
                 setValue('ageDifference', partnerProfileData.fromAge);
                 setValue('toage', partnerProfileData.toage);
                 setValue('heightFrom', partnerProfileData.fromHeight?.height_value || '');
                 setValue('heightTo', partnerProfileData.toHeight?.height_value || '');
                 setValue('education', partnerProfileData.education);
                 setValue('maritalStatus', partnerProfileData.maritalStatus);
-                // Split the income status into min and max
-                // if (partnerProfileData.incomeStatus) {
-                //     const incomeValues = partnerProfileData.incomeStatus.split(',');
-                //     setValue('annualIncomeMin', incomeValues[0] || '');
-                //     setValue('annualIncomeMax', incomeValues[incomeValues.length - 1] || '');
-                // }
+
                 const incomeRaw = partnerProfileData.incomeStatus
                     || partnerProfileData.income
                     || partnerProfileData.partner_ann_inc
                     || '';
-
                 if (incomeRaw) {
                     const incomeValues = incomeRaw.toString().split(',');
                     setValue('annualIncomeMin', incomeValues[0] || '');
@@ -250,76 +232,54 @@ export const ProfileVisibility = () => {
         fetchProfileData();
     }, [setValue]);
 
-
     return (
-        <SafeAreaView style={styles.container}>
-            {/* <Text style={styles.partnerHead}>Partner Preference</Text> */}
-            {/* <Text style={styles.search}>Advanced Search</Text> */}
-
-            {/* Age */}
-            <View style={styles.searchContainer}>
-                <Text style={styles.redText}>From Age</Text>
-                <View style={styles.formContainer}>
-                    <View style={styles.inputFlexContainer}>
-                        <Controller
-                            control={control}
-                            name="ageDifference"
-                            render={({ field: { onChange, value } }) => (
-                                <View style={styles.inputFlexFirst}>
-
-                                    <TextInput
-                                        style={styles.textInput}
-                                        placeholder="Enter From Age"
-                                        value={value}
-                                        keyboardType="numeric" // Optional: Use numeric keyboard
-                                        onChangeText={onChange}
-                                    />
-                                    {errors.ageDifference && <Text style={styles.errorText}>{errors.ageDifference.message}</Text>}
-
-                                </View>
-
-                            )}
-                        />
-                    </View>
+        <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                {/* From Age */}
+                <View style={styles.fieldWrapper}>
+                    <Text style={styles.fieldLabel}>From Age</Text>
+                    <Controller
+                        control={control}
+                        name="ageDifference"
+                        render={({ field: { onChange, value } }) => (
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter From Age"
+                                placeholderTextColor="#71717A"
+                                value={value}
+                                keyboardType="numeric"
+                                onChangeText={onChange}
+                            />
+                        )}
+                    />
+                    {errors.ageDifference && <Text style={styles.errorText}>{errors.ageDifference.message}</Text>}
                 </View>
-            </View>
 
-
-            <View style={styles.searchContainer}>
-                <Text style={styles.redText}>To Age</Text>
-                <View style={styles.formContainer}>
-                    <View style={styles.inputFlexContainer}>
-                        <Controller
-                            control={control}
-                            name="toage"
-                            render={({ field: { onChange, value } }) => (
-                                <View style={styles.inputFlexFirst}>
-
-                                    <TextInput
-                                        style={styles.textInput}
-                                        placeholder="Enter to Age"
-                                        value={value}
-                                        keyboardType="numeric" // Optional: Use numeric keyboard
-                                        onChangeText={onChange}
-                                    />
-                                    {errors.ageDifference && <Text style={styles.errorText}>{errors.ageDifference.message}</Text>}
-
-                                </View>
-
-                            )}
-                        />
-                    </View>
+                {/* To Age */}
+                <View style={styles.fieldWrapper}>
+                    <Text style={styles.fieldLabel}>To Age</Text>
+                    <Controller
+                        control={control}
+                        name="toage"
+                        render={({ field: { onChange, value } }) => (
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter To Age"
+                                placeholderTextColor="#71717A"
+                                value={value}
+                                keyboardType="numeric"
+                                onChangeText={onChange}
+                            />
+                        )}
+                    />
+                    {errors.toage && <Text style={styles.errorText}>{errors.toage.message}</Text>}
                 </View>
-            </View>
 
-
-            {/* Height */}
-            <View style={styles.searchContainer}>
-                <Text style={styles.redText}>Height</Text>
-                <View style={styles.formContainer}>
-                    <View style={styles.inputFlexContainer}>
-                        {/* Height From Dropdown */}
-                        <View style={[styles.inputFlexFirst, { padding: 0 }]}>
+                {/* Height */}
+                <View style={styles.fieldWrapper}>
+                    <Text style={styles.fieldLabel}>Height</Text>
+                    <View style={styles.rowContainer}>
+                        <View style={styles.halfField}>
                             <Controller
                                 control={control}
                                 name="heightFrom"
@@ -338,10 +298,9 @@ export const ProfileVisibility = () => {
                                     />
                                 )}
                             />
+                            {errors.heightFrom && <Text style={styles.errorText}>{errors.heightFrom.message}</Text>}
                         </View>
-
-                        {/* Height To Dropdown */}
-                        <View style={[styles.inputFlex, { padding: 0 }]}>
+                        <View style={styles.halfField}>
                             <Controller
                                 control={control}
                                 name="heightTo"
@@ -360,703 +319,444 @@ export const ProfileVisibility = () => {
                                     />
                                 )}
                             />
+                            {errors.heightTo && <Text style={styles.errorText}>{errors.heightTo.message}</Text>}
                         </View>
                     </View>
-                    {errors.heightFrom && <Text style={styles.errorText}>{errors.heightFrom.message}</Text>}
-                    {errors.heightTo && <Text style={styles.errorText}>{errors.heightTo.message}</Text>}
                 </View>
-            </View>
 
-            {/* Education */}
-            <View style={styles.checkContainer}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                    <Pressable
-                        style={[
-                            styles.checkboxBase,
-                            (watch("education")?.length === highestEduOptions.length && highestEduOptions.length > 0) && styles.checkboxChecked,
-                        ]}
-                        onPress={() => {
-                            const allValues = highestEduOptions.map(opt => opt.value);
-                            if (watch("education")?.length === highestEduOptions.length) {
-                                setValue("education", []);
-                            } else {
-                                setValue("education", allValues);
-                            }
-                        }}
-                    >
-                        {(watch("education")?.length === highestEduOptions.length && highestEduOptions.length > 0) && (
-                            <Ionicons name="checkmark" size={14} color="white" />
-                        )}
-                    </Pressable>
-                    <Pressable
-                        onPress={() => {
-                            const allValues = highestEduOptions.map(opt => opt.value);
-                            if (watch("education")?.length === highestEduOptions.length) {
-                                setValue("education", []);
-                            } else {
-                                setValue("education", allValues);
-                            }
-                        }}
-                    >
-                        <Text style={styles.checkRedText}>Education</Text>
-                    </Pressable>
-                </View>
-                <Controller
-                    control={control}
-                    name="education"
-                    render={({ field: { onChange, value } }) => (
-                        <View style={styles.checkboxDivColFlex}>
-                            {highestEduOptions.map((education) => (
-                                <View key={education.value} style={styles.checkboxContainer}>
-                                    <Pressable
-                                        style={[
-                                            styles.checkboxBase,
-                                            value.includes(education.value) && styles.checkboxChecked,
-                                        ]}
-                                        onPress={() => {
+                {/* Education */}
+                <View style={styles.fieldWrapper}>
+                    <View style={styles.checkboxGroupHeader}>
+                        <Pressable
+                            style={[
+                                styles.checkboxBase,
+                                (watch("education")?.length === highestEduOptions.length && highestEduOptions.length > 0) && styles.checkboxChecked,
+                            ]}
+                            onPress={() => {
+                                const allValues = highestEduOptions.map(opt => opt.value);
+                                if (watch("education")?.length === highestEduOptions.length) {
+                                    setValue("education", []);
+                                } else {
+                                    setValue("education", allValues);
+                                }
+                            }}
+                        >
+                            {(watch("education")?.length === highestEduOptions.length && highestEduOptions.length > 0) && (
+                                <Ionicons name="checkmark" size={14} color="white" />
+                            )}
+                        </Pressable>
+                        <Pressable
+                            onPress={() => {
+                                const allValues = highestEduOptions.map(opt => opt.value);
+                                if (watch("education")?.length === highestEduOptions.length) {
+                                    setValue("education", []);
+                                } else {
+                                    setValue("education", allValues);
+                                }
+                            }}
+                        >
+                            <Text style={styles.fieldLabel}>Education</Text>
+                        </Pressable>
+                    </View>
+                    <Controller
+                        control={control}
+                        name="education"
+                        render={({ field: { onChange, value } }) => (
+                            <View style={[styles.checkboxGrid, styles.columnGrid]}>
+                                {highestEduOptions.map((education) => (
+                                    <View key={education.value} style={styles.checkboxItem}>
+                                        <Pressable
+                                            style={[
+                                                styles.checkboxBase,
+                                                value.includes(education.value) && styles.checkboxChecked,
+                                            ]}
+                                            onPress={() => {
+                                                const newValue = value.includes(education.value)
+                                                    ? value.filter((item) => item !== education.value)
+                                                    : [...value, education.value];
+                                                onChange(newValue);
+                                            }}
+                                        >
+                                            {value.includes(education.value) && (
+                                                <Ionicons name="checkmark" size={14} color="white" />
+                                            )}
+                                        </Pressable>
+                                        <Pressable onPress={() => {
                                             const newValue = value.includes(education.value)
                                                 ? value.filter((item) => item !== education.value)
                                                 : [...value, education.value];
                                             onChange(newValue);
-                                        }}
-                                    >
-                                        {value.includes(education.value) && (
-                                            <Ionicons name="checkmark" size={14} color="white" />
-                                        )}
-                                    </Pressable>
-                                    <Pressable onPress={() => {
-                                        const newValue = value.includes(education.value)
-                                            ? value.filter((item) => item !== education.value)
-                                            : [...value, education.value];
-                                        onChange(newValue);
-                                    }}>
-                                        <Text style={styles.checkboxLabel}>{education.label}</Text>
-                                    </Pressable>
-                                </View>
-                            ))}
-                        </View>
-                    )}
-                />
-                {errors.education && <Text style={styles.errorTextCheckBox}>{errors.education.message}</Text>}
-            </View>
-
-            {/* Profession */}
-            <View style={styles.checkContainer}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                    <Pressable
-                        style={[
-                            styles.checkboxBase,
-                            (watch("profession")?.length === professionOptions.length && professionOptions.length > 0) && styles.checkboxChecked,
-                        ]}
-                        onPress={() => {
-                            const allValues = professionOptions.map(opt => opt.value);
-                            if (watch("profession")?.length === professionOptions.length) {
-                                setValue("profession", []);
-                            } else {
-                                setValue("profession", allValues);
-                            }
-                        }}
-                    >
-                        {(watch("profession")?.length === professionOptions.length && professionOptions.length > 0) && (
-                            <Ionicons name="checkmark" size={14} color="white" />
+                                        }}>
+                                            <Text style={styles.checkboxLabel}>{education.label}</Text>
+                                        </Pressable>
+                                    </View>
+                                ))}
+                            </View>
                         )}
-                    </Pressable>
-                    <Pressable
-                        onPress={() => {
-                            const allValues = professionOptions.map(opt => opt.value);
-                            if (watch("profession")?.length === professionOptions.length) {
-                                setValue("profession", []);
-                            } else {
-                                setValue("profession", allValues);
-                            }
-                        }}
-                    >
-                        <Text style={styles.checkRedText}>Profession</Text>
-                    </Pressable>
+                    />
+                    {errors.education && <Text style={styles.errorText}>{errors.education.message}</Text>}
                 </View>
-                <Controller
-                    control={control}
-                    name="profession"
-                    render={({ field: { onChange, value } }) => (
-                        <View style={styles.checkboxDivFlex}>
-                            {professionOptions.map((profession) => (
-                                <View key={profession.value} style={styles.checkboxContainer}>
-                                    <Pressable
-                                        style={[
-                                            styles.checkboxBase,
-                                            value.includes(profession.value) && styles.checkboxChecked,
-                                        ]}
-                                        onPress={() => {
+
+                {/* Profession */}
+                <View style={styles.fieldWrapper}>
+                    <View style={styles.checkboxGroupHeader}>
+                        <Pressable
+                            style={[
+                                styles.checkboxBase,
+                                (watch("profession")?.length === professionOptions.length && professionOptions.length > 0) && styles.checkboxChecked,
+                            ]}
+                            onPress={() => {
+                                const allValues = professionOptions.map(opt => opt.value);
+                                if (watch("profession")?.length === professionOptions.length) {
+                                    setValue("profession", []);
+                                } else {
+                                    setValue("profession", allValues);
+                                }
+                            }}
+                        >
+                            {(watch("profession")?.length === professionOptions.length && professionOptions.length > 0) && (
+                                <Ionicons name="checkmark" size={14} color="white" />
+                            )}
+                        </Pressable>
+                        <Pressable
+                            onPress={() => {
+                                const allValues = professionOptions.map(opt => opt.value);
+                                if (watch("profession")?.length === professionOptions.length) {
+                                    setValue("profession", []);
+                                } else {
+                                    setValue("profession", allValues);
+                                }
+                            }}
+                        >
+                            <Text style={styles.fieldLabel}>Profession</Text>
+                        </Pressable>
+                    </View>
+                    <Controller
+                        control={control}
+                        name="profession"
+                        render={({ field: { onChange, value } }) => (
+                            <View style={[styles.checkboxGrid, styles.columnGrid]}>
+                                {professionOptions.map((profession) => (
+                                    <View key={profession.value} style={styles.checkboxItem}>
+                                        <Pressable
+                                            style={[
+                                                styles.checkboxBase,
+                                                value.includes(profession.value) && styles.checkboxChecked,
+                                            ]}
+                                            onPress={() => {
+                                                const newValue = value.includes(profession.value)
+                                                    ? value.filter((item) => item !== profession.value)
+                                                    : [...value, profession.value];
+                                                onChange(newValue);
+                                            }}
+                                        >
+                                            {value.includes(profession.value) && (
+                                                <Ionicons name="checkmark" size={14} color="white" />
+                                            )}
+                                        </Pressable>
+                                        <Pressable onPress={() => {
                                             const newValue = value.includes(profession.value)
                                                 ? value.filter((item) => item !== profession.value)
                                                 : [...value, profession.value];
                                             onChange(newValue);
-                                        }}
-                                    >
-                                        {value.includes(profession.value) && (
-                                            <Ionicons name="checkmark" size={14} color="white" />
-                                        )}
-                                    </Pressable>
-                                    <Pressable onPress={() => {
-                                        const newValue = value.includes(profession.value)
-                                            ? value.filter((item) => item !== profession.value)
-                                            : [...value, profession.value];
-                                        onChange(newValue);
-                                    }}>
-                                        <Text style={styles.checkboxLabel}>{profession.label}</Text>
-                                    </Pressable>
-                                </View>
-                            ))}
-                        </View>
-                    )}
-                />
-                {errors.profession && <Text style={styles.errorTextCheckBox}>{errors.profession.message}</Text>}
-            </View>
-
-            {/* Annual Income */}
-            {/* <View style={styles.checkContainer}>
-                <Text style={styles.checkRedText}>Annual Income</Text>
-                <Controller
-                    control={control}
-                    name="annualIncome"
-                    render={({ field: { onChange, value } }) => (
-                        <View style={styles.checkboxDivColFlex}>
-                            {annualIncomeOptions.map((income) => (
-                                <View key={income.value} style={styles.checkboxContainer}>
-                                    <Pressable
-                                        style={[
-                                            styles.checkboxBase,
-                                            value.includes(income.value) && styles.checkboxChecked,
-                                        ]}
-                                        onPress={() => {
-                                            const newValue = value.includes(income.value)
-                                                ? value.filter((item) => item !== income.value)
-                                                : [...value, income.value];
-                                            onChange(newValue);
-                                        }}
-                                    >
-                                        {value.includes(income.value) && (
-                                            <Ionicons name="checkmark" size={14} color="white" />
-                                        )}
-                                    </Pressable>
-                                    <Pressable onPress={() => {
-                                        const newValue = value.includes(income.value)
-                                            ? value.filter((item) => item !== income.value)
-                                            : [...value, income.value];
-                                        onChange(newValue);
-                                    }}>
-                                        <Text style={styles.checkboxLabel}>{income.label}</Text>
-                                    </Pressable>
-                                </View>
-                            ))}
-                        </View>
-                    )}
-                />
-                {errors.annualIncome && <Text style={styles.errorTextCheckBox}>{errors.annualIncome.message}</Text>}
-            </View> */}
-
-            {/* Annual Income */}
-            <View style={styles.searchContainer}>
-                <Text style={styles.redText}>Annual Income Min</Text>
-                <View style={styles.formContainer}>
-                    <View style={styles.inputContainer}>
-                        <Controller
-                            control={control}
-                            name="annualIncomeMin"
-                            render={({ field: { onChange, value } }) => (
-                                <Dropdown
-                                    style={styles.dropdown}
-                                    placeholderStyle={styles.placeholderStyle}
-                                    selectedTextStyle={styles.selectedTextStyle}
-                                    data={annualIncomeOptions} // Use the incomeOptions array
-                                    maxHeight={180}
-                                    labelField="label"
-                                    valueField="value"
-                                    placeholder="Select min Annual Income"
-                                    value={value}
-                                    onChange={(item) => {
-                                        onChange(item.value);
-                                        setSelectedIncomeMinIds(item.value); // Update selectedIncomeIds state
-                                    }}
-                                />
-                            )}
-                        />
-                    </View>
+                                        }}>
+                                            <Text style={styles.checkboxLabel}>{profession.label}</Text>
+                                        </Pressable>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
+                    />
+                    {errors.profession && <Text style={styles.errorText}>{errors.profession.message}</Text>}
                 </View>
 
-
-                {/* <Controller
-                    control={control}
-                    name="annualIncome"
-                    render={({ field: { onChange, value } }) => (
-                        <View style={styles.checkboxDivColFlex}>
-                            {annualIncomeOptions.map((income) => (
-                                <View key={income.value} style={styles.checkboxContainer}>
-                                    <Pressable
-                                        style={[
-                                            styles.checkboxBase,
-                                            value.includes(income.value) && styles.checkboxChecked,
-                                        ]}
-                                        onPress={() => {
-                                            const newValue = value.includes(income.value)
-                                                ? value.filter((item) => item !== income.value)
-                                                : [...value, income.value];
-                                            onChange(newValue);
-                                        }}
-                                    >
-                                        {value.includes(income.value) && (
-                                            <Ionicons name="checkmark" size={14} color="white" />
-                                        )}
-                                    </Pressable>
-                                    <Pressable onPress={() => {
-                                        const newValue = value.includes(income.value)
-                                            ? value.filter((item) => item !== income.value)
-                                            : [...value, income.value];
-                                        onChange(newValue);
-                                    }}>
-                                        <Text style={styles.checkboxLabel}>{income.label}</Text>
-                                    </Pressable>
-                                </View>
-                            ))}
-                        </View>
-                    )}
-                /> */}
-                {/* {errors.annualIncome && <Text style={styles.errorTextCheckBox}>{errors.annualIncome.message}</Text>} */}
-            </View>
-
-            {/* Annual Income */}
-            <View style={styles.searchContainer}>
-                <Text style={styles.redText}>Annual Income Max</Text>
-                <View style={styles.formContainer}>
-                    <View style={styles.inputContainer}>
-                        <Controller
-                            control={control}
-                            name="annualIncomeMax"
-                            render={({ field: { onChange, value } }) => (
-                                <Dropdown
-                                    style={styles.dropdown}
-                                    placeholderStyle={styles.placeholderStyle}
-                                    selectedTextStyle={styles.selectedTextStyle}
-                                    data={annualIncomeOptions} // Use the incomeOptions array
-                                    maxHeight={180}
-                                    labelField="label"
-                                    valueField="value"
-                                    placeholder="Select max Annual Income"
-                                    value={value}
-                                    onChange={(item) => {
-                                        onChange(item.value);
-                                        setSelectedIncomeMaxIds(item.value); // Update selectedIncomeIds state
-                                    }}
-                                />
-                            )}
-                        />
-                    </View>
+                {/* Annual Income Min */}
+                <View style={styles.fieldWrapper}>
+                    <Text style={styles.fieldLabel}>Annual Income Min</Text>
+                    <Controller
+                        control={control}
+                        name="annualIncomeMin"
+                        render={({ field: { onChange, value } }) => (
+                            <Dropdown
+                                style={styles.dropdown}
+                                placeholderStyle={styles.placeholderStyle}
+                                selectedTextStyle={styles.selectedTextStyle}
+                                data={annualIncomeOptions}
+                                maxHeight={180}
+                                labelField="label"
+                                valueField="value"
+                                placeholder="Select min Annual Income"
+                                value={value}
+                                onChange={(item) => {
+                                    onChange(item.value);
+                                    setSelectedIncomeMinIds(item.value);
+                                }}
+                            />
+                        )}
+                    />
                 </View>
-                {/* {errors.annualIncome && <Text style={styles.errorTextCheckBox}>{errors.annualIncome.message}</Text>} */}
-            </View>
 
-            {/* Native State */}
+                {/* Annual Income Max */}
+                <View style={styles.fieldWrapper}>
+                    <Text style={styles.fieldLabel}>Annual Income Max</Text>
+                    <Controller
+                        control={control}
+                        name="annualIncomeMax"
+                        render={({ field: { onChange, value } }) => (
+                            <Dropdown
+                                style={styles.dropdown}
+                                placeholderStyle={styles.placeholderStyle}
+                                selectedTextStyle={styles.selectedTextStyle}
+                                data={annualIncomeOptions}
+                                maxHeight={180}
+                                labelField="label"
+                                valueField="value"
+                                placeholder="Select max Annual Income"
+                                value={value}
+                                onChange={(item) => {
+                                    onChange(item.value);
+                                    setSelectedIncomeMaxIds(item.value);
+                                }}
+                            />
+                        )}
+                    />
+                </View>
 
-
-
-
-
-            {/* Chevvai Dropdown */}
-            <View style={styles.searchContainer}>
-                <Text style={styles.redText}>Chevvai</Text>
-                <View style={styles.formContainer}>
-                    <View style={styles.inputContainer}>
-                        <Controller
-                            control={control}
-                            name="chevvai"
-                            render={({ field: { onChange, value } }) => (
-                                <Dropdown
-                                    style={styles.dropdown}
-                                    data={[
-                                        { label: "Unknown", value: "Unknown" },
-                                        { label: "Yes", value: "Yes" },
-                                        { label: "No", value: "No" }
-                                    ]}
-                                    maxHeight={180}
-                                    labelField="label"
-                                    valueField="value"
-                                    placeholder="Select Chevvai"
-                                    value={value}
-                                    onChange={(item) => {
-                                        onChange(item.value);
-                                    }}
-                                />
-                            )}
-                        />
-                    </View>
+                {/* Chevvai */}
+                <View style={styles.fieldWrapper}>
+                    <Text style={styles.fieldLabel}>Chevvai</Text>
+                    <Controller
+                        control={control}
+                        name="chevvai"
+                        render={({ field: { onChange, value } }) => (
+                            <Dropdown
+                                style={styles.dropdown}
+                                data={[
+                                    { label: "Unknown", value: "Unknown" },
+                                    { label: "Yes", value: "Yes" },
+                                    { label: "No", value: "No" }
+                                ]}
+                                maxHeight={180}
+                                labelField="label"
+                                valueField="value"
+                                placeholder="Select Chevvai"
+                                placeholderStyle={styles.placeholderStyle}
+                                selectedTextStyle={styles.selectedTextStyle}
+                                value={value}
+                                onChange={(item) => onChange(item.value)}
+                            />
+                        )}
+                    />
                     {errors.chevvai && <Text style={styles.errorText}>{errors.chevvai.message}</Text>}
                 </View>
-            </View>
 
-            {/* Rehu Dropdown */}
-            <View style={styles.searchContainer}>
-                <Text style={styles.redText}>Rehu</Text>
-                <View style={styles.formContainer}>
-                    <View style={styles.inputContainer}>
-                        <Controller
-                            control={control}
-                            name="rehu"
-                            render={({ field: { onChange, value } }) => (
-                                <Dropdown
-                                    style={styles.dropdown}
-                                    data={[
-                                        { label: "Unknown", value: "Unknown" },
-                                        { label: "Yes", value: "Yes" },
-                                        { label: "No", value: "No" }
-                                    ]}
-                                    maxHeight={180}
-                                    labelField="label"
-                                    valueField="value"
-                                    placeholder="Select Rehu"
-                                    value={value}
-                                    onChange={(item) => {
-                                        onChange(item.value);
-                                    }}
-                                />
-                            )}
-                        />
-                    </View>
+                {/* Rahu/Ketu */}
+                <View style={styles.fieldWrapper}>
+                    <Text style={styles.fieldLabel}>Rahu/Ketu Dhosam</Text>
+                    <Controller
+                        control={control}
+                        name="rehu"
+                        render={({ field: { onChange, value } }) => (
+                            <Dropdown
+                                style={styles.dropdown}
+                                data={[
+                                    { label: "Unknown", value: "Unknown" },
+                                    { label: "Yes", value: "Yes" },
+                                    { label: "No", value: "No" }
+                                ]}
+                                maxHeight={180}
+                                labelField="label"
+                                valueField="value"
+                                placeholder="Select Rahu/Ketu"
+                                placeholderStyle={styles.placeholderStyle}
+                                selectedTextStyle={styles.selectedTextStyle}
+                                value={value}
+                                onChange={(item) => onChange(item.value)}
+                            />
+                        )}
+                    />
                     {errors.rehu && <Text style={styles.errorText}>{errors.rehu.message}</Text>}
                 </View>
-            </View>
 
-
-
-
-
-
-            {/* Foreign Interest */}
-            <View style={styles.searchContainer}>
-                <Text style={styles.redText}>Foreign Interest</Text>
-                <View style={styles.formContainer}>
-                    <View style={styles.inputContainer}>
-
-                        <Controller
-                            control={control}
-                            name="foreignInterest"
-                            render={({ field: { onChange, value } }) => (
-                                <Dropdown
-                                    style={styles.dropdown}
-                                    data={[{ label: 'Yes', value: 'YES' },
+                {/* Foreign Interest */}
+                <View style={styles.fieldWrapper}>
+                    <Text style={styles.fieldLabel}>Foreign Interest</Text>
+                    <Controller
+                        control={control}
+                        name="foreignInterest"
+                        render={({ field: { onChange, value } }) => (
+                            <Dropdown
+                                style={styles.dropdown}
+                                data={[
+                                    { label: 'Yes', value: 'YES' },
                                     { label: 'No', value: 'NO' },
-                                    { label: 'Both', value: 'BOTH' }]}
-                                    maxHeight={180}
-                                    labelField="label"
-                                    valueField="value"
-                                    placeholder="Select your Foreign Interest"
-                                    value={value}
-                                    onChange={(item) => {
-                                        onChange(item.value);
-                                    }}
-                                />
-                            )}
-                        />
-                    </View>
-
+                                    { label: 'Both', value: 'BOTH' }
+                                ]}
+                                maxHeight={180}
+                                labelField="label"
+                                valueField="value"
+                                placeholder="Select Foreign Interest"
+                                placeholderStyle={styles.placeholderStyle}
+                                selectedTextStyle={styles.selectedTextStyle}
+                                value={value}
+                                onChange={(item) => onChange(item.value)}
+                            />
+                        )}
+                    />
                     {errors.foreignInterest && <Text style={styles.errorText}>{errors.foreignInterest.message}</Text>}
                 </View>
-            </View>
 
-            {/* Porutham */}
-
-
-            {/* Work Location */}
-
-
-            {/* Find Match Button */}
-            <View style={styles.formContainer}>
-                <TouchableOpacity
-                    style={styles.btn}
-                    onPress={handleSubmit(onSubmit, (errors) => {
-                        console.log("Validation errors:", errors);
-                        Toast.show({
-                            type: 'error',
-                            position: 'bottom',
-                            text1: 'Please fill all required fields',
-                        });
-                    })}
-                >
-                    <LinearGradient
-                        colors={["#BD1225", "#FF4050"]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        useAngle={true}
-                        angle={92.08}
-                        angleCenter={{ x: 0.5, y: 0.5 }}
-                        style={styles.linearGradient}
+                {/* Save Button */}
+                <View style={styles.buttonWrapper}>
+                    <TouchableOpacity
+                        style={styles.btn}
+                        onPress={handleSubmit(onSubmit, (errors) => {
+                            console.log("Validation errors:", errors);
+                            Toast.show({
+                                type: 'error',
+                                position: 'top',
+                                text1: 'Please fill all required fields',
+                            });
+                        })}
                     >
-                        <View style={styles.loginContainer}>
+                        <LinearGradient
+                            colors={[Colors.primary || "#BD1225", Colors.primary || "#BD1225"]}
+                            style={styles.linearGradient}
+                        >
                             <Text style={styles.login}>Save</Text>
-                        </View>
-                    </LinearGradient>
-                </TouchableOpacity>
-            </View>
-        </SafeAreaView>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff",
-        alignItems: "center",
-        justifyContent: "center",
-
+        backgroundColor: Colors.cardBackground || "#FAF6F0",
     },
-
-    partnerHead: {
-        color: "#535665",
-        // color: "#4F515D",
-        fontFamily: "inter",
-        fontSize: 24,
+    scrollContent: {
+        paddingBottom: 20,
+    },
+    fieldWrapper: {
+        marginBottom: 16,
+    },
+    fieldLabel: {
+        fontSize: 11,
         fontWeight: "700",
-        alignSelf: "flex-start",
-        paddingHorizontal: 20,
-        marginVertical: 10,
+        color: "#71717A",
+        textTransform: "uppercase",
+        marginBottom: 8,
+        letterSpacing: 0.3,
     },
-
-    search: {
-        fontSize: 16,
-        fontWeight: "700",
-        fontFamily: "inter",
-        // color: "#282C3F",
-        color: "#535665",
-        alignSelf: "flex-start",
-        paddingHorizontal: 20,
-        marginVertical: 10,
-    },
-
-    formContainer: {
-        width: "100%",
-        paddingHorizontal: 20,
-        // flexDirection: "row",
-        // alignItems: "center",
-    },
-
-    inputContainer: {
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        borderWidth: 1,
-        borderRadius: 4,
-        borderColor: "#D4D5D9",
-    },
-
     input: {
-        flex: 1,
-        color: "#535665",
-        padding: 10,
-        fontFamily: "inter",
-    },
-
-    dropdown: {
-        width: "100%",
-        color: "#535665",
-        // borderWidth: 1,
-        borderRadius: 4,
-        borderColor: "#D4D5D9",
-        padding: 10,
-        fontFamily: "inter",
-    },
-
-    searchIcon: {
-        paddingLeft: 10,
-    },
-
-    filterIcon: {
-        position: "absolute",
-        right: 20,
-        bottom: 15,
-    },
-
-    searchContainer: {
-        width: "100%",
-        marginBottom: 15,
-        textAlign: "left",
-    },
-
-    redText: {
-        color: "#535665",
+        borderWidth: 1,
+        borderColor: "#E4E4E7",
+        borderRadius: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        backgroundColor: Colors.selectedBg || "#F4F4F5",
+        color: "#18181B",
         fontSize: 14,
-        fontWeight: "700",
-        fontFamily: "inter",
-        alignSelf: "flex-start",
-        paddingHorizontal: 20,
-        // marginBottom: 10,
     },
-
-    inputFlexContainer: {
-        flexDirection: "row", // Change to row
-        justifyContent: "space-between", // Apply space between
+    dropdown: {
+        borderWidth: 1,
+        borderColor: "#E4E4E7",
+        borderRadius: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        backgroundColor: Colors.selectedBg || "#F4F4F5",
+        color: "#18181B",
+    },
+    placeholderStyle: {
+        fontSize: 14,
+        color: "#71717A",
+    },
+    selectedTextStyle: {
+        fontSize: 14,
+        color: "#18181B",
+    },
+    rowContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        gap: 12,
+    },
+    halfField: {
+        flex: 1,
+    },
+    checkboxGroupHeader: {
+        flexDirection: "row",
         alignItems: "center",
-        borderColor: "#D4D5D9",
-        fontFamily: "inter",
-    },
-
-    inputFlexFirst: {
-        flex: 1,
-        color: "#535665",
-        padding: 10, // Adjust padding
-        marginRight: 10, // Adjust margin right
-        fontFamily: "inter",
-        borderWidth: 1,
-        borderRadius: 4,
-        borderColor: "#D4D5D9",
-    },
-
-    inputFlex: {
-        flex: 1,
-        color: "#535665",
-        padding: 10, // Adjust padding
-        fontFamily: "inter",
-        borderWidth: 1,
-        borderRadius: 4,
-        borderColor: "#D4D5D9",
-    },
-
-    checkRedText: {
-        // color: "#FF6666",
-        color: "#535665",
-        fontSize: 20,
-        fontWeight: "bold",
-        fontFamily: "inter",
-        alignSelf: "flex-start",
-        // paddingHorizontal: 10,
         marginBottom: 10,
-        marginTop: 7,
     },
-
-    checkboxDivFlex: {
+    checkboxGrid: {
         flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        alignSelf: "flex-start",
-        fontFamily: "inter",
-        width: "100%",
+        flexWrap: "wrap",
+        alignItems: "center",
     },
-
-    checkboxDivColFlex: {
+    columnGrid: {
         flexDirection: "column",
-        justifyContent: "space-between",
         alignItems: "flex-start",
-        alignSelf: "flex-start",
-        fontFamily: "inter",
         width: "100%",
     },
-
-    checkBoxFlex: {
-        // flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        alignSelf: "flex-start",
-        // borderColor: "#D4D5D9",
-        fontFamily: "inter",
-    },
-
-    checkContainer: {
-        alignSelf: "flex-start",
-        paddingHorizontal: 20,
-        width: "80%",
-    },
-
-    newCheckContainer: {
-        alignSelf: "flex-start",
-        paddingHorizontal: 20,
+    checkboxItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 8,
         width: "100%",
     },
-
-    checkboxContainer: {
-        flexDirection: "row",
-        // justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 20,
-        // paddingHorizontal: 10,
-        // textAlign: "left",
-        // alignSelf: "center",
-    },
-
-    singleCheckboxContainer: {
-        flexDirection: "row",
-        // justifyContent: "space-between",
-        alignItems: "center",
-        // marginBottom: 20,
-        paddingHorizontal: 20,
-        // textAlign: "left",
-        // alignSelf: "center",
-    },
-
-    dhosamFlex: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        alignSelf: "flex-start",
-        // borderColor: "#D4D5D9",
-        // fontFamily: "inter",
-        width: "80%",
-        // justifyContent: "space-between",
-        // alignItems: "flex-start",
-        // alignSelf: "flex-start",
-        // borderColor: "#D4D5D9",
-        // fontFamily: "inter",
-    },
-
     checkboxBase: {
-        width: 18,
-        height: 18,
+        width: 20,
+        height: 20,
         justifyContent: "center",
         alignItems: "center",
-        borderRadius: 2,
+        borderRadius: 6,
         borderWidth: 2,
-        // borderColor: "#FF6666",
-        borderColor: "#535665",
+        borderColor: "#E4E4E7",
         backgroundColor: "transparent",
-        marginRight: 6,
+        marginRight: 10,
     },
-
     checkboxChecked: {
-        // backgroundColor: "#FF6666",
-        backgroundColor: "#535665",
+        backgroundColor: Colors.primary || "#BD1225",
+        borderColor: Colors.primary || "#BD1225",
     },
-
     checkboxLabel: {
         fontSize: 14,
-        color: "#535665",
+        color: "#3F3F46",
+        flexShrink: 1,
     },
-
-    redTextLabel: {
-        color: "#535665",
-        fontSize: 14,
-        fontWeight: "700",
-        fontFamily: "inter",
-        alignSelf: "flex-start",
-        paddingHorizontal: 20,
-        marginBottom: 10,
+    errorText: {
+        color: "#ED1E24",
+        fontSize: 13,
+        marginTop: 4,
+        marginLeft: 5,
+        fontWeight: "bold",
     },
-
-    btn: {
-        width: "100%",
-        alignSelf: "center",
-        borderRadius: 6,
-        // shadowColor: "#EE1E2440",
-        // shadowOffset: { width: 0, height: 1 },
-        // shadowOpacity: 0.2,
-        // shadowRadius: 6,
-        // elevation: 5,
-        // marginTop: 15,
-        marginBottom: 30,
-    },
-
-    loginContainer: {
-        flexDirection: "row",
+    buttonWrapper: {
         alignItems: "center",
-        justifyContent: "center",
+        marginTop: 8,
+        marginBottom: 16,
     },
-
+    btn: {
+        width: "50%",
+        alignSelf: "center",
+        borderRadius: 26,
+        marginBottom: 10,
+        marginTop: 10,
+        elevation: 3,
+        shadowColor: "#BD1225",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+    },
+    linearGradient: {
+        borderRadius: 26,
+        justifyContent: "center",
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+    },
     login: {
         textAlign: "center",
         color: "white",
@@ -1064,27 +764,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         letterSpacing: 1,
         fontFamily: "inter",
-        marginRight: 5,
     },
-
-    linearGradient: {
-        borderRadius: 5,
-        justifyContent: "center",
-        padding: 15,
-    },
-
-    errorText: {
-        color: "#FF0000",
-        fontSize: 12,
-        fontFamily: "inter",
-    },
-
-    errorTextCheckBox: {
-        color: "#FF0000",
-        fontSize: 12,
-        fontFamily: "inter",
-        marginTop: -15,
-        marginBottom: 10,
-    }
-
 });
