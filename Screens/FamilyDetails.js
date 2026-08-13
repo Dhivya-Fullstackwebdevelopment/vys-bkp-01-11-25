@@ -7,18 +7,144 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  Platform,
+  Modal,
+  FlatList,
 } from "react-native";
-import { Dropdown } from "react-native-element-dropdown";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import * as z from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios"; // Import axios
+import axios from "axios";
 import config from "../API/Apiurl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Tooltip, Icon } from "react-native-elements"; // Install react-native-elements for the Tooltip component if not already installed
+import { Tooltip, Icon } from "react-native-elements";
+import { Colors, rs } from "../Reusable/Theme";
+
+// ── Custom Modal Dropdown (popup) ──────────────────────────────────────────
+const CustomDropdown = ({
+  placeholder,
+  data = [],
+  selectedValue,
+  onSelect,
+  style,
+  labelField = "label",
+  valueField = "value",
+}) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const selectedItem = data.find((item) => String(item[valueField]) === String(selectedValue));
+  const displayLabel = selectedItem ? selectedItem[labelField] : placeholder;
+
+  return (
+    <>
+      <TouchableOpacity
+        style={[styles.dropdownStyle, style]}
+        activeOpacity={0.7}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text
+          style={
+            selectedItem
+              ? styles.dropdownSelectedText
+              : styles.dropdownPlaceholder
+          }
+          numberOfLines={1}
+        >
+          {displayLabel}
+        </Text>
+        <Ionicons name="chevron-down" size={16} color="#71717A" />
+      </TouchableOpacity>
+
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>{placeholder}</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={20} color="#18181B" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={data}
+              keyExtractor={(item, index) =>
+                item[valueField] ? String(item[valueField]) : index.toString()
+              }
+              renderItem={({ item }) => {
+                const isSelected = String(item[valueField]) === String(selectedValue);
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.dropdownOptionItem,
+                      isSelected && styles.dropdownOptionSelected,
+                    ]}
+                    onPress={() => {
+                      onSelect(item);
+                      setModalVisible(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        isSelected && styles.dropdownItemTextSelected,
+                      ]}
+                    >
+                      {item[labelField]}
+                    </Text>
+                    {isSelected && (
+                      <Ionicons name="checkmark" size={16} color="#BD1225" />
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
+  );
+};
+
+// ── Zod schema ──────────────────────────────────────────────────────────────
+const schema = z.object({
+  fatherName: z.string().min(1, "Father's Name is required"),
+  moValue: z.string().optional(),
+  foValue: z.string().optional(),
+  brotherValue: z.string().optional(),
+  sisterValue: z.string().optional(),
+  brotherMarriedValue: z.string().optional(),
+  sisterMarriedValue: z.string().optional(),
+  ftValue: z.string().optional(),
+  fvValue: z.string().optional(),
+  fsValue: z.string().optional(),
+  motherName: z.string().optional(),
+  myhobbies: z.string().optional(),
+  AboutMyself: z.string().optional(),
+  familyName: z.string().optional(),
+  bloodGroup: z.string().optional(),
+  bodytype: z.string().optional(),
+  eyewear: z.string().optional(),
+  weight: z.string().optional(),
+  suyaGothram: z.string().min(1, "Suya Gothram is required"),
+  noOfChildren: z.string().optional(),
+  fatherAlive: z.string().optional(),
+  motherAlive: z.string().optional(),
+  propertyDetails: z.string().optional(),
+  propertyWorth: z.string().optional(),
+  uncleGothram: z.string().optional(),
+  ancestorOrigin: z.string().optional(),
+  aboutFamily: z.string().optional(),
+});
 
 const bloodGroupOptions = [
   { label: 'A+', value: 'A+' },
@@ -31,7 +157,6 @@ const bloodGroupOptions = [
   { label: 'O-', value: 'O-' },
 ];
 
-
 const bodytype = [
   { label: 'Slim', value: 'Slim' },
   { label: 'Fat', value: 'Fat' },
@@ -43,65 +168,27 @@ const eyewearOptions = [
   { label: 'No', value: 'No' },
 ];
 
-
-
-// Zod schema for form validation
 export const FamilyDetails = () => {
-  const scrollViewRef = useRef(null); // For ScrollView
-  const inputRefs = useRef({}); // For input fields
+  const scrollViewRef = useRef(null);
+  const inputRefs = useRef({});
+  const navigation = useNavigation();
 
-
-  const schema = z.object({
-    fatherName: z.string().min(1, "Father's Name is required"),
-    moValue: z.string().optional(),
-    foValue: z.string().optional(),
-    brotherValue: z.string().optional(),
-    sisterValue: z.string().optional(),
-    brotherMarriedValue: z.string().optional(),  // Initially optional
-    sisterMarriedValue: z.string().optional(),  // Initially optional
-    ftValue: z.string().optional(),
-    fvValue: z.string().optional(),
-    fsValue: z.string().optional(),
-    // motherName: z.string().min(1, "Mother's Name is required"),
-    motherName: z.string().optional(),
-    myhobbies: z.string().optional(),
-    AboutMyself: z.string().optional(),
-    familyName: z.string().optional(),
-    bloodGroup: z.string().optional(),
-    bodytype: z.string().optional(),
-    eyewear: z.string().optional(),
-    weight: z.string().optional(),
-    suyaGothram: z.string().min(1, "suyaGothram is required"),
-    noOfChildren: z.string().optional(),
-    fatherAlive: z.string().optional(),
-    motherAlive: z.string().optional(),
-    propertyDetails: z.string().optional(),
-    propertyWorth: z.string().optional(),
-    uncleGothram: z.string().optional(),
-    ancestorOrigin: z.string().optional(),
-    aboutFamily: z.string().optional(),
-  })
-  // .refine((data) => {
-  //   // Check if brotherValue is greater than or equal to 1, then brotherMarriedValue must be required
-  //   if (parseInt(data.brotherValue) >= 1) {
-  //     return data.brotherMarriedValue && data.brotherMarriedValue.length > 0;
-  //   }
-  //   return true;  // If brotherValue < 1, skip validation
-  // }, {
-  //   path: ["brotherMarriedValue"],  // Specify the path for the error
-  //   message: "Brother Married field is required"
-  // })
-  // .refine((data) => {
-  //   // Check if sisterValue is greater than or equal to 1, then sisterMarriedValue must be required
-  //   if (parseInt(data.sisterValue) >= 1) {
-  //     return data.sisterMarriedValue && data.sisterMarriedValue.length > 0;
-  //   }
-  //   return true;  // If sisterValue < 1, skip validation
-  // }, {
-  //   path: ["sisterMarriedValue"],  // Specify the path for the error
-  //   message: "Sister Married field is required"
-  // });
-
+  const [showBrotherMarried, setShowBrotherMarried] = useState(false);
+  const [showSisterMarried, setShowSisterMarried] = useState(false);
+  const [physicallyChallenged, setPhysicallyChallenged] = useState('no');
+  const [showPhysicallyChallengedDetails, setShowPhysicallyChallengedDetails] = useState(false);
+  const [foOccupationOptions, setFoOccupationOptions] = useState([]);
+  const [moOccupationOptions, setMoOccupationOptions] = useState([]);
+  const [propertyWorthOptions, setPropertyWorth] = useState([]);
+  const [familyTypeOptions, setFamilyType] = useState([]);
+  const [familyStatusOptions, setFamilyStatus] = useState([]);
+  const [familyValueOptions, setFamilyValues] = useState([]);
+  const [MobileNo, setMobileNo] = useState("");
+  const [ProfileId, setProfileId] = useState("");
+  const [ProfileOwner, setProfileOwner] = useState("");
+  const [isTooltipVisible, setTooltipVisible] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [maritalStatus, setMaritalStatus] = useState("");
 
   const {
     control,
@@ -109,7 +196,7 @@ export const FamilyDetails = () => {
     formState: { errors },
     setValue,
     watch,
-    handleKeyDown
+    handleKeyDown,
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -134,34 +221,14 @@ export const FamilyDetails = () => {
       AboutMyself: "",
       familyName: "",
       bloodGroup: "",
-      weight: "",  // Set initial value to an empty string or "0"
-      bodytype: "",  // Set initial value to an empty string or "0"
-      eyewear: "",  // Set initial value to an empty string or "0"
+      weight: "",
+      bodytype: "",
+      eyewear: "",
       noOfChildren: "",
       fatherAlive: "yes",
       motherAlive: "yes",
     },
   });
-
-
-  const navigation = useNavigation();
-
-  const [showBrotherMarried, setShowBrotherMarried] = useState(false);
-  const [showSisterMarried, setShowSisterMarried] = useState(false);
-  const [physicallyChallenged, setPhysicallyChallenged] = useState('no');
-  const [showPhysicallyChallengedDetails, setShowPhysicallyChallengedDetails] = useState(false);
-  const [foOccupationOptions, setFoOccupationOptions] = useState([]);
-  const [moOccupationOptions, setMoOccupationOptions] = useState([]);
-  const [propertyWorthOptions, setPropertyWorth] = useState([]);
-  const [familyTypeOptions, setFamilyType] = useState([]);
-  const [familyStatusOptions, setFamilyStatus] = useState([]);
-  const [familyValueOptions, setFamilyValues] = useState([]);
-  const [MobileNo, setMobileNo] = useState("");
-  const [ProfileId, setProfileId] = useState("");
-  const [ProfileOwner, setProfileOwner] = useState("");
-  const [isTooltipVisible, setTooltipVisible] = useState(false); // Manage Tooltip visibility
-  const [submitting, setSubmitting] = useState(false); // Add state to track submission
-  const [maritalStatus, setMaritalStatus] = useState(""); // <-- Add state for marital status
 
   useEffect(() => {
     retrieveDataFromSession();
@@ -170,24 +237,20 @@ export const FamilyDetails = () => {
     fetchFamilyType();
     fetchFamilyStatus();
     fetchFamilyValue();
-
   }, []);
-
 
   const retrieveDataFromSession = async () => {
     try {
       let profileValue = await AsyncStorage.getItem("profile_owner");
       const profileId = await AsyncStorage.getItem("profile_id");
       const mobileno = await AsyncStorage.getItem("Mobile_no");
-      const maritalStatusValue = await AsyncStorage.getItem("martial_status"); // <-- Get marital status
+      const maritalStatusValue = await AsyncStorage.getItem("martial_status");
 
-      // Replace "ownself" with "yourself"
       profileValue = profileValue === "Ownself" ? "yourself" : profileValue;
-
       setMobileNo(mobileno);
       setProfileId(profileId);
       setProfileOwner(profileValue);
-      setMaritalStatus(maritalStatusValue); // <-- Set marital status
+      setMaritalStatus(maritalStatusValue);
 
       console.log("Retrieved Profile Value:", profileValue);
       console.log("Retrieved Profile ID:", profileId);
@@ -238,7 +301,6 @@ export const FamilyDetails = () => {
     }
   };
 
-
   const fetchFamilyStatus = async () => {
     try {
       const response = await axios.post(`${config.apiUrl}/auth/Get_FamilyStatus/`);
@@ -251,7 +313,6 @@ export const FamilyDetails = () => {
       console.error("Error fetching Family status:", error);
     }
   };
-
 
   const fetchFamilyValue = async () => {
     try {
@@ -268,30 +329,20 @@ export const FamilyDetails = () => {
 
   const scrollToError = (errorField) => {
     if (errorField && inputRefs.current[errorField]) {
-      // Scroll to the specific input field
-      inputRefs.current[errorField].focus(); // Focus on the field
+      inputRefs.current[errorField].focus();
       scrollViewRef.current?.scrollTo({
-        y: inputRefs.current[errorField].offsetTop - 50, // Adjust offset if needed
+        y: inputRefs.current[errorField].offsetTop - 50,
         animated: true,
       });
     } else {
-      // Scroll to the top of the page
-      scrollViewRef.current?.scrollTo({
-        y: 0,
-        animated: true,
-      });
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     }
   };
 
   const onError = (errors) => {
     if (errors.fatherName || errors.motherName) {
-      // Scroll to the top of the page
-      scrollViewRef.current?.scrollTo({
-        y: 0,
-        animated: true,
-      });
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     } else {
-      // Scroll to the first field with an error
       const firstErrorField = Object.keys(errors)[0];
       scrollToError(firstErrorField);
     }
@@ -301,16 +352,11 @@ export const FamilyDetails = () => {
     try {
       const profileId = await AsyncStorage.getItem("profile_id_new");
       if (!profileId) return;
-
       const response = await axios.post(`${config.apiUrl}/auth/Get_Family_Details/`, {
-        profile_id: profileId
+        profile_id: profileId,
       });
-
       if (response.data.Status === 1 && response.data.family_details) {
         const familyData = response.data.family_details;
-        setExistingFamilyData(familyData);
-
-        // Pre-fill form with existing data
         setValue("fatherName", familyData.father_name || "");
         setValue("foValue", familyData.father_occupation || "");
         setValue("motherName", familyData.mother_name || "");
@@ -335,12 +381,8 @@ export const FamilyDetails = () => {
         setValue("ancestorOrigin", familyData.ancestor_origin || "");
         setValue("aboutFamily", familyData.about_family || "");
         setValue("noOfChildren", familyData.no_of_children ? familyData.no_of_children.toString() : "");
-
-        // Set father and mother alive status
         setValue("fatherAlive", familyData.father_alive === "no" ? "no" : "yes");
         setValue("motherAlive", familyData.mother_alive === "no" ? "no" : "yes");
-
-        // Set physically challenged
         setPhysicallyChallenged(familyData.Pysically_changed === "yes" ? "yes" : "no");
         setShowPhysicallyChallengedDetails(familyData.Pysically_changed === "yes");
       }
@@ -350,17 +392,14 @@ export const FamilyDetails = () => {
   };
 
   const onSubmit = async (data) => {
-    console.log("hii");
     try {
-      setSubmitting(true); // Set submitting state to true
-
-      // Format the data as expected by the backend
+      setSubmitting(true);
       const profileId = await AsyncStorage.getItem("profile_id_new");
       if (!profileId) {
         throw new Error("ProfileId not found in sessionStorage");
       }
       const formattedData = {
-        profile_id: profileId, // Replace with actual profile ID
+        profile_id: profileId,
         father_name: data.fatherName,
         father_occupation: data.foValue,
         mother_name: data.motherName,
@@ -384,32 +423,25 @@ export const FamilyDetails = () => {
         weight: data.weight,
         body_type: data.bodytype,
         eye_wear: data.eyewear,
-        // Include other fields as necessary
-        no_of_children: data.noOfChildren || "0", // <-- Add no_of_children if present
-        father_alive: data.fatherAlive || "yes", // Add father_alive
-        mother_alive: data.motherAlive || "yes", // Add mother_alive
+        no_of_children: data.noOfChildren || "0",
+        father_alive: data.fatherAlive || "yes",
+        mother_alive: data.motherAlive || "yes",
         property_details: data.propertyDetails,
         about_family: data.aboutFamily,
       };
 
       console.log("Formatted Data:", formattedData);
 
-
-      console.log("Formatted Data:", formattedData);
-
       const response = await axios.post(`${config.apiUrl}/auth/Family_registration/`, formattedData);
-
       if (response.data.Status === 1) {
         navigation.navigate("EduDetails");
       } else {
-        // Handle error or show message to the user
         console.error("Error: Response status is not 1", response.data);
       }
     } catch (error) {
       console.error("Error submitting form data:", error);
-    }
-    finally {
-      setSubmitting(false); // Reset submitting state after API call
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -417,12 +449,10 @@ export const FamilyDetails = () => {
   const sisterValue = watch("sisterValue");
 
   useEffect(() => {
-    console.log("brotherValue changed to:", brotherValue);
     setShowBrotherMarried(parseInt(brotherValue) >= 1);
   }, [brotherValue]);
 
   useEffect(() => {
-    console.log("sisterValue changed to:", sisterValue);
     setShowSisterMarried(parseInt(sisterValue) >= 1);
   }, [sisterValue]);
 
@@ -434,17 +464,29 @@ export const FamilyDetails = () => {
     return options;
   };
 
-
   return (
-    <ScrollView ref={scrollViewRef}>
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.familyHead}>Family Details</Text>
-        <View style={styles.formContainer}>
-          {/* Father Name */}
+    <SafeAreaView style={styles.safeArea}>
+      {/* ── Gradient Header ────────────────────────────────────────────── */}
+      <LinearGradient
+        colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={styles.headerBanner}
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle}>Family Details</Text>
+          <Text style={styles.headerSubtitle}>Tell us about your family</Text>
+        </View>
+      </LinearGradient>
+
+      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        <View style={styles.cardContainer}>
+          {/* ── Father Name ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Father Name<Text style={styles.redText}>*</Text>
-            </Text>
+            <Text style={styles.fieldLabel}>Father Name <Text style={styles.requiredStar}>*</Text></Text>
             <Controller
               control={control}
               name="fatherName"
@@ -452,7 +494,8 @@ export const FamilyDetails = () => {
                 <TextInput
                   ref={(el) => (inputRefs.current.fatherName = el)}
                   style={styles.input}
-                  placeholder=""
+                  placeholder="Enter Father's Name"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -460,164 +503,95 @@ export const FamilyDetails = () => {
               )}
             />
             {errors.fatherName && (
-              <Text style={styles.error}>{errors.fatherName.message}</Text>
+              <Text style={styles.errorText}>{errors.fatherName.message}</Text>
             )}
           </View>
 
-          {/* Father Occupation */}
-          {/* <View style={styles.inputContainer}>
-            <Text style={styles.label}>Father Occupation</Text>
-            <Controller
-              control={control}
-              name="foValue"
-              render={({ field: { onChange, value } }) => (
-                <Dropdown
-                  style={styles.dropdown}
-                  placeholderStyle={styles.placeholderStyle}
-                  selectedTextStyle={styles.selectedTextStyle}
-                  inputSearchStyle={styles.inputSearchStyle}
-                  iconStyle={styles.iconStyle}
-                  data={foOccupationOptions}
-                  maxHeight={180}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Occupation"
-                  value={value}
-                  onChange={(item) => onChange(item.value)}
-                />
-              )}
-            />
-            {errors.foValue && (
-              <Text style={styles.error}>{errors.foValue.message}</Text>
-            )}
-          </View> */}
-
-
-
+          {/* ── Father Occupation ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Father Occupation</Text>
+            <Text style={styles.fieldLabel}>Father Occupation</Text>
             <Controller
               control={control}
               name="foValue"
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={styles.input} // Add your input style here
-                  placeholder="Occupation" // Placeholder text
+                  style={styles.input}
+                  placeholder="Enter Father's Occupation"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
-                  onChangeText={onChange} // Update the occupation value
+                  onChangeText={onChange}
                 />
               )}
             />
-            {/* {errors.foValue && (
-              <Text style={styles.error}>{errors.foValue.message}</Text>
-            )} */}
           </View>
 
-          {/* Mother Name */}
+          {/* ── Mother Name ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Mother Name<Text style={styles.redText}></Text>
-            </Text>
+            <Text style={styles.fieldLabel}>Mother Name</Text>
             <Controller
               control={control}
               name="motherName"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={styles.input}
-                  placeholder=""
+                  placeholder="Enter Mother's Name"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
                 />
               )}
             />
-            {errors.motherName && (
-              <Text style={styles.error}>{errors.motherName.message}</Text>
-            )}
           </View>
 
-          {/* Mother Occupation */}
-          {/* <View style={styles.inputContainer}>
-            <Text style={styles.label}>Mother Occupation</Text>
-            <Controller
-              control={control}
-              name="moValue"
-              render={({ field: { onChange, value } }) => (
-                <Dropdown
-                  style={styles.dropdown}
-                  placeholderStyle={styles.placeholderStyle}
-                  selectedTextStyle={styles.selectedTextStyle}
-                  inputSearchStyle={styles.inputSearchStyle}
-                  iconStyle={styles.iconStyle}
-                  data={moOccupationOptions}
-                  maxHeight={180}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Occupation"
-                  value={value}
-                  onChange={(item) => onChange(item.value)}
-                />
-              )}
-            />
-            {errors.moValue && (
-              <Text style={styles.error}>{errors.moValue.message}</Text>
-            )}
-          </View> */}
-
+          {/* ── Mother Occupation ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Mother Occupation</Text>
+            <Text style={styles.fieldLabel}>Mother Occupation</Text>
             <Controller
               control={control}
               name="moValue"
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={styles.input} // Add your input styles here
-                  placeholder="Enter occupation"
+                  style={styles.input}
+                  placeholder="Enter Mother's Occupation"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
-                  onChangeText={onChange} // Update the value on text change
+                  onChangeText={onChange}
                 />
               )}
             />
-            {/* {errors.moValue && (
-              <Text style={styles.error}>{errors.moValue.message}</Text>
-            )} */}
           </View>
 
-
+          {/* ── Family Name ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Family Name<Text style={styles.redText}></Text>
-            </Text>
+            <Text style={styles.fieldLabel}>Family Name</Text>
             <Controller
               control={control}
               name="familyName"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={styles.input}
-                  placeholder=""
+                  placeholder="Enter Family Name"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
                 />
               )}
             />
-            {/* {errors.familyName && (
-              <Text style={styles.error}>{errors.familyName.message}</Text>
-            )} */}
           </View>
 
-          {/* Suya Gothram */}
+          {/* ── Suya Gothram ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Suya Gothram<Text style={styles.redText}>*</Text>
-            </Text>
+            <Text style={styles.fieldLabel}>Suya Gothram <Text style={styles.requiredStar}>*</Text></Text>
             <Controller
               control={control}
               name="suyaGothram"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={styles.input}
-                  placeholder=""
+                  placeholder="Enter Suya Gothram"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -625,62 +599,56 @@ export const FamilyDetails = () => {
               )}
             />
             {errors.suyaGothram && (
-              <Text style={styles.error}>{errors.suyaGothram.message}</Text>
+              <Text style={styles.errorText}>{errors.suyaGothram.message}</Text>
             )}
           </View>
 
+          {/* ── My Hobbies ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>My Hobbies</Text>
+            <Text style={styles.fieldLabel}>My Hobbies</Text>
             <Controller
               control={control}
               name="myhobbies"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[styles.inputTextarea]} // Add custom styles for text area
+                  style={[styles.input, styles.textArea]}
                   placeholder="Enter your hobbies..."
+                  placeholderTextColor={Colors.textMuted}
                   multiline={true}
-                  numberOfLines={4} // Adjust as needed
+                  numberOfLines={4}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
                 />
               )}
             />
-            {/* {errors.myhobbies && (
-              <Text style={styles.error}>{errors.myhobbies.message}</Text>
-            )} */}
           </View>
 
-
-
+          {/* ── About Myself ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>About Myself</Text>
+            <Text style={styles.fieldLabel}>About Myself</Text>
             <Controller
               control={control}
               name="AboutMyself"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[styles.inputTextarea]} // Add custom styles for text area
-                  placeholder="Enter About Yourself..."
+                  style={[styles.input, styles.textArea]}
+                  placeholder="Enter about yourself..."
+                  placeholderTextColor={Colors.textMuted}
                   multiline={true}
-                  numberOfLines={4} // Adjust as needed
+                  numberOfLines={4}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
                 />
               )}
             />
-            {/* {errors.AboutMyself && (
-              <Text style={styles.error}>{errors.AboutMyself.message}</Text>
-            )} */}
           </View>
 
-
-          {/* Physically Challenged  */}
+          {/* ── Physically Challenged ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Physically Challenged ?</Text>
+            <Text style={styles.fieldLabel}>Physically Challenged ?</Text>
             <View style={styles.radioButtonContainer}>
-
               <View style={styles.radioContainer}>
                 <TouchableOpacity
                   style={[
@@ -731,7 +699,7 @@ export const FamilyDetails = () => {
 
           {showPhysicallyChallengedDetails && (
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Details</Text>
+              <Text style={styles.fieldLabel}>Details</Text>
               <Controller
                 control={control}
                 name="physicallyChallengedDetails"
@@ -739,19 +707,18 @@ export const FamilyDetails = () => {
                   <TextInput
                     style={styles.input}
                     placeholder="Enter Details..."
+                    placeholderTextColor={Colors.textMuted}
                     value={value}
                     onChangeText={onChange}
                   />
                 )}
               />
-              {/* {errors.physicallyChallengedDetails && (
-                <Text style={styles.error}>{errors.physicallyChallengedDetails.message}</Text>
-              )} */}
             </View>
           )}
 
+          {/* ── Father Alive ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Father Alive</Text>
+            <Text style={styles.fieldLabel}>Father Alive</Text>
             <Controller
               control={control}
               name="fatherAlive"
@@ -767,9 +734,7 @@ export const FamilyDetails = () => {
                     >
                       {value === 'yes' && <View style={styles.innerCircle} />}
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => onChange('yes')}
-                    >
+                    <TouchableOpacity onPress={() => onChange('yes')}>
                       <Text style={styles.radioLabel}>Yes</Text>
                     </TouchableOpacity>
                   </View>
@@ -784,9 +749,7 @@ export const FamilyDetails = () => {
                     >
                       {value === 'no' && <View style={styles.innerCircle} />}
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => onChange('no')}
-                    >
+                    <TouchableOpacity onPress={() => onChange('no')}>
                       <Text style={styles.radioLabel}>No</Text>
                     </TouchableOpacity>
                   </View>
@@ -795,8 +758,9 @@ export const FamilyDetails = () => {
             />
           </View>
 
+          {/* ── Mother Alive ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Mother Alive</Text>
+            <Text style={styles.fieldLabel}>Mother Alive</Text>
             <Controller
               control={control}
               name="motherAlive"
@@ -812,9 +776,7 @@ export const FamilyDetails = () => {
                     >
                       {value === 'yes' && <View style={styles.innerCircle} />}
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => onChange('yes')}
-                    >
+                    <TouchableOpacity onPress={() => onChange('yes')}>
                       <Text style={styles.radioLabel}>Yes</Text>
                     </TouchableOpacity>
                   </View>
@@ -829,9 +791,7 @@ export const FamilyDetails = () => {
                     >
                       {value === 'no' && <View style={styles.innerCircle} />}
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => onChange('no')}
-                    >
+                    <TouchableOpacity onPress={() => onChange('no')}>
                       <Text style={styles.radioLabel}>No</Text>
                     </TouchableOpacity>
                   </View>
@@ -840,15 +800,15 @@ export const FamilyDetails = () => {
             />
           </View>
 
-          {/* Weight Field */}
+          {/* ── Weight ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Weight (kg)</Text>
+            <Text style={styles.fieldLabel}>Weight (kg)</Text>
             <Controller
               name="weight"
               control={control}
               rules={{
                 validate: (value) => {
-                  if (!value) return true; // Allow optional
+                  if (!value) return true;
                   if (String(value).length > 3) return "Weight can only be up to 3 digits";
                   if (Number(value) > 150) return "Weight must be below 150";
                   return true;
@@ -862,97 +822,74 @@ export const FamilyDetails = () => {
                   keyboardType="numeric"
                   maxLength={3}
                   onKeyPress={handleKeyDown}
+                  placeholder="Enter weight"
+                  placeholderTextColor={Colors.textMuted}
                 />
               )}
             />
             {errors.weight && <Text style={styles.errorText}>{errors.weight.message}</Text>}
           </View>
 
-
-
+          {/* ── Body Type ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Body Type</Text>
+            <Text style={styles.fieldLabel}>Body Type</Text>
             <Controller
               name="bodytype"
               control={control}
               render={({ field: { onChange, value } }) => (
-                <Dropdown
-                  style={styles.dropdown}
-                  placeholderStyle={styles.placeholderStyle}
-                  selectedTextStyle={styles.selectedTextStyle}
+                <CustomDropdown
                   placeholder="Select Body Type"
                   data={bodytype}
-                  labelField="label"
-                  valueField="value"
-                  value={value}
-                  onChange={(item) => onChange(item.value)} // Update selected value
+                  selectedValue={value}
+                  onSelect={(item) => onChange(item.value)}
                 />
               )}
             />
           </View>
 
-          {/* Eye Wear Field with Dropdown */}
+          {/* ── Eye Wear ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Eye Wear</Text>
+            <Text style={styles.fieldLabel}>Eye Wear</Text>
             <Controller
               name="eyewear"
               control={control}
               render={({ field: { onChange, value } }) => (
-                <Dropdown
-                  style={styles.dropdown}
-                  placeholderStyle={styles.placeholderStyle}
-                  selectedTextStyle={styles.selectedTextStyle}
+                <CustomDropdown
                   placeholder="Select Eye Wear"
                   data={eyewearOptions}
-                  labelField="label"
-                  valueField="value"
-                  value={value}
-                  onChange={(item) => onChange(item.value)} // Update selected value
+                  selectedValue={value}
+                  onSelect={(item) => onChange(item.value)}
                 />
               )}
             />
           </View>
 
-
-
+          {/* ── Blood Group ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Blood Group<Text style={styles.redText}></Text>
-            </Text>
+            <Text style={styles.fieldLabel}>Blood Group</Text>
             <Controller
               control={control}
               name="bloodGroup"
               render={({ field: { onChange, value } }) => (
-                <Dropdown
-                  style={styles.dropdown}
-                  placeholderStyle={styles.placeholderStyle}
-                  selectedTextStyle={styles.selectedTextStyle}
+                <CustomDropdown
                   placeholder="Select Blood Group"
                   data={bloodGroupOptions}
-                  labelField="label"
-                  valueField="value"
-                  value={value}
-                  onChange={(item) => onChange(item.value)}
+                  selectedValue={value}
+                  onSelect={(item) => onChange(item.value)}
                 />
               )}
             />
-            {/* {errors.bloodGroup && (
-              <Text style={styles.error}>{errors.bloodGroup.message}</Text>
-            )} */}
           </View>
 
-          {/* No. of Children (conditionally rendered) */}
+          {/* ── No. of Children (conditional) ── */}
           {['2', '3', '5'].includes(maritalStatus) && (
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>No. of Children</Text>
+              <Text style={styles.fieldLabel}>No. of Children</Text>
               <Controller
                 control={control}
                 name="noOfChildren"
                 render={({ field: { onChange, value } }) => (
-                  <Dropdown
-                    style={styles.dropdown}
-                    placeholderStyle={styles.placeholderStyle}
-                    selectedTextStyle={styles.selectedTextStyle}
+                  <CustomDropdown
                     placeholder="Select No. of Children"
                     data={[
                       { label: '1', value: '1' },
@@ -961,38 +898,35 @@ export const FamilyDetails = () => {
                       { label: '4', value: '4' },
                       { label: '5', value: '5' },
                     ]}
-                    labelField="label"
-                    valueField="value"
-                    value={value}
-                    onChange={(item) => onChange(item.value)}
+                    selectedValue={value}
+                    onSelect={(item) => onChange(item.value)}
                   />
                 )}
               />
             </View>
           )}
 
-
-          {/* Brother */}
-          <View style={styles.inputBoxContainer}>
-            <Text style={styles.label}>Brother</Text>
+          {/* ── Brother ── */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.fieldLabel}>Brother</Text>
             <Controller
               control={control}
               name="brotherValue"
               render={({ field: { onChange, value } }) => (
-                <View style={styles.textBoxFlex}>
+                <View style={styles.boxRow}>
                   {[0, 1, 2, 3, 4, 5].map((val) => (
                     <TouchableOpacity
                       key={val}
                       style={[
                         styles.box,
-                        value === val.toString() && styles.selectedBox,
+                        value === val.toString() && styles.boxSelected,
                       ]}
                       onPress={() => onChange(val.toString())}
                     >
                       <Text
                         style={[
                           styles.boxText,
-                          value === val.toString() && styles.selectedBoxText,
+                          value === val.toString() && styles.boxTextSelected,
                         ]}
                       >
                         {val === 5 ? "5+" : val}
@@ -1002,33 +936,30 @@ export const FamilyDetails = () => {
                 </View>
               )}
             />
-            {/* {errors.brotherValue && (
-              <Text style={styles.error}>{errors.brotherValue.message}</Text>
-            )} */}
           </View>
 
-
+          {/* ── Brother Married ── */}
           {showBrotherMarried && (
-            <View style={styles.inputBoxContainer}>
-              <Text style={styles.label}>Brother Married</Text>
+            <View style={styles.inputContainer}>
+              <Text style={styles.fieldLabel}>Brother Married</Text>
               <Controller
                 control={control}
                 name="brotherMarriedValue"
                 render={({ field: { onChange, value } }) => (
-                  <View style={styles.textBoxFlex}>
+                  <View style={styles.boxRow}>
                     {renderOptions(parseInt(brotherValue)).map((option) => (
                       <TouchableOpacity
                         key={option.value}
                         style={[
                           styles.box,
-                          value === option.value && styles.selectedBox,
+                          value === option.value && styles.boxSelected,
                         ]}
                         onPress={() => onChange(option.value)}
                       >
                         <Text
                           style={[
                             styles.boxText,
-                            value === option.value && styles.selectedBoxText,
+                            value === option.value && styles.boxTextSelected,
                           ]}
                         >
                           {option.label}
@@ -1038,32 +969,30 @@ export const FamilyDetails = () => {
                   </View>
                 )}
               />
-              {/* {errors.brotherMarriedValue && (
-                <Text style={styles.error}>{errors.brotherMarriedValue.message}</Text>
-              )} */}
             </View>
           )}
 
-          <View style={styles.inputBoxContainer}>
-            <Text style={styles.label}>Sister</Text>
+          {/* ── Sister ── */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.fieldLabel}>Sister</Text>
             <Controller
               control={control}
               name="sisterValue"
               render={({ field: { onChange, value } }) => (
-                <View style={styles.textBoxFlex}>
+                <View style={styles.boxRow}>
                   {[0, 1, 2, 3, 4, 5].map((val) => (
                     <TouchableOpacity
                       key={val}
                       style={[
                         styles.box,
-                        value === val.toString() && styles.selectedBox,
+                        value === val.toString() && styles.boxSelected,
                       ]}
                       onPress={() => onChange(val.toString())}
                     >
                       <Text
                         style={[
                           styles.boxText,
-                          value === val.toString() && styles.selectedBoxText,
+                          value === val.toString() && styles.boxTextSelected,
                         ]}
                       >
                         {val === 5 ? "5+" : val}
@@ -1073,32 +1002,30 @@ export const FamilyDetails = () => {
                 </View>
               )}
             />
-            {/* {errors.sisterValue && (
-              <Text style={styles.error}>{errors.sisterValue.message}</Text>
-            )} */}
           </View>
 
+          {/* ── Sister Married ── */}
           {showSisterMarried && (
-            <View style={styles.inputBoxContainer}>
-              <Text style={styles.label}>Sister Married</Text>
+            <View style={styles.inputContainer}>
+              <Text style={styles.fieldLabel}>Sister Married</Text>
               <Controller
                 control={control}
                 name="sisterMarriedValue"
                 render={({ field: { onChange, value } }) => (
-                  <View style={styles.textBoxFlex}>
+                  <View style={styles.boxRow}>
                     {renderOptions(parseInt(sisterValue)).map((option) => (
                       <TouchableOpacity
                         key={option.value}
                         style={[
                           styles.box,
-                          value === option.value && styles.selectedBox,
+                          value === option.value && styles.boxSelected,
                         ]}
                         onPress={() => onChange(option.value)}
                       >
                         <Text
                           style={[
                             styles.boxText,
-                            value === option.value && styles.selectedBoxText,
+                            value === option.value && styles.boxTextSelected,
                           ]}
                         >
                           {option.label}
@@ -1108,97 +1035,47 @@ export const FamilyDetails = () => {
                   </View>
                 )}
               />
-              {/* {errors.sisterMarriedValue && (
-                <Text style={styles.error}>{errors.sisterMarriedValue.message}</Text>
-              )} */}
             </View>
           )}
 
-
-
-          {/* Family Type */}
-          {/* <View style={styles.inputBoxContainer}>
-            <Text style={styles.label}>Family Type</Text>
-            <Controller
-              control={control}
-              name="ftValue"
-              render={({ field: { onChange, value } }) => (
-                <View style={styles.textBoxFlex}>
-                  {familyTypeOptions.map((option) => (
-                    <TouchableOpacity
-                      key={option.value}
-                      style={[
-                        styles.box,
-                        value === option.value && styles.selectedBox,
-                      ]}
-                      onPress={() => onChange(option.value)}
-                    >
-                      <Text
-                        style={[
-                          styles.boxText,
-                          value === option.value && styles.selectedBoxText,
-                        ]}
-                      >
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            />
-            {errors.ftValue && (
-              <Text style={styles.error}>{errors.ftValue.message}</Text>
-            )}
-          </View> */}
-
-
+          {/* ── Family Type ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Family Type<Text style={styles.redText}></Text>
-            </Text>
+            <Text style={styles.fieldLabel}>Family Type</Text>
             <Controller
               control={control}
               name="ftValue"
               render={({ field: { onChange, value } }) => (
-                <Dropdown
-                  style={styles.dropdown}
-                  placeholderStyle={styles.placeholderStyle}
-                  selectedTextStyle={styles.selectedTextStyle}
+                <CustomDropdown
                   placeholder="Select Family Type"
                   data={familyTypeOptions}
-                  labelField="label"
-                  valueField="value"
-                  value={value}
-                  onChange={(item) => onChange(item.value)}
+                  selectedValue={value}
+                  onSelect={(item) => onChange(item.value)}
                 />
               )}
             />
-            {/* {errors.bloodGroup && (
-              <Text style={styles.error}>{errors.bloodGroup.message}</Text>
-            )} */}
           </View>
 
-
-          <View style={styles.inputBoxContainer}>
-            <Text style={styles.label}>Family Value</Text>
+          {/* ── Family Value ── */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.fieldLabel}>Family Value</Text>
             <Controller
               control={control}
               name="fvValue"
               render={({ field: { onChange, value } }) => (
-                <View style={styles.textBoxFlex}>
+                <View style={styles.boxRow}>
                   {familyValueOptions.map((option) => (
                     <TouchableOpacity
                       key={option.value}
                       style={[
                         styles.box,
-                        value === option.value && styles.selectedBox,
+                        value === option.value && styles.boxSelected,
                       ]}
                       onPress={() => onChange(option.value)}
                     >
                       <Text
                         style={[
                           styles.boxText,
-                          value === option.value && styles.selectedBoxText,
+                          value === option.value && styles.boxTextSelected,
                         ]}
                       >
                         {option.label}
@@ -1208,156 +1085,52 @@ export const FamilyDetails = () => {
                 </View>
               )}
             />
-            {/* {errors.fvValue && (
-              <Text style={styles.error}>{errors.fvValue.message}</Text>
-            )} */}
           </View>
 
-
-          {/* Family Status */}
-          {/* <View style={styles.inputContainer}>
-            <Text style={styles.label}>Family Status</Text>
-            <Controller
-              control={control}
-              name="fsValue"
-              render={({ field: { onChange, value } }) => (
-                <View style={styles.textBoxFlex}>
-                  {familyStatusOptions.map((option) => (
-                    <TouchableOpacity
-                      key={option.value}
-                      style={[
-                        styles.box,
-                        value === option.value && styles.selectedBox,
-                      ]}
-                      onPress={() => onChange(option.value)}
-                    >
-                      <Text
-                        style={[
-                          styles.boxText,
-                          value === option.value && styles.selectedBoxText,
-                        ]}
-                      >
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            />
-            {errors.fsValue && (
-              <Text style={styles.error}>{errors.fsValue.message}</Text>
-            )}
-          </View> */}
-
+          {/* ── Family Status ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Family Status</Text>
+            <Text style={styles.fieldLabel}>Family Status</Text>
             <Controller
               control={control}
               name="fsValue"
               render={({ field: { onChange, value } }) => (
-                <Dropdown
-                  style={styles.dropdown}
-                  placeholderStyle={styles.placeholderStyle}
-                  selectedTextStyle={styles.selectedTextStyle}
-                  inputSearchStyle={styles.inputSearchStyle}
-                  iconStyle={styles.iconStyle}
+                <CustomDropdown
+                  placeholder="Select Family Status"
                   data={familyStatusOptions}
-                  maxHeight={180}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Family Status"
-                  value={value}
-                  onChange={(item) => onChange(item.value)}
+                  selectedValue={value}
+                  onSelect={(item) => onChange(item.value)}
                 />
               )}
             />
-            {/* {errors.fsValue && (
-              <Text style={styles.error}>{errors.fsValue.message}</Text>
-            )} */}
           </View>
 
-
-          {/* <View style={styles.inputContainer}>
+          {/* ── Property Details ── */}
+          <View style={styles.inputContainer}>
             <View style={styles.labelWrapper}>
-              <Text style={styles.label}>Property Details</Text>
+              <Text style={styles.fieldLabel}>Property Details</Text>
               <Tooltip
                 popover={
-                  <Text>
+                  <Text style={styles.tooltipText}>
                     Residential, Commercial, Shopping Complex, Farm House, Shop, Agriculture land, Multistorage building
                   </Text>
                 }
-                backgroundColor="#333"
-                overlayColor="rgba(0, 0, 0, 0.5)"
+                backgroundColor="#fff"
+                overlayColor="rgba(0,0,0,0.5)"
                 width={250}
-                height={120} // Increase the height of the tooltip
-                placement="top"              >
-                <Icon
-                  name="info"
-                  type="material"
-                  size={16}
-                  color="#555"
-                  style={styles.infoIcon}
-                />
+                height={120}
+                placement="bottom"
+              >
+                <Icon name="info" type="material" size={16} color={Colors.textMuted} style={styles.infoIcon} />
               </Tooltip>
             </View>
-
-            <Controller
-              control={control}
-              name="propertyDetails"
-              render={({ field: { onChange, value } }) => (
-                <Dropdown
-                  style={styles.dropdown}
-                  placeholderStyle={styles.placeholderStyle}
-                  selectedTextStyle={styles.selectedTextStyle}
-                  placeholder="Select Property Details"
-                  data={propertyWorthOptions}
-                  labelField="label"
-                  valueField="value"
-                  value={value}
-                  onChange={(item) => onChange(item.value)}
-                />
-
-              )}
-            />
-          </View> */}
-
-
-
-          <View style={styles.inputContainer}>
-            <View style={styles.labelWrapper}>
-              <Text style={styles.label}>Property Details
-                {/* Tooltip for the note icon */}
-
-                <Tooltip
-                  popover={
-                    <Text style={styles.tooltipContent}>
-                      Residential, Commercial, Shopping Complex, Farm House, Shop, Agriculture land, Multistorage building
-                    </Text>
-                  }
-                  backgroundColor="#fff"
-                  overlayColor="rgba(0, 0, 0, 0.5)"
-                  width={250}
-                  height={120} // Increase the height of the tooltip
-                  placement="bottom"
-                >
-                  <Icon
-                    name="info"
-                    type="material"
-                    size={16}
-                    color="#555"
-                    style={styles.infoIcon}
-                  />
-                </Tooltip>
-              </Text>
-            </View>
-
             <Controller
               control={control}
               name="propertyDetails"
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={styles.input} // Replace with your TextInput styling
+                  style={styles.input}
                   placeholder="Enter Property Details"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
                   onChangeText={onChange}
                 />
@@ -1365,345 +1138,274 @@ export const FamilyDetails = () => {
             />
           </View>
 
-
-
-          {/* Property Details */}
+          {/* ── Property Worth ── */}
           <View style={styles.inputContainer}>
             <View style={styles.labelWrapper}>
-
-              <Text style={styles.label}>Property Worth
-
-                <Tooltip style={styles.tooltipContent}
-                  popover={
-                    <Text style={styles.tooltipContent}>
-                      Approx 1c, 5c, 50c, 30L, 80L, etc.,
-                    </Text>
-                  }
-                  backgroundColor="#fff"
-                  overlayColor="rgba(0, 0, 0, 0.5)"
-                  width={250}
-                  height={120} // Increase the height of the tooltip
-                  placement="bottom"              >
-                  <Icon
-                    name="info"
-                    type="material"
-                    size={16}
-                    color="#555"
-                    style={styles.infoIcon}
-                  />
-                </Tooltip>
-              </Text>
-
+              <Text style={styles.fieldLabel}>Property Worth</Text>
+              <Tooltip
+                popover={
+                  <Text style={styles.tooltipText}>
+                    Approx 1c, 5c, 50c, 30L, 80L, etc.,
+                  </Text>
+                }
+                backgroundColor="#fff"
+                overlayColor="rgba(0,0,0,0.5)"
+                width={250}
+                height={120}
+                placement="bottom"
+              >
+                <Icon name="info" type="material" size={16} color={Colors.textMuted} style={styles.infoIcon} />
+              </Tooltip>
             </View>
-
-
             <Controller
               control={control}
               name="propertyWorth"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={styles.input}
-                  placeholder=""
+                  placeholder="Enter Property Worth"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
                 />
               )}
             />
-            {/* {errors.propertyDetails && (
-              <Text style={styles.error}>{errors.propertyDetails.message}</Text>
-            )} */}
           </View>
 
-          {/* Property Worth */}
-
-
-
-
-
-
-
-          {/* Uncle Gothram */}
+          {/* ── Uncle Gothram ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Uncle Gothram</Text>
+            <Text style={styles.fieldLabel}>Uncle Gothram</Text>
             <Controller
               control={control}
               name="uncleGothram"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={styles.input}
-                  placeholder=""
+                  placeholder="Enter Uncle Gothram"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
                 />
               )}
             />
-            {/* {errors.uncleGothram && (
-              <Text style={styles.error}>{errors.uncleGothram.message}</Text>
-            )} */}
           </View>
 
-          {/* Ancestor Origin */}
+          {/* ── Ancestor Origin ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Ancestor Origin</Text>
+            <Text style={styles.fieldLabel}>Ancestor Origin</Text>
             <Controller
               control={control}
               name="ancestorOrigin"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={styles.input}
-                  placeholder=""
+                  placeholder="Enter Ancestor Origin"
+                  placeholderTextColor={Colors.textMuted}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
                 />
               )}
             />
-            {/* {errors.ancestorOrigin && (
-              <Text style={styles.error}>{errors.ancestorOrigin.message}</Text>
-            )} */}
           </View>
 
-          {/* About Family */}
+          {/* ── About Family ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>About Family</Text>
+            <Text style={styles.fieldLabel}>About Family</Text>
             <Controller
               control={control}
               name="aboutFamily"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[styles.inputTextarea]} // Add custom styles for text area
+                  style={[styles.input, styles.textArea]}
                   placeholder="Enter about your family..."
+                  placeholderTextColor={Colors.textMuted}
                   multiline={true}
-                  numberOfLines={4} // Adjust as needed
+                  numberOfLines={4}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
                 />
               )}
             />
-            {/* {errors.aboutFamily && (
-              <Text style={styles.error}>{errors.aboutFamily.message}</Text>
-            )} */}
           </View>
 
-
-
-          {/* Next Button */}
-          <TouchableOpacity style={styles.btn} onPress={handleSubmit(onSubmit, onError)} disabled={submitting} // Disable button when submitting
+          {/* ── Next Button ── */}
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={handleSubmit(onSubmit, onError)}
+            disabled={submitting}
+            activeOpacity={0.85}
           >
             <LinearGradient
-              colors={["#BD1225", "#FF4050"]}
+              colors={[Colors.primary, Colors.primary || "#FF4050"]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              useAngle={true}
-              angle={92.08}
-              angleCenter={{ x: 0.5, y: 0.5 }}
+              end={{ x: 1, y: 0 }}
               style={styles.linearGradient}
             >
-              <View style={styles.loginContainer}>
-                {/* <Text style={styles.login}>Next</Text> */}
-                <Text style={styles.login}>{submitting ? "Submitting..." : "Next"}</Text>
-                <Ionicons name="arrow-forward" size={18} color="white" />
+              <View style={styles.buttonContent}>
+                <Text style={styles.buttonText}>{submitting ? "Submitting..." : "Next"}</Text>
+                <Ionicons name="arrow-forward" size={18} color={Colors.primaryForeground || "#FFFFFF"} />
               </View>
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </ScrollView >
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
-
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.selectedBg || "#FBF5ED",
+  },
+  // ── Header ──────────────────────────────────────────────────────────────
+  headerBanner: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingTop: rs(12, 16, 20),
+    paddingBottom: 24,
   },
-
-  familyHead: {
-    color: "#535665",
-    fontSize: 24,
+  backBtn: {
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
     fontWeight: "700",
-    alignSelf: "flex-start",
-    paddingHorizontal: 20,
-    marginVertical: 10,
+    color: "#FFFFFF",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -1,
   },
-
-  formContainer: {
-    width: "100%",
-    paddingHorizontal: 20,
+  headerSubtitle: {
+    fontSize: rs(12, 13, 14),
+    color: "rgba(255, 255, 255, 0.7)",
+    marginTop: 2,
   },
-
-  label: {
-    color: "#535665",
-    fontSize: 14,
-    fontWeight: "600",
+  // ── Scroll content ─────────────────────────────────────────────────────
+  scrollContainer: {
+    flexGrow: 1,
+    paddingVertical: rs(12, 16, 20),
+    alignItems: "center",
+    paddingBottom: 80,
   },
-
-  redText: {
-    color: "red",
+  cardContainer: {
+    width: "90%",
+    backgroundColor: Colors.card || "#FFFFFF",
+    borderRadius: 24,
+    padding: rs(18, 22, 26),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
+    marginBottom: rs(12, 16, 20),
   },
-
   inputContainer: {
     width: "100%",
-    marginBottom: 20,
-    // marginBottom: 24,
+    marginBottom: rs(14, 18, 20),
   },
-
-  inputBoxContainer: {
-    marginBottom: 10,
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.textMuted || "#71717A",
+    textTransform: "uppercase",
+    marginBottom: 6,
+    letterSpacing: 0.3,
   },
-
+  requiredStar: {
+    color: Colors.destructive || "#EF4444",
+  },
   input: {
-    color: "#535665",
+    color: Colors.textDark || "#1E1E1E",
     borderWidth: 1,
-    borderRadius: 4,
-    borderColor: "#D4D5D9",
-    padding: 10,
-    fontFamily: "inter",
+    borderRadius: 16,
+    borderColor: Colors.border || "#E4E4E7",
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    paddingHorizontal: 12,
+    paddingVertical: rs(10, 12, 14),
+    fontSize: 14,
+    textAlignVertical: "top",
   },
-
-  dropdown: {
+  textArea: {
+    height: 100,
+  },
+  // ── Custom Dropdown styles ──────────────────────────────────────────────
+  dropdownStyle: {
     width: "100%",
-    color: "#535665",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderWidth: 1,
-    borderRadius: 4,
-    borderColor: "#D4D5D9",
-    paddingHorizontal: 10,
-    paddingVertical: 13,
-    fontFamily: "inter",
+    borderColor: Colors.border || "#E4E4E7",
+    borderRadius: 16,
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    paddingHorizontal: 12,
+    paddingVertical: rs(8, 10, 12),
   },
-
-  placeholderStyle: {
+  dropdownPlaceholder: {
     fontSize: 14,
+    color: Colors.textMuted || "#71717A",
   },
-
-  selectedTextStyle: {
+  dropdownSelectedText: {
     fontSize: 14,
+    color: Colors.textDark || "#1E1E1E",
   },
-
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 16,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    paddingHorizontal: 24,
   },
-
-  iconStyle: {
-    width: 20,
-    height: 20,
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    maxHeight: "60%",
+    paddingVertical: 12,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
-
-  textBoxFlex: {
+  modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    // marginBottom: 10,
-    width: "100%",
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F4F4F5",
   },
-
-  box: {
-    borderWidth: 1,
-    borderColor: "#D4D5D9",
-    backgroundColor: "#fff",
-    alignItems: "center",
-    fontSize: 14,
-    flex: 1,
-    padding: 10,
-  },
-
-  selectedBox: {
-    backgroundColor: "#FF6666",
-    color: "#fff",
-  },
-
-  boxText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#535665",
-    justifyContent: "center",
-    alignItems: "center",
-    alignSelf: "center",
-    textAlign: "center",
-    width: 100,
-  },
-
-  selectedBoxText: {
-    color: "#FFF",
-  },
-
-  buttonText: {
-    color: "#FFF",
+  modalHeaderTitle: {
     fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: "700",
+    color: "#18181B",
   },
-
-  inputTextarea: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
-    height: 100, // Set a fixed height for better visibility
-    textAlignVertical: "top"
-    // marginBottom: 16,
-  },
-
-  btn: {
-    width: "100%",
-    alignSelf: "center",
-    borderRadius: 6,
-    // shadowColor: "#EE1E2440",
-    // shadowOffset: { width: 0, height: 1 },
-    // shadowOpacity: 0.2,
-    // shadowRadius: 6,
-    // elevation: 5,
-    marginTop: 15,
-    marginBottom: 30,
-  },
-
-  loginContainer: {
+  dropdownOptionItem: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F4F4F5",
   },
-
-  login: {
-    textAlign: "center",
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-    letterSpacing: 1,
-    fontFamily: "inter",
-    marginRight: 5,
+  dropdownOptionSelected: {
+    backgroundColor: "#FEF2F2",
   },
-
-  linearGradient: {
-    borderRadius: 5,
-    justifyContent: "center",
-    padding: 15,
-  },
-
-  error: {
-    color: "#FF0000",
-    fontSize: 12,
-    fontFamily: "inter",
-  },
-
-  radioContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-
-  radioText: {
+  dropdownItemText: {
     fontSize: 14,
-    color: "#535665",
-    marginLeft: 8,
+    color: "#3F3F46",
   },
-
+  dropdownItemTextSelected: {
+    color: "#BD1225",
+    fontWeight: "700",
+  },
+  // ── Radio / Box styles ──────────────────────────────────────────────────
   radioButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1711,55 +1413,117 @@ const styles = StyleSheet.create({
     width: "35%",
     marginTop: 8,
   },
-
   radioContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   radioButton: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: Colors.border || "#ccc",
     alignItems: "center",
     justifyContent: "center",
-    height: 15,
-    width: 15,
-    // marginRight: 8,
+    height: 18,
+    width: 18,
+    marginRight: 6,
   },
-
   radioButtonSelected: {
-    backgroundColor: "#FF6666",
-    borderColor: "#FF6666",
+    backgroundColor: Colors.primary || "#FF6666",
+    borderColor: Colors.primary || "#FF6666",
   },
-
+  innerCircle: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#fff",
+  },
   radioLabel: {
     fontSize: 14,
-    color: "#535665",
-    marginLeft: 4, // Adjusted margin to bring closer to the radio button
+    color: Colors.textDark || "#535665",
   },
+  boxRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+  },
+  box: {
+    borderWidth: 1,
+    borderColor: Colors.border || "#D4D5D9",
+    backgroundColor: Colors.card || "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    marginHorizontal: 1,
+    borderRadius: 4,
+  },
+  boxSelected: {
+    backgroundColor: Colors.primary || "#FF6666",
+    borderColor: Colors.primary || "#FF6666",
+  },
+  boxText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: Colors.textDark || "#535665",
+    textAlign: "center",
+  },
+  boxTextSelected: {
+    color: "#FFF",
+  },
+  // ── Tooltip ──
   labelWrapper: {
     flexDirection: "row",
     alignItems: "center",
+    flexWrap: "wrap",
   },
-  // label: {
-  //   fontSize: 16,
-  //   fontWeight: "bold",
-  // },
   infoIcon: {
-    marginLeft: 8,
+    marginLeft: 6,
   },
-  tooltipContent: {
+  tooltipText: {
     fontSize: 14,
     color: "#000",
     padding: 8,
   },
-
+  // ── Button ──
+  btn: {
+    width: "100%",
+    borderRadius: 26,
+    shadowColor: Colors.primary || "#B72024",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+    marginTop: rs(8, 10, 12),
+    marginBottom: 10,
+  },
+  linearGradient: {
+    borderRadius: 26,
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonText: {
+    textAlign: "center",
+    color: Colors.primaryForeground || "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 16,
+    letterSpacing: 0.5,
+    marginRight: 6,
+  },
+  errorText: {
+    color: Colors.destructive || "#EF4444",
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+    fontWeight: "500",
+  },
 });
 
-
-
-
-
-
-
+export default FamilyDetails;

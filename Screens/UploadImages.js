@@ -5,13 +5,14 @@ import {
   View,
   TextInput,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Image,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { launchImageLibrary } from "react-native-image-picker";
 import * as Progress from "react-native-progress";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
@@ -20,30 +21,28 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../API/Apiurl";
 import Toast from "react-native-toast-message";
-
+import { Colors, rs } from "../Reusable/Theme";
 
 export const UploadImages = () => {
   const navigation = useNavigation();
 
-  // State declarations for each file type
+  // ── Existing state ──────────────────────────────────────────────────────
   const [showPassword, setShowPassword] = useState(false);
   const [checked, setChecked] = useState(false);
   const [daughterImages, setDaughterImages] = useState([]);
   const [horoscopeImages, setHoroscopeImages] = useState([]);
   const [idProofImages, setIdProofImages] = useState([]);
-  const [divorceCertificateImages, setDivorceCertificateImages] = useState([]); // New state for divorce certificate
-  const [totalSpace] = useState(10); // Assuming 10 MB total space for simplicity
+  const [divorceCertificateImages, setDivorceCertificateImages] = useState([]);
+  const [totalSpace] = useState(10);
   const [usedSpace, setUsedSpace] = useState(0);
   const [MobileNo, setMobileNo] = useState("");
   const [ProfileId, setProfileId] = useState("");
   const [ProfileOwner, setProfileOwner] = useState("");
   const [martialValue, setMartialStatus] = useState("");
-  const [passwordProtection, setPasswordProtection] = useState(0); // Variable for password protection status
-  const [submitting, setSubmitting] = useState(false); // Add state to track submission
+  const [passwordProtection, setPasswordProtection] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
 
-
-
-  // Function to toggle password visibility
+  // ── Existing functions ──────────────────────────────────────────────────
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -59,7 +58,6 @@ export const UploadImages = () => {
       const mobileno = await AsyncStorage.getItem("Mobile_no");
       const martialstatus = await AsyncStorage.getItem("martial_status");
 
-      // Replace "ownself" with "yourself"
       profileValue = profileValue === "Ownself" ? "yourself" : profileValue;
 
       setMobileNo(mobileno);
@@ -76,7 +74,6 @@ export const UploadImages = () => {
     }
   };
 
-  // Function to handle file selection for different types
   const selectFile = (setFileState) => {
     launchImageLibrary({ mediaType: "photo", quality: 1 }, (response) => {
       if (response.didCancel) {
@@ -105,32 +102,22 @@ export const UploadImages = () => {
     });
   };
 
-  // Remove a file
   const removeFile = (index, files, setFileState) => {
     const removedFileSize = files[index].fileSize / 1024 / 1024;
     setFileState(files.filter((_, i) => i !== index));
     setUsedSpace((prevUsedSpace) => prevUsedSpace - removedFileSize);
   };
 
-  // const handleCheckboxToggle = () => {
-  //   setChecked(!checked);
-  // };
-
-
   const handleCheckboxToggle = () => {
     setChecked((prevChecked) => {
       const newChecked = !prevChecked;
-      setPasswordProtection(newChecked ? 1 : 0); // Set value to 1 if checked, otherwise 0
+      setPasswordProtection(newChecked ? 1 : 0);
       return newChecked;
     });
   };
 
-  console.log(passwordProtection);
-  // Upload files using fetch
   const uploadFile = async (url, file, fieldName, passwordProtection = null) => {
     try {
-      setSubmitting(true); // Set submitting state to true
-
       const formData = new FormData();
       formData.append(fieldName, {
         uri: file.uri,
@@ -141,7 +128,6 @@ export const UploadImages = () => {
       formData.append("profile_id", ProfileId);
       formData.append("mobile_no", MobileNo);
 
-      // Conditionally append passwordProtection for ImageSetUpload API
       if (passwordProtection !== null) {
         formData.append("photo_protection", passwordProtection);
       }
@@ -159,19 +145,15 @@ export const UploadImages = () => {
     } catch (error) {
       console.error(`Upload failed: ${url}`, error.message);
     }
-    finally {
-      setSubmitting(false); // Reset submitting state after API call
-    }
   };
 
-  // Add loading overlay component
   const LoadingOverlay = () => {
     if (!submitting) return null;
 
     return (
       <View style={[styles.loadingOverlay, StyleSheet.absoluteFill]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF4050" />
+          <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={styles.loadingText}>Uploading images, please wait...</Text>
         </View>
       </View>
@@ -184,49 +166,45 @@ export const UploadImages = () => {
     idProofImages.length > 0 ||
     divorceCertificateImages.length > 0;
 
-
-  // Handle "Next" button click to upload images
   const handleNextButtonClick = async () => {
-    if (submitting) return; // Prevent multiple submissions
+    if (submitting) return;
 
     try {
-      setSubmitting(true); // Set submitting state to true
+      setSubmitting(true);
 
-      // Upload daughter images
       if (daughterImages.length > 0) {
         for (const file of daughterImages) {
           await uploadFile(`${config.apiUrl}/auth/ImageSetUpload/`, file, "image_files", passwordProtection);
         }
       }
 
-      // Upload horoscope images
       if (horoscopeImages.length > 0) {
         for (const file of horoscopeImages) {
           await uploadFile(`${config.apiUrl}/auth/Horoscope_upload/`, file, "horoscope_file");
         }
       }
 
-      // Upload ID proof images
       if (idProofImages.length > 0) {
         for (const file of idProofImages) {
           await uploadFile(`${config.apiUrl}/auth/Idproof_upload/`, file, "idproof_file");
         }
       }
 
-      // Upload divorce certificate images if applicable
       if (divorceCertificateImages.length > 0) {
         for (const file of divorceCertificateImages) {
           await uploadFile(`${config.apiUrl}/auth/Divorceproof_upload/`, file, "divorcepf_file");
         }
       }
+
       if (somethingToUpload) {
         Toast.show({
           type: "success",
           text1: "Success",
           text2: "Images uploaded successfully!",
+          position: "top",
         });
       }
-      // Alert.alert("Success", "Images uploaded successfully.");
+
       navigation.navigate("FamilyDetails");
     } catch (error) {
       console.error("Error uploading images:", error);
@@ -235,29 +213,42 @@ export const UploadImages = () => {
         "An error occurred while uploading images. Please try again."
       );
     } finally {
-      setSubmitting(false); // Reset submitting state after all operations
+      setSubmitting(false);
     }
   };
 
-
   return (
-    <ScrollView>
-      <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      {/* ── Gradient Header (like Search) ────────────────────────────────── */}
+      <LinearGradient
+        colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={styles.headerBanner}
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle}>Upload Images</Text>
+          <Text style={styles.headerSubtitle}>Add your photos & documents</Text>
+        </View>
+      </LinearGradient>
+
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <LoadingOverlay />
-        <Text style={styles.uploadHead}>Upload Images</Text>
 
-        <Text style={styles.basicText}>
-          {`Upload ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Images / Family Images`}
-        </Text>
+        <View style={styles.cardContainer}>
+          <Text style={styles.basicText}>
+            {`Upload ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Images / Family Images`}
+          </Text>
 
-        <View style={styles.formContainer}>
           <TouchableOpacity
             style={styles.uploadContainer}
             onPress={() => selectFile(setDaughterImages)}
           >
-            <Text style={styles.uploadText}>
-              Select a file
-            </Text>
+            <Ionicons name="cloud-upload-outline" size={24} color={Colors.textMuted} style={{ marginBottom: 4 }} />
+            <Text style={styles.uploadText}>Select a file</Text>
           </TouchableOpacity>
 
           <ScrollView style={styles.filesContainer}>
@@ -265,12 +256,10 @@ export const UploadImages = () => {
               <View key={index} style={styles.fileItem}>
                 <Image source={{ uri: file.uri }} style={styles.fileImage} />
                 <View style={styles.fileDetails}>
-                  <Text>{file.fileName}</Text>
-                  <Text>{(file.fileSize / 1024 / 1024).toFixed(2)} MB</Text>
+                  <Text style={styles.fileNameText}>{file.fileName}</Text>
+                  <Text style={styles.fileSizeText}>{(file.fileSize / 1024 / 1024).toFixed(2)} MB</Text>
                   <TouchableOpacity
-                    onPress={() =>
-                      removeFile(index, daughterImages, setDaughterImages)
-                    }
+                    onPress={() => removeFile(index, daughterImages, setDaughterImages)}
                   >
                     <Text style={styles.removeButton}>Remove</Text>
                   </TouchableOpacity>
@@ -283,58 +272,55 @@ export const UploadImages = () => {
             progress={usedSpace / totalSpace}
             width={null}
             style={styles.progressBar}
+            color={Colors.primary}
+            unfilledColor={Colors.chipInactiveBg}
           />
           <Text style={styles.spaceText}>
-            Total Available Space:{" "}
-            {(((totalSpace - usedSpace) / totalSpace) * 100).toFixed(0)}%
+            Total Available Space: {(((totalSpace - usedSpace) / totalSpace) * 100).toFixed(0)}%
           </Text>
 
-          {/* <View style={styles.checkboxContainer}>
+          {/* Password protection checkbox */}
+          <View style={styles.checkboxContainer}>
             <Pressable
               style={[styles.checkboxBase, checked && styles.checkboxChecked]}
               onPress={handleCheckboxToggle}
             >
               {checked && <Ionicons name="checkmark" size={14} color="white" />}
             </Pressable>
-
             <Pressable onPress={handleCheckboxToggle}>
               <Text style={styles.checkboxLabel}>
                 Protect my images with password (only people you share the password can view the images)
               </Text>
             </Pressable>
-          </View> */}
+          </View>
 
-          {/* Conditionally render the password field based on the checkbox */}
           {checked && (
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>
-                Enter Password<Text style={styles.redText}>*</Text>
-              </Text>
+              <Text style={styles.fieldLabel}>Enter Password</Text>
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.input}
                   placeholder="Password"
-                  secureTextEntry={!showPassword} // Show or hide password
+                  placeholderTextColor={Colors.textMuted}
+                  secureTextEntry={!showPassword}
                 />
                 <Pressable onPress={togglePasswordVisibility} style={styles.passwordIcon}>
-                  <AntDesign name={showPassword ? "eye" : "eyeo"} size={18} color="#535665" />
+                  <AntDesign name={showPassword ? "eye" : "eyeo"} size={18} color={Colors.textMuted} />
                 </Pressable>
               </View>
             </View>
           )}
-          {/* )} */}
         </View>
 
-        {/* <Text style={styles.basicText}>Upload Daughter Horoscope Image</Text> */}
-        <Text style={styles.basicText}>{`Upload ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Horoscope Image`}</Text>
-        <View style={styles.formContainer}>
+        {/* ── Horoscope ── */}
+        <View style={styles.cardContainer}>
+          <Text style={styles.basicText}>{`Upload ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Horoscope Image`}</Text>
           <TouchableOpacity
             style={styles.uploadContainer}
             onPress={() => selectFile(setHoroscopeImages)}
           >
-            <Text style={styles.uploadText}>
-              Select a file
-            </Text>
+            <Ionicons name="cloud-upload-outline" size={24} color={Colors.textMuted} style={{ marginBottom: 4 }} />
+            <Text style={styles.uploadText}>Select a file</Text>
           </TouchableOpacity>
 
           <ScrollView style={styles.filesContainer}>
@@ -342,12 +328,10 @@ export const UploadImages = () => {
               <View key={index} style={styles.fileItem}>
                 <Image source={{ uri: file.uri }} style={styles.fileImage} />
                 <View style={styles.fileDetails}>
-                  <Text>{file.fileName}</Text>
-                  <Text>{(file.fileSize / 1024 / 1024).toFixed(2)} MB</Text>
+                  <Text style={styles.fileNameText}>{file.fileName}</Text>
+                  <Text style={styles.fileSizeText}>{(file.fileSize / 1024 / 1024).toFixed(2)} MB</Text>
                   <TouchableOpacity
-                    onPress={() =>
-                      removeFile(index, horoscopeImages, setHoroscopeImages)
-                    }
+                    onPress={() => removeFile(index, horoscopeImages, setHoroscopeImages)}
                   >
                     <Text style={styles.removeButton}>Remove</Text>
                   </TouchableOpacity>
@@ -357,26 +341,31 @@ export const UploadImages = () => {
           </ScrollView>
         </View>
 
-        <Text style={styles.basicText}>Upload your Videos</Text>
-        {/* URL */}
-        <View style={styles.formContainer}>
-          <Text style={styles.label}>Upload video link</Text>
-          <TextInput style={styles.input} placeholder="URL" />
-          <Text style={styles.label}>
-            Note: If video link is not available, you can share the videos to Vysyamala's admin WhatsApp No.9043085524.
-          </Text>
+        {/* ── Video Link ── */}
+        <View style={styles.cardContainer}>
+          <Text style={styles.basicText}>Upload your Videos</Text>
+          <View style={styles.inputContainer}>
+            <Text style={styles.fieldLabel}>Upload video link</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter video URL"
+              placeholderTextColor={Colors.textMuted}
+            />
+            <Text style={styles.helperNote}>
+              Note: If video link is not available, you can share the videos to Vysyamala's admin WhatsApp No.9043085524.
+            </Text>
+          </View>
         </View>
 
-        {/* <Text style={styles.basicText}>Upload Daughter ID Proof</Text> */}
-        <Text style={styles.basicText}>{`Upload ${ProfileOwner === "Ownself" ? "your" : ProfileOwner}  ID Proof`}</Text>
-        <View style={styles.formContainer}>
+        {/* ── ID Proof ── */}
+        <View style={styles.cardContainer}>
+          <Text style={styles.basicText}>{`Upload ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} ID Proof`}</Text>
           <TouchableOpacity
             style={styles.uploadContainer}
             onPress={() => selectFile(setIdProofImages)}
           >
-            <Text style={styles.uploadText}>
-              Select a file
-            </Text>
+            <Ionicons name="cloud-upload-outline" size={24} color={Colors.textMuted} style={{ marginBottom: 4 }} />
+            <Text style={styles.uploadText}>Select a file</Text>
           </TouchableOpacity>
 
           <ScrollView style={styles.filesContainer}>
@@ -384,12 +373,10 @@ export const UploadImages = () => {
               <View key={index} style={styles.fileItem}>
                 <Image source={{ uri: file.uri }} style={styles.fileImage} />
                 <View style={styles.fileDetails}>
-                  <Text>{file.fileName}</Text>
-                  <Text>{(file.fileSize / 1024 / 1024).toFixed(2)} MB</Text>
+                  <Text style={styles.fileNameText}>{file.fileName}</Text>
+                  <Text style={styles.fileSizeText}>{(file.fileSize / 1024 / 1024).toFixed(2)} MB</Text>
                   <TouchableOpacity
-                    onPress={() =>
-                      removeFile(index, idProofImages, setIdProofImages)
-                    }
+                    onPress={() => removeFile(index, idProofImages, setIdProofImages)}
                   >
                     <Text style={styles.removeButton}>Remove</Text>
                   </TouchableOpacity>
@@ -399,275 +386,287 @@ export const UploadImages = () => {
           </ScrollView>
         </View>
 
-
-
-        {/* New section for Divorce Certificate */}
+        {/* ── Divorce Certificate ── */}
         {martialValue === "2" && (
-          <>
-            <Text style={styles.basicText}>
-              {`Upload ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Divorce Certificate`}
-            </Text>
-            <View style={styles.formContainer}>
-              <TouchableOpacity
-                style={styles.uploadContainer}
-                onPress={() => selectFile(setDivorceCertificateImages)}
-              >
-                <Text style={styles.uploadText}>
-                  Select a file
-                </Text>
-              </TouchableOpacity>
+          <View style={styles.cardContainer}>
+            <Text style={styles.basicText}>{`Upload ${ProfileOwner === "Ownself" ? "your" : ProfileOwner} Divorce Certificate`}</Text>
+            <TouchableOpacity
+              style={styles.uploadContainer}
+              onPress={() => selectFile(setDivorceCertificateImages)}
+            >
+              <Ionicons name="cloud-upload-outline" size={24} color={Colors.textMuted} style={{ marginBottom: 4 }} />
+              <Text style={styles.uploadText}>Select a file</Text>
+            </TouchableOpacity>
 
-              <ScrollView style={styles.filesContainer}>
-                {divorceCertificateImages.map((file, index) => (
-                  <View key={index} style={styles.fileItem}>
-                    <Image source={{ uri: file.uri }} style={styles.fileImage} />
-                    <View style={styles.fileDetails}>
-                      <Text>{file.fileName}</Text>
-                      <Text>{(file.fileSize / 1024 / 1024).toFixed(2)} MB</Text>
-                      <TouchableOpacity
-                        onPress={() =>
-                          removeFile(index, divorceCertificateImages, setDivorceCertificateImages)
-                        }
-                      >
-                        <Text style={styles.removeButton}>Remove</Text>
-                      </TouchableOpacity>
-                    </View>
+            <ScrollView style={styles.filesContainer}>
+              {divorceCertificateImages.map((file, index) => (
+                <View key={index} style={styles.fileItem}>
+                  <Image source={{ uri: file.uri }} style={styles.fileImage} />
+                  <View style={styles.fileDetails}>
+                    <Text style={styles.fileNameText}>{file.fileName}</Text>
+                    <Text style={styles.fileSizeText}>{(file.fileSize / 1024 / 1024).toFixed(2)} MB</Text>
+                    <TouchableOpacity
+                      onPress={() => removeFile(index, divorceCertificateImages, setDivorceCertificateImages)}
+                    >
+                      <Text style={styles.removeButton}>Remove</Text>
+                    </TouchableOpacity>
                   </View>
-                ))}
-              </ScrollView>
-            </View>
-          </>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
         )}
 
-        {/* End of Divorce Certificate section */}
-
-
-        <View style={styles.formContainer}>
-          <TouchableOpacity
-            style={styles.btn}
-            // onPress={() => {
-            //   navigation.navigate("FamilyDetails");
-            // }}
-            onPress={handleNextButtonClick}
-            disabled={submitting} // Disable button when submitting
-
+        {/* ── Next Button ── */}
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={handleNextButtonClick}
+          disabled={submitting}
+          activeOpacity={0.85}
+        >
+          <LinearGradient
+            colors={[Colors.primary, Colors.primary || "#FF4050"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.linearGradient}
           >
-            <LinearGradient
-              colors={["#BD1225", "#FF4050"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              useAngle={true}
-              angle={92.08}
-              angleCenter={{ x: 0.5, y: 0.5 }}
-              style={styles.linearGradient}
-            >
-              <View style={styles.loginContainer}>
-                {/* <Text style={styles.login}>Next</Text> */}
-                <Text style={styles.login}>{submitting ? "Submitting..." : "Next"}</Text>
-
-                <Ionicons name="arrow-forward" size={18} color="white" />
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </ScrollView>
+            <View style={styles.buttonContent}>
+              <Text style={styles.buttonText}>{submitting ? "Submitting..." : "Next"}</Text>
+              <Ionicons name="arrow-forward" size={18} color={Colors.primaryForeground || "#FFFFFF"} />
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.selectedBg || "#FBF5ED",
+  },
+  // ── Header ──────────────────────────────────────────────────────────────
+  headerBanner: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingTop: rs(12, 16, 20),
+    paddingBottom: 24,
   },
-
-  uploadHead: {
-    color: "#535665",
-    fontFamily: "inter",
-    fontSize: 24,
+  backBtn: {
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
     fontWeight: "700",
-    alignSelf: "flex-start",
-    paddingHorizontal: 20,
-    marginVertical: 10,
+    color: "#FFFFFF",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -1,
   },
-
+  headerSubtitle: {
+    fontSize: rs(12, 13, 14),
+    color: "rgba(255, 255, 255, 0.7)",
+    marginTop: 2,
+  },
+  // ── Scroll content ─────────────────────────────────────────────────────
+  scrollContainer: {
+    flexGrow: 1,
+    paddingVertical: rs(12, 16, 20),
+    alignItems: "center",
+    paddingBottom: 80,
+  },
+  cardContainer: {
+    width: "90%",
+    backgroundColor: Colors.card || "#FFFFFF",
+    borderRadius: 24,
+    padding: rs(18, 22, 26),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
+    marginBottom: rs(12, 16, 20),
+  },
   basicText: {
-    color: "#535665",
-    fontFamily: "inter",
-    fontSize: 16,
+    color: Colors.textDark || "#1E1E1E",
+    fontSize: rs(16, 17, 18),
     fontWeight: "700",
-    alignSelf: "flex-start",
-    paddingHorizontal: 20,
-    marginVertical: 10,
-    marginBottom: 10,
+    marginBottom: rs(10, 12, 14),
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
-
-  formContainer: {
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.textMuted || "#71717A",
+    textTransform: "uppercase",
+    marginBottom: 6,
+    letterSpacing: 0.3,
+  },
+  inputContainer: {
     width: "100%",
-    paddingHorizontal: 20,
+    marginBottom: rs(14, 18, 20),
   },
-
-  label: {
-    color: "#535665",
-    fontSize: 14,
-    fontWeight: "600",
-    fontFamily: "inter",
-  },
-
-  redText: {
-    color: "#FF6666",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-
   input: {
-    color: "#535665",
+    color: Colors.textDark || "#1E1E1E",
     borderWidth: 1,
-    borderRadius: 4,
-    borderColor: "#D4D5D9",
-    padding: 10,
-    marginBottom: 10,
-    fontFamily: "inter",
-  },
-
-  passwordIcon: {
-    position: "absolute",
-    right: 10,
-    top: 35,
-  },
-
-  btn: {
-    width: "100%",
-    alignSelf: "center",
-    borderRadius: 6,
-    // shadowColor: "#EE1E2440",
-    // shadowOffset: { width: 0, height: 1 },
-    // shadowOpacity: 0.2,
-    // shadowRadius: 6,
-    // elevation: 5,
-    marginTop: 15,
-    marginBottom: 30,
-  },
-
-  loginContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  login: {
-    textAlign: "center",
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-    letterSpacing: 1,
-    fontFamily: "inter",
-    marginRight: 5,
-  },
-
-  linearGradient: {
-    borderRadius: 5,
-    justifyContent: "center",
-    padding: 15,
-  },
-
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    marginVertical: 10,
-  },
-
-  checkboxBase: {
-    width: 18,
-    height: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 2,
-    borderWidth: 2,
-    borderColor: "#FF6666",
-    backgroundColor: "transparent",
-    marginRight: 6,
-  },
-
-  checkboxChecked: {
-    backgroundColor: "#FF6666",
-  },
-
-  checkboxLabel: {
+    borderRadius: 16,
+    borderColor: Colors.border || "#E4E4E7",
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    paddingHorizontal: 12,
+    paddingVertical: rs(10, 12, 14),
     fontSize: 14,
-    color: "#535665",
   },
-
+  helperNote: {
+    fontSize: 12,
+    color: Colors.textMuted || "#71717A",
+    marginTop: 4,
+    lineHeight: 17,
+  },
   uploadContainer: {
-    borderWidth: 1,
-    borderColor: "#ccc",
+    borderWidth: 1.5,
+    borderColor: Colors.border || "#E4E4E7",
     borderStyle: "dashed",
-    borderRadius: 5,
-    padding: 20,
+    borderRadius: 20,
+    padding: 22,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+    marginBottom: 14,
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
   },
-
   uploadText: {
-    color: "#888",
+    color: Colors.textMuted || "#71717A",
+    fontSize: 13,
   },
-
   filesContainer: {
-    // marginBottom: 20,
+    maxHeight: 140,
   },
-
   fileItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    padding: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border || "#E4E4E7",
+    marginBottom: 8,
   },
-
   fileImage: {
-    width: 50,
-    height: 50,
-    marginRight: 10,
+    width: 45,
+    height: 45,
+    borderRadius: 10,
+    marginRight: 12,
   },
-
   fileDetails: {
     flex: 1,
   },
-
+  fileNameText: {
+    fontSize: 13,
+    color: Colors.textDark || "#1E1E1E",
+  },
+  fileSizeText: {
+    fontSize: 11,
+    color: Colors.textMuted || "#71717A",
+  },
   removeButton: {
-    color: "#FF5666",
-    marginTop: 5,
+    color: Colors.destructive || "#EF4444",
+    fontSize: 13,
+    fontWeight: "600",
   },
-
   progressBar: {
-    marginBottom: 10,
+    marginBottom: 6,
+    borderRadius: 6,
   },
-
   spaceText: {
-    fontSize: 14,
-    color: "#888",
+    fontSize: 12,
+    color: Colors.textMuted || "#71717A",
+    textAlign: "right",
   },
-
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginVertical: 10,
+  },
+  checkboxBase: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Colors.border || "#E4E4E7",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+    marginTop: 2,
+    backgroundColor: "transparent",
+  },
+  checkboxChecked: {
+    backgroundColor: Colors.primary || "#BD1225",
+    borderColor: Colors.primary || "#BD1225",
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    color: Colors.textDark || "#1E1E1E",
+    flex: 1,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    position: "relative",
+  },
+  passwordIcon: {
+    position: "absolute",
+    right: 12,
+    top: 12,
+  },
+  btn: {
+    width: "90%",
+    alignSelf: "center",
+    borderRadius: 26,
+    shadowColor: Colors.primary || "#B72024",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+    marginTop: rs(8, 10, 12),
+    marginBottom: 30,
+  },
+  linearGradient: {
+    borderRadius: 26,
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonText: {
+    textAlign: "center",
+    color: Colors.primaryForeground || "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 16,
+    letterSpacing: 0.5,
+    marginRight: 6,
+  },
   loadingOverlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 1000,
   },
-
   loadingContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
+    backgroundColor: Colors.card || "#FFFFFF",
+    padding: 24,
+    borderRadius: 16,
+    alignItems: "center",
   },
-
   loadingText: {
-    marginTop: 10,
-    color: '#535665',
+    marginTop: 12,
+    color: Colors.textDark || "#1E1E1E",
     fontSize: 16,
-    fontFamily: 'inter',
+    fontWeight: "500",
   },
 });
+
+export default UploadImages;

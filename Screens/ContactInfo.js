@@ -22,7 +22,7 @@ import axios from "axios";
 import config from "../API/Apiurl";
 import { CountryButton, CountryPicker } from "react-native-country-codes-picker";
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { Tooltip } from "react-native-elements"; // ✅ import Tooltip
+import { Tooltip } from "react-native-elements";
 import { Colors, rs } from "../Reusable/Theme";
 
 // ── Custom Modal Dropdown ──────────────────────────────────────────────────
@@ -276,12 +276,23 @@ export const ContactInfo = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.textContainer}>
-          <View style={styles.brandBadge}><Text style={styles.brandBadgeText}>CONTACT INFORMATION</Text></View>
-          <Text style={styles.headingText}>Contact Information</Text>
+      {/* ── Gradient Header (like Search) ────────────────────────────────── */}
+      <LinearGradient
+        colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={styles.headerBanner}
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle}>Contact Information</Text>
+          <Text style={styles.headerSubtitle}>Provide your contact details</Text>
         </View>
+      </LinearGradient>
 
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.cardContainer}>
           {/* Country */}
           <View style={styles.inputContainer}>
@@ -621,9 +632,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.selectedBg || "#FBF5ED",
   },
+  // ── Header styles (copied from Search) ──────────────────────────────────
+  headerBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: rs(12, 16, 20),
+    paddingBottom: 24,
+  },
+  backBtn: {
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -1,
+  },
+  headerSubtitle: {
+    fontSize: rs(12, 13, 14),
+    color: "rgba(255, 255, 255, 0.7)",
+    marginTop: 2,
+  },
+  // ── Scroll content ──────────────────────────────────────────────────────
   scrollContainer: {
     flexGrow: 1,
-    paddingVertical: rs(20, 30, 40),
+    paddingVertical: rs(12, 16, 20),
     alignItems: "center",
   },
   textContainer: {
@@ -806,15 +841,14 @@ const styles = StyleSheet.create({
     color: "#BD1225",
     fontWeight: "700",
   },
-  // ──────────────────────────────────────────────────────────────────────────
   labelWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   tooltipIcon: {
-    marginLeft: 8,     // space between City and icon
-    padding: 3,        // padding around icon 
-    marginBottom:2,
+    marginLeft: 8,
+    padding: 3,
+    marginBottom: 2,
   },
   errorText: {
     color: Colors.destructive || "#EF4444",
