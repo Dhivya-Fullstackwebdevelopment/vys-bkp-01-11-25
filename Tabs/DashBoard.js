@@ -27,10 +27,13 @@ import {
   fetchProfileInterests,
   fetchDashboardData,
   updateProfileInterest,
+  fetchProfileDataCheck,
+  logProfileVisit,
 } from "../CommonApiCall/CommonApiCall";
 import { TopAlignedImage } from "../Components/ReuseImageAlign/TopAlignedImage";
 import { Colors } from "../Reusable/Theme";
 import Svg, { Path, Circle, Rect, Polyline, Line } from "react-native-svg";
+import { PlatinumModalPopup } from "../Components/ReusePopups/PlatinumModalPopup";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isTablet = SCREEN_WIDTH >= 768;
@@ -149,7 +152,53 @@ export const DashBoard = () => {
   const [profileData, setProfileData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
+  const [showPlatinumModal, setShowPlatinumModal] = useState(false);
   const navigation = useNavigation();
+
+  const handleInterestProfileClick = async (viewedProfileId) => {
+    try {
+      const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
+
+      if (
+        profileCheckResponse?.status === "failure" &&
+        profileCheckResponse.message === "Profile visibility restricted"
+      ) {
+        setShowPlatinumModal(true);
+        return;
+      }
+
+      if (profileCheckResponse?.status === "failure") {
+        Toast.show({
+          type: "error",
+          text1: profileCheckResponse.message || "Unable to view profile",
+          position: "top",
+        });
+        return;
+      }
+
+      const success = await logProfileVisit(viewedProfileId);
+      if (success) {
+        navigation.navigate("ProfileDetails", { viewedProfileId });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Failed to open profile",
+          position: "top",
+        });
+      }
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.message || "";
+      if (msg === "Profile visibility restricted") {
+        setShowPlatinumModal(true);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Something went wrong.",
+          position: "top",
+        });
+      }
+    }
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -644,17 +693,38 @@ export const DashBoard = () => {
 
             {/* ── Top row: image + name/age ── */}
             <View style={styles.intTopRow}>
-              <Image
-                source={getImageSource(profile.int_Profile_img)}
-                style={styles.intThumb}
-              />
+
+              {/* Tappable image */}
+              <TouchableOpacity
+                onPress={() => handleInterestProfileClick(profile.int_profileid)}
+                activeOpacity={0.85}
+              >
+                <Image
+                  source={getImageSource(profile.int_Profile_img)}
+                  style={styles.intThumb}
+                />
+              </TouchableOpacity>
+
               <View style={styles.intTopInfo}>
-                <Text style={styles.intName} numberOfLines={1}>
-                  {profile.int_profile_name}
-                </Text>
-                <Text style={styles.intMeta}>
-                  {profile.int_profileid} · {profile.int_profile_age} Yrs
-                </Text>
+                {/* Tappable name */}
+                <TouchableOpacity
+                  onPress={() => handleInterestProfileClick(profile.int_profileid)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={styles.intName} numberOfLines={1}>
+                    {profile.int_profile_name}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Tappable profile ID */}
+                <TouchableOpacity
+                  onPress={() => handleInterestProfileClick(profile.int_profileid)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={styles.intMeta}>
+                    {profile.int_profileid} · {profile.int_profile_age} Yrs
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -807,6 +877,10 @@ export const DashBoard = () => {
           {renderReceivedInterests()}
         </ScrollView>
       )}
+      <PlatinumModalPopup
+        visible={showPlatinumModal}
+        onClose={() => setShowPlatinumModal(false)}
+      />
     </SafeAreaView>
   );
 };
