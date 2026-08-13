@@ -5,19 +5,24 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SafeAreaView } from "react-native-safe-area-context";
 import config from "../API/Apiurl";
-
+import { Colors, rs } from "../Reusable/Theme";
 
 export const ForgetPassword = () => {
   const [email, setEmail] = useState("");
   const [userID, setUserID] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
 
   const handleInputChange = (field, value) => {
@@ -31,164 +36,236 @@ export const ForgetPassword = () => {
   };
 
   const handleSubmit = async () => {
-    try {
-      if (!email && !userID) {
-        Alert.alert("Error", "Please fill in either Email or User ID");
-        return;
-      }
+    if (!email && !userID) {
+      Alert.alert("Error", "Please fill in either Email or User ID");
+      return;
+    }
 
+    setIsLoading(true);
+    try {
       const payload = email
         ? { email }
         : { profile_id: userID };
 
-      const response = await axios.post(`${config.apiUrl}/auth/Forget_password/`,
-        payload
-      );
+      const response = await axios.post(`${config.apiUrl}/auth/Forget_password/`, payload);
 
       if (response.data?.message === "OTP sent to your email.") {
         console.log(response.data);
         Alert.alert("Success", "OTP sent successfully.");
-        await AsyncStorage.setItem('forget_profile_id',response.data.forget_profile_id);
-        navigation.navigate("ForgotPasswordOtp"); // Navigate to OTP Verification screen
+        await AsyncStorage.setItem('forget_profile_id', response.data.forget_profile_id);
+        navigation.navigate("ForgotPasswordOtp");
       } else {
         Alert.alert("Error", response.data?.error || "Request failed.");
       }
     } catch (error) {
       console.error("API Error:", error);
       Alert.alert("Error", "An error occurred while processing your request.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.textContainer}>
-        <Text style={styles.forget}>Forgot Password</Text>
-        <Text style={styles.forgetText}>
-          Please enter your registered email ID or Vysyamala User ID.
-        </Text>
-      </View>
-
-      <View style={styles.formContainer}>
-        {!userID && (
-          <TextInput
-            style={styles.input}
-            placeholder="Email ID"
-            value={email}
-            onChangeText={(value) => handleInputChange("email", value)}
-            keyboardType="email-address"
-          />
-        )}
-
-        {!email && (
-          <TextInput
-            style={styles.input}
-            placeholder="User ID"
-            value={userID}
-            onChangeText={(value) => handleInputChange("userID", value)}
-          />
-        )}
-
-        <TouchableOpacity style={styles.btn} onPress={handleSubmit}>
-          <LinearGradient
-            colors={["#BD1225", "#FF4050"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            useAngle={true}
-            angle={92.08}
-            angleCenter={{ x: 0.5, y: 0.5 }}
-            style={styles.linearGradient}
-          >
-            <Text style={styles.submit}>Submit</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        <Text
-          onPress={() => navigation.navigate("LoginPage")}
-          style={styles.btltext}
+      <KeyboardAvoidingView
+        style={{ flex: 1, width: "100%" }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          Back to Login
-        </Text>
-      </View>
+          {/* Header */}
+          <View style={styles.textContainer}>
+            <Text style={styles.welcomeText}>Forgot Password</Text>
+            <Text style={styles.welcome}>
+              Please enter your registered email ID or Vysyamala User ID.
+            </Text>
+          </View>
+
+          {/* Form Card */}
+          <View style={styles.cardContainer}>
+            {!userID && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.fieldLabel}>Email ID</Text>
+                <View style={styles.inputWrapper}>
+                  <Ionicons name="mail-outline" size={18} color={Colors.textMuted} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter Email ID"
+                    placeholderTextColor={Colors.textMuted}
+                    value={email}
+                    onChangeText={(value) => handleInputChange("email", value)}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+              </View>
+            )}
+
+            {!email && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.fieldLabel}>User ID</Text>
+                <View style={styles.inputWrapper}>
+                  <Ionicons name="person-outline" size={18} color={Colors.textMuted} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter User ID"
+                    placeholderTextColor={Colors.textMuted}
+                    value={userID}
+                    onChangeText={(value) => handleInputChange("userID", value)}
+                    autoCapitalize="characters"
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              style={styles.btn}
+              onPress={handleSubmit}
+              disabled={isLoading}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={[Colors.primary, Colors.primary || "#FF4050"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.linearGradient}
+              >
+                <View style={styles.buttonContent}>
+                  <Text style={styles.buttonText}>{isLoading ? "Submitting..." : "Submit"}</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* Back to Login */}
+            <TouchableOpacity
+              style={styles.backContainer}
+              onPress={() => navigation.navigate("LoginPage")}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back-outline" size={16} color={Colors.primary} />
+              <Text style={styles.backText}>Back to Login</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.selectedBg || "#FBF5ED",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: rs(20, 30, 40),
+  },
+  textContainer: {
+    width: "100%",
+    paddingHorizontal: rs(20, 24, 28),
+    marginBottom: rs(16, 20, 24),
+  },
+  welcomeText: {
+    color: Colors.textDark || "#1E1E1E",
+    fontSize: 22,
+    fontWeight: "700",
+    letterSpacing: -1,
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
+  welcome: {
+    color: Colors.textMuted || "#71717A",
+    fontSize: rs(14, 15, 16),
+    marginTop: 4,
+  },
+  cardContainer: {
+    width: "90%",
+    backgroundColor: Colors.card || "#FFFFFF",
+    borderRadius: 24,
+    padding: rs(18, 22, 26),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  inputContainer: {
+    width: "100%",
+    marginBottom: rs(14, 18, 20),
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.textMuted || "#71717A",
+    textTransform: "uppercase",
+    marginBottom: 6,
+    letterSpacing: 0.3,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colors.border || "#E4E4E7",
+    borderRadius: 16,
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    paddingHorizontal: 12,
+  },
+  inputIcon: {
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    color: Colors.textDark || "#1E1E1E",
+    paddingVertical: rs(10, 12, 14),
+    fontSize: 14,
+  },
+  btn: {
+    width: "100%",
+    borderRadius: 26,
+    shadowColor: Colors.primary || "#B72024",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+    marginTop: rs(8, 10, 12),
+    marginBottom: rs(14, 18, 20),
+  },
+  linearGradient: {
+    borderRadius: 26,
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  buttonContent: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-
-  textContainer: {
-    width: "100%",
-    paddingHorizontal: 20,
-  },
-
-  formContainer: {
-    width: "100%",
-    paddingHorizontal: 20,
-  },
-
-  forget: {
-    color: "#535665",
-    fontFamily: "inter",
-    fontSize: 24,
+  buttonText: {
+    textAlign: "center",
+    color: Colors.primaryForeground || "#FFFFFF",
     fontWeight: "700",
-    marginBottom: 10,
-  },
-
-  forgetText: {
-    color: "#535665",
-    fontFamily: "inter",
     fontSize: 16,
-    marginBottom: 50,
+    letterSpacing: 0.5,
   },
-
-  input: {
-    color: "#535665",
-    borderWidth: 1,
-    borderRadius: 4,
-    borderColor: "#D4D5D9",
-    padding: 10,
-    marginBottom: 24,
-    fontFamily: "inter",
-  },
-
-  btn: {
-    width: "100%",
-    alignSelf: "center",
-    borderRadius: 6,
-    shadowColor: "#EE1E2440",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-
-  submit: {
-    textAlign: "center",
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-    letterSpacing: 1,
-    fontFamily: "inter",
-  },
-
-  linearGradient: {
-    borderRadius: 5,
+  backContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
-    padding: 15,
+    gap: 6,
+    marginTop: rs(8, 10, 12),
   },
-
-  btltext: {
-    fontFamily: "inter",
-    fontSize: 16,
+  backText: {
+    fontSize: 14,
     fontWeight: "600",
-    color: "#FF6666",
-    textAlign: "center",
-    marginTop: 40,
+    color: Colors.primary || "#B72024",
   },
 });
+
+export default ForgetPassword;
