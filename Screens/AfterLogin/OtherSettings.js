@@ -5,7 +5,6 @@ import {
     TextInput,
     View,
     Switch,
-    SafeAreaView,
     ImageBackground,
     Image,
     ScrollView,
@@ -32,7 +31,6 @@ import {
 import { launchImageLibrary } from "react-native-image-picker";
 import * as Progress from "react-native-progress";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { useMemo } from 'react';
 import RadioGroup from 'react-native-radio-buttons-group';
 import { useNavigation } from "@react-navigation/native";
@@ -49,6 +47,8 @@ import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Alert } from "react-native";
 import { Colors, rs } from '../../Reusable/Theme';
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export const OtherSettings = () => {
     const navigation = useNavigation();
@@ -1059,7 +1059,7 @@ export const OtherSettings = () => {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: Colors.background || "#FAF6F0" }}>
+        <SafeAreaView  style={{ flex: 1, backgroundColor: Colors.cardBackground || "#FAF6F0" }}>
             <ScrollView>
                 <View style={styles.container}>
 
@@ -1746,7 +1746,7 @@ export const OtherSettings = () => {
                 </View>
             </ScrollView >
             <BottomTabBarComponent />
-        </View>
+        </SafeAreaView >
     )
 }
 
