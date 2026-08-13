@@ -26,6 +26,8 @@ import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { Colors, rs } from "../../Reusable/Theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
+import config from "../../API/Apiurl";
+
 
 export const ProfileCompletionForm = () => {
   const [formData, setFormData] = useState({
@@ -68,7 +70,7 @@ export const ProfileCompletionForm = () => {
         setIncomeLoading(true);
 
         const response = await axios.post(
-          "https://app.vysyamala.com/auth/Get_Annual_Income/"
+          `${config.apiUrl}/auth/Get_Annual_Income/`
         );
 
         console.log(
@@ -148,18 +150,18 @@ export const ProfileCompletionForm = () => {
   const handleSubmit = async () => {
     const profileId = await AsyncStorage.getItem("loginuser_profileId");
 
-    // Check if at least one field is filled
+    // File keys in state
+    const fileStateKeys = ["photo_upload", "horoscope_file", "Profile_idproof"];
+
+    // 1. Validation check
     const isAnyFieldFilled = Object.keys(formData).some((key) => {
       const value = formData[key];
-
       if (value === null || value === undefined) return false;
 
-      // Handle string or numeric values (e.g., income_id = 12)
       if (typeof value === "string" || typeof value === "number") {
         return String(value).trim() !== "";
       }
 
-      // Handle file upload objects
       if (typeof value === "object" && value?.uri) {
         return true;
       }
@@ -180,40 +182,44 @@ export const ProfileCompletionForm = () => {
     const formDataToSend = new FormData();
     formDataToSend.append("profile_id", profileId || "");
 
-    // Text & dropdown fields (anual_income sends the income_id directly)
+    // 2. Text/Dropdown fields only (Excluding file fields to avoid [object Object] error)
     Object.keys(formData).forEach((key) => {
-      const value = formData[key];
-
-      if (value !== null && value !== undefined && value !== "") {
-        const apiKey = getApiField(key);
-
-        formDataToSend.append(
-          apiKey,
-          String(value)
-        );
+      if (!fileStateKeys.includes(key)) {
+        const value = formData[key];
+        if (value !== null && value !== undefined && value !== "") {
+          const apiKey = getApiField(key);
+          formDataToSend.append(apiKey, String(value));
+        }
       }
     });
 
-    // File fields
+    // 3. File fields upload handling with OS uri formatting
     const fileFields = ["image", "horoscope_file", "Profile_idproof"];
     fileFields.forEach((apiField) => {
       const stateKey = getStateKey(apiField);
       const file = formData[stateKey];
+
       if (file && file.uri) {
+        const cleanUri =
+          Platform.OS === "android" && !file.uri.startsWith("file://")
+            ? `file://${file.uri}`
+            : file.uri;
+
         formDataToSend.append(apiField, {
-          uri: file.uri,
-          type: file.type,
-          name: file.name,
+          uri: cleanUri,
+          type: file.type || "image/jpeg",
+          name: file.name || `upload_${apiField}.jpg`,
         });
       }
     });
 
-    console.log("Payload to send ===>", JSON.stringify(formDataToSend));
+    console.log("Payload to send ===>", formDataToSend);
 
     try {
       setFormSubmitting(true);
       const response = await ProfileCompletionFormAPI(formDataToSend);
-      console.log("Success", "Form submitted successfully", JSON.stringify(response));
+      console.log("Success", response);
+
       Toast.show({
         type: "success",
         text1: "Profile updated successfully",
