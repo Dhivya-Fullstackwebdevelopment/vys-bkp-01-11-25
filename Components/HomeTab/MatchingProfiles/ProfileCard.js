@@ -452,17 +452,13 @@ export const ProfileCard = ({
       );
     }
 
-    // Explicit "no results" state (search returned nothing, or list fetch failed)
-    if (data === null) {
+    // Show ProfileNotFound component if data is null or an empty array
+    if (data === null || (Array.isArray(data) && data.length === 0)) {
       return (
         <View style={styles.noResultsContainer}>
           <ProfileNotFound />
         </View>
       );
-    }
-
-    if (!Array.isArray(data) || data.length === 0) {
-      return <></>;
     }
 
     return (
@@ -734,7 +730,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 10,
-    paddingBottom:42,
+    paddingBottom: 42,
   },
   gridRow: {
     justifyContent: 'space-between',

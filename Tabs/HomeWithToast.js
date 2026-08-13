@@ -333,35 +333,38 @@ export const HomeWithToast = () => {
         if (vysassistRes) setVysassistData(vysassistRes);
       }
 
-      if (response && response.profiles) {
-        const newProfiles = response.profiles || [];
-        const total = response.total_count || 0;
+      // Check if API returned profiles successfully (Status === 1 or non-empty profiles array)
+      if (
+        response &&
+        (response.Status === 1 || response.status === "1") &&
+        Array.isArray(response.profiles) &&
+        response.profiles.length > 0
+      ) {
+        const newProfiles = response.profiles;
+        const total = response.total_count || newProfiles.length;
         setTotalCount(total);
 
         setMatchingProfilesList((prev) => {
           const updated = isLoadMore ? [...prev, ...newProfiles] : newProfiles;
-          if (total > 0 && updated.length >= total) {
-            setHasMorePages(false);
-          } else if (newProfiles.length === 0) {
-            setHasMorePages(false);
-          } else {
-            setHasMorePages(true);
-          }
+          setHasMorePages(updated.length < total);
           return updated;
         });
         setPage(pageNum);
       } else {
+        // API returned Status: 0 / "No matching records"
+        if (!isLoadMore) {
+          setMatchingProfilesList(null); // Setting to null triggers <ProfileNotFound />
+          setTotalCount(0);
+        }
         setHasMorePages(false);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      if (!isLoadMore) {
+        setMatchingProfilesList(null);
+        setTotalCount(0);
+      }
       setHasMorePages(false);
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: error.message || "Failed to fetch data.",
-        position: "top",
-      });
     } finally {
       setIsProfilesLoading(false);
       setIsInitialLoading(false);
@@ -428,7 +431,12 @@ export const HomeWithToast = () => {
 
       const response = await Search_By_profileId_matchingProfile(pid, orderByValue, pageToFetch);
 
-      if (response.Status === 1 && response.profiles && response.profiles.length > 0) {
+      if (
+        response &&
+        (response.Status === 1 || response.status === "1") &&
+        Array.isArray(response.profiles) &&
+        response.profiles.length > 0
+      ) {
         const total = response.total_count || response.profiles.length;
         setSearchResults((prev) =>
           isLoadMore ? [...(prev || []), ...response.profiles] : response.profiles
@@ -438,8 +446,9 @@ export const HomeWithToast = () => {
         const loadedCount = isLoadMore ? (searchResults?.length || 0) + response.profiles.length : response.profiles.length;
         setSearchHasMore(loadedCount < total);
       } else {
+        // Handles Status: 0 / "No matching records"
         if (!isLoadMore) {
-          setSearchResults(null);
+          setSearchResults(null); // Triggers <ProfileNotFound />
           setTotalCount(0);
         }
         setSearchHasMore(false);
@@ -449,7 +458,6 @@ export const HomeWithToast = () => {
         setSearchResults(null);
         setTotalCount(0);
       }
-      Toast.show({ type: "error", text1: "Search Error", text2: "Failed to fetch search results", position: "top" });
     } finally {
       setIsSearching(false);
       setSearchLoadingMore(false);
@@ -979,7 +987,8 @@ export const HomeWithToast = () => {
         </View>
       );
     }
-    if (!hasMorePages && matchingProfilesList.length > 0 && searchProfileId.length === 0) {
+    // if (!hasMorePages && matchingProfilesList.length > 0 && searchProfileId.length === 0) {
+    if (!hasMorePages && matchingProfilesList?.length > 0 && searchProfileId.length === 0) {
       return (
         <View style={styles.footerLoader}>
           <Text style={styles.endMessage}>No more profiles</Text>
