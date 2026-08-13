@@ -78,12 +78,6 @@ export const DashBoardWishlist = () => {
           <Text style={styles.headerTitle}>Wishlist</Text>
           <Text style={styles.headerSubtitle}>{count} profiles saved</Text>
         </View>
-        <TouchableOpacity
-          style={styles.filterIconBtn}
-          onPress={() => navigation.navigate("Search")}
-        >
-          <Ionicons name="options-outline" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
       </LinearGradient>
 
       <View style={styles.bodyContainer}>
