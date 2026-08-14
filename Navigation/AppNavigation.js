@@ -387,7 +387,7 @@ export const AppNavigation = () => {
             backgroundColor: "#fff",
           },
           // headerLeft: null,
-          headerShown: true,
+          headerShown: false,
         }}
       />
       <Stack.Screen
@@ -404,7 +404,7 @@ export const AppNavigation = () => {
             backgroundColor: "#fff",
           },
           // headerLeft: null,
-          headerShown: true,
+          headerShown: false,
         }}
       />
       <Stack.Screen
