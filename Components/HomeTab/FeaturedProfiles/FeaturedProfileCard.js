@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, FlatList } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { logProfileVisit, fetchProfileDataCheck } from "../../../CommonApiCall/CommonApiCall";
@@ -109,50 +109,64 @@ export const FeaturedProfileCard = ({ profiles }) => {
         }
     };
 
-    const renderProfile = ({ item: profile }) => (
-        <TouchableOpacity
-            style={styles.container}
-            onPress={() => handleProfileClick(profile.profile_id)}
-        >
-            <View style={styles.featuredProfileDiv}>
-                <View style={styles.featuredProfileContainer}>
-                    <View>
-                        <Image
-                            style={styles.featuredProfileImg}
-                            source={{
-                                uri: typeof profile.profile_img === 'string'
-                                    ? profile.profile_img
-                                    : Array.isArray(profile.profile_img)
-                                        ? profile.profile_img[0]
-                                        : 'https://your-default-image-url.com/placeholder.jpg'
-                            }}
-                        />
-                        <LinearGradient
-                            colors={['transparent', 'rgba(0,0,0,0.8)']}
-                            style={styles.gradient}
-                        />
-                    </View>
+    const FeaturedCard = ({ profile }) => {
+        const [imageLoaded, setImageLoaded] = useState(false);
 
-                    <View style={styles.profileInfo}>
-                        <Text style={styles.profileName}>
-                            {/* {profile.profile_name} */}
-                            {profile.profile_name
-                                ? (profile.profile_name.length > 15
-                                    ? profile.profile_name.substring(0, 15) + "..."
-                                    : profile.profile_name)
-                                : "N/A"
-                            }
-                            <Text style={styles.profileID}> ({profile.profile_id})</Text>
-                        </Text>
-                        <View style={styles.profileInfoFlex}>
-                            <Text style={styles.profileAge}>{profile.profile_age} years</Text>
-                            <Text style={styles.profileHeight}>{profile.profile_height?.height_desc || "N/A"}</Text>
+        const imageUri = typeof profile.profile_img === 'string'
+            ? profile.profile_img
+            : Array.isArray(profile.profile_img)
+                ? profile.profile_img[0]
+                : 'https://your-default-image-url.com/placeholder.jpg';
+
+        return (
+            <TouchableOpacity
+                style={styles.container}
+                activeOpacity={0.9}
+                onPress={() => handleProfileClick(profile.profile_id)}
+            >
+                <View style={styles.featuredProfileDiv}>
+                    <View style={styles.featuredProfileContainer}>
+                        <View style={styles.imageWrapper}>
+                            {!imageLoaded && (
+                                <View style={styles.imageLoaderOverlay}>
+                                    <ActivityIndicator size="small" color="#FFD700" />
+                                </View>
+                            )}
+                            <Image
+                                style={styles.featuredProfileImg}
+                                source={{ uri: imageUri }}
+                                resizeMode="cover"
+                                onLoadEnd={() => setImageLoaded(true)}
+                                onError={() => setImageLoaded(true)}
+                            />
+                            <LinearGradient
+                                colors={['transparent', 'rgba(0,0,0,0.8)']}
+                                style={styles.gradient}
+                            />
+                        </View>
+
+                        <View style={styles.profileInfo}>
+                            <Text style={styles.profileName}>
+                                {profile.profile_name
+                                    ? (profile.profile_name.length > 15
+                                        ? profile.profile_name.substring(0, 15) + "..."
+                                        : profile.profile_name)
+                                    : "N/A"
+                                }
+                                <Text style={styles.profileID}> ({profile.profile_id})</Text>
+                            </Text>
+                            <View style={styles.profileInfoFlex}>
+                                <Text style={styles.profileAge}>{profile.profile_age} years</Text>
+                                <Text style={styles.profileHeight}>{profile.profile_height?.height_desc || "N/A"}</Text>
+                            </View>
                         </View>
                     </View>
                 </View>
-            </View>
-        </TouchableOpacity>
-    );
+            </TouchableOpacity>
+        );
+    };
+
+    const renderProfile = ({ item: profile }) => <FeaturedCard profile={profile} />;
 
     // Add error state handling
     if (!validProfiles.length) {
@@ -174,6 +188,10 @@ export const FeaturedProfileCard = ({ profiles }) => {
             snapToAlignment="center"
             decelerationRate="fast"
             style={styles.flatList}
+            initialNumToRender={4}
+            maxToRenderPerBatch={6}
+            windowSize={5}
+            removeClippedSubviews={true}
         />
     );
 };
@@ -189,10 +207,21 @@ const styles = StyleSheet.create({
     featuredProfileContainer: {
         position: 'relative',
     },
+    imageWrapper: {
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    imageLoaderOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.15)',
+        zIndex: 1,
+    },
     featuredProfileImg: {
         width: 160,
         height: 160,
-        borderRadius: 0,
+        borderRadius: 12,
     },
     gradient: {
         position: 'absolute',
