@@ -8,6 +8,7 @@ import {
   Image,
   Platform,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { markProfileWishlist, logProfileVisit, fetchProfileDataCheck } from "../../CommonApiCall/CommonApiCall";
@@ -18,6 +19,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImage";
 import { Colors, rs } from "../../Reusable/Theme";
+import axios from "axios";
+import config from "../../API/Apiurl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const DEFAULT_BRIDE =
   "https://vysyamat.blob.core.windows.net/vysyamala/default_bride.png";
@@ -26,28 +30,87 @@ const DEFAULT_GROOM =
 
 export const FeaturedOrSuggestProfiles = ({ route }) => {
   const navigation = useNavigation();
-  const { type, profiles, page = 1 } = route.params;
+  const { type, profiles: initialProfiles, page: initialPage = 1 } = route.params;
+
+  // ── State ──
+  const [profiles, setProfiles] = useState(initialProfiles || []);
+  const [page, setPage] = useState(initialPage);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(initialProfiles?.length || 0);
   const [allProfileIds, setAllProfileIds] = useState({});
 
+  const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
+
+  // ── Build profile ID map (preserved) ──
   useEffect(() => {
     if (profiles && profiles.length > 0) {
       const profileIds = profiles.reduce((acc, profile, index) => {
-        const globalIndex = (page - 1) * 10 + index;
-        acc[globalIndex] = profile.profile_id;
+        acc[index] = profile.profile_id;
         return acc;
       }, {});
-
-      setAllProfileIds(prev => ({
-        ...prev,
-        ...profileIds
-      }));
+      setAllProfileIds(profileIds);
     }
-  }, [profiles, page]);
+  }, [profiles]);
 
-  // Preserved exactly as-is (logic untouched)
-  const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
-  console.log("profiles", profiles);
+  // ── Load more profiles ──
+  const loadMoreProfiles = async () => {
+    if (loadingMore || !hasMore) return;
 
+    setLoadingMore(true);
+    try {
+      const profileId =
+        (await AsyncStorage.getItem("loginuser_profileId")) ||
+        (await AsyncStorage.getItem("profile_id_new"));
+
+      if (!profileId) {
+        setLoadingMore(false);
+        return;
+      }
+
+      const nextPage = page + 1;
+      const endpoint =
+        type === "featured"
+          ? `${config.apiUrl}/auth/Get_Featured_List/`
+          : `${config.apiUrl}/auth/Get_Suggested_List/`;
+
+      const response = await axios.post(endpoint, {
+        profile_id: profileId,
+        per_page: 10,
+        page_number: nextPage,
+      });
+
+      if (response.data && response.data.status === "success") {
+        const newProfiles = response.data.data || [];
+        const total = response.data.total_count || 0;
+
+        if (newProfiles.length > 0) {
+          setProfiles((prev) => [...prev, ...newProfiles]);
+          setPage(nextPage);
+          setTotalCount(total);
+          // Check if we've loaded all
+          setHasMore(profiles.length + newProfiles.length < total);
+        } else {
+          setHasMore(false);
+        }
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error loading more profiles:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to load more profiles.",
+        position: "top",
+      });
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  // ── Existing functions (unchanged) ──
   const handleSavePress = async (profileId) => {
     console.log("profileId", profileId);
     const updatedBookmarkedProfiles = new Set(bookmarkedProfiles);
@@ -62,11 +125,10 @@ export const FeaturedOrSuggestProfiles = ({ route }) => {
       }
       setBookmarkedProfiles(updatedBookmarkedProfiles);
     } catch (error) {
-      // Error handling is done within the API function, so no need here
+      // Error handling is done within the API function
     }
   };
 
-  // Kept for compatibility, but rendering now uses getSafeImage (FilterScreen style)
   const getImageSource = (image) => {
     if (!image) return { uri: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fstock.adobe.com%2Fsearch%2Fimages%3Fk%3Ddefault%2Bimage&psig=AOvVaw28Px6jC5wsx4TWxwOrHJT2&ust=1726388184602000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCMCfpqb_wYgDFQAAAAAdAAAAABAE' };
     if (Array.isArray(image)) {
@@ -86,14 +148,13 @@ export const FeaturedOrSuggestProfiles = ({ route }) => {
     const profileCheckResponse = await fetchProfileDataCheck(viewedProfileId);
     console.log('profile view msg', profileCheckResponse)
 
-    // 2. Check if the API returned any failure
     if (profileCheckResponse?.status === "failure") {
       Toast.show({
         type: "error",
-        text1: profileCheckResponse.message, // <-- This displays the exact API message
+        text1: profileCheckResponse.message,
         position: "top",
       });
-      return; // Stop the function
+      return;
     }
 
     const success = await logProfileVisit(viewedProfileId);
@@ -125,6 +186,7 @@ export const FeaturedOrSuggestProfiles = ({ route }) => {
     return null;
   };
 
+  // ── Render item (unchanged) ──
   const renderProfileItem = ({ item, index }) => {
     const profileId = allProfileIds[index] ?? item.profile_id;
     const isSaved = bookmarkedProfiles.has(profileId) || item.wish_list === 1;
@@ -262,6 +324,17 @@ export const FeaturedOrSuggestProfiles = ({ route }) => {
     );
   };
 
+  // ── Footer loader ──
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={Colors.primary} />
+        <Text style={styles.loadingText}>Loading more...</Text>
+      </View>
+    );
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <SafeAreaView style={styles.rootContainer} edges={['top']}>
@@ -285,7 +358,7 @@ export const FeaturedOrSuggestProfiles = ({ route }) => {
               {type === "featured" ? "Featured Profiles" : "Suggested Profiles"}
             </Text>
             <Text style={styles.headerSubtitle}>
-              {profiles.length} profiles found
+              {totalCount} profiles found
             </Text>
           </View>
         </LinearGradient>
@@ -294,10 +367,13 @@ export const FeaturedOrSuggestProfiles = ({ route }) => {
           <FlatList
             data={profiles}
             renderItem={renderProfileItem}
-            keyExtractor={(item) => item.profile_id.toString()}
+            keyExtractor={(item, index) => `${item.profile_id}-${index}`}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={() => <Text style={styles.errorText}>No profiles found</Text>}
+            ListFooterComponent={renderFooter}
+            onEndReached={loadMoreProfiles}
+            onEndReachedThreshold={0.3}
           />
         </View>
       </SafeAreaView>
@@ -505,5 +581,15 @@ const styles = StyleSheet.create({
   },
   shortlistBtnTextSaved: {
     color: Colors.chipActiveText,
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 6,
+    fontSize: 13,
+    color: Colors.textMuted,
+    fontWeight: "500",
   },
 });
