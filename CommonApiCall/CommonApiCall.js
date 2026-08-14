@@ -1934,32 +1934,25 @@ const openPdf = async (fileUri) => {
 
 
 export const uploadImageToServer = async (formData) => {
-    const profileId = await retrieveProfileId(); // Implement this to retrieve the profile ID
-    if (!profileId) {
-        console.warn('Profile ID is empty, skipping API call.');
-        return null;
-    }
-
-    // Append profile_id to formData after confirming it's not empty
-    formData.append("profile_id", profileId);
-
     try {
-        console.log("image formdata ==>", JSON.stringify(formData), `${BASE_URL}/ImageSetEdit/`)
-        const response = await axios.post(`${BASE_URL}/ImageSetEdit/`,
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
-        );
-        return response.data; // Return the API response data
+        const response = await fetch(`${BASE_URL}/ImageSetEdit/`, {
+            method: 'POST',
+            body: formData,
+            // Do NOT set Content-Type — let fetch set it with the boundary automatically
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const serverMessage = errorData.message || errorData.detail;
+            if (serverMessage) throw new Error(serverMessage);
+            throw new Error(`Server error: ${response.status}`);
+        }
+
+        return await response.json();
     } catch (error) {
-        if (error.response && error.response.data) {
-            const serverMessage = error.response.data.message || error.response.data.detail;
-            if (serverMessage) {
-                throw new Error(serverMessage); // Use server's actual message
-            }
+        console.log('🔥 uploadImageToServer ERROR:', error);
+        if (error.message && error.message !== '__SILENT__') {
+            throw new Error(error.message);
         }
         throw new Error("__SILENT__");
     }

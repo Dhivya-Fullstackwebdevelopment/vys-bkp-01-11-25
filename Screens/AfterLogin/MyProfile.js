@@ -26,6 +26,7 @@ import {
 import Carousel from 'react-native-reanimated-carousel';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { launchImageLibrary } from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { ProfileIconsBar, ProfileSectionsContent } from '../../Components/MenuTab/ProfileDetailsEdit';
@@ -270,84 +271,87 @@ export const MyProfile = () => {
     };
 
     const uploadImage = async (id) => {
-        launchImageLibrary({
-            mediaType: 'photo',
-            quality: 1,
-        }, async (response) => {
-            if (response.didCancel) return;
+        // Request permission (if not already granted)
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Toast.show({
+                type: 'error',
+                text1: 'Permission Denied',
+                text2: 'We need camera roll permission to upload images.',
+                position: 'top',
+            });
+            return;
+        }
 
-            if (response.errorCode || response.error) {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: false, // set to true if you want cropping
+            quality: 1,
+        });
+
+        if (result.canceled) {
+            return; // user cancelled
+        }
+
+        if (result.assets && result.assets[0]) {
+            const file = result.assets[0];
+            const profileId = await AsyncStorage.getItem('loginuser_profileId');
+            if (!profileId) {
                 Toast.show({
-                    type: "error",
-                    text1: "Image picker error",
-                    text2: response.errorMessage || response.error || response.errorCode || "Could not open gallery",
-                    position: "top",
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Profile ID not found',
+                    position: 'top',
                 });
                 return;
             }
 
-            if (response.assets && response.assets[0]) {
-                const file = response.assets[0];
-                const profileId = await AsyncStorage.getItem("loginuser_profileId");
+            const formData = new FormData();
+            formData.append('profile_id', profileId);
 
-                if (!profileId) {
-                    Toast.show({
-                        type: "error",
-                        text1: "Error",
-                        text2: "Profile ID not found",
-                        position: "top",
-                    });
-                    return;
-                }
+            // The file object from expo-image-picker has: uri, type, fileName
+            const imageFile = {
+                uri: file.uri,
+                type: file.mimeType || 'image/jpeg',   // ✅ was file.type (undefined on expo-image-picker)
+                name: file.fileName || `image_${Date.now()}.jpg`,
+            };
 
-                const formData = new FormData();
-                formData.append("profile_id", profileId);
-
-                if (id !== null) {
-                    formData.append("replace_image_ids", id.toString());
-                    formData.append("replace_image_files", {
-                        uri: file.uri,
-                        type: file.type || 'image/jpeg',
-                        name: file.fileName || `image_${Date.now()}.jpg`,
-                    });
-                } else {
-                    formData.append("new_image_files", {
-                        uri: file.uri,
-                        type: file.type || 'image/jpeg',
-                        name: file.fileName || `image_${Date.now()}.jpg`,
-                    });
-                }
-
-                try {
-                    setLoading(true);
-                    await uploadImageToServer(formData);
-                    Toast.show({
-                        type: "success",
-                        text1: "Success",
-                        text2: id ? "Image replaced successfully" : "Image uploaded successfully",
-                        position: "top",
-                    });
-                    await fetchAndSetImages();
-                } catch (error) {
-                    if (error.message && error.message !== '__SILENT__') {
-                        Toast.show({
-                            type: "error",
-                            text1: "Upload Error",
-                            text2: error.message || "Failed to upload image",
-                            position: "top",
-                        });
-                    }
-                } finally {
-                    setLoading(false);
-                }
+            if (id !== null) {
+                formData.append('replace_image_ids', id.toString());
+                formData.append('replace_image_files', imageFile);
             } else {
-                Toast.show({
-                    type: "info",
-                    text1: "No image selected",
-                    position: "top",
-                });
+                formData.append('new_image_files', imageFile);
             }
-        });
+
+            try {
+                setLoading(true);
+                await uploadImageToServer(formData);
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: id ? 'Image replaced successfully' : 'Image uploaded successfully',
+                    position: 'top',
+                });
+                await fetchAndSetImages();
+            } catch (error) {
+                if (error.message && error.message !== '__SILENT__') {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Upload Error',
+                        text2: error.message === '__SILENT__' ? 'Failed to upload image. Check your network or server.' : error.message,
+                        position: 'top',
+                    });
+                }
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            Toast.show({
+                type: 'info',
+                text1: 'No image selected',
+                position: 'top',
+            });
+        }
     };
 
     const removeImage = async (id) => {
@@ -433,7 +437,7 @@ export const MyProfile = () => {
                 />
             </TouchableOpacity>
 
-            <View style={styles.floatingActionPill} pointerEvents="box-none">
+            {/* <View style={styles.floatingActionPill} pointerEvents="box-none">
                 <TouchableOpacity
                     style={styles.addIconCircle}
                     onPress={() => uploadImage(null)}
@@ -447,7 +451,7 @@ export const MyProfile = () => {
                 >
                     <Ionicons name="pencil" size={15} color="#A00014" />
                 </TouchableOpacity>
-            </View>
+            </View> */}
         </View>
     );
 
@@ -658,12 +662,7 @@ export const MyProfile = () => {
                                     {activeSlide + 1}/{data.length}
                                 </Text>
                             </View>
-
-                            {/* Moved outside Carousel/renderItem so the carousel's pan
-                                gesture handler no longer swallows the touch before it
-                                reaches these buttons. Uses activeSlide (kept in sync via
-                                onSnapToItem above) to know which image id to target. */}
-                            <View style={styles.floatingActionPill} pointerEvents="box-none">
+                            <View style={styles.floatingActionPillOverlay} pointerEvents="box-none">
                                 <TouchableOpacity
                                     style={styles.addIconCircle}
                                     onPress={() => uploadImage(null)}
@@ -672,12 +671,19 @@ export const MyProfile = () => {
                                     <Ionicons name="add" size={16} color="#FFFFFF" />
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    onPress={() => handleImageUpload(data[activeSlide]?.id)}
+                                    onPress={() => {
+                                        if (data.length > 0) {
+                                            // Use the first image's id (or current slide)
+                                            const currentItem = data[activeSlide];
+                                            if (currentItem) handleImageUpload(currentItem.id);
+                                        }
+                                    }}
                                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                 >
                                     <Ionicons name="pencil" size={15} color="#A00014" />
                                 </TouchableOpacity>
                             </View>
+
                         </>
                     ) : (
                         <View style={styles.emptyContainer}>
@@ -1405,5 +1411,23 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 12,
         gap: 12,
+    },
+    floatingActionPillOverlay: {
+        position: 'absolute',
+        bottom: 22,
+        left: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.92)',
+        borderRadius: 24,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        gap: 12,
+        zIndex: 999,
+        elevation: 999,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 3,
     },
 });
