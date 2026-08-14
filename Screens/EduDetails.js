@@ -11,7 +11,6 @@ import {
   FlatList,
 } from "react-native";
 import { useState } from "react";
-import { Dropdown } from "react-native-element-dropdown";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -25,6 +24,119 @@ import CountryPicker from "react-native-country-picker-modal";
 import { Colors, rs } from "../Reusable/Theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// ── Custom Modal Dropdown ──────────────────────────────────────────────────
+const CustomDropdown = ({
+  placeholder,
+  data = [],
+  selectedValue,
+  onSelect,
+  style,
+  labelField = "label",
+  valueField = "value",
+  multiple = false,
+  selectedItems = [],
+}) => {
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // For single-select: derive display label from selectedValue
+  const selectedItem = !multiple
+    ? data.find((item) => String(item[valueField]) === String(selectedValue))
+    : null;
+  const displayLabel = multiple
+    ? selectedItems.length > 0
+      ? selectedItems.map((i) => i[labelField]).join(", ")
+      : placeholder
+    : selectedItem
+    ? selectedItem[labelField]
+    : placeholder;
+
+  const isPlaceholder = multiple ? selectedItems.length === 0 : !selectedItem;
+
+  return (
+    <>
+      <TouchableOpacity
+        style={[styles.dropdownStyle, style]}
+        activeOpacity={0.7}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text
+          style={isPlaceholder ? styles.dropdownPlaceholder : styles.dropdownSelectedText}
+          numberOfLines={1}
+        >
+          {displayLabel}
+        </Text>
+        <Ionicons name="chevron-down" size={16} color="#71717A" />
+      </TouchableOpacity>
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>{placeholder}</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={20} color="#18181B" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={data}
+              keyExtractor={(item, index) =>
+                item[valueField] ? String(item[valueField]) : index.toString()
+              }
+              renderItem={({ item }) => {
+                const isSelected = multiple
+                  ? selectedItems.some(
+                      (s) => String(s[valueField]) === String(item[valueField])
+                    )
+                  : String(item[valueField]) === String(selectedValue);
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.dropdownOptionItem,
+                      isSelected && styles.dropdownOptionSelected,
+                    ]}
+                    onPress={() => {
+                      onSelect(item);
+                      if (!multiple) setModalVisible(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        isSelected && styles.dropdownItemTextSelected,
+                      ]}
+                    >
+                      {item[labelField]}
+                    </Text>
+                    {isSelected && (
+                      <Ionicons name="checkmark" size={16} color="#BD1225" />
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+            {multiple && (
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
+  );
+};
 
 export const EduDetails = () => {
   const navigation = useNavigation();
@@ -33,14 +145,18 @@ export const EduDetails = () => {
 
   const handleDegreeChange = (item) => {
     setSelectedDegrees((prevSelected) => {
-      const isAlreadySelected = prevSelected.some((degree) => degree.value === item.value);
+      const isAlreadySelected = prevSelected.some(
+        (degree) => degree.value === item.value
+      );
       let newSelection;
       if (isAlreadySelected) {
         newSelection = prevSelected.filter((degree) => degree.value !== item.value);
       } else {
         newSelection = [...prevSelected, item];
       }
-      const hasOther = newSelection.some((degree) => degree.value === 86 || degree.value === '86');
+      const hasOther = newSelection.some(
+        (degree) => degree.value === 86 || degree.value === "86"
+      );
       setIsOtherSelected(hasOther);
       return newSelection;
     });
@@ -194,7 +310,9 @@ export const EduDetails = () => {
 
   const fetchStateList = async (countryId) => {
     try {
-      const response = await axios.post(`${config.apiUrl}/auth/Get_State/`, { country_id: countryId });
+      const response = await axios.post(`${config.apiUrl}/auth/Get_State/`, {
+        country_id: countryId,
+      });
       const stateData = Object.keys(response.data).map((key) => ({
         label: response.data[key].state_name,
         value: response.data[key].state_id.toString(),
@@ -207,7 +325,9 @@ export const EduDetails = () => {
 
   const fetchDistrictList = async (stateId) => {
     try {
-      const response = await axios.post(`${config.apiUrl}/auth/Get_District/`, { state_id: stateId });
+      const response = await axios.post(`${config.apiUrl}/auth/Get_District/`, {
+        state_id: stateId,
+      });
       const districtData = Object.values(response.data).map((district) => ({
         label: district.disctict_name,
         value: district.disctict_id.toString(),
@@ -324,14 +444,17 @@ export const EduDetails = () => {
       if (isOtherSelected) {
         finalCityName = formData.ciValue;
       } else if (formData.ciValue) {
-        const selectedCityObject = cityList.find((city) => city.value === formData.ciValue);
+        const selectedCityObject = cityList.find(
+          (city) => city.value === formData.ciValue
+        );
         if (selectedCityObject) {
           finalCityName = selectedCityObject.label;
         }
       }
       const finalWorkOtherCity = isOtherSelected ? formData.ciValue : "";
 
-      const currencyCode = currency.currency === "Select Currency" ? "INR" : currency.currency;
+      const currencyCode =
+        currency.currency === "Select Currency" ? "INR" : currency.currency;
 
       const formattedData = {
         profile_id: profileId,
@@ -350,23 +473,35 @@ export const EduDetails = () => {
         work_district: formData.district,
         field_ofstudy: formData.fieldofvalue,
         company_name:
-          formData.boxValue === "1" || formData.boxValue === "6" || formData.boxValue === "7"
+          formData.boxValue === "1" ||
+          formData.boxValue === "6" ||
+          formData.boxValue === "7"
             ? companyName
             : "",
         designation:
-          formData.boxValue === "1" || formData.boxValue === "6" || formData.boxValue === "7"
+          formData.boxValue === "1" ||
+          formData.boxValue === "6" ||
+          formData.boxValue === "7"
             ? designation
             : "",
         profession_details:
-          formData.boxValue === "1" || formData.boxValue === "6" || formData.boxValue === "7"
+          formData.boxValue === "1" ||
+          formData.boxValue === "6" ||
+          formData.boxValue === "7"
             ? professionDetail
             : "",
         business_name:
-          formData.boxValue === "2" || formData.boxValue === "6" ? businessName : "",
+          formData.boxValue === "2" || formData.boxValue === "6"
+            ? businessName
+            : "",
         business_address:
-          formData.boxValue === "2" || formData.boxValue === "6" ? businessAddress : "",
+          formData.boxValue === "2" || formData.boxValue === "6"
+            ? businessAddress
+            : "",
         nature_of_business:
-          formData.boxValue === "2" || formData.boxValue === "6" ? natureOfBusiness : "",
+          formData.boxValue === "2" || formData.boxValue === "6"
+            ? natureOfBusiness
+            : "",
         currency: currencyCode,
         degree: degreePayload,
         other_degree: finalOtherDegree,
@@ -376,7 +511,10 @@ export const EduDetails = () => {
 
       console.log("Formatted Data:", formattedData);
 
-      const response = await axios.post(`${config.apiUrl}/auth/Education_registration/`, formattedData);
+      const response = await axios.post(
+        `${config.apiUrl}/auth/Education_registration/`,
+        formattedData
+      );
 
       if (response.data.Status === 1) {
         navigation.navigate("HoroDetails");
@@ -394,7 +532,10 @@ export const EduDetails = () => {
     <SafeAreaView style={styles.safeArea}>
       {/* ── Gradient Header ────────────────────────────────────────────── */}
       <LinearGradient
-        colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
+        colors={[
+          Colors.primaryGradientStart || "#A00014",
+          Colors.primaryGradientEnd || "#4A000A",
+        ]}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={styles.headerBanner}
@@ -404,27 +545,32 @@ export const EduDetails = () => {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Education Details</Text>
-          <Text style={styles.headerSubtitle}>Tell us about your education & career</Text>
+          <Text style={styles.headerSubtitle}>
+            Tell us about your education & career
+          </Text>
         </View>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.cardContainer}>
           {/* ── Highest Education Level ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.fieldLabel}>Highest Education Level <Text style={styles.requiredStar}>*</Text></Text>
-            <Dropdown
-              style={styles.dropdown}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              data={highestEduOption}
+            <Text style={styles.fieldLabel}>
+              Highest Education Level{" "}
+              <Text style={styles.requiredStar}>*</Text>
+            </Text>
+            <CustomDropdown
               placeholder="Select your education level"
-              labelField="label"
-              valueField="value"
-              value={formData.edValue}
-              onChange={(item) => handleChange("edValue", item.value)}
+              data={highestEduOption}
+              selectedValue={formData.edValue}
+              onSelect={(item) => handleChange("edValue", item.value)}
             />
-            {errors.edValue && <Text style={styles.errorText}>{errors.edValue}</Text>}
+            {errors.edValue && (
+              <Text style={styles.errorText}>{errors.edValue}</Text>
+            )}
           </View>
 
           {/* ── Field of Study ── */}
@@ -433,16 +579,11 @@ export const EduDetails = () => {
               {["1", "2", "3"].includes(formData.edValue) ? (
                 <>
                   <Text style={styles.fieldLabel}>Field of Study</Text>
-                  <Dropdown
-                    style={styles.dropdown}
-                    placeholderStyle={styles.placeholderStyle}
-                    selectedTextStyle={styles.selectedTextStyle}
-                    data={fieldOfStudyOptions}
+                  <CustomDropdown
                     placeholder="Select Field of Study"
-                    labelField="label"
-                    valueField="value"
-                    value={formData.fieldofvalue || ""}
-                    onChange={(item) => handleChange("fieldofvalue", item.value)}
+                    data={fieldOfStudyOptions}
+                    selectedValue={formData.fieldofvalue || ""}
+                    onSelect={(item) => handleChange("fieldofvalue", item.value)}
                   />
                 </>
               ) : formData.edValue === "4" ? (
@@ -464,18 +605,13 @@ export const EduDetails = () => {
           {["1", "2", "3", "4"].includes(formData.edValue) && (
             <View style={styles.inputContainer}>
               <Text style={styles.fieldLabel}>Specific Field</Text>
-              <Dropdown
-                style={styles.dropdown}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                data={degreeOptions}
+              <CustomDropdown
                 placeholder="Select degrees"
-                labelField="label"
-                valueField="value"
-                value={selectedDegrees}
-                onChange={(item) => handleDegreeChange(item)}
+                data={degreeOptions}
+                selectedValue={null}
+                onSelect={(item) => handleDegreeChange(item)}
                 multiple={true}
-                mode="BADGE"
+                selectedItems={selectedDegrees}
               />
 
               <TextInput
@@ -520,19 +656,18 @@ export const EduDetails = () => {
 
           {/* ── Profession ── */}
           <View style={styles.inputContainer}>
-            <Text style={styles.fieldLabel}>Profession <Text style={styles.requiredStar}>*</Text></Text>
-            <Dropdown
-              style={styles.dropdown}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              data={professionOptions}
+            <Text style={styles.fieldLabel}>
+              Profession <Text style={styles.requiredStar}>*</Text>
+            </Text>
+            <CustomDropdown
               placeholder="Select Profession"
-              labelField="label"
-              valueField="value"
-              value={formData.boxValue}
-              onChange={(item) => handleChange("boxValue", item.value)}
+              data={professionOptions}
+              selectedValue={formData.boxValue}
+              onSelect={(item) => handleChange("boxValue", item.value)}
             />
-            {errors.boxValue && <Text style={styles.errorText}>{errors.boxValue}</Text>}
+            {errors.boxValue && (
+              <Text style={styles.errorText}>{errors.boxValue}</Text>
+            )}
           </View>
 
           {/* ── Conditional fields for profession ── */}
@@ -546,7 +681,9 @@ export const EduDetails = () => {
                 value={companyName}
                 onChangeText={setCompanyName}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Designation</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Designation
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter designation"
@@ -554,7 +691,9 @@ export const EduDetails = () => {
                 value={designation}
                 onChangeText={setDesignation}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Profession Details</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Profession Details
+              </Text>
               <TextInput
                 style={[styles.input, { height: 80 }]}
                 placeholder="Enter profession details"
@@ -576,7 +715,9 @@ export const EduDetails = () => {
                 value={businessName}
                 onChangeText={setBusinessName}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Business Address</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Business Address
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter business address"
@@ -584,7 +725,9 @@ export const EduDetails = () => {
                 value={businessAddress}
                 onChangeText={setBusinessAddress}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Nature of Business</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Nature of Business
+              </Text>
               <TextInput
                 style={[styles.input, { height: 80 }]}
                 placeholder="Enter nature of business"
@@ -606,7 +749,9 @@ export const EduDetails = () => {
                 value={companyName}
                 onChangeText={setCompanyName}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Designation</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Designation
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter designation"
@@ -614,7 +759,9 @@ export const EduDetails = () => {
                 value={designation}
                 onChangeText={setDesignation}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Profession Details</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Profession Details
+              </Text>
               <TextInput
                 style={[styles.input, { height: 80 }]}
                 placeholder="Enter profession details"
@@ -623,7 +770,9 @@ export const EduDetails = () => {
                 value={professionDetail}
                 onChangeText={setProfessionDetail}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Business Name</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Business Name
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter business name"
@@ -631,7 +780,9 @@ export const EduDetails = () => {
                 value={businessName}
                 onChangeText={setBusinessName}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Business Address</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Business Address
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter business address"
@@ -639,7 +790,9 @@ export const EduDetails = () => {
                 value={businessAddress}
                 onChangeText={setBusinessAddress}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Nature of Business</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Nature of Business
+              </Text>
               <TextInput
                 style={[styles.input, { height: 80 }]}
                 placeholder="Enter nature of business"
@@ -661,7 +814,9 @@ export const EduDetails = () => {
                 value={companyName}
                 onChangeText={setCompanyName}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Designation</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Designation
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter designation"
@@ -669,7 +824,9 @@ export const EduDetails = () => {
                 value={designation}
                 onChangeText={setDesignation}
               />
-              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Profession Details</Text>
+              <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+                Profession Details
+              </Text>
               <TextInput
                 style={[styles.input, { height: 80 }]}
                 placeholder="Enter profession details"
@@ -688,16 +845,12 @@ export const EduDetails = () => {
               <View style={styles.currencyTextContainer}>
                 <Text style={styles.currencyText}>INR (₹)</Text>
               </View>
-              <Dropdown
-                style={[styles.dropdown, styles.annualInputStyle]}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                data={annualIncomeOption}
+              <CustomDropdown
                 placeholder="Select Annual Income"
-                labelField="label"
-                valueField="value"
-                value={formData.inValue}
-                onChange={(item) => handleChange("inValue", item.value)}
+                data={annualIncomeOption}
+                selectedValue={formData.inValue}
+                onSelect={(item) => handleChange("inValue", item.value)}
+                style={styles.annualInputStyle}
               />
             </View>
           </View>
@@ -707,7 +860,10 @@ export const EduDetails = () => {
             <Text style={styles.fieldLabel}>Actual Income</Text>
             <View style={styles.currencyFlexContainer}>
               <View style={styles.annualInputContainer}>
-                <TouchableOpacity style={styles.currencyPicker} onPress={() => setPickerVisible(true)}>
+                <TouchableOpacity
+                  style={styles.currencyPicker}
+                  onPress={() => setPickerVisible(true)}
+                >
                   <Text style={styles.currencyName}>{currency.currency}</Text>
                 </TouchableOpacity>
                 <CountryPicker
@@ -733,22 +889,19 @@ export const EduDetails = () => {
                 />
               </View>
             </View>
-            {errors.actualIncome && <Text style={styles.errorText}>{errors.actualIncome}</Text>}
+            {errors.actualIncome && (
+              <Text style={styles.errorText}>{errors.actualIncome}</Text>
+            )}
           </View>
 
           {/* ── Work Country ── */}
           <View style={styles.inputContainer}>
             <Text style={styles.fieldLabel}>Work Country</Text>
-            <Dropdown
-              style={styles.dropdown}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              data={countryList}
+            <CustomDropdown
               placeholder="Select country"
-              labelField="label"
-              valueField="value"
-              value={formData.cValue}
-              onChange={(item) => {
+              data={countryList}
+              selectedValue={formData.cValue}
+              onSelect={(item) => {
                 handleChange("cValue", item.value);
                 fetchStateList(item.value);
                 setSelectedCountry(item.value);
@@ -760,16 +913,11 @@ export const EduDetails = () => {
           {selectedCountry === "1" && (
             <View style={styles.inputContainer}>
               <Text style={styles.fieldLabel}>Work State</Text>
-              <Dropdown
-                style={styles.dropdown}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                data={stateList}
+              <CustomDropdown
                 placeholder="Select state"
-                labelField="label"
-                valueField="value"
-                value={formData.sValue}
-                onChange={(item) => {
+                data={stateList}
+                selectedValue={formData.sValue}
+                onSelect={(item) => {
                   handleChange("sValue", item.value);
                   fetchDistrictList(item.value);
                   setSelectedDistrict(null);
@@ -786,16 +934,11 @@ export const EduDetails = () => {
           {selectedCountry === "1" && (
             <View style={styles.inputContainer}>
               <Text style={styles.fieldLabel}>District</Text>
-              <Dropdown
-                style={styles.dropdown}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                data={districtList}
+              <CustomDropdown
                 placeholder="Select district"
-                labelField="label"
-                valueField="value"
-                value={formData.district}
-                onChange={(item) => {
+                data={districtList}
+                selectedValue={formData.district}
+                onSelect={(item) => {
                   handleChange("district", item.value);
                   setSelectedDistrict(item.value);
                   fetchCityList(item.value);
@@ -812,16 +955,11 @@ export const EduDetails = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.fieldLabel}>Work City</Text>
               {!isOtherSelected ? (
-                <Dropdown
-                  style={styles.dropdown}
-                  placeholderStyle={styles.placeholderStyle}
-                  selectedTextStyle={styles.selectedTextStyle}
-                  data={[...cityList, { label: "Others", value: "Others" }]}
+                <CustomDropdown
                   placeholder="Select city"
-                  labelField="label"
-                  valueField="value"
-                  value={formData.ciValue}
-                  onChange={(item) => {
+                  data={[...cityList, { label: "Others", value: "Others" }]}
+                  selectedValue={formData.ciValue}
+                  onSelect={(item) => {
                     if (item.value === "Others") {
                       setIsOtherSelected(true);
                       handleChange("ciValue", "");
@@ -846,7 +984,9 @@ export const EduDetails = () => {
                   }}
                 />
               )}
-              {errors.ciValue && <Text style={styles.errorText}>{errors.ciValue}</Text>}
+              {errors.ciValue && (
+                <Text style={styles.errorText}>{errors.ciValue}</Text>
+              )}
             </View>
           )}
 
@@ -875,7 +1015,9 @@ export const EduDetails = () => {
               value={formData.pincode}
               onChangeText={(value) => handleChange("pincode", value)}
             />
-            {errors.pincode && <Text style={styles.errorText}>{errors.pincode}</Text>}
+            {errors.pincode && (
+              <Text style={styles.errorText}>{errors.pincode}</Text>
+            )}
           </View>
 
           {/* ── Career Notes ── */}
@@ -889,7 +1031,9 @@ export const EduDetails = () => {
               value={formData.careerNotes}
               onChangeText={(value) => handleChange("careerNotes", value)}
             />
-            {errors.careerNotes && <Text style={styles.errorText}>{errors.careerNotes}</Text>}
+            {errors.careerNotes && (
+              <Text style={styles.errorText}>{errors.careerNotes}</Text>
+            )}
           </View>
 
           {/* ── Next Button ── */}
@@ -906,8 +1050,14 @@ export const EduDetails = () => {
               style={styles.linearGradient}
             >
               <View style={styles.buttonContent}>
-                <Text style={styles.buttonText}>{submitting ? "Submitting..." : "Next"}</Text>
-                <Ionicons name="arrow-forward" size={18} color={Colors.primaryForeground || "#FFFFFF"} />
+                <Text style={styles.buttonText}>
+                  {submitting ? "Submitting..." : "Next"}
+                </Text>
+                <Ionicons
+                  name="arrow-forward"
+                  size={18}
+                  color={Colors.primaryForeground || "#FFFFFF"}
+                />
               </View>
             </LinearGradient>
           </TouchableOpacity>
@@ -990,23 +1140,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlignVertical: "top",
   },
-  dropdown: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: Colors.border || "#E4E4E7",
-    borderRadius: 16,
-    backgroundColor: Colors.selectedBg || "#F4F4F5",
-    paddingHorizontal: 12,
-    paddingVertical: rs(8, 10, 12),
-  },
-  placeholderStyle: {
-    fontSize: 14,
-    color: Colors.textMuted || "#71717A",
-  },
-  selectedTextStyle: {
-    fontSize: 14,
-    color: Colors.textDark || "#1E1E1E",
-  },
   textArea: {
     borderWidth: 1,
     borderColor: Colors.border || "#E4E4E7",
@@ -1019,6 +1152,93 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: "top",
   },
+  // ── Custom Dropdown styles ───────────────────────────────────────────────
+  dropdownStyle: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: Colors.border || "#E4E4E7",
+    borderRadius: 16,
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    paddingHorizontal: 12,
+    paddingVertical: rs(8, 10, 12),
+  },
+  dropdownPlaceholder: {
+    fontSize: 14,
+    color: Colors.textMuted || "#71717A",
+    flex: 1,
+  },
+  dropdownSelectedText: {
+    fontSize: 14,
+    color: Colors.textDark || "#1E1E1E",
+    flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    maxHeight: "60%",
+    paddingVertical: 12,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F4F4F5",
+  },
+  modalHeaderTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#18181B",
+  },
+  dropdownOptionItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F4F4F5",
+  },
+  dropdownOptionSelected: {
+    backgroundColor: "#FEF2F2",
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: "#3F3F46",
+  },
+  dropdownItemTextSelected: {
+    color: "#BD1225",
+    fontWeight: "700",
+  },
+  doneButton: {
+    margin: 12,
+    backgroundColor: Colors.primary || "#BD1225",
+    borderRadius: 12,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  doneButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  // ── Currency / Income ───────────────────────────────────────────────────
   currencyFlexContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -1075,6 +1295,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: "500",
   },
+  // ── Button ──────────────────────────────────────────────────────────────
   btn: {
     width: "100%",
     borderRadius: 26,
