@@ -46,38 +46,37 @@ export const FeaturedProfiles = () => {
   return (
     <LinearGradient
       colors={[
-        '#1A0A0A',
-        Colors.primaryGradientEnd || '#4A000A',
-        Colors.primaryGradientStart || '#A00014',
+        "#1A0A0A",
+        Colors.secondary || "#4A1A2E",
+        Colors.primaryGradientEnd || "#4A000A",
       ]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
+      {/* Decorative overlay with multiple glowing orbs */}
       <View style={styles.decorativeOverlay}>
-        <View style={[styles.glowOrb, { top: -40, right: -20 }]} />
-        <View style={[styles.glowOrb, { bottom: -30, left: -10 }]} />
+        <View style={[styles.glowOrb, { top: -50, right: -30, width: width * 0.8, height: width * 0.8 }]} />
+        <View style={[styles.glowOrb, { bottom: -40, left: -20, width: width * 0.6, height: width * 0.6 }]} />
+        <View style={[styles.glowOrb, { top: "30%", left: "50%", width: width * 0.4, height: width * 0.4 }]} />
       </View>
 
       <View style={styles.contentWrapper}>
+        {/* Heading */}
         <View style={styles.headingFlex}>
           <View style={styles.titleRow}>
             <LinearGradient
-              colors={['#FFD700', '#FFA500']}
+              colors={["#FFD700", "#E8A317", "#C98A1F"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.starBadge}
             >
               <FontAwesome6 name="star" size={14} color="#4A000A" />
+              <View style={styles.glowRing} />
             </LinearGradient>
 
             <View>
               <Text style={styles.matching}>Featured Profiles</Text>
-              <View style={styles.countPill}>
-                <Text style={styles.matchNumber}>
-                  {profiles.length} premium picks
-                </Text>
-              </View>
             </View>
           </View>
 
@@ -92,7 +91,7 @@ export const FeaturedProfiles = () => {
             }
           >
             <LinearGradient
-              colors={['#FFD700', '#E8A317']}
+              colors={["#FFD700", "#E8A317"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.viewAllGradient}
@@ -103,12 +102,18 @@ export const FeaturedProfiles = () => {
           </TouchableOpacity>
         </View>
 
-        {profiles.length > 0 ? (
+        {error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : profiles.length > 0 ? (
           <View style={styles.cardWrapper}>
             <FeaturedProfileCard profiles={profiles} />
           </View>
         ) : (
-          <Text style={styles.errorText}>No featured profiles at the moment</Text>
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>No featured profiles at the moment</Text>
+          </View>
         )}
       </View>
     </LinearGradient>
@@ -118,109 +123,123 @@ export const FeaturedProfiles = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
+    marginVertical: 8,
   },
   decorativeOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   glowOrb: {
-    position: 'absolute',
-    width: width * 0.6,
-    height: width * 0.6,
-    borderRadius: width * 0.3,
-    backgroundColor: 'rgba(255, 215, 0, 0.08)',
+    position: "absolute",
+    borderRadius: 999,
+    backgroundColor: "rgba(255, 215, 0, 0.06)",
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.05)',
+    borderColor: "rgba(255, 215, 0, 0.08)",
   },
   contentWrapper: {
-    paddingVertical: 18,
+    paddingVertical: 20,
     paddingHorizontal: 16,
-    position: 'relative',
+    position: "relative",
     zIndex: 2,
   },
   headingFlex: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 0,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
   },
   starBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
+    width: 26,
+    height: 26,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 8,
+    shadowColor: "#FFD700",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    position: "relative",
+  },
+  glowRing: {
+    position: "absolute",
+    width: 30,
+    height: 30,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: "rgba(255, 215, 0, 0.3)",
   },
   matching: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-    letterSpacing: -0.3,
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -1,
   },
   countPill: {
-    alignSelf: 'flex-start',
-    marginTop: 2,
-    backgroundColor: 'rgba(255, 215, 0, 0.15)',
-    paddingHorizontal: 10,
+    alignSelf: "flex-start",
+    marginTop: 4,
+    backgroundColor: "rgba(255, 215, 0, 0.12)",
+    paddingHorizontal: 12,
     paddingVertical: 2,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: 'rgba(255, 215, 0, 0.3)',
+    borderColor: "rgba(255, 215, 0, 0.2)",
   },
   matchNumber: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#FFD700',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
+    fontWeight: "600",
+    color: "#FFD700",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   viewAllButton: {
     borderRadius: 22,
-    overflow: 'hidden',
-    elevation: 5,
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    overflow: "hidden",
+    elevation: 6,
+    shadowColor: "#FFD700",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
   },
   viewAllGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    gap: 3,
   },
   viewAllText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.3,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   cardWrapper: {
     paddingHorizontal: 0,
   },
+  errorContainer: {
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   errorText: {
-    color: 'rgba(255,255,255,0.7)',
+    color: "rgba(255,255,255,0.7)",
     fontSize: 14,
-    textAlign: 'center',
-    paddingVertical: 20,
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    textAlign: "center",
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
 });
