@@ -30,19 +30,26 @@ const DEFAULT_GROOM =
 
 export const FeaturedOrSuggestProfiles = ({ route }) => {
   const navigation = useNavigation();
-  const { type, profiles: initialProfiles, page: initialPage = 1 } = route.params;
+  const {
+    type,
+    profiles: initialProfiles,
+    page: initialPage = 1,
+    totalCount: initialTotalCount, // ✅ total_count from parent (API response)
+  } = route.params;
 
   // ── State ──
   const [profiles, setProfiles] = useState(initialProfiles || []);
   const [page, setPage] = useState(initialPage);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState(initialProfiles?.length || 0);
+  // ✅ Always reflect the API's total_count — no fallback to the initial
+  // profiles array length, since that only represents one page of results.
+  const [totalCount, setTotalCount] = useState(initialTotalCount ?? 0);
   const [allProfileIds, setAllProfileIds] = useState({});
 
   const [bookmarkedProfiles, setBookmarkedProfiles] = useState(new Set());
 
-  // ── Build profile ID map (preserved) ──
+  // ── Build profile ID map ──
   useEffect(() => {
     if (profiles && profiles.length > 0) {
       const profileIds = profiles.reduce((acc, profile, index) => {
@@ -52,6 +59,47 @@ export const FeaturedOrSuggestProfiles = ({ route }) => {
       setAllProfileIds(profileIds);
     }
   }, [profiles]);
+
+  // ── Call Featured/Suggested API on page open ──
+  // Refetches page 1 so profiles + totalCount always reflect the latest
+  // API response, rather than only what was passed via route params.
+  useEffect(() => {
+    const fetchInitialProfiles = async () => {
+      try {
+        const profileId =
+          (await AsyncStorage.getItem("loginuser_profileId")) ||
+          (await AsyncStorage.getItem("profile_id_new"));
+
+        if (!profileId) return;
+
+        const endpoint =
+          type === "featured"
+            ? `${config.apiUrl}/auth/Get_Featured_List/`
+            : `${config.apiUrl}/auth/Get_Suggested_List/`;
+
+        const response = await axios.post(endpoint, {
+          profile_id: profileId,
+          per_page: 10,
+          page_number: 1,
+        });
+
+        if (response.data && response.data.status === "success") {
+          const fetchedProfiles = response.data.data || [];
+          const total = response.data.total_count || 0;
+
+          setProfiles(fetchedProfiles);
+          setPage(1);
+          setTotalCount(total); // ✅ always reflect API total_count
+          setHasMore(fetchedProfiles.length < total);
+        }
+      } catch (error) {
+        console.error("Error fetching initial profiles:", error);
+      }
+    };
+
+    fetchInitialProfiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type]);
 
   // ── Load more profiles ──
   const loadMoreProfiles = async () => {
@@ -87,8 +135,7 @@ export const FeaturedOrSuggestProfiles = ({ route }) => {
         if (newProfiles.length > 0) {
           setProfiles((prev) => [...prev, ...newProfiles]);
           setPage(nextPage);
-          setTotalCount(total);
-          // Check if we've loaded all
+          setTotalCount(total); // ✅ update totalCount from API
           setHasMore(profiles.length + newProfiles.length < total);
         } else {
           setHasMore(false);
