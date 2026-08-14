@@ -21,7 +21,7 @@ import Toast from "react-native-toast-message";
 import { Colors } from "../../../Reusable/Theme";
 
 const { width: screenWidth } = Dimensions.get("window");
-const CARD_WIDTH = screenWidth * 0.6;
+const CARD_WIDTH = screenWidth * 0.4;
 const CARD_HEIGHT = 190;
 
 export const SuggestedProfileCard = ({ profiles }) => {
@@ -181,10 +181,10 @@ const styles = StyleSheet.create({
   },
   profileName: {
     color: Colors.textLight,
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: "700",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    letterSpacing: 0.2,
+    letterSpacing: -1,
   },
   profileID: {
     color: "rgba(255,255,255,0.7)",
