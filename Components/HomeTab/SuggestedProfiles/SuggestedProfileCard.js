@@ -22,7 +22,7 @@ import { Colors } from "../../../Reusable/Theme";
 
 const { width: screenWidth } = Dimensions.get("window");
 const CARD_WIDTH = screenWidth * 0.4;
-const CARD_HEIGHT = 190;
+const CARD_HEIGHT = 150;
 
 export const SuggestedProfileCard = ({ profiles }) => {
   const navigation = useNavigation();
