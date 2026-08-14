@@ -858,36 +858,32 @@ export const EduDetails = () => {
           {/* ── Actual Income ── */}
           <View style={styles.inputContainer}>
             <Text style={styles.fieldLabel}>Actual Income</Text>
-            <View style={styles.currencyFlexContainer}>
-              <View style={styles.annualInputContainer}>
-                <TouchableOpacity
-                  style={styles.currencyPicker}
-                  onPress={() => setPickerVisible(true)}
-                >
-                  <Text style={styles.currencyName}>{currency.currency}</Text>
-                </TouchableOpacity>
-                <CountryPicker
-                  withFilter
-                  withCurrency
-                  withFlag
-                  withCountryNameButton
-                  withAlphaFilter
-                  onSelect={onSelectCurrency}
-                  visible={pickerVisible}
-                  onClose={() => setPickerVisible(false)}
-                  renderFlagButton={() => <></>}
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={[styles.input, styles.actualIncomeInput]}
-                  placeholder="Enter actual income"
-                  placeholderTextColor={Colors.textMuted}
-                  keyboardType="numeric"
-                  value={formData.actualIncome}
-                  onChangeText={(value) => handleChange("actualIncome", value)}
-                />
-              </View>
+            <View style={styles.actualIncomeRow}>
+              <TouchableOpacity
+                style={styles.currencyPicker}
+                onPress={() => setPickerVisible(true)}
+              >
+                <Text style={styles.currencyName}>{currency.currency}</Text>
+              </TouchableOpacity>
+              <CountryPicker
+                withFilter
+                withCurrency
+                withFlag
+                withCountryNameButton
+                withAlphaFilter
+                onSelect={onSelectCurrency}
+                visible={pickerVisible}
+                onClose={() => setPickerVisible(false)}
+                renderFlagButton={() => <></>}
+              />
+              <TextInput
+                style={styles.actualIncomeInput}
+                placeholder="Enter actual income"
+                placeholderTextColor={Colors.textMuted}
+                keyboardType="numeric"
+                value={formData.actualIncome}
+                onChangeText={(value) => handleChange("actualIncome", value)}
+              />
             </View>
             {errors.actualIncome && (
               <Text style={styles.errorText}>{errors.actualIncome}</Text>
@@ -1267,13 +1263,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 8,
   },
+  actualIncomeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 48,
+  },
   currencyPicker: {
+    height: 48,
     borderWidth: 1,
     borderColor: Colors.border || "#E4E4E7",
-    borderRadius: 16,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
     backgroundColor: Colors.selectedBg || "#F4F4F5",
-    paddingHorizontal: 12,
-    paddingVertical: rs(8, 10, 12),
+    paddingHorizontal: 14,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -1284,6 +1288,18 @@ const styles = StyleSheet.create({
   },
   actualIncomeInput: {
     flex: 1,
+    height: 48,
+    borderWidth: 1,
+    borderColor: Colors.border || "#E4E4E7",
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    borderLeftWidth: 0,
+    backgroundColor: Colors.selectedBg || "#F4F4F5",
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: Colors.textDark || "#1E1E1E",
   },
   inputError: {
     borderColor: Colors.destructive || "#EF4444",
