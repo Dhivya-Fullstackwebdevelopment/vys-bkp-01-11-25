@@ -29,13 +29,14 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { ProfileIconsBar, ProfileSectionsContent } from '../../Components/MenuTab/ProfileDetailsEdit';
-import { uploadImageToServer, removeProfileImage, fetchImages, downloadPdfmyprofile, getMyProfilePersonal, getMyEducationalDetails } from '../../CommonApiCall/CommonApiCall';
+import { uploadImageToServer, removeProfileImage, fetchImages, downloadPdfmyprofile, viewHoroscopePdf, getMyProfilePersonal, getMyEducationalDetails } from '../../CommonApiCall/CommonApiCall';
 import config from '../../API/Apiurl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from "react-native-toast-message";
 import { TopAlignedImage } from '../../Components/ReuseImageAlign/TopAlignedImage';
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { Colors } from "../../Reusable/Theme";
+import { openCachedPdf } from '../../Screens/AfterLogin/PdfViewerModal';
 
 // Responsive helpers
 const { width: SCREEN_WIDTH, height: SCREEN_H } = Dimensions.get('window');
@@ -402,6 +403,12 @@ export const MyProfile = () => {
         fetchProfileAndPlanDetails();
     }, []);
 
+    // NOTE: floating add/edit pill removed from inside renderItem.
+    // react-native-reanimated-carousel wraps each slide in a pan-gesture
+    // handler which was intercepting the touch before it reached the
+    // TouchableOpacity here, so the + / pencil buttons never fired.
+    // The pill is now rendered as a sibling overlay in heroWrapper instead
+    // (see below), which sits outside the carousel's gesture area.
     const renderItem = ({ item }) => (
         <View style={styles.itemContainer} key={item.id}>
             <TouchableOpacity
@@ -444,6 +451,7 @@ export const MyProfile = () => {
         </View>
     );
 
+
     const handleDownloadPdf = () => {
         if (!profileDetails || !profileDetails.encrypted_profile_id) {
             Alert.alert("Error", "Profile data is still loading...");
@@ -458,19 +466,26 @@ export const MyProfile = () => {
 
         try {
             const encryptedId = profileDetails.encrypted_profile_id;
-            const result = await downloadPdfmyprofile(encryptedId, selectedPdfLanguage);
-            if (result && result.status === 'failure') {
-                Alert.alert("Error", result.message || "Failed to generate PDF");
-            } else if (result) {
+            const result = await viewHoroscopePdf(encryptedId, selectedPdfLanguage);
+
+            if (result && typeof result === 'object' && result.status === 'failure') {
+                Alert.alert("Error", result.message || "Failed to fetch horoscope");
+                return;
+            }
+
+            if (typeof result === 'string' && result.length > 0) {
+                await openCachedPdf(result);
                 Toast.show({
                     type: 'success',
                     text1: 'Success',
-                    text2: 'Horoscope downloaded successfully',
+                    text2: 'Profile opened successfully!',
                     position: "top",
                 });
+            } else {
+                throw new Error('Unexpected result');
             }
         } catch (error) {
-            Alert.alert("Error", "Failed to download the file.");
+            Alert.alert("Error", "Failed to open the file.");
         } finally {
             setLoading(false);
         }
@@ -642,6 +657,26 @@ export const MyProfile = () => {
                                 <Text style={styles.imageCounterText}>
                                     {activeSlide + 1}/{data.length}
                                 </Text>
+                            </View>
+
+                            {/* Moved outside Carousel/renderItem so the carousel's pan
+                                gesture handler no longer swallows the touch before it
+                                reaches these buttons. Uses activeSlide (kept in sync via
+                                onSnapToItem above) to know which image id to target. */}
+                            <View style={styles.floatingActionPill} pointerEvents="box-none">
+                                <TouchableOpacity
+                                    style={styles.addIconCircle}
+                                    onPress={() => uploadImage(null)}
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                >
+                                    <Ionicons name="add" size={16} color="#FFFFFF" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => handleImageUpload(data[activeSlide]?.id)}
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                >
+                                    <Ionicons name="pencil" size={15} color="#A00014" />
+                                </TouchableOpacity>
                             </View>
                         </>
                     ) : (

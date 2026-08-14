@@ -1598,6 +1598,38 @@ export const fetchImages = async (profileData) => {
     }
 };
 
+// Fetches the Horoscope PDF to a private cache location for VIEWING ONLY.
+export const viewHoroscopePdf = async (encryptedId, selectedLanguage) => {
+    const url = `${BASE_URL}/My_horoscope_pdf_color/${encryptedId}/?lang=${selectedLanguage}`;
+    const localUri = FileSystem.cacheDirectory + `horoscope_${Date.now()}.pdf`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/pdf, application/json' },
+        });
+
+        const contentType = response.headers.get('content-type');
+
+        // Check for JSON error (e.g., upgrade required / failure payload)
+        if (contentType && contentType.includes('application/json')) {
+            const jsonData = await response.json();
+            return jsonData; // caller handles status === 'failure'
+        }
+
+        if (response.ok && contentType && contentType.includes('application/pdf')) {
+            const downloadResumable = FileSystem.createDownloadResumable(url, localUri, {});
+            const { uri } = await downloadResumable.downloadAsync();
+            return uri; // local cache URI
+        }
+
+        throw new Error('Unexpected response format');
+    } catch (error) {
+        console.error('Error fetching Horoscope PDF:', error.message);
+        return { status: 'failure', message: error.message };
+    }
+};
+
 //remove image in myprofile
 export const removeProfileImage = async (formData) => {
     try {
