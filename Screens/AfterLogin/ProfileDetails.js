@@ -1999,22 +1999,46 @@ export const ProfileDetails = () => {
                 </View>
                 <Text style={styles.cardSectionTitle}>Basic Information</Text>
               </View>
-
-              {renderDetailRow("Profile ID", basic_details.profile_id)}
-              {renderDetailRow("Gender", personal_details?.gender)}
-              {renderDetailRow("Age", personal_details?.age ? `${personal_details.age} Years` : null)}
-              {renderDetailRow("DOB", personal_details?.dob)}
-              {renderDetailRow("Height", personal_details?.height?.height_desc)}
-              {renderDetailRow("Weight", personal_details?.weight ? `${personal_details.weight} kg` : null)}
-              {renderDetailRow("Body Type", personal_details?.body_type)}
-              {renderDetailRow("Eye Wear", personal_details?.eye_wear)}
-              {renderDetailRow("Marital status", personal_details?.marital_status)}
-              {renderDetailRow("Complexion", personal_details?.complexion)}
-              {renderDetailRow("Physical status", personal_details?.physical_status)}
-              {renderDetailRow("Blood Group", personal_details?.blood_group)}
+              {Object.values({
+                gender: personal_details?.gender,
+                age: personal_details?.age,
+                dob: personal_details?.dob,
+                height: personal_details?.height?.height_desc,
+                weight: personal_details?.weight,
+                body_type: personal_details?.body_type,
+                marital_status: personal_details?.marital_status,
+                complexion: personal_details?.complexion,
+                physical_status: personal_details?.physical_status,
+                blood_group: personal_details?.blood_group,
+                place_of_birth: personal_details?.place_of_birth,
+                hobbies: personal_details?.hobbies,
+              }).every((v) => !v) ? (
+                <View style={styles.noDetailsRow}>
+                  <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
+                  <Text style={styles.noDetailsText}>Basic information not provided</Text>
+                </View>
+              ) : (
+                <>
+                  {renderDetailRow("Profile ID", basic_details.profile_id)}
+                  {renderDetailRow("Gender", personal_details?.gender)}
+                  {renderDetailRow("Age", personal_details?.age ? `${personal_details.age} Years` : null)}
+                  {renderDetailRow("DOB", personal_details?.dob)}
+                  {renderDetailRow("Height", personal_details?.height?.height_desc)}
+                  {renderDetailRow("Weight", personal_details?.weight ? `${personal_details.weight} kg` : null)}
+                  {renderDetailRow("Body Type", personal_details?.body_type)}
+                  {renderDetailRow("Eye Wear", personal_details?.eye_wear)}
+                  {renderDetailRow("Marital status", personal_details?.marital_status)}
+                  {renderDetailRow("Complexion", personal_details?.complexion)}
+                  {renderDetailRow("Physical status", personal_details?.physical_status)}
+                  {renderDetailRow("Blood Group", personal_details?.blood_group)}
+                  {renderDetailRow("Place of Birth", personal_details?.place_of_birth)}
+                  {renderDetailRow("Time of Birth", personal_details?.time_of_birth)}
+                  {renderDetailRow("Hobbies", personal_details?.hobbies)}
+                </>
+              )}
             </View>
 
-            <View style={styles.card}>
+            {/* <View style={styles.card}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.sectionIconCircle}>
                   <Ionicons name="heart-outline" size={16} color={Colors.matchingcirclecolor} />
@@ -2025,7 +2049,7 @@ export const ProfileDetails = () => {
               {renderDetailRow("Place of Birth", personal_details?.place_of_birth)}
               {renderDetailRow("Time of Birth", personal_details?.time_of_birth)}
               {renderDetailRow("Hobbies", personal_details?.hobbies)}
-            </View>
+            </View> */}
           </View>
 
           {/* ── Work ── */}
@@ -2042,10 +2066,22 @@ export const ProfileDetails = () => {
                 </View>
                 <Text style={styles.cardSectionTitle}>Education</Text>
               </View>
-
-              {renderDetailRow("Education Level", education_details?.education_level)}
-              {renderDetailRow("Degree", education_details?.degeree || education_details?.education_level)}
-              {renderDetailRow("About Education", education_details?.about_education)}
+              {Object.values({
+                education_level: education_details?.education_level,
+                degeree: education_details?.degeree,
+                about_education: education_details?.about_education,
+              }).every((v) => !v) ? (
+                <View style={styles.noDetailsRow}>
+                  <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
+                  <Text style={styles.noDetailsText}>Education details not provided</Text>
+                </View>
+              ) : (
+                <>
+                  {renderDetailRow("Education Level", education_details?.education_level)}
+                  {renderDetailRow("Degree", education_details?.degeree || education_details?.education_level)}
+                  {renderDetailRow("About Education", education_details?.about_education)}
+                </>
+              )}
             </View>
 
             <View style={styles.card}>
@@ -2055,15 +2091,30 @@ export const ProfileDetails = () => {
                 </View>
                 <Text style={styles.cardSectionTitle}>Career</Text>
               </View>
-
-              {renderDetailRow("Occupation", education_details?.profession)}
-              {renderDetailRow("Company Name", education_details?.company_name || education_details?.business_name)}
-              {renderDetailRow("Designation", education_details?.designation)}
-              {renderDetailRow("Business Name", education_details?.business_name)}
-              {renderDetailRow("Business Address", education_details?.business_address)}
-              {renderDetailRow("Annual Income", education_details?.annual_income || education_details?.gross_annual_income)}
-              {renderDetailRow("Gross Annual Income", education_details?.gross_annual_income)}
-              {renderDetailRow("Work Location", education_details?.place_of_stay)}
+              {Object.values({
+                profession: education_details?.profession,
+                company_name: education_details?.company_name || education_details?.business_name,
+                designation: education_details?.designation,
+                business_address: education_details?.business_address,
+                annual_income: education_details?.annual_income || education_details?.gross_annual_income,
+                place_of_stay: education_details?.place_of_stay,
+              }).every((v) => !v) ? (
+                <View style={styles.noDetailsRow}>
+                  <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
+                  <Text style={styles.noDetailsText}>Career details not provided</Text>
+                </View>
+              ) : (
+                <>
+                  {renderDetailRow("Occupation", education_details?.profession)}
+                  {renderDetailRow("Company Name", education_details?.company_name || education_details?.business_name)}
+                  {renderDetailRow("Designation", education_details?.designation)}
+                  {renderDetailRow("Business Name", education_details?.business_name)}
+                  {renderDetailRow("Business Address", education_details?.business_address)}
+                  {renderDetailRow("Annual Income", education_details?.annual_income || education_details?.gross_annual_income)}
+                  {renderDetailRow("Gross Annual Income", education_details?.gross_annual_income)}
+                  {renderDetailRow("Work Location", education_details?.place_of_stay)}
+                </>
+              )}
             </View>
           </View>
 
@@ -2081,18 +2132,34 @@ export const ProfileDetails = () => {
                 </View>
                 <Text style={styles.cardSectionTitle}>Family Details</Text>
               </View>
-
-              {renderDetailRow("Father", family_details?.father_name ? `${family_details.father_name} · ${family_details.father_occupation || ''}` : null)}
-              {renderDetailRow("Mother", family_details?.mother_name ? `${family_details.mother_name} · ${family_details.mother_occupation || ''}` : null)}
-              {renderDetailRow("Family Status", family_details?.family_status)}
-              {renderDetailRow("Sisters", family_details?.no_of_sisters)}
-              {renderDetailRow("Sisters Married", family_details?.no_of_sis_married)}
-              {renderDetailRow("Brothers", family_details?.no_of_brothers)}
-              {renderDetailRow("Brothers Married", family_details?.no_of_bro_married)}
-              {renderDetailRow("Property details", family_details?.property_details)}
-              {renderDetailRow("Father Alive", family_details?.father_alive)}
-              {renderDetailRow("Mother Alive", family_details?.mother_alive)}
-              {renderDetailRow("About Family", family_details?.about_family)}
+              {Object.values({
+                father_name: family_details?.father_name,
+                mother_name: family_details?.mother_name,
+                family_status: family_details?.family_status,
+                no_of_sisters: family_details?.no_of_sisters,
+                no_of_brothers: family_details?.no_of_brothers,
+                property_details: family_details?.property_details,
+                about_family: family_details?.about_family,
+              }).every((v) => !v) ? (
+                <View style={styles.noDetailsRow}>
+                  <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
+                  <Text style={styles.noDetailsText}>Family details not provided</Text>
+                </View>
+              ) : (
+                <>
+                  {renderDetailRow("Father", family_details?.father_name ? `${family_details.father_name} · ${family_details.father_occupation || ''}` : null)}
+                  {renderDetailRow("Mother", family_details?.mother_name ? `${family_details.mother_name} · ${family_details.mother_occupation || ''}` : null)}
+                  {renderDetailRow("Family Status", family_details?.family_status)}
+                  {renderDetailRow("Sisters", family_details?.no_of_sisters)}
+                  {renderDetailRow("Sisters Married", family_details?.no_of_sis_married)}
+                  {renderDetailRow("Brothers", family_details?.no_of_brothers)}
+                  {renderDetailRow("Brothers Married", family_details?.no_of_bro_married)}
+                  {renderDetailRow("Property details", family_details?.property_details)}
+                  {renderDetailRow("Father Alive", family_details?.father_alive)}
+                  {renderDetailRow("Mother Alive", family_details?.mother_alive)}
+                  {renderDetailRow("About Family", family_details?.about_family)}
+                </>
+              )}
             </View>
           </View>
 
@@ -2113,19 +2180,36 @@ export const ProfileDetails = () => {
                   <Text style={styles.availableBadgeText}>Available</Text>
                 </View>
               </View>
-
-              {renderDetailRow("Gothram", horoscope_details?.surya_gothram)}
-              {renderDetailRow("Star", horoscope_details?.star_name)}
-              {renderDetailRow("Rasi", horoscope_details?.rasi)}
-              {renderDetailRow("Lagnam", horoscope_details?.lagnam)}
-              {renderDetailRow("Padham", horoscope_details?.padham)}
-              {renderDetailRow("Nallikai", horoscope_details?.nallikai)}
-              {renderDetailRow("Didi", horoscope_details?.didi)}
-              {renderDetailRow("Madhulam", horoscope_details?.madulamn)}
-              {renderDetailRow("Dasa Name", horoscope_details?.dasa_name)}
-              {renderDetailRow("Dasa Balance", horoscope_details?.dasa_balance)}
-              {renderDetailRow("Chevvai Dosham", horoscope_details?.chevvai_dosham)}
-              {renderDetailRow("Ragu/Kethu Dhosham", horoscope_details?.sarpadosham)}
+              {Object.values({
+                surya_gothram: horoscope_details?.surya_gothram,
+                star_name: horoscope_details?.star_name,
+                rasi: horoscope_details?.rasi,
+                lagnam: horoscope_details?.lagnam,
+                padham: horoscope_details?.padham,
+                dasa_name: horoscope_details?.dasa_name,
+                chevvai_dosham: horoscope_details?.chevvai_dosham,
+                sarpadosham: horoscope_details?.sarpadosham,
+              }).every((v) => !v) ? (
+                <View style={styles.noDetailsRow}>
+                  <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
+                  <Text style={styles.noDetailsText}>Horoscope details not provided</Text>
+                </View>
+              ) : (
+                <>
+                  {renderDetailRow("Gothram", horoscope_details?.surya_gothram)}
+                  {renderDetailRow("Star", horoscope_details?.star_name)}
+                  {renderDetailRow("Rasi", horoscope_details?.rasi)}
+                  {renderDetailRow("Lagnam", horoscope_details?.lagnam)}
+                  {renderDetailRow("Padham", horoscope_details?.padham)}
+                  {renderDetailRow("Nallikai", horoscope_details?.nallikai)}
+                  {renderDetailRow("Didi", horoscope_details?.didi)}
+                  {renderDetailRow("Madhulam", horoscope_details?.madulamn)}
+                  {renderDetailRow("Dasa Name", horoscope_details?.dasa_name)}
+                  {renderDetailRow("Dasa Balance", horoscope_details?.dasa_balance)}
+                  {renderDetailRow("Chevvai Dosham", horoscope_details?.chevvai_dosham)}
+                  {renderDetailRow("Ragu/Kethu Dhosham", horoscope_details?.sarpadosham)}
+                </>
+              )}
             </View>
 
             {/* RASI CHART */}
@@ -2214,14 +2298,32 @@ export const ProfileDetails = () => {
                 <Text style={styles.cardSectionTitle}>Contact</Text>
               </View>
 
-              {renderDetailRow("Address", contact_details?.address)}
-              {renderDetailRow("City", contact_details?.city)}
-              {renderDetailRow("State", contact_details?.state)}
-              {renderDetailRow("Country", contact_details?.country)}
-              {renderDetailRow("Phone", contact_details?.phone)}
-              {renderDetailRow("Mobile", contact_details?.mobile)}
-              {renderDetailRow("WhatsApp", contact_details?.whatsapp)}
-              {renderDetailRow("Email", contact_details?.email)}
+              {Object.values({
+                address: contact_details?.address,
+                city: contact_details?.city,
+                state: contact_details?.state,
+                country: contact_details?.country,
+                phone: contact_details?.phone,
+                mobile: contact_details?.mobile,
+                whatsapp: contact_details?.whatsapp,
+                email: contact_details?.email,
+              }).every((v) => !v) ? (
+                <View style={styles.noDetailsRow}>
+                  <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
+                  <Text style={styles.noDetailsText}>Contact details not provided</Text>
+                </View>
+              ) : (
+                <>
+                  {renderDetailRow("Address", contact_details?.address)}
+                  {renderDetailRow("City", contact_details?.city)}
+                  {renderDetailRow("State", contact_details?.state)}
+                  {renderDetailRow("Country", contact_details?.country)}
+                  {renderDetailRow("Phone", contact_details?.phone)}
+                  {renderDetailRow("Mobile", contact_details?.mobile)}
+                  {renderDetailRow("WhatsApp", contact_details?.whatsapp)}
+                  {renderDetailRow("Email", contact_details?.email)}
+                </>
+              )}
             </View>
           </View>
 
@@ -3478,7 +3580,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   messageButton: {
-    flex: 1,                    
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -4279,5 +4381,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
+  },
+  noDetailsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  noDetailsText: {
+    fontSize: 13,
+    color: Colors.textMuted,
+    fontStyle: "italic",
   },
 });

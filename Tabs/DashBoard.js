@@ -277,7 +277,11 @@ export const DashBoard = () => {
 
   // ── Profile header card ───────────────────────────────────────────────────
   const renderProfileHeader = () => (
-    <View style={styles.profileHeaderCard}>
+    <TouchableOpacity
+      style={styles.profileHeaderCard}
+      onPress={() => navigation.navigate("MyProfile")}
+      activeOpacity={0.88}
+    >
       {/* Avatar + name row */}
       <View style={styles.profileHeaderRow}>
         <View style={styles.avatarWrapper}>
@@ -303,7 +307,7 @@ export const DashBoard = () => {
           ) : null}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderProfileCompletion = () => (

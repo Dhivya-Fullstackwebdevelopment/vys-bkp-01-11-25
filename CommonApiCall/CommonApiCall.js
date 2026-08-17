@@ -2263,11 +2263,13 @@ export const fetchPhotoRequest = async (perPage, page, sortBy = "datetime") => {
                 Status: response.data.Status
             };
         } else {
-            Toast.show({
-                type: "error",
-                text1: "Error",
-                text2: response.data.message,
-            });
+            if (response.data.message !== "No photo request found for the given profile ID") {
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: response.data.message,
+                });
+            }
             return {
                 success: false,
                 data: null,
@@ -2307,11 +2309,13 @@ export const fetchPhotoRequestNew = async () => {
         if (response.data.Status === 1) {
             return { success: true, profiles: response };
         } else {
-            Toast.show({
-                type: "error",
-                text1: "Error",
-                text2: response.data.message,
-            });
+            if (response.data.message !== "No photo request found for the given profile ID") {
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: response.data.message,
+                });
+            }
             return { success: false, profiles: [] };
         }
     } catch (error) {

@@ -362,27 +362,59 @@ const MatchingProfileSearch = () => {
   // Selected filters UI
   const renderSelectedFilters = () => {
     const filters = [];
-    if (searchProfileId) filters.push(`Search: ${searchProfileId}`);
-    if (profession) filters.push(`Profession: ${getSelectedProfessionName()}`);
-    if (selectAge) filters.push(`Age Difference: ${selectAge}`);
-    if (selectedLocation) filters.push(`Location: ${getSelectedStateName()}`);
+
+    if (searchProfileId) {
+      filters.push(`Search: ${searchProfileId}`);
+    }
+
+    if (profession) {
+      filters.push(`Profession: ${getSelectedProfessionName()}`);
+    }
+
+    if (selectAge) {
+      filters.push(`Age Difference: ${selectAge}`);
+    }
+
+    if (selectedLocation) {
+      filters.push(`Location: ${getSelectedStateName()}`);
+    }
 
     if (filters.length === 0) return null;
 
     return (
       <View style={styles.selectedFiltersContainer}>
-        <Text style={styles.selectedFiltersTitle}>Selected Filters:</Text>
+        {/* Title + Filter icon */}
+        <View style={styles.selectedFiltersHeader}>
+          <Text style={styles.selectedFiltersTitle}>
+            Selected Filters:
+          </Text>
+
+          <TouchableOpacity
+            style={styles.filterIconButton}
+            onPress={() => setShowSearchFields(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name="options-outline"
+              size={24}
+              color={Colors.primary}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Selected filters */}
         <View style={styles.filterTagsContainer}>
           {filters.map((filter, index) => (
             <View key={index} style={styles.filterTag}>
-              <Text style={styles.filterTagText}>{filter}</Text>
+              <Text style={styles.filterTagText}>
+                {filter}
+              </Text>
             </View>
           ))}
         </View>
       </View>
     );
   };
-
   // Age difference options built once for the dropdown (label === value === "1".."10")
   const ageOptions = [...Array(10).keys()].map((num) => ({
     id: `${num + 1}`,
@@ -609,17 +641,7 @@ const MatchingProfileSearch = () => {
 
               {/* Search / Clear */}
               <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  onPress={() => searchProfiles(1, true)}
-                  style={styles.button}
-                >
-                  <LinearGradient
-                    colors={[Colors.primary, Colors.primary]}
-                    style={styles.linearGradient}
-                  >
-                    <Text style={styles.buttonText}>Search Profiles</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+
 
                 <TouchableOpacity
                   onPress={clearFilter}
@@ -632,23 +654,24 @@ const MatchingProfileSearch = () => {
                     <Text style={styles.buttonText}>Clear Filter</Text>
                   </LinearGradient>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => searchProfiles(1, true)}
+                  style={styles.button}
+                >
+                  <LinearGradient
+                    colors={[Colors.primary, Colors.primary]}
+                    style={styles.linearGradient}
+                  >
+                    <Text style={styles.buttonText}>Search Profiles</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </>
           ) : (
             <>
-              {renderSelectedFilters()}
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity onPress={() => searchProfiles(1, true)} style={styles.button}>
-                  <LinearGradient colors={[Colors.primary, Colors.primary]} style={styles.linearGradient}>
-                    <Text style={styles.buttonText}>Search Profiles</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={clearFilter} style={styles.button}>
-                  <LinearGradient colors={[Colors.primary, Colors.primary]} style={styles.linearGradient}>
-                    <Text style={styles.buttonText}>Clear Filter</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+              <View>
+                {renderSelectedFilters()}
               </View>
             </>
           )}
@@ -796,18 +819,18 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "center",       
-    alignItems: "center",            
-    paddingHorizontal: 24,           
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
   },
   modalSheet: {
     backgroundColor: Colors.card || "#FFFFFF",
-    borderRadius: 22,                
+    borderRadius: 22,
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 24,
     maxHeight: "60%",
-    width: "100%",                   
+    width: "100%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
@@ -995,23 +1018,57 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 12,
   },
-  selectedFiltersContainer: {
+  resultFilterHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    width: "100%",
     marginTop: 10,
-    marginBottom: 4,
-    padding: 12,
+    marginBottom: 12,
+  },
+  selectedFiltersContainer: {
+    width: "100%",
+    marginTop: 10,
+    marginBottom: 12,
+    padding: 16,
     backgroundColor: Colors.surface1 || "#F6EFE5",
-    borderRadius: 16,
+    borderRadius: 24,
+  },
+  selectedFiltersHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 10,
   },
   selectedFiltersTitle: {
     fontSize: 15,
     fontWeight: "700",
     color: Colors.textDark,
-    marginBottom: 8,
+    marginBottom: 10,
   },
+
   filterTagsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
+  },
+  selectedFilterContent: {
+    flex: 1,
+  },
+  filterIconButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: Colors.border || "#E4E4E7",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
   },
   filterTag: {
     backgroundColor: Colors.profilecompetionbg,
