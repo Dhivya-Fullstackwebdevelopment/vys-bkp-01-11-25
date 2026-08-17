@@ -43,6 +43,10 @@ const sortSelectedFirst = (list, checkedSet, idKey) => {
   return [...selected, ...rest];
 };
 
+// ← NEW: generic helper to know whether every item in `list` is already checked
+const isAllSelected = (list, checkedSet, idKey) =>
+  Array.isArray(list) && list.length > 0 && list.every((item) => checkedSet.has(item[idKey]));
+
 const staticStates = [
   { id: [2, 7], name: "TamilNadu & Pondhicherry" },
   { id: 4, name: "Karnataka" },
@@ -251,6 +255,122 @@ const CustomSelectDropdown = ({
   );
 };
 
+// ← NEW: reusable "Select All" checkbox row, placed above each multi-select chip group
+const SelectAllRow = ({ checked, onToggle, label = "Select All", disabled = false }) => (
+  <TouchableOpacity
+    style={styles.selectAllRow}
+    activeOpacity={0.7}
+    onPress={onToggle}
+    disabled={disabled}
+  >
+    <View style={[styles.checkboxBase, checked && styles.checkboxChecked]}>
+      {checked && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+    </View>
+    <Text style={styles.selectAllText}>{label}</Text>
+  </TouchableOpacity>
+);
+
+// MultiSelectDropdownModal – displays a summary label, opens a modal with checkboxes
+const MultiSelectDropdownModal = ({
+  placeholder,       // e.g. "Select Birth Stars"
+  data = [],         // array of objects with id and label (e.g. { birth_id, birth_star })
+  selectedSet,       // Set of selected ids
+  onToggle,          // function(id) to toggle a single item
+  onSelectAll,       // function() to toggle all
+  isAllSelected,     // boolean: are all items selected?
+  getLabel,          // function(item) => display label
+  getId,             // function(item) => id
+  summaryText,       // optional custom summary (e.g. `${selectedSet.size} selected`)
+}) => {
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const displaySummary = summaryText || (selectedSet.size > 0 ? `${selectedSet.size} selected` : placeholder);
+
+  return (
+    <>
+      <TouchableOpacity
+        style={styles.dropdownStyle}   // reuse existing dropdown style
+        activeOpacity={0.7}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text style={selectedSet.size > 0 ? styles.dropdownSelectedText : styles.dropdownPlaceholder}>
+          {displaySummary}
+        </Text>
+        <Ionicons name="chevron-down" size={16} color="#71717A" />
+      </TouchableOpacity>
+
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>{placeholder}</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={20} color="#18181B" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Select All row inside modal */}
+            <View style={{ paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F4F4F5' }}>
+              <TouchableOpacity
+                style={styles.selectAllRow}
+                activeOpacity={0.7}
+                onPress={onSelectAll}
+              >
+                <View style={[styles.checkboxBase, isAllSelected && styles.checkboxChecked]}>
+                  {isAllSelected && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+                </View>
+                <Text style={styles.selectAllText}>Select All</Text>
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={data}
+              keyExtractor={(item, index) => getId(item)?.toString() || index.toString()}
+              renderItem={({ item }) => {
+                const id = getId(item);
+                const isChecked = selectedSet.has(id);
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.dropdownOptionItem,
+                      isChecked && styles.dropdownOptionSelected,
+                    ]}
+                    onPress={() => {
+                      onToggle(id);
+                      // keep modal open to allow multiple selections
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        isChecked && styles.dropdownItemTextSelected,
+                      ]}
+                    >
+                      {getLabel(item)}
+                    </Text>
+                    {isChecked && (
+                      <Ionicons name="checkmark" size={16} color="#BD1225" />
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
+  );
+};
+
 export const Search = () => {
   const navigation = useNavigation();
   const { control } = useForm();
@@ -272,7 +392,9 @@ export const Search = () => {
   const [selectedIncomeMinIds, setSelectedIncomeMinIds] = useState("");
   const [selectedIncomeMaxIds, setSelectedIncomeMaxIds] = useState("");
   const [birthStars, setBirthStars] = useState([]);
-  const [selectedBirthStarId, setSelectedBirthStarId] = useState("");
+  // ← CHANGED: birth star is now multi-select, mirrors the marital/profession pattern
+  const [checkedBirthStars, setCheckedBirthStars] = useState(new Set());
+  const [selectedBirthStarIds, setSelectedBirthStarIds] = useState("");
   const [states, setStates] = useState([]);
   const [checkedStates, setCheckedStates] = useState(new Set());
   const [selectedStateIds, setSelectedStateIds] = useState("");
@@ -449,11 +571,37 @@ export const Search = () => {
     });
   };
 
+  // ← NEW: Select All / Deselect All for Marital Status
+  const handleSelectAllMarital = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCheckedStatuses((prev) => {
+      const allSelected = isAllSelected(maritalStatuses, prev, "marital_sts_id");
+      const updated = allSelected
+        ? new Set()
+        : new Set(maritalStatuses.map((s) => s.marital_sts_id));
+      setSelectedIds(Array.from(updated).join(","));
+      return updated;
+    });
+  };
+
   const handleProfessionToggle = (professionId) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setCheckedProfessions((prev) => {
       const updated = new Set(prev);
       updated.has(professionId) ? updated.delete(professionId) : updated.add(professionId);
+      setSelectedProfessionIds(Array.from(updated).join(","));
+      return updated;
+    });
+  };
+
+  // ← NEW: Select All / Deselect All for Profession
+  const handleSelectAllProfessions = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCheckedProfessions((prev) => {
+      const allSelected = isAllSelected(professions, prev, "Profes_Pref_id");
+      const updated = allSelected
+        ? new Set()
+        : new Set(professions.map((p) => p.Profes_Pref_id));
       setSelectedProfessionIds(Array.from(updated).join(","));
       return updated;
     });
@@ -468,11 +616,60 @@ export const Search = () => {
     });
   };
 
+  // ← NEW: Select All / Deselect All for Field of Study
+  const handleSelectAllFieldOfStudy = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCheckFieldoStudy((prev) => {
+      const allSelected = isAllSelected(fieldOfStudyOptions, prev, "study_id");
+      const updated = allSelected
+        ? new Set()
+        : new Set(fieldOfStudyOptions.map((f) => f.study_id));
+      setSelectedFieldofStudyIds(Array.from(updated).join(","));
+      return updated;
+    });
+  };
+
   const handleStateToggle = (stateId) => {
     setCheckedStates((prev) => {
       const updated = new Set(prev);
       updated.has(stateId) ? updated.delete(stateId) : updated.add(stateId);
       setSelectedStateIds(Array.from(updated).join(","));
+      return updated;
+    });
+  };
+
+  // ← NEW: Select All / Deselect All for Native States
+  const handleSelectAllStates = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCheckedStates((prev) => {
+      const allSelected = isAllSelected(staticStates, prev, "id");
+      const updated = allSelected
+        ? new Set()
+        : new Set(staticStates.map((s) => s.id));
+      setSelectedStateIds(Array.from(updated).join(","));
+      return updated;
+    });
+  };
+
+  // ← NEW: Birth Star is now multi-select — toggle a single star
+  const handleBirthStarToggle = (birthId) => {
+    setCheckedBirthStars((prev) => {
+      const updated = new Set(prev);
+      updated.has(birthId) ? updated.delete(birthId) : updated.add(birthId);
+      setSelectedBirthStarIds(Array.from(updated).join(","));
+      return updated;
+    });
+  };
+
+  // ← NEW: Select All / Deselect All for Birth Star
+  const handleSelectAllBirthStars = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCheckedBirthStars((prev) => {
+      const allSelected = isAllSelected(birthStars, prev, "birth_id");
+      const updated = allSelected
+        ? new Set()
+        : new Set(birthStars.map((b) => b.birth_id));
+      setSelectedBirthStarIds(Array.from(updated).join(","));
       return updated;
     });
   };
@@ -622,7 +819,7 @@ export const Search = () => {
         max_income: selectedIncomeMinIds,
         min_income: selectedIncomeMaxIds,
         field_ofstudy: selectedFieldofStudyIds,
-        search_star: selectedBirthStarId,
+        search_star: selectedBirthStarIds, // ← now a comma-separated list (multi-select)
         search_nativestate: selectedStateIds,
         chevvai_dhosam: chevvaiDhosam,
         ragukethu_dhosam: rahuKetuDhosam,
@@ -746,7 +943,8 @@ export const Search = () => {
     setSelectedIncomeMaxLabel("Select Max Annual Income");
     setRahuKetuDhosam("No");
     setChevvaiDhosam("No");
-    setSelectedBirthStarId("");
+    setCheckedBirthStars(new Set());           // ← CHANGED: reset multi-select birth star set
+    setSelectedBirthStarIds("");                // ← CHANGED: reset multi-select birth star ids
     setSelectedWorkLocationId("");
     setSearchProfileId("");
     ppSetChecked(false);
@@ -849,7 +1047,8 @@ export const Search = () => {
     if (chevvaiDhosam === "No") parts.push(`Chevvai: ${chevvaiDhosam}`);
     if (rahuKetuDhosam === "No") parts.push(`Rahu/Ketu: ${rahuKetuDhosam}`);
 
-    if (selectedBirthStarId) parts.push("1 star selected");
+    // ← CHANGED: multi-select birth star count instead of a single selection
+    if (checkedBirthStars.size > 0) parts.push(`${checkedBirthStars.size} stars selected`);
 
     return parts.length > 0 ? parts.join(" · ") : "Any preference";
   };
@@ -898,10 +1097,12 @@ export const Search = () => {
       filters.push({ id: "worklocation", label: workLoc.State_name, onRemove: () => setSelectedWorkLocationId("") });
     }
 
-    const birthStar = birthStars.find((b) => String(b.birth_id) === String(selectedBirthStarId));
-    if (birthStar) {
-      filters.push({ id: "birthstar", label: birthStar.birth_star, onRemove: () => setSelectedBirthStarId("") });
-    }
+    // ← CHANGED: render one chip per selected birth star instead of a single selection
+    birthStars.forEach((b) => {
+      if (checkedBirthStars.has(b.birth_id)) {
+        filters.push({ id: `birthstar-${b.birth_id}`, label: b.birth_star, onRemove: () => handleBirthStarToggle(b.birth_id) });
+      }
+    });
 
     if (ppChecked) {
       filters.push({ id: "photo", label: "With photo", onRemove: () => ppSetChecked(false) });
@@ -919,10 +1120,6 @@ export const Search = () => {
     }
     if (rahuKetuDhosam !== "No") {
       filters.push({ id: "rahuketu", label: `Rahu/Ketu: ${rahuKetuDhosam}`, onRemove: () => setRahuKetuDhosam("No") });
-    }
-
-    if (birthStar) {
-      filters.push({ id: "birthstar", label: birthStar.birth_star, onRemove: () => setSelectedBirthStarId("") });
     }
 
     return filters;
@@ -1085,6 +1282,12 @@ export const Search = () => {
 
           {expandedSections.marital && (
             <View style={styles.accordionContent}>
+              {/* ← NEW: Select All row */}
+              <SelectAllRow
+                checked={isAllSelected(maritalStatuses, checkedStatuses, "marital_sts_id")}
+                onToggle={handleSelectAllMarital}
+                disabled={maritalStatuses.length === 0}
+              />
               <View style={styles.chipRowWrap}>
                 {sortSelectedFirst(maritalStatuses, checkedStatuses, "marital_sts_id").map((status) => {
                   const active = checkedStatuses.has(status.marital_sts_id);
@@ -1132,6 +1335,12 @@ export const Search = () => {
           {expandedSections.profession && (
             <View style={styles.accordionContent}>
               <Text style={styles.fieldLabel}>Profession</Text>
+              {/* ← NEW: Select All row */}
+              <SelectAllRow
+                checked={isAllSelected(professions, checkedProfessions, "Profes_Pref_id")}
+                onToggle={handleSelectAllProfessions}
+                disabled={professions.length === 0}
+              />
               <View style={styles.chipRowWrap}>
                 {sortSelectedFirst(professions, checkedProfessions, "Profes_Pref_id").map((prof) => {
                   const active = checkedProfessions.has(prof.Profes_Pref_id);
@@ -1238,6 +1447,12 @@ export const Search = () => {
               />
 
               <Text style={[styles.fieldLabel, { marginTop: 14 }]}>Field of Study</Text>
+              {/* ← NEW: Select All row */}
+              <SelectAllRow
+                checked={isAllSelected(fieldOfStudyOptions, checkFieldoStudy, "study_id")}
+                onToggle={handleSelectAllFieldOfStudy}
+                disabled={fieldOfStudyOptions.length === 0}
+              />
               <View style={styles.chipRowWrap}>
                 {sortSelectedFirst(fieldOfStudyOptions, checkFieldoStudy, "study_id").map((field) => {
                   const active = checkFieldoStudy.has(field.study_id);
@@ -1306,15 +1521,24 @@ export const Search = () => {
                 onValueChange={setRahuKetuDhosam}
               />
 
+              {/* ← CHANGED: Birth Star is now a multi-select chip group (was a single-select dropdown) */}
+              {/* <Text style={[styles.fieldLabel, { marginTop: 14 }]}>Birth Star</Text>
+              <SelectAllRow
+                checked={isAllSelected(birthStars, checkedBirthStars, "birth_id")}
+                onToggle={handleSelectAllBirthStars}
+                disabled={birthStars.length === 0}
+              /> */}
               <Text style={[styles.fieldLabel, { marginTop: 14 }]}>Birth Star</Text>
-              <CustomSelectDropdown
-                placeholder="Select Birth Star"
-                data={birthStars.map((star) => ({
-                  label: star.birth_star,
-                  value: star.birth_id.toString(),
-                }))}
-                selectedValue={selectedBirthStarId}
-                onSelect={(item) => setSelectedBirthStarId(item.value)}
+              <MultiSelectDropdownModal
+                placeholder="Select Birth Stars"
+                data={birthStars}
+                selectedSet={checkedBirthStars}
+                onToggle={handleBirthStarToggle}
+                onSelectAll={handleSelectAllBirthStars}
+                isAllSelected={isAllSelected(birthStars, checkedBirthStars, "birth_id")}
+                getLabel={(item) => item.birth_star}
+                getId={(item) => item.birth_id}
+                summaryText={checkedBirthStars.size > 0 ? `${checkedBirthStars.size} star${checkedBirthStars.size > 1 ? 's' : ''} selected` : undefined}
               />
             </View>
           )}
@@ -1346,6 +1570,11 @@ export const Search = () => {
           {expandedSections.location && (
             <View style={styles.accordionContent}>
               <Text style={styles.fieldLabel}>Native States</Text>
+              {/* ← NEW: Select All row */}
+              <SelectAllRow
+                checked={isAllSelected(staticStates, checkedStates, "id")}
+                onToggle={handleSelectAllStates}
+              />
               <View style={styles.chipRowWrap}>
                 {staticStates.map((st) => {
                   const active = checkedStates.has(st.id);
@@ -1702,6 +1931,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 4,
+  },
+  // ← NEW: Select All row style, reuses the existing checkbox look
+  selectAllRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    marginBottom: 8,
+  },
+  selectAllText: {
+    fontSize: 13,
+    color: "#18181B",
+    fontWeight: "600",
   },
   checkboxBase: {
     width: 20,
