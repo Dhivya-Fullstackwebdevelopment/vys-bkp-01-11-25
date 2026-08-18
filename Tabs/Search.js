@@ -1794,7 +1794,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     alignSelf: "flex-start",
-    marginLeft: 22,   // moves Clear all slightly left/right
+    marginLeft: 25,   // moves Clear all slightly left/right
     gap: 4,
   },
   clearBtnText: {

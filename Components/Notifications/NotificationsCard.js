@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
+  Image,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
@@ -36,7 +37,25 @@ export const NotificationsCard = () => {
   const [hasMore, setHasMore] = useState(true);
   const [clearModalVisible, setClearModalVisible] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [profileImage, setProfileImage] = useState("");
+  const [profileId, setProfileId] = useState("");
   const onEndReachedCalledDuringMomentum = useRef(true);
+
+  useEffect(() => {
+    const loadProfileHeader = async () => {
+      try {
+        const img = await AsyncStorage.getItem("profile_image");
+        const id = await AsyncStorage.getItem("loginuser_profileId");
+
+        setProfileImage(img || "");
+        setProfileId(id || "");
+      } catch (error) {
+        console.log("Profile header error:", error);
+      }
+    };
+
+    loadProfileHeader();
+  }, []);
 
   const clearAllNotificationsAPI = async () => {
     const profileId =
@@ -315,8 +334,8 @@ export const NotificationsCard = () => {
             item.message_titile && item.message_titile.trim() !== ""
               ? item.message_titile
               : item.notify_profile_name
-              ? `${item.notify_profile_name}`
-              : "Notification";
+                ? `${item.notify_profile_name}`
+                : "Notification";
 
           const bodyText =
             [item.from_profile_id, item.to_message].filter(Boolean).join(" ") ||
@@ -381,24 +400,68 @@ export const NotificationsCard = () => {
         style={styles.headerBanner}
       >
         <View style={styles.headerRow}>
-          <View style={{ flex: 1 }}>
+
+          {/* LEFT - TITLE */}
+          <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>
               Notifications
               {totalRecords > 0 && (
-                <Text style={styles.headerCount}> ({totalRecords})</Text>
+                <Text style={styles.headerCount}>
+                  {" "}({totalRecords})
+                </Text>
               )}
             </Text>
           </View>
 
-          {totalRecords > 0 && (
-            <TouchableOpacity
-              onPress={() => setClearModalVisible(true)}
-              style={styles.clearAllBtn}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.clearAllText}>Clear All</Text>
-            </TouchableOpacity>
-          )}
+          {/* RIGHT - PROFILE + CLEAR ALL */}
+          <View style={styles.headerRightSection}>
+
+            {/* Profile Image + ID */}
+            <View style={styles.profileHeader}>
+              {profileImage ? (
+                <Image
+                  source={{ uri: profileImage }}
+                  style={styles.profileHeaderImage}
+                />
+              ) : (
+                <View style={styles.profileIconCircle}>
+                  <Ionicons
+                    name="person"
+                    size={15}
+                    color={Colors.primary || "#A00014"}
+                  />
+                </View>
+              )}
+
+              <Text
+                style={styles.profileHeaderId}
+                numberOfLines={1}
+              >
+                {profileId || "Profile"}
+              </Text>
+            </View>
+
+            {/* Clear All */}
+            {totalRecords > 0 && (
+              <TouchableOpacity
+                onPress={() => setClearModalVisible(true)}
+                style={styles.clearAllBtn}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="reload-outline"
+                  size={14}
+                  color="#FFFFFF"
+                />
+
+                <Text style={styles.clearAllText}>
+                  Clear All
+                </Text>
+              </TouchableOpacity>
+            )}
+
+          </View>
+
         </View>
       </LinearGradient>
 
@@ -505,29 +568,77 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  headerTitleContainer: {
+    flex: 1,
+    justifyContent: "center",
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "700",
     color: "#FFFFFF",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    lineSpacing: -1,
   },
+
   headerCount: {
     fontSize: 14,
     fontWeight: "600",
     color: "rgba(255, 255, 255, 0.75)",
   },
-  clearAllBtn: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
+  headerRightSection: {
+    minWidth: 105,
+    alignItems: "flex-end",
+    justifyContent: "center",
+    marginLeft: 8,
   },
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginBottom: 7,
+  },
+  profileHeaderImage: {
+    width: 29,
+    height: 29,
+    borderRadius: 15,
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
+    marginRight: 5,
+  },
+  profileIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 15,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 5,
+  },
+
+  profileHeaderId: {
+    maxWidth: 65,
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    textAlign: "right",
+  },
+
+  clearAllBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    backgroundColor: "transparent",
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+    borderWidth: 0,
+    gap: 4,
+  },
+
   clearAllText: {
     color: "#FFFFFF",
     fontSize: 12,
