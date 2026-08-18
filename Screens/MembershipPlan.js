@@ -356,7 +356,15 @@ export const MembershipPlan = ({ navigation, route }) => {
                 Alert.alert(
                   "Thank You!",
                   "Thanks for choosing Vysyamala Delight, our premium customer support executive will contact you shortly.",
-                  [{ text: "OK" }]
+                  [
+                    {
+                      text: "OK",
+                      onPress: () => {
+                        // Navigate to home page
+                        navigation.navigate("Home"); // or "Main" or "HomeScreen"
+                      }
+                    }
+                  ]
                 );
               }}
             >
