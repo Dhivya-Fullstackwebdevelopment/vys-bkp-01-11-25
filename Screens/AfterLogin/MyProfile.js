@@ -228,7 +228,7 @@ export const MyProfile = () => {
     const [showLanguagePopup, setShowLanguagePopup] = useState(false);
 
     const handleAddOnPackagePress = () => {
-        if (profileDetails?.package_name === "Free") {
+        if (profileDetails?.package_name === "Free" || "Unapproved") {
             navigation.navigate('MembershipPlan');
         } else {
             navigation.navigate('PayNow', { isAddOnOnly: true });
@@ -748,7 +748,21 @@ export const MyProfile = () => {
                             </View>
 
                             <View style={styles.planFlex}>
-                                {profileDetails.valid_upto &&
+                                {profileDetails.package_name === "Free" || profileDetails.package_name === "Unapproved" ? (
+                                    <TouchableOpacity
+                                        style={styles.renewButtonWrapper}
+                                        onPress={() => navigation.navigate('MembershipPlan')}
+                                    >
+                                        <LinearGradient
+                                            colors={[Colors.primary, Colors.primary]}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.renewButton}
+                                        >
+                                            <Text style={styles.renewButtonText}>Upgrade</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                ) : profileDetails.valid_upto &&
                                     new Date(profileDetails.valid_upto) < new Date() &&
                                     allowedPremiumIds.includes(currentPlanId) ? (
                                     <TouchableOpacity
@@ -766,47 +780,121 @@ export const MyProfile = () => {
                                     </TouchableOpacity>
                                 ) : (
                                     <View style={styles.planFlex}>
-                                        <LinearGradient
-                                            colors={
-                                                profileDetails.package_name === "Platinum"
-                                                    ? ["#E5E4E2", "#C0C0C0", "#FFFFFF"]
-                                                    : profileDetails.package_name === "Gold"
-                                                        ? ["#D79D32", "#FFB800", "#FDE166"]
-                                                        : profileDetails.package_name === "Diamond"
-                                                            ? ["#B9F2FF", "#FFFFFF", "#B9F2FF"]
-                                                            : ["#D79D32", "#FFB800", "#FDE166"]
-                                            }
-                                            locations={[0, 0.5, 1]}
-                                            start={{ x: 1, y: 1 }}
-                                            end={{ x: 0, y: 0 }}
-                                            style={[
-                                                styles.goldLinearGradient,
-                                                profileDetails.package_name === "Diamond" && styles.diamondText
-                                            ]}
-                                        >
-                                            <Text style={[
-                                                styles.goldText,
-                                                profileDetails.package_name === "Diamond" && { color: "#fff" }
-                                            ]}>
-                                                {profileDetails.package_name}
+
+                                        {/* Package Name */}
+                                        <View style={styles.planNameRow}>
+                                            <LinearGradient
+                                                colors={
+                                                    profileDetails.package_name === "Platinum"
+                                                        ? ["#E5E4E2", "#C0C0C0", "#FFFFFF"]
+                                                        : profileDetails.package_name === "Gold"
+                                                            ? ["#D79D32", "#FFB800", "#FDE166"]
+                                                            : profileDetails.package_name === "Diamond"
+                                                                ? ["#B9F2FF", "#FFFFFF", "#B9F2FF"]
+                                                                : ["#D79D32", "#FFB800", "#FDE166"]
+                                                }
+                                                locations={[0, 0.5, 1]}
+                                                start={{ x: 1, y: 1 }}
+                                                end={{ x: 0, y: 0 }}
+                                                style={[
+                                                    styles.goldLinearGradient,
+                                                    profileDetails.package_name === "Diamond" && styles.diamondText
+                                                ]}
+                                            >
+                                                <Text
+                                                    style={[
+                                                        styles.goldText,
+                                                        profileDetails.package_name === "Diamond" && { color: "#fff" }
+                                                    ]}
+                                                >
+                                                    {profileDetails.package_name}
+                                                </Text>
+                                            </LinearGradient>
+                                        </View>
+
+                                        {/* ONE ACTION BUTTON */}
+                                        {profileDetails.package_name === "Free" ||
+                                            profileDetails.package_name === "Unapproved" ? (
+
+                                            // Free / Unapproved → Upgrade
+                                            <TouchableOpacity
+                                                style={styles.renewButtonWrapper}
+                                                onPress={() => navigation.navigate('MembershipPlan')}
+                                            >
+                                                <LinearGradient
+                                                    colors={[Colors.primary, Colors.primary]}
+                                                    style={styles.renewButton}
+                                                >
+                                                    <Text style={styles.renewButtonText}>
+                                                        Upgrade
+                                                    </Text>
+                                                </LinearGradient>
+                                            </TouchableOpacity>
+
+                                        ) : profileDetails.valid_upto &&
+                                            new Date(profileDetails.valid_upto) < new Date() &&
+                                            allowedPremiumIds.includes(currentPlanId) ? (
+
+                                            // Expired Premium → Renew
+                                            <TouchableOpacity
+                                                style={styles.renewButtonWrapper}
+                                                onPress={() => navigation.navigate('PayNow')}
+                                            >
+                                                <LinearGradient
+                                                    colors={[Colors.primary, Colors.primary]}
+                                                    style={styles.renewButton}
+                                                >
+                                                    <Text style={styles.renewButtonText}>
+                                                        Renew
+                                                    </Text>
+                                                </LinearGradient>
+                                            </TouchableOpacity>
+
+                                        ) : (
+
+                                            // Active Premium → Add On
+                                            <TouchableOpacity
+                                                style={styles.completeTextFlex}
+                                                onPress={handleAddOnPackagePress}
+                                            >
+                                                <Text style={styles.completeText}>
+                                                    Add on packages
+                                                </Text>
+                                                <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+                                            </TouchableOpacity>
+                                        )}
+
+                                        {/* Valid Upto */}
+                                        {profileDetails.valid_upto && (
+                                            <Text
+                                                style={[
+                                                    styles.date,
+                                                    {
+                                                        marginBottom: 8,
+                                                        marginLeft: 10
+                                                    }
+                                                ]}
+                                            >
+                                                Valid Upto : {profileDetails.valid_upto}
                                             </Text>
-                                        </LinearGradient>
+                                        )}
+
                                     </View>
                                 )}
-                                {profileDetails.valid_upto && (
+                                {/* {profileDetails.valid_upto && (
                                     <Text style={[styles.date, { marginBottom: 8, marginLeft: 10 }]}>
                                         Valid Upto : {profileDetails.valid_upto}
                                     </Text>
-                                )}
+                                )} */}
                             </View>
 
-                            <Pressable
+                            {/* <Pressable
                                 style={styles.completeTextFlex}
                                 onPress={handleAddOnPackagePress}
                             >
                                 <Text style={styles.completeText}>Add on packages</Text>
                                 <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
-                            </Pressable>
+                            </Pressable> */}
 
                             <InfoPillRow
                                 items={[
@@ -835,7 +923,7 @@ export const MyProfile = () => {
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <Text style={styles.factLabel}>Profession</Text>
-                                        <Text style={styles.factValue} numberOfLines={1}>{profileDetails.prosession || '—'}</Text>
+                                        <Text style={styles.factValue} numberOfLines={1}>{profileDetails.prosession || 'N/A'}</Text>
                                     </View>
                                 </View>
                                 <View style={styles.factCardFull}>
@@ -844,7 +932,7 @@ export const MyProfile = () => {
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <Text style={styles.factLabel}>Education</Text>
-                                        <Text style={styles.factValue} numberOfLines={1}>{profileDetails.heightest_education || '—'}</Text>
+                                        <Text style={styles.factValue} numberOfLines={1}>{profileDetails.heightest_education || 'N/A'}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -1095,8 +1183,14 @@ const styles = StyleSheet.create({
         letterSpacing: 0.3,
     },
     planFlex: {
-        flexDirection: "row",
+        flexDirection: "column",
         justifyContent: "flex-start",
+        alignItems: "flex-start",
+        alignSelf: "flex-start",
+        width: "100%",
+    },
+    planNameRow: {
+        flexDirection: "row",
         alignItems: "center",
         alignSelf: "flex-start",
     },
@@ -1104,9 +1198,9 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         justifyContent: "center",
         alignItems: "center",
-        padding: 5,
-        width: 100,
-        marginRight: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        minWidth: 90,
     },
     goldText: {
         color: Colors.onPrimaryContainer,
@@ -1183,6 +1277,7 @@ const styles = StyleSheet.create({
         justifyContent: "flex-start",
         alignItems: "center",
         marginVertical: 10,
+        marginLeft: 3,
     },
     completeText: {
         color: Colors.primary,
