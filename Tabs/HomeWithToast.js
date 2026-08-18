@@ -506,7 +506,7 @@ export const HomeWithToast = () => {
   };
 
   const handleFilterPress = () => navigation.navigate("MatchingProfileSearch");
-  const handleFilterPressMenu = () => navigation.navigate("Search");
+  const handleFilterPressMenu = () => navigation.navigate("MyVisitors");
 
   // ── Slider helpers ───────────────────────────────────────────────────────
   const combinedData = useMemo(
@@ -856,9 +856,9 @@ export const HomeWithToast = () => {
   const renderQuickActionsMenu = () => {
     const actions = [
       {
-        icon: "tune",
+        icon: "people-outline",
         isSvg: false,
-        label: "Advanced\nSearch",
+        label: "My Visitors",
         onPress: handleFilterPressMenu,
         show: true,
       },
@@ -869,10 +869,10 @@ export const HomeWithToast = () => {
         show: !hidePlanButton,
       },
       {
-        icon: "grid-view",
+        icon: "photo-library",
         isSvg: false,
-        label: "My\nDashboard",
-        onPress: () => navigation.navigate("DashBoard"),
+        label: "Gallery",
+        onPress: () => navigation.navigate("GalleryResults"),
         show: true,
       },
     ].filter((action) => action.show);

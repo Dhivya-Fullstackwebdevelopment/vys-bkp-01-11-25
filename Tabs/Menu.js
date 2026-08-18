@@ -105,6 +105,30 @@ const Shimmer = ({ width, height, style, borderRadius }) => {
   );
 };
 
+// ── Section Header ───────────────────────────────────────────────────────────
+const SectionHeader = ({ title }) => (
+  <Text style={styles.sectionHeader}>{title}</Text>
+);
+
+// ── Menu Row Item ────────────────────────────────────────────────────────────
+const MenuRowItem = ({ icon, label, onPress, isLast = false }) => (
+  <TouchableOpacity
+    style={[styles.menuRow, isLast && { borderBottomWidth: 0 }]}
+    onPress={onPress}
+    activeOpacity={0.7}
+  >
+    <View style={styles.menuLeft}>
+      {icon}
+      <Text style={styles.menuLabelText}>{label}</Text>
+    </View>
+    <Ionicons
+      name="chevron-forward"
+      size={18}
+      color={Colors.textMuted || "#71717A"}
+    />
+  </TouchableOpacity>
+);
+
 export const Menu = () => {
   const navigation = useNavigation();
 
@@ -356,7 +380,7 @@ export const Menu = () => {
       const vysyamalaUrl = 'vysyamala.com';
       const profession = profileDetails?.prosession;
       const annualIncome = educationalDetails?.personal_ann_inc_name;
-      const placeOfStay = educationalDetails?.personal_work_district || educationalDetails?.personal_work_city_name
+      const placeOfStay = educationalDetails?.personal_work_district || educationalDetails?.personal_work_city_name;
       const education = educationalDetails?.persoanl_degree_name;
       const companyName = educationalDetails?.personal_company_name;
       const businessName = educationalDetails?.personal_business_name;
@@ -376,7 +400,7 @@ export const Menu = () => {
         }
       }
 
-      const shareUrlWithoutImage = `${config.apiUrl}/auth/profile_view/${profileId}/`
+      const shareUrlWithoutImage = `${config.apiUrl}/auth/profile_view/${profileId}/`;
       const title = 'Check out this profile!';
 
       const message =
@@ -423,12 +447,11 @@ export const Menu = () => {
   };
 
   const renderShimmer = () => {
-    const progressWidth = screenWidth - 32; // account for card padding (16 left + 16 right)
-    const textWidth = progressWidth * 0.8;  // for the "80%" placeholder
+    const progressWidth = screenWidth - 32;
+    const textWidth = progressWidth * 0.8;
 
     return (
       <>
-        {/* Profile Header Shimmer */}
         <View style={styles.card}>
           <View style={styles.profileHeaderRow}>
             <Shimmer width={68} height={68} borderRadius={34} style={{ marginRight: 14 }} />
@@ -440,14 +463,12 @@ export const Menu = () => {
           </View>
         </View>
 
-        {/* Profile Completeness Shimmer */}
         <View style={styles.card}>
           <Shimmer width={180} height={20} borderRadius={4} style={{ marginBottom: 12 }} />
           <Shimmer width={progressWidth} height={8} borderRadius={4} style={{ marginBottom: 10 }} />
           <Shimmer width={textWidth} height={16} borderRadius={4} />
         </View>
 
-        {/* Basic Details Shimmer */}
         <View style={styles.card}>
           <Shimmer width={140} height={20} borderRadius={4} style={{ marginBottom: 12 }} />
           {[1, 2, 3, 4, 5].map((_, i) => (
@@ -458,7 +479,6 @@ export const Menu = () => {
           ))}
         </View>
 
-        {/* Menu Groups Shimmer */}
         <View style={styles.menuCardGroup}>
           {[1, 2].map((_, i) => (
             <View key={i} style={styles.menuRow}>
@@ -471,7 +491,6 @@ export const Menu = () => {
           ))}
         </View>
 
-        {/* More Menu Items Shimmer */}
         <View style={styles.menuCardGroup}>
           {[1, 2, 3, 4, 5].map((_, i) => (
             <View key={i} style={[styles.menuRow, i === 4 && { borderBottomWidth: 0 }]}>
@@ -546,9 +565,7 @@ export const Menu = () => {
               <View style={styles.avatarRing}>
                 <TopAlignedImage
                   uri={
-                    Array.isArray(
-                      dashboardData?.profile_details?.profile_image
-                    )
+                    Array.isArray(dashboardData?.profile_details?.profile_image)
                       ? dashboardData?.profile_details?.profile_image[0]
                       : dashboardData?.profile_details?.profile_image
                   }
@@ -571,10 +588,7 @@ export const Menu = () => {
                 </Text>
               </View>
 
-              <TouchableOpacity
-                onPress={handleShare}
-                style={styles.editIconCircle}
-              >
+              <TouchableOpacity onPress={handleShare} style={styles.editIconCircle}>
                 <Ionicons
                   name="share-social-outline"
                   size={18}
@@ -649,334 +663,155 @@ export const Menu = () => {
             </View>
           </View>
 
-          {/* MAIN NAVIGATION GROUP */}
+          {/* ── MY ACCOUNT GROUP ─────────────────────────────────────────── */}
+          <SectionHeader title="MY ACCOUNT" />
           <View style={styles.menuCardGroup}>
-            <TouchableOpacity
-              style={styles.menuRow}
-              onPress={() => navigation.navigate("Home")}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <Ionicons
-                  name="grid-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>My dashboard</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
+            <MenuRowItem
+              icon={<Ionicons name="grid-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="My Dashboard"
+              onPress={() => navigation.navigate("DashBoard")}
+            />
 
             {!isPlan16 && (
-              <TouchableOpacity
-                style={styles.menuRow}
+              <MenuRowItem
+                icon={<MaterialCommunityIcons name="crown-outline" size={22} color={Colors.primary || "#A00014"} />}
+                label={`Membership & Plans (${buttonText})`}
                 onPress={handleUpgradeClick}
-                activeOpacity={0.7}
-              >
-                <View style={styles.menuLeft}>
-                  <MaterialCommunityIcons
-                    name="crown-outline"
-                    size={22}
-                    color={Colors.primary || "#A00014"}
-                  />
-                  <Text style={styles.menuLabelText}>
-                    Membership & plans ({buttonText})
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={18}
-                  color={Colors.textMuted || "#71717A"}
-                />
-              </TouchableOpacity>
+              />
             )}
+
+            <MenuRowItem
+              icon={<MaterialCommunityIcons name="bookmark-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="Wishlist"
+              onPress={() => navigation.navigate("DashBoardWishlist")}
+            />
+
+            <MenuRowItem
+              icon={<Ionicons name="settings-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="Other Settings"
+              onPress={() => navigation.navigate("OtherSettings")}
+              isLast
+            />
           </View>
 
-          {/* SECONDARY SETTINGS & POLICIES GROUP */}
+          {/* ── VYSYAMA GROUP ─────────────────────────────────────────────── */}
+          <SectionHeader title="VYSYAMA" />
           <View style={styles.menuCardGroup}>
-            <TouchableOpacity
-              style={styles.menuRow}
-              onPress={() => navigation.navigate("DashBoardWishlist")}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <MaterialCommunityIcons
-                  name="bookmark-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Wishlist</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuRow}
-              onPress={() => navigation.navigate("OtherSettings")}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <Ionicons
-                  name="settings-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Other Settings</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuRow}
-              onPress={() =>
-                navigation.navigate("WebViewPage", {
-                  url: "https://vysyamala.com/AboutUsMobile",
-                  title: "About Us",
-                })
-              }
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <Ionicons
-                  name="information-circle-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>About Us</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuRow}
+            <MenuRowItem
+              icon={<FontAwesome6 name="heart" size={18} color={Colors.primary || "#A00014"} />}
+              label="Santhosha Pendlilu"
               onPress={() =>
                 navigation.navigate("WebViewPage", {
                   url: "https://vysyamala.com/HappyStoriesMobile",
                   title: "Santhosha Pendlilu",
                 })
               }
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <FontAwesome6
-                  name="heart"
-                  size={18}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Santhosha Pendlilu</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
+            />
 
-            <TouchableOpacity
-              style={styles.menuRow}
+            <MenuRowItem
+              icon={<Ionicons name="trophy-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="Awards"
               onPress={() =>
                 navigation.navigate("WebViewPage", {
                   url: "https://vysyamala.com/AwardsMobile",
                   title: "Awards",
                 })
               }
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <Ionicons
-                  name="trophy-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Awards</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
+              isLast
+            />
+          </View>
 
-            <TouchableOpacity
-              style={styles.menuRow}
+          {/* ── HELP & INFORMATION GROUP ──────────────────────────────────── */}
+          <SectionHeader title="HELP & INFORMATION" />
+          <View style={styles.menuCardGroup}>
+            <MenuRowItem
+              icon={<Ionicons name="help-circle-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="Help & Support"
               onPress={() => navigation.navigate("HelpSupport")}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <Ionicons
-                  name="help-circle-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Help & Support</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
+            />
 
-            <TouchableOpacity
-              style={styles.menuRow}
+            <MenuRowItem
+              icon={<Ionicons name="information-circle-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="About Us"
               onPress={() =>
                 navigation.navigate("WebViewPage", {
-                  url: "https://www.vysyamala.com/PrivacyPolicy",
-                  title: "Privacy Policy",
+                  url: "https://vysyamala.com/AboutUsMobile",
+                  title: "About Us",
                 })
               }
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Privacy Policy</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
+            />
 
-            <TouchableOpacity
-              style={styles.menuRow}
+            <MenuRowItem
+              icon={<Ionicons name="document-text-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="Terms & Conditions"
               onPress={() =>
                 navigation.navigate("WebViewPage", {
                   url: "https://www.vysyamala.com/TermsandConditions",
                   title: "Terms & Conditions",
                 })
               }
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Terms & Conditions</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
+              isLast
+            />
+          </View>
 
-            <TouchableOpacity
-              style={styles.menuRow}
+          {/* ── SAFETY & PRIVACY GROUP ────────────────────────────────────── */}
+          <SectionHeader title="SAFETY & PRIVACY" />
+          <View style={styles.menuCardGroup}>
+            <MenuRowItem
+              icon={<Ionicons name="shield-checkmark-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="Privacy Policy"
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  url: "https://www.vysyamala.com/PrivacyPolicy",
+                  title: "Privacy Policy",
+                })
+              }
+            />
+
+            <MenuRowItem
+              icon={<MaterialCommunityIcons name="shield-account-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="Child Safety"
               onPress={() =>
                 navigation.navigate("WebViewPage", {
                   url: "https://www.vysyamala.com/ChildSafety",
                   title: "Child Safety",
                 })
               }
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <MaterialCommunityIcons
-                  name="shield-account-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Child Safety</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
+            />
 
-            <TouchableOpacity
-              style={styles.menuRow}
+            <MenuRowItem
+              icon={<MaterialCommunityIcons name="account-group-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="Community Guidelines"
               onPress={() =>
                 navigation.navigate("WebViewPage", {
                   url: "https://www.vysyamala.com/CommunityGuidelines",
                   title: "Community Guidelines",
                 })
               }
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <MaterialCommunityIcons
-                  name="account-group-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Community Guidelines</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
+            />
 
-            <TouchableOpacity
-              style={styles.menuRow}
+            <MenuRowItem
+              icon={<MaterialCommunityIcons name="account-remove-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="Account Deletion Policy"
               onPress={() =>
                 navigation.navigate("WebViewPage", {
                   url: "https://www.vysyamala.com/AccountDeletionPolicy",
                   title: "Account Deletion Policy",
                 })
               }
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <MaterialCommunityIcons
-                  name="account-remove-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Account Deletion Policy</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
+              isLast
+            />
+          </View>
 
-            <TouchableOpacity
-              style={[styles.menuRow, { borderBottomWidth: 0 }]}
+          {/* ── ACCOUNT GROUP ─────────────────────────────────────────────── */}
+          <SectionHeader title="ACCOUNT" />
+          <View style={styles.menuCardGroup}>
+            <MenuRowItem
+              icon={<Ionicons name="log-out-outline" size={20} color={Colors.primary || "#A00014"} />}
+              label="Log Out"
               onPress={handleLogout}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <Ionicons
-                  name="log-out-outline"
-                  size={20}
-                  color={Colors.primary || "#A00014"}
-                />
-                <Text style={styles.menuLabelText}>Log Out</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted || "#71717A"}
-              />
-            </TouchableOpacity>
+              isLast
+            />
           </View>
         </ScrollView>
       )}
@@ -1022,7 +857,12 @@ export const Menu = () => {
                 size={22}
                 color={Colors.primary || "#A00014"}
               />
-              <Text style={styles.modalOptionText} onPress={() => handleWhatsAppShareWithoutImage(false)}>Share without Image</Text>
+              <Text
+                style={styles.modalOptionText}
+                onPress={() => handleWhatsAppShareWithoutImage(false)}
+              >
+                Share without Image
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1034,7 +874,7 @@ export const Menu = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.cardBackground || "#FFFFFF",
+    backgroundColor: Colors.selectedBg || "#F5F0EB",
   },
   loadingContainer: {
     flex: 1,
@@ -1054,13 +894,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.04)',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.04)",
     marginRight: 8,
   },
   headerIconBtnPressed: {
-    backgroundColor: 'rgba(0,0,0,0.08)',
+    backgroundColor: "rgba(0,0,0,0.08)",
   },
   headerTitleContainer: {
     flex: 1,
@@ -1084,6 +924,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 110,
+  },
+
+  // ── SECTION HEADER ────────────────────────────────────────────────────────
+  sectionHeader: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.textMuted || "#71717A",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    marginBottom: 6,
+    marginTop: 4,
+    paddingHorizontal: 4,
   },
 
   // CARD BASE
