@@ -38,6 +38,7 @@ import { TopAlignedImage } from '../../Components/ReuseImageAlign/TopAlignedImag
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { Colors } from "../../Reusable/Theme";
 import { openCachedPdf } from '../../Screens/AfterLogin/PdfViewerModal';
+import { InAppPdfModal } from "../../Screens/AfterLogin/InAppPdfModal";
 
 // Responsive helpers
 const { width: SCREEN_WIDTH, height: SCREEN_H } = Dimensions.get('window');
@@ -226,6 +227,8 @@ export const MyProfile = () => {
     const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
     const [selectedPdfLanguage, setSelectedPdfLanguage] = useState("english");
     const [showLanguagePopup, setShowLanguagePopup] = useState(false);
+    const [pdfModalVisible, setPdfModalVisible] = useState(false);
+    const [selectedPdfUrl, setSelectedPdfUrl] = useState(null);
 
     const handleAddOnPackagePress = () => {
         if (profileDetails?.package_name === "Free" || "Unapproved") {
@@ -478,13 +481,15 @@ export const MyProfile = () => {
             }
 
             if (typeof result === 'string' && result.length > 0) {
-                await openCachedPdf(result);
-                Toast.show({
-                    type: 'success',
-                    text1: 'Success',
-                    text2: 'Profile opened successfully!',
-                    position: "top",
-                });
+                // await openCachedPdf(result);
+                // Toast.show({
+                //     type: 'success',
+                //     text1: 'Success',
+                //     text2: 'Profile opened successfully!',
+                //     position: "top",
+                // });
+                setSelectedPdfUrl(result);
+                setPdfModalVisible(true);
             } else {
                 throw new Error('Unexpected result');
             }
@@ -1055,7 +1060,16 @@ export const MyProfile = () => {
                     </View>
                 </View>
             </Modal>
-
+            <InAppPdfModal
+                visible={pdfModalVisible}
+                pdfUrl={selectedPdfUrl}
+                title="Horoscope PDF"
+                profileId={profileDetails?.profile_id || ''}
+                onClose={() => {
+                    setPdfModalVisible(false);
+                    setSelectedPdfUrl(null);
+                }}
+            />
             <BottomTabBarComponent />
 
             {loading && (

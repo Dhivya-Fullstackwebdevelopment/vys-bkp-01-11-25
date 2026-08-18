@@ -63,6 +63,7 @@ import Timeline from "react-native-timeline-flatlist";
 import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { TopAlignedImage } from "../../Components/ReuseImageAlign/TopAlignedImage";
 import { openCachedPdf } from "../../Screens/AfterLogin/PdfViewerModal";
+import { InAppPdfModal } from "../../Screens/AfterLogin/InAppPdfModal";
 import { Colors, rs } from "../../Reusable/Theme";
 import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -166,6 +167,8 @@ export const ProfileDetails = () => {
   const [amsaGrid, setAmsaGrid] = useState([]);
   const [storedPlanId, setStoredPlanId] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pdfModalVisible, setPdfModalVisible] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState(null);
 
   // ─── NEW: refs for scroll-to-section ────────────────────────────────────────
   const mainScrollRef = useRef(null);
@@ -960,6 +963,45 @@ export const ProfileDetails = () => {
     }
   };
 
+  // const handleDownloadPdf = async () => {
+  //   bottomSheetRef.current.close();
+  //   setShowLanguagePopup(false);
+  //   setLoading(true);
+
+  //   try {
+  //     const encryptedId = profileData?.encrypted_profile_id;
+  //     const myId = profileData?.My_profile_id;
+  //     const langParam = selectedPdfLanguage;
+  //     const result = await Printhoroscopepdf(encryptedId, myId, langParam);
+
+  //     if (result && typeof result === 'object' && result.status === 'failure') {
+  //       Toast.show({
+  //         type: 'error',
+  //         text1: 'Error',
+  //         text2: result.message || 'Failed to fetch horoscope',
+  //       });
+  //       return;
+  //     }
+
+  //     if (typeof result === 'string' && result.length > 0) {
+  //       await openCachedPdf(result);
+  //       Toast.show({
+  //         type: 'success',
+  //         text1: 'Success',
+  //         text2: 'Profile Opened successfully!',
+  //       });
+  //     } else {
+  //       throw new Error('Unexpected result');
+  //     }
+  //   } catch (error) {
+  //     console.error('Download error:', error);
+  //   } finally {
+  //     setLoading(false);
+  //     setSelectedPdfLanguage('english');
+  //   }
+  // };
+
+
   const handleDownloadPdf = async () => {
     bottomSheetRef.current.close();
     setShowLanguagePopup(false);
@@ -981,12 +1023,9 @@ export const ProfileDetails = () => {
       }
 
       if (typeof result === 'string' && result.length > 0) {
-        await openCachedPdf(result);
-        Toast.show({
-          type: 'success',
-          text1: 'Success',
-          text2: 'Profile Opened successfully!',
-        });
+        // Open directly in the in-app modal
+        setSelectedPdfUrl(result);
+        setPdfModalVisible(true);
       } else {
         throw new Error('Unexpected result');
       }
@@ -997,6 +1036,39 @@ export const ProfileDetails = () => {
       setSelectedPdfLanguage('english');
     }
   };
+
+  // const handleDownloadMatchingReport = async () => {
+  //   bottomSheetRef.current.close();
+  //   setLoading(true);
+
+  //   try {
+  //     const encryptedId = profileData?.encrypted_profile_id;
+  //     const myId = profileData?.My_profile_id;
+  //     const result = await downloadPdfPoruthamNew(encryptedId, myId);
+
+  //     if (typeof result === 'object' && result !== null && result.status === 'failure') {
+  //       setResponseMsg(result.message || 'No access to see the compatibility report');
+  //       setShowUpgradeModal(true);
+  //       return;
+  //     }
+
+  //     if (typeof result === 'string' && result.length > 0) {
+  //       await openCachedPdf(result);
+  //       Toast.show({
+  //         type: 'success',
+  //         text1: 'Success',
+  //         text2: 'Matching report loaded successfully!',
+  //       });
+  //     } else {
+  //       throw new Error('Unexpected result');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error loading matching report:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
 
   const handleDownloadMatchingReport = async () => {
     bottomSheetRef.current.close();
@@ -1014,12 +1086,9 @@ export const ProfileDetails = () => {
       }
 
       if (typeof result === 'string' && result.length > 0) {
-        await openCachedPdf(result);
-        Toast.show({
-          type: 'success',
-          text1: 'Success',
-          text2: 'Matching report loaded successfully!',
-        });
+        // Open directly in the in-app modal
+        setSelectedPdfUrl(result);
+        setPdfModalVisible(true);
       } else {
         throw new Error('Unexpected result');
       }
@@ -3143,6 +3212,16 @@ export const ProfileDetails = () => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+      <InAppPdfModal
+        visible={pdfModalVisible}
+        pdfUrl={selectedPdfUrl}
+        title="Horoscope PDF"
+        profileId={basic_details?.profile_id || viewedProfileId}
+        onClose={() => {
+          setPdfModalVisible(false);
+          setSelectedPdfUrl(null);
+        }}
+      />
       <BottomTabBarComponent />
     </View>
   );
