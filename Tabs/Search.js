@@ -13,6 +13,7 @@ import {
   Modal,
   FlatList,
   PanResponder,
+  Image,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -422,6 +423,24 @@ export const Search = () => {
     location: false,
     photo: false,
   });
+  const [profileImage, setProfileImage] = useState("");
+  const [profileId, setProfileId] = useState("");
+
+  useEffect(() => {
+    const loadProfileHeader = async () => {
+      try {
+        const img = await AsyncStorage.getItem("profile_image");
+        const id = await AsyncStorage.getItem("loginuser_profileId");
+
+        setProfileImage(img || "");
+        setProfileId(id || "");
+      } catch (error) {
+        console.error("Error loading profile header:", error);
+      }
+    };
+
+    loadProfileHeader();
+  }, []);
 
   const toggleSection = (sectionKey) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -1131,22 +1150,67 @@ export const Search = () => {
     <SafeAreaView style={GlobalStyles.container}>
       {/* Red Gradient Header Banner */}
       <LinearGradient
-        colors={[Colors.primaryGradientStart || "#A00014", Colors.primaryGradientEnd || "#4A000A"]}
+        colors={[
+          Colors.primaryGradientStart || "#A00014",
+          Colors.primaryGradientEnd || "#4A000A",
+        ]}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={styles.headerBanner}
       >
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        {/* Back */}
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+        >
+          <Ionicons name="chevron-back" size={25} color="#FFFFFF" />
         </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Advanced search</Text>
-          <Text style={styles.headerSubtitle}>Refine every detail</Text>
+
+        {/* Title */}
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            Advanced search
+          </Text>
+
+          <Text style={styles.headerSubtitle}>
+            Refine every detail
+          </Text>
         </View>
-        <TouchableOpacity onPress={clearFields} style={styles.clearBtnRow}>
-          <Ionicons name="reload-outline" size={16} color="#FFFFFF" />
-          <Text style={styles.clearBtnText}>Clear all</Text>
-        </TouchableOpacity>
+
+        {/* Right Profile + Clear */}
+        <View style={styles.headerRightSection}>
+          <View style={styles.profileHeader}>
+            {profileImage ? (
+              <Image
+                source={{ uri: profileImage }}
+                style={styles.profileHeaderImage}
+              />
+            ) : (
+              <View style={styles.profileIconCircle}>
+                <Ionicons name="person" size={16} color="#8B0000" />
+              </View>
+            )}
+
+            <Text style={styles.profileHeaderId} numberOfLines={1}>
+              {profileId || "Profile"}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={clearFields}
+            style={styles.clearBtnRow}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="reload-outline"
+              size={15}
+              color="#FFFFFF"
+            />
+            <Text style={styles.clearBtnText}>
+              Clear all
+            </Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
 
@@ -1693,33 +1757,49 @@ const styles = StyleSheet.create({
   headerBanner: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: rs(12, 16, 20),
-    paddingBottom: 24,
+    paddingHorizontal: 14,
+    paddingTop: rs(10, 12, 14),
+    paddingBottom: rs(12, 14, 16),
+    minHeight: 88,
   },
+
   backBtn: {
-    marginRight: 12,
+    width: 30,
+    height: 42,
+    alignItems: "flex-start",
+    justifyContent: "center",
+    marginRight: 4,
+  },
+  headerTitleContainer: {
+    flex: 1,
+    justifyContent: "center",
+    paddingLeft: 2,
+    paddingRight: 8,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: "700",
     color: "#FFFFFF",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    letterSpacing: -1,
+    letterSpacing: -0.5,
   },
+
   headerSubtitle: {
-    fontSize: rs(12, 13, 14),
-    color: "rgba(255, 255, 255, 0.7)",
-    marginTop: 2,
+    fontSize: 11.5,
+    color: "rgba(255, 255, 255, 0.72)",
+    marginTop: 3,
   },
   clearBtnRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "flex-start",
+    alignSelf: "flex-start",
+    marginLeft: 22,   // moves Clear all slightly left/right
     gap: 4,
   },
   clearBtnText: {
     color: "#FFFFFF",
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
   },
   searchBarWrapper: {
@@ -2125,5 +2205,47 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#7C5A16",
     fontWeight: "500",
+  },
+  headerRightSection: {
+    width: 100,
+    alignItems: "flex-end",
+    justifyContent: "center",
+    marginLeft: 2,
+    paddingRight: 2,
+  },
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    width: "100%",
+    marginBottom: 7,
+  },
+
+  profileHeaderImage: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.9)",
+    marginRight: 5,
+  },
+
+  profileIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 5,
+  },
+
+
+  profileHeaderId: {
+    maxWidth: 58,
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    textAlign: "right",
   },
 });
