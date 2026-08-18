@@ -291,7 +291,7 @@ export const HomeWithToast = () => {
           }
           const views = contactViews ? `${contactViews} contact views left` : "";
           const till = validityDate
-            ? `till ${new Date(validityDate).toLocaleDateString("en-GB", {
+            ? `valid till ${new Date(validityDate).toLocaleDateString("en-GB", {
               day: "numeric",
               month: "short",
               year: "numeric",
@@ -720,6 +720,25 @@ export const HomeWithToast = () => {
           </TouchableOpacity>
         )}
       </View>
+
+      {memberLabel ? (
+        <TouchableOpacity
+          style={styles.memberBanner}
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate("MembershipPlan")}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.memberTitle}>{memberLabel}</Text>
+            {memberSub ? (
+              <Text style={styles.memberSubText}>{memberSub}</Text>
+            ) : null}
+          </View>
+          <View style={styles.upgradeButtonView}>
+            <Text style={styles.upgradeButtonText}>{buttonText}</Text>
+            <Text style={styles.upgradeArrow}>→</Text>
+          </View>
+        </TouchableOpacity>
+      ) : null}
 
       {/* Integrated Interest/VysAssist Slider Section */}
       {combinedData.length > 0 && (
@@ -1583,6 +1602,46 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     paddingVertical: 0,
+  },
+  memberBanner: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: Colors.gold,
+    borderRadius: 29,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 18,
+  },
+  memberTitle: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+    marginBottom: 2,
+    letterSpacing: 1,
+  },
+  memberSubText: {
+    color: "rgba(255,255,255,0.88)",
+    fontSize: 12,
+  },
+  upgradeButtonView: {
+    backgroundColor: "#DCB352",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  upgradeButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  upgradeArrow: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700",
+    marginLeft: 4,
   },
 });
 
