@@ -579,7 +579,7 @@ export const HomeWithToast = () => {
             onPress={() => handleViewProfile(item.int_profileid)}
           >
             <LinearGradient
-               colors={[Colors.primary || "#9B061B", Colors.primary || "#9B061B"]}
+              colors={[Colors.primary || "#9B061B", Colors.primary || "#9B061B"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.linearGradient}
@@ -680,7 +680,7 @@ export const HomeWithToast = () => {
           Hai, {userName || "User"}
         </Text>
         <Text style={styles.greetingId}>
-          Profile ID {userProfileId || "NO ID"}
+          {userProfileId || "NO ID"}
         </Text>
       </View>
 
