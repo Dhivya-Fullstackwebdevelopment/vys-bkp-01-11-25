@@ -695,7 +695,7 @@ export const Menu = () => {
           </View>
 
           {/* ── VYSYAMA GROUP ─────────────────────────────────────────────── */}
-          <SectionHeader title="VYSYAMA" />
+          <SectionHeader title="VYSYAMALA" />
           <View style={styles.menuCardGroup}>
             <MenuRowItem
               icon={<FontAwesome6 name="heart" size={18} color={Colors.primary || "#A00014"} />}
