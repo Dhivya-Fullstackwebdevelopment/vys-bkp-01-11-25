@@ -76,34 +76,49 @@ export const LoginPage = () => {
       try {
         setStatsLoading(true);
 
-        const [registeredResponse, successStoriesResponse] =
-          await Promise.all([
-            axios.post(`${config.apiUrl}/auth/Just_registered/`, {}),
-            axios.get(
-              `${config.apiUrl}/auth/success-story-images/?page=1&page_size=10`
-            ),
-          ]);
+        const [
+          registeredResponse,
+          marriagesResponse,
+        ] = await Promise.all([
+          axios.post(
+            `${config.apiUrl}/auth/Just_registered/`,
+            {}
+          ),
 
-        console.log("Just Registered:", registeredResponse.data);
-        console.log("Success Stories:", successStoriesResponse.data);
+          axios.get(
+            `${config.apiUrl}/auth/marriages-celebrated-count/`
+          ),
+        ]);
+
+        console.log(
+          "Just Registered:",
+          registeredResponse.data
+        );
+
+        console.log(
+          "Marriages Celebrated:",
+          marriagesResponse.data
+        );
 
         const registeredData = registeredResponse.data;
-        const successStoriesData = successStoriesResponse.data;
+        const marriagesData = marriagesResponse.data;
 
         setStats({
-          activeProfiles: Number(
-            registeredData?.active_profiles_count
-          ) || 0,
+          activeProfiles:
+            Number(
+              registeredData?.active_profiles_count
+            ) || 0,
 
-          happyCustomers: Number(
-            registeredData?.happy_customers_count
-          ) || 0,
+          happyCustomers:
+            Number(
+              registeredData?.happy_customers_count
+            ) || 0,
 
-          successStories: Number(
-            successStoriesData?.count
-          ) || 0,
+          successStories:
+            Number(
+              marriagesData?.total_marriages_celebrated
+            ) || 0,
         });
-
       } catch (error) {
         console.error(
           "Stats API Error:",
@@ -131,7 +146,7 @@ export const LoginPage = () => {
       title: "Active Profiles",
       subtitle: statsLoading
         ? "Loading..."
-        : `${stats.activeProfiles.toLocaleString()} Active Profiles`,
+        : `${stats.activeProfiles.toLocaleString()}+ Active Profiles`,
       subtitleHighlight: true,
     },
     {
@@ -140,7 +155,7 @@ export const LoginPage = () => {
       title: "Happy Customers",
       subtitle: statsLoading
         ? "Loading..."
-        : `${stats.happyCustomers.toLocaleString()} Happy Customers`,
+        : `${stats.happyCustomers.toLocaleString()}+ Happy Customers`,
       subtitleHighlight: true,
     },
     {
@@ -149,7 +164,7 @@ export const LoginPage = () => {
       title: "Success Stories",
       subtitle: statsLoading
         ? "Loading..."
-        : `${stats.successStories.toLocaleString()} Success Stories`,
+        : `${stats.successStories.toLocaleString()}+ Success Stories`,
       subtitleHighlight: true,
     },
   ];
