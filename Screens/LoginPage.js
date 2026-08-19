@@ -27,11 +27,14 @@ import ForgetPassword from "./ForgetPassword";
 import { Colors, rs } from "../Reusable/Theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Define Zod schema
+// ================= VALIDATION =================
+
 const schema = z.object({
   username: z.string().min(1, "Profile ID is required."),
   password: z.string().min(1, "Password is required."),
 });
+
+// ================= AWARDS =================
 
 const WHY_AWARDS = {
   id: "5",
@@ -41,11 +44,15 @@ const WHY_AWARDS = {
   subtitleHighlight: true,
 };
 
+// ================= LOGIN PAGE =================
+
 export const LoginPage = () => {
   const navigation = useNavigation();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showForgetPassword, setShowForgetPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   const [stats, setStats] = useState({
     activeProfiles: 0,
     happyCustomers: 0,
@@ -54,10 +61,15 @@ export const LoginPage = () => {
 
   const [statsLoading, setStatsLoading] = useState(true);
 
+  // ================= EXPANDED CARD =================
+  const [expandedCard, setExpandedCard] = useState(null);
+
+  // ================= PASSWORD =================
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
+  // ================= FORM =================
   const {
     control,
     handleSubmit,
@@ -70,54 +82,30 @@ export const LoginPage = () => {
     },
   });
 
-
+  // ================= FETCH STATS =================
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setStatsLoading(true);
 
-        const [
-          registeredResponse,
-          marriagesResponse,
-        ] = await Promise.all([
-          axios.post(
-            `${config.apiUrl}/auth/Just_registered/`,
-            {}
-          ),
-
-          axios.get(
-            `${config.apiUrl}/auth/marriages-celebrated-count/`
-          ),
+        const [registeredResponse, marriagesResponse] = await Promise.all([
+          axios.post(`${config.apiUrl}/auth/Just_registered/`, {}),
+          axios.get(`${config.apiUrl}/auth/marriages-celebrated-count/`),
         ]);
 
-        console.log(
-          "Just Registered:",
-          registeredResponse.data
-        );
-
-        console.log(
-          "Marriages Celebrated:",
-          marriagesResponse.data
-        );
+        console.log("Just Registered:", registeredResponse.data);
+        console.log("Marriages Celebrated:", marriagesResponse.data);
 
         const registeredData = registeredResponse.data;
         const marriagesData = marriagesResponse.data;
 
         setStats({
           activeProfiles:
-            Number(
-              registeredData?.active_profiles_count
-            ) || 0,
-
+            Number(registeredData?.active_profiles_count) || 0,
           happyCustomers:
-            Number(
-              registeredData?.happy_customers_count
-            ) || 0,
-
+            Number(registeredData?.happy_customers_count) || 0,
           successStories:
-            Number(
-              marriagesData?.total_marriages_celebrated
-            ) || 0,
+            Number(marriagesData?.total_marriages_celebrated) || 0,
         });
       } catch (error) {
         console.error(
@@ -132,12 +120,13 @@ export const LoginPage = () => {
     fetchStats();
   }, []);
 
+  // ================= WHY VYSYAMALA STATS =================
   const WHY_STATS = [
     {
       id: "1",
       icon: "heart-outline",
       title: "Since 2008",
-      subtitle: "Trusted matrimonial platform",
+      subtitle: "Trusted matrimonial platform since 2008",
       subtitleHighlight: false,
     },
     {
@@ -169,19 +158,20 @@ export const LoginPage = () => {
     },
   ];
 
+  // ================= LOGIN =================
   const onSubmit = async (data) => {
     const { username, password } = data;
     setIsLoading(true);
 
     try {
-      console.log("Login Attempt:", { username, password }); // Debug input
+      console.log("Login Attempt:", { username, password });
 
       const response = await axios.post(`${config.apiUrl}/auth/login/`, {
         username,
         password,
       });
 
-      console.log("Full Login Response:", response.data); // Log full API response
+      console.log("Full Login Response:", response.data);
 
       if (response.data.status === 1) {
         const {
@@ -216,6 +206,7 @@ export const LoginPage = () => {
         console.log("login birth star id", birth_rasi_id);
         console.log("height", height);
 
+        // ================= ASYNC STORAGE =================
         await AsyncStorage.setItem("loginuser_profileId", profile_id);
         await AsyncStorage.setItem("login_username", login_username);
         await AsyncStorage.setItem("profile_id_new", profile_id);
@@ -247,13 +238,20 @@ export const LoginPage = () => {
         Alert.alert("Login Failed", response.data.message);
       }
     } catch (error) {
-      console.error("Error during login:", error.response?.data || error.message);
-      Alert.alert("Error", "An error occurred while logging in. Please try again.");
+      console.error(
+        "Error during login:",
+        error.response?.data || error.message
+      );
+      Alert.alert(
+        "Error",
+        "An error occurred while logging in. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ================= UI =================
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -265,14 +263,17 @@ export const LoginPage = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header Greeting Banner */}
+          {/* ================= WELCOME ================= */}
           <View style={styles.textContainer}>
             <Text style={styles.welcomeText}>Welcome Back</Text>
-            <Text style={styles.welcome}>Find the meaningful connection within the Arya Vysya Community</Text>
+            <Text style={styles.welcome}>
+              Find the meaningful connection within the Arya Vysya Community
+            </Text>
           </View>
 
-          {/* Form Card Container */}
+          {/* ================= LOGIN CARD ================= */}
           <View style={styles.cardContainer}>
+            {/* PROFILE ID */}
             <View style={styles.inputContainer}>
               <Text style={styles.fieldLabel}>Profile ID</Text>
               <Controller
@@ -280,7 +281,12 @@ export const LoginPage = () => {
                 name="username"
                 render={({ field: { onChange, value } }) => (
                   <View style={styles.inputWrapper}>
-                    <Ionicons name="person-outline" size={18} color={Colors.textMuted} style={styles.inputIcon} />
+                    <Ionicons
+                      name="person-outline"
+                      size={18}
+                      color={Colors.textMuted}
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={[
                         styles.input,
@@ -296,10 +302,13 @@ export const LoginPage = () => {
                 )}
               />
               {errors.username && (
-                <Text style={styles.errorText}>{errors.username.message}</Text>
+                <Text style={styles.errorText}>
+                  {errors.username.message}
+                </Text>
               )}
             </View>
 
+            {/* PASSWORD */}
             <View style={styles.inputContainer}>
               <Text style={styles.fieldLabel}>Password</Text>
               <Controller
@@ -307,7 +316,12 @@ export const LoginPage = () => {
                 name="password"
                 render={({ field: { onChange, value } }) => (
                   <View style={styles.inputWrapper}>
-                    <Ionicons name="lock-closed-outline" size={18} color={Colors.textMuted} style={styles.inputIcon} />
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      color={Colors.textMuted}
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={[
                         styles.input,
@@ -334,25 +348,29 @@ export const LoginPage = () => {
                 )}
               />
               {errors.password && (
-                <Text style={styles.errorText}>{errors.password.message}</Text>
+                <Text style={styles.errorText}>
+                  {errors.password.message}
+                </Text>
               )}
             </View>
 
-            {/* Forgot Password Link */}
+            {/* FORGOT PASSWORD */}
             {!showForgetPassword && (
               <TouchableOpacity
                 style={styles.forgotPassContainer}
                 onPress={() => navigation.navigate("ForgetPassword")}
                 activeOpacity={0.7}
               >
-                <Text style={styles.forgotPasswordLink}>Forgot Password?</Text>
+                <Text style={styles.forgotPasswordLink}>
+                  Forgot Password?
+                </Text>
               </TouchableOpacity>
             )}
 
-            {/* Render Forget Password Component */}
+            {/* FORGET PASSWORD COMPONENT */}
             {showForgetPassword && <ForgetPassword />}
 
-            {/* Login Submit Button */}
+            {/* LOGIN BUTTON */}
             <TouchableOpacity
               style={styles.btn}
               onPress={handleSubmit(onSubmit)}
@@ -367,43 +385,59 @@ export const LoginPage = () => {
               >
                 <View style={styles.loginContainer}>
                   {isLoading ? (
-                    <ActivityIndicator color={Colors.primaryForeground || "#FFFFFF"} />
+                    <ActivityIndicator
+                      color={Colors.primaryForeground || "#FFFFFF"}
+                    />
                   ) : (
                     <>
                       <Text style={styles.login}>Login</Text>
-                      <Ionicons name="arrow-forward" size={18} color={Colors.primaryForeground || "#FFFFFF"} />
+                      <Ionicons
+                        name="arrow-forward"
+                        size={18}
+                        color={Colors.primaryForeground || "#FFFFFF"}
+                      />
                     </>
                   )}
                 </View>
               </LinearGradient>
             </TouchableOpacity>
 
+            {/* SUPPORT */}
             <TouchableOpacity
               onPress={() => Linking.openURL("mailto:support@vysyamala.com")}
               activeOpacity={0.7}
             >
               <Text style={styles.helpSupportText}>
-                Need Help? <Text style={styles.helpSupportHighlight}>Contact Support</Text>
+                Need Help?{" "}
+                <Text style={styles.helpSupportHighlight}>
+                  Contact Support
+                </Text>
               </Text>
             </TouchableOpacity>
 
+            {/* DIVIDER */}
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
               <Text style={styles.orText}>OR</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Phone Login Button */}
+            {/* PHONE LOGIN */}
             <TouchableOpacity
               style={styles.phoneBtn}
               onPress={() => navigation.navigate("LoginWithPhoneNumber")}
               activeOpacity={0.85}
             >
-              <Ionicons name="call-outline" size={18} color={Colors.primary} style={{ marginRight: 8 }} />
+              <Ionicons
+                name="call-outline"
+                size={18}
+                color={Colors.primary}
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.phone}>Login With Phone Number</Text>
             </TouchableOpacity>
 
-            {/* Registration Footer */}
+            {/* REGISTER */}
             <View style={styles.registerContainer}>
               <Text style={styles.account}>
                 Don't have an account?{" "}
@@ -417,49 +451,82 @@ export const LoginPage = () => {
             </View>
           </View>
 
-          {/* ── Why Vysyamala Section ── */}
+          {/* ================= WHY VYSYAMALA ================= */}
           <View style={styles.whySection}>
-
-            {/* Section Title with side lines */}
+            {/* TITLE */}
             <View style={styles.whyTitleRow}>
               <View style={styles.whyTitleLine} />
               <Text style={styles.whySectionTitle}>WHY VYSYAMALA?</Text>
               <View style={styles.whyTitleLine} />
             </View>
 
-            {/* 2-column grid: 4 stat cards */}
+            {/* STATS GRID */}
             <View style={styles.whyGrid}>
-              {WHY_STATS.map((item) => (
-                <View key={item.id} style={styles.whyCard}>
-                  <View style={styles.whyIconCircle}>
-                    <Ionicons
-                      name={item.icon}
-                      size={18}
-                      color={Colors.matchingcirclecolor || "#64181F"}
-                    />
-                  </View>
-                  <View style={styles.whyTextBlock}>
-                    <Text style={styles.whyCardTitle} numberOfLines={1}>
-                      {item.title}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.whyCardSubtitle,
-                        item.subtitleHighlight
-                          ? styles.whyCardSubtitleHighlight
-                          : styles.whyCardSubtitleMuted,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {item.subtitle}
-                    </Text>
-                  </View>
-                </View>
-              ))}
+              {WHY_STATS.map((item) => {
+                const isExpanded = expandedCard === item.id;
+
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    activeOpacity={0.85}
+                    style={[
+                      styles.whyCard,
+                      isExpanded && styles.whyCardExpanded,
+                    ]}
+                    onPress={() =>
+                      setExpandedCard(isExpanded ? null : item.id)
+                    }
+                  >
+                    {/* ICON */}
+                    <View style={styles.whyIconCircle}>
+                      <Ionicons
+                        name={item.icon}
+                        size={18}
+                        color={Colors.matchingcirclecolor || "#64181F"}
+                      />
+                    </View>
+
+                    {/* TEXT */}
+                    <View style={styles.whyTextBlock}>
+                      <Text
+                        style={styles.whyCardTitle}
+                        numberOfLines={isExpanded ? undefined : 1}
+                        ellipsizeMode="tail"
+                      >
+                        {item.title}
+                      </Text>
+
+                      <Text
+                        style={[
+                          styles.whyCardSubtitle,
+                          item.subtitleHighlight
+                            ? styles.whyCardSubtitleHighlight
+                            : styles.whyCardSubtitleMuted,
+                        ]}
+                        numberOfLines={isExpanded ? undefined : 1}
+                        ellipsizeMode="tail"
+                      >
+                        {item.subtitle}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
-            {/* Full-width Awards & Recognition card */}
-            <View style={styles.whyCardFull}>
+            {/* ================= AWARDS ================= */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={[
+                styles.whyCardFull,
+                expandedCard === WHY_AWARDS.id && styles.whyCardExpanded,
+              ]}
+              onPress={() =>
+                setExpandedCard(
+                  expandedCard === WHY_AWARDS.id ? null : WHY_AWARDS.id
+                )
+              }
+            >
               <View style={styles.whyIconCircle}>
                 <Ionicons
                   name={WHY_AWARDS.icon}
@@ -467,20 +534,34 @@ export const LoginPage = () => {
                   color={Colors.matchingcirclecolor || "#64181F"}
                 />
               </View>
+
               <View style={styles.whyTextBlock}>
-                <Text style={styles.whyCardTitle}>{WHY_AWARDS.title}</Text>
+                <Text
+                  style={styles.whyCardTitle}
+                  numberOfLines={
+                    expandedCard === WHY_AWARDS.id ? undefined : 1
+                  }
+                  ellipsizeMode="tail"
+                >
+                  {WHY_AWARDS.title}
+                </Text>
+
                 <Text
                   style={[
                     styles.whyCardSubtitle,
                     styles.whyCardSubtitleHighlight,
                   ]}
+                  numberOfLines={
+                    expandedCard === WHY_AWARDS.id ? undefined : 1
+                  }
+                  ellipsizeMode="tail"
                 >
                   {WHY_AWARDS.subtitle}
                 </Text>
               </View>
-            </View>
+            </TouchableOpacity>
 
-            {/* CTA Buttons */}
+            {/* ================= SUCCESS STORIES ================= */}
             <TouchableOpacity
               style={styles.whyBtn}
               activeOpacity={0.8}
@@ -494,6 +575,7 @@ export const LoginPage = () => {
               <Text style={styles.whyBtnText}>View Success Stories</Text>
             </TouchableOpacity>
 
+            {/* ================= AWARDS BUTTON ================= */}
             <TouchableOpacity
               style={[styles.whyBtn, { marginBottom: 0 }]}
               activeOpacity={0.8}
@@ -506,13 +588,14 @@ export const LoginPage = () => {
             >
               <Text style={styles.whyBtnText}>View Awards</Text>
             </TouchableOpacity>
-
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
+
+// ================= STYLES =================
 
 const styles = StyleSheet.create({
   container: {
@@ -525,37 +608,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: rs(20, 30, 40),
   },
+
+  // ================= WELCOME =================
   textContainer: {
     width: "100%",
     paddingHorizontal: rs(20, 24, 28),
     marginBottom: rs(16, 20, 24),
-  },
-  brandBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: Colors.goldContainer || "#F2DEAC",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 10,
-  },
-  brandBadgeText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: Colors.chipActiveText || "#5D4220",
-    letterSpacing: 0.5,
   },
   welcomeText: {
     color: Colors.textDark || "#1E1E1E",
     fontSize: 22,
     fontWeight: "700",
     letterSpacing: -1,
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   welcome: {
     color: Colors.textMuted || "#71717A",
     fontSize: rs(14, 15, 16),
     marginTop: 4,
   },
+
+  // ================= LOGIN CARD =================
   cardContainer: {
     width: "90%",
     backgroundColor: Colors.card || "#FFFFFF",
@@ -620,6 +693,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
   },
+
+  // ================= LOGIN BUTTON =================
   btn: {
     width: "100%",
     borderRadius: 26,
@@ -629,6 +704,12 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     marginBottom: rs(14, 18, 20),
+  },
+  linearGradient: {
+    borderRadius: 26,
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
   },
   loginContainer: {
     flexDirection: "row",
@@ -643,12 +724,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginRight: 6,
   },
-  linearGradient: {
-    borderRadius: 26,
-    justifyContent: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-  },
+
+  // ================= SUPPORT =================
   helpSupportText: {
     textAlign: "center",
     color: Colors.textMuted || "#71717A",
@@ -660,6 +737,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textDecorationLine: "underline",
   },
+
+  // ================= DIVIDER =================
   dividerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -676,6 +755,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     paddingHorizontal: 12,
   },
+
+  // ================= PHONE LOGIN =================
   phoneBtn: {
     width: "100%",
     flexDirection: "row",
@@ -694,6 +775,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     letterSpacing: 0.3,
   },
+
+  // ================= REGISTER =================
   registerContainer: {
     marginTop: rs(20, 24, 28),
     paddingTop: 16,
@@ -711,7 +794,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  // ── Why Vysyamala styles ──
+  // ================= WHY VYSYAMALA =================
   whySection: {
     width: "100%",
     paddingHorizontal: rs(16, 20, 24),
@@ -737,6 +820,8 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     paddingHorizontal: 10,
   },
+
+  // ================= STATS GRID =================
   whyGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -747,31 +832,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.card || "#FFFFFF",
-    borderRadius: 50,
+    borderRadius: 28,
     paddingVertical: 10,
     paddingHorizontal: 10,
     marginBottom: 10,
+    minHeight: 62,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
+  whyCardExpanded: {
+    borderRadius: 20,
+    paddingVertical: 12,
+  },
+
+  // ================= FULL CARD =================
   whyCardFull: {
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.card || "#FFFFFF",
-    borderRadius: 50,
+    borderRadius: 28,
     paddingVertical: 10,
     paddingHorizontal: 10,
     marginBottom: 14,
+    minHeight: 62,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
+
+  // ================= ICON =================
   whyIconCircle: {
     width: 38,
     height: 38,
@@ -782,9 +877,12 @@ const styles = StyleSheet.create({
     marginRight: 8,
     flexShrink: 0,
   },
+
+  // ================= CARD TEXT =================
   whyTextBlock: {
     flex: 1,
     paddingRight: 4,
+    minWidth: 0,
   },
   whyCardTitle: {
     fontSize: 12,
@@ -795,6 +893,7 @@ const styles = StyleSheet.create({
   whyCardSubtitle: {
     fontSize: 10,
     fontWeight: "400",
+    lineHeight: 14,
   },
   whyCardSubtitleMuted: {
     color: Colors.textMuted || "#71717A",
@@ -803,6 +902,8 @@ const styles = StyleSheet.create({
     color: Colors.textMuted || "#71717A",
     fontWeight: "500",
   },
+
+  // ================= CTA BUTTONS =================
   whyBtn: {
     width: "100%",
     backgroundColor: "#FCEDCA",
