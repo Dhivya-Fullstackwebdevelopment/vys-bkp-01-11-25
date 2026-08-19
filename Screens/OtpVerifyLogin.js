@@ -11,6 +11,7 @@ import {
   Platform,
   AppState,
   Keyboard,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -32,6 +33,19 @@ export const OtpVerifyLogin = () => {
   const otpAutoFilled = useRef(false);
   const isAutofilling = useRef(false);
   const [MobileNo, setMobileNo] = useState("");
+  const [timer, setTimer] = useState(60);
+  const [isResending, setIsResending] = useState(false);
+
+  // ================= 60 SEC TIMER =================
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
 
   const fillOtp = (code) => {
     if (!code) return;
@@ -132,6 +146,61 @@ export const OtpVerifyLogin = () => {
     }
   };
 
+  // ================= RESEND OTP API =================
+  const handleResendOtp = async () => {
+    if (timer > 0 || isResending) return;
+
+    setIsResending(true);
+    try {
+      const response = await axios.post(
+        `${config.apiUrl}/auth/Login_with_mobileno/`,
+        { Mobile_no: MobileNo },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Resend OTP Response:", response.data);
+
+      if (response.data.status === 1) {
+        Toast.show({
+          type: "success",
+          text1: "OTP Resent",
+          text2: response.data.message || "OTP resent successfully.",
+          position: "top",
+          visibilityTime: 4000,
+        });
+        setOtp(["", "", "", "", "", ""]);
+        otpAutoFilled.current = false;
+        setTimer(60);
+        otpRefs.current[0]?.focus();
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Failed to Resend OTP",
+          text2: response.data.message || "Unable to resend OTP. Please try again.",
+          position: "top",
+          visibilityTime: 4000,
+        });
+      }
+    } catch (error) {
+      console.error("Resend OTP Error:", error.response?.data || error.message);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2:
+          error.response?.data?.message ||
+          "An error occurred while resending OTP. Please try again.",
+        position: "top",
+        visibilityTime: 4000,
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const handleVerify = async () => {
     const enteredOtp = otp.join("");
 
@@ -225,7 +294,7 @@ export const OtpVerifyLogin = () => {
       Alert.alert(
         "Error",
         error.response?.data?.message ||
-        "An error occurred while logging in. Please try again."
+          "An error occurred while logging in. Please try again."
       );
     }
   };
@@ -286,19 +355,23 @@ export const OtpVerifyLogin = () => {
               ))}
             </View>
 
-            {/* Resend OTP */}
-            <TouchableOpacity
-              style={styles.resendContainer}
-              onPress={() => {
-                Alert.alert("Resend OTP", "OTP resent successfully!");
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.resendText}>
-                Didn't receive OTP?{" "}
-                <Text style={styles.resendLink}>Resend OTP</Text>
-              </Text>
-            </TouchableOpacity>
+            {/* Resend OTP with 60s Countdown Timer */}
+            <View style={styles.resendContainer}>
+              {isResending ? (
+                <ActivityIndicator size="small" color={Colors.primary || "#B72024"} />
+              ) : timer > 0 ? (
+                <Text style={styles.resendText}>
+                  Resend OTP in <Text style={styles.timerHighlight}>{timer}s</Text>
+                </Text>
+              ) : (
+                <TouchableOpacity onPress={handleResendOtp} activeOpacity={0.7}>
+                  <Text style={styles.resendText}>
+                    Didn't receive OTP?{" "}
+                    <Text style={styles.resendLink}>Resend OTP</Text>
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
 
             {/* Verify Button */}
             <TouchableOpacity
@@ -413,10 +486,16 @@ const styles = StyleSheet.create({
   resendContainer: {
     alignSelf: "center",
     marginBottom: rs(16, 20, 24),
+    minHeight: 24,
+    justifyContent: "center",
   },
   resendText: {
     fontSize: 14,
     color: Colors.textMuted || "#71717A",
+  },
+  timerHighlight: {
+    color: Colors.primary || "#B72024",
+    fontWeight: "700",
   },
   resendLink: {
     color: Colors.primary || "#B72024",
