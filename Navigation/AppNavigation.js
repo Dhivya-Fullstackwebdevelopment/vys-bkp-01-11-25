@@ -38,6 +38,7 @@ import { PhotoRequest } from "../Screens/AfterLogin/PhotoRequest";
 import { PersonalNotes } from "../Screens/AfterLogin/PersonalNotes";
 import { OtherSettings } from "../Screens/AfterLogin/OtherSettings";
 import { WebViewPage } from "../Screens/AfterLogin/WebViewPage";
+import { WebViewHeader } from "../Screens/AfterLogin/WebViewHeader";
 import { VysassistResults } from "../Screens/AfterLogin/VysassistResults";
 import { GalleryResults } from "../Screens/AfterLogin/GalleryResults";
 import { ReportedProfiles } from "../Screens/AfterLogin/ReportedProfiles";
@@ -194,7 +195,7 @@ export const AppNavigation = () => {
         name="LoginPage"
         component={LoginPage}
         options={{
-          headerTitle: () => <LoginHeader name="HomeWithToast"/>,
+          headerTitle: () => <LoginHeader name="HomeWithToast" />,
           headerTitleContainerStyle: {
             left: 0,
             right: 0,
@@ -538,6 +539,12 @@ export const AppNavigation = () => {
       <Stack.Screen
         name="WebViewPage"
         component={WebViewPage}
+        options={{ headerShown: false }}
+      />
+      
+      <Stack.Screen
+        name="WebViewHeader"
+        component={WebViewHeader}
         options={{ headerShown: false }}
       />
       <Stack.Screen

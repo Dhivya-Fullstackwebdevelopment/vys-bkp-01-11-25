@@ -470,7 +470,7 @@ export const LoginPage = () => {
               style={styles.whyBtn}
               activeOpacity={0.8}
               onPress={() =>
-                navigation.navigate("WebViewPage", {
+                navigation.navigate("WebViewHeader", {
                   url: "https://vysyamala.com/HappyStoriesMobile",
                   title: "Santhosha Pendlilu",
                 })
@@ -483,7 +483,7 @@ export const LoginPage = () => {
               style={[styles.whyBtn, { marginBottom: 0 }]}
               activeOpacity={0.8}
               onPress={() =>
-                navigation.navigate("WebViewPage", {
+                navigation.navigate("WebViewHeader", {
                   url: "https://vysyamala.com/AwardsMobile",
                   title: "Awards",
                 })
