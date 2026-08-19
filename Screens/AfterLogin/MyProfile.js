@@ -754,19 +754,36 @@ export const MyProfile = () => {
 
                             <View style={styles.planFlex}>
                                 {profileDetails.package_name === "Free" || profileDetails.package_name === "Unapproved" ? (
-                                    <TouchableOpacity
-                                        style={styles.renewButtonWrapper}
-                                        onPress={() => navigation.navigate('MembershipPlan')}
-                                    >
-                                        <LinearGradient
-                                            colors={[Colors.primary, Colors.primary]}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
-                                            style={styles.renewButton}
+                                    <View style={styles.planFlex}>
+                                        {/* Plan Name Badge - same style as Gold/Diamond/Platinum */}
+                                        <View style={styles.planNameRow}>
+                                            <LinearGradient
+                                                colors={["#D79D32", "#FFB800", "#FDE166"]}
+                                                locations={[0, 0.5, 1]}
+                                                start={{ x: 1, y: 1 }}
+                                                end={{ x: 0, y: 0 }}
+                                                style={styles.goldLinearGradient}
+                                            >
+                                                <Text style={styles.goldText}>
+                                                    {profileDetails.package_name}
+                                                </Text>
+                                            </LinearGradient>
+                                        </View>
+
+                                        <TouchableOpacity
+                                            style={styles.renewButtonWrapper}
+                                            onPress={() => navigation.navigate('MembershipPlan')}
                                         >
-                                            <Text style={styles.renewButtonText}>Upgrade</Text>
-                                        </LinearGradient>
-                                    </TouchableOpacity>
+                                            <LinearGradient
+                                                colors={[Colors.primary, Colors.primary]}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={styles.renewButton}
+                                            >
+                                                <Text style={styles.renewButtonText}>Upgrade</Text>
+                                            </LinearGradient>
+                                        </TouchableOpacity>
+                                    </View>
                                 ) : profileDetails.valid_upto &&
                                     new Date(profileDetails.valid_upto) < new Date() &&
                                     allowedPremiumIds.includes(currentPlanId) ? (
@@ -886,13 +903,7 @@ export const MyProfile = () => {
 
                                     </View>
                                 )}
-                                {/* {profileDetails.valid_upto && (
-                                    <Text style={[styles.date, { marginBottom: 8, marginLeft: 10 }]}>
-                                        Valid Upto : {profileDetails.valid_upto}
-                                    </Text>
-                                )} */}
                             </View>
-
                             {/* <Pressable
                                 style={styles.completeTextFlex}
                                 onPress={handleAddOnPackagePress}
@@ -1371,6 +1382,7 @@ const styles = StyleSheet.create({
     renewButtonWrapper: {
         alignSelf: 'flex-start',
         marginBottom: 10,
+        marginTop: 4,
     },
     renewButton: {
         borderRadius: 20,

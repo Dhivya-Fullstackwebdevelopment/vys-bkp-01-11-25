@@ -86,11 +86,11 @@ const TABS = ["Personal", "Work & Education", "Family", "Horoscope", "Contact"];
 
 function matchLabel(score) {
   const num = parseInt(score, 10) || 0;
-  if (num >= 85) return "Excellent Match";
-  if (num >= 70) return "Good Match";
-  return "Average Match";
-}
 
+  if (num >= 60) return "Good Match";
+  if (num >= 50) return "Good Match";
+  return "Good Match";
+}
 // ─── ACTIVE TAB INDICATOR (partial circle arc) ────────────────────────────────
 const TabProgressCircle = ({ active }) => {
   const size = 6;
