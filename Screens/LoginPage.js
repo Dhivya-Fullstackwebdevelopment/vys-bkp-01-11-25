@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -33,38 +33,6 @@ const schema = z.object({
   password: z.string().min(1, "Password is required."),
 });
 
-// Why Vysyamala stats data
-const WHY_STATS = [
-  {
-    id: "1",
-    icon: "heart-outline",
-    title: "Since 2008",
-    subtitle: "Trusted matrimonial platfor...",
-    subtitleHighlight: false,
-  },
-  {
-    id: "2",
-    icon: "people-outline",
-    title: "Active Profiles",
-    subtitle: "50,000+ Active Profiles",
-    subtitleHighlight: true,
-  },
-  {
-    id: "3",
-    icon: "heart-circle-outline",
-    title: "Happy Customers",
-    subtitle: "12,000+ Successful Marriag...",
-    subtitleHighlight: true,
-  },
-  {
-    id: "4",
-    icon: "stats-chart-outline",
-    title: "Success Stories",
-    subtitle: "11,500+ Success Stories",
-    subtitleHighlight: true,
-  },
-];
-
 const WHY_AWARDS = {
   id: "5",
   icon: "ribbon-outline",
@@ -78,6 +46,13 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showForgetPassword, setShowForgetPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [stats, setStats] = useState({
+    activeProfiles: 0,
+    happyCustomers: 0,
+    successStories: 0,
+  });
+
+  const [statsLoading, setStatsLoading] = useState(true);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -94,6 +69,90 @@ export const LoginPage = () => {
       password: "",
     },
   });
+
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStatsLoading(true);
+
+        const [registeredResponse, successStoriesResponse] =
+          await Promise.all([
+            axios.post(`${config.apiUrl}/auth/Just_registered/`, {}),
+            axios.get(
+              `${config.apiUrl}/auth/success-story-images/?page=1&page_size=10`
+            ),
+          ]);
+
+        console.log("Just Registered:", registeredResponse.data);
+        console.log("Success Stories:", successStoriesResponse.data);
+
+        const registeredData = registeredResponse.data;
+        const successStoriesData = successStoriesResponse.data;
+
+        setStats({
+          activeProfiles: Number(
+            registeredData?.active_profiles_count
+          ) || 0,
+
+          happyCustomers: Number(
+            registeredData?.happy_customers_count
+          ) || 0,
+
+          successStories: Number(
+            successStoriesData?.count
+          ) || 0,
+        });
+
+      } catch (error) {
+        console.error(
+          "Stats API Error:",
+          error.response?.data || error.message
+        );
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const WHY_STATS = [
+    {
+      id: "1",
+      icon: "heart-outline",
+      title: "Since 2008",
+      subtitle: "Trusted matrimonial platform",
+      subtitleHighlight: false,
+    },
+    {
+      id: "2",
+      icon: "people-outline",
+      title: "Active Profiles",
+      subtitle: statsLoading
+        ? "Loading..."
+        : `${stats.activeProfiles.toLocaleString()} Active Profiles`,
+      subtitleHighlight: true,
+    },
+    {
+      id: "3",
+      icon: "heart-circle-outline",
+      title: "Happy Customers",
+      subtitle: statsLoading
+        ? "Loading..."
+        : `${stats.happyCustomers.toLocaleString()} Happy Customers`,
+      subtitleHighlight: true,
+    },
+    {
+      id: "4",
+      icon: "stats-chart-outline",
+      title: "Success Stories",
+      subtitle: statsLoading
+        ? "Loading..."
+        : `${stats.successStories.toLocaleString()} Success Stories`,
+      subtitleHighlight: true,
+    },
+  ];
 
   const onSubmit = async (data) => {
     const { username, password } = data;
@@ -194,7 +253,7 @@ export const LoginPage = () => {
           {/* Header Greeting Banner */}
           <View style={styles.textContainer}>
             <Text style={styles.welcomeText}>Welcome Back</Text>
-            <Text style={styles.welcome}>Login to continue your search</Text>
+            <Text style={styles.welcome}>Find the meaningful connection within the Arya Vysyas Community</Text>
           </View>
 
           {/* Form Card Container */}
