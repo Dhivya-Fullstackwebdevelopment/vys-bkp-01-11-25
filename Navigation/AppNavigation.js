@@ -46,6 +46,7 @@ import Message from "../Tabs/Message";
 import MatchingProfileSearch from "../Tabs/MatchingProfileSearch";
 import { Header } from "../Components/Header";
 import { LogoHeader } from "../Components/LogoHeader";
+import { LoginHeader } from "../Components/LoginHeader";
 import { ForgotPasswordOtp } from "../Screens/ForgotPasswordOtp";
 import { ResetPassword } from "../Screens/ResetPassword";
 import { FeaturedOrSuggestProfiles } from "../Screens/AfterLogin/FeaturedOrSuggestProfiles";
@@ -171,7 +172,7 @@ export const AppNavigation = () => {
           headerShown: true,
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="LoginPage"
         component={LoginPage}
         // options={{ headerShown: false }}
@@ -179,12 +180,33 @@ export const AppNavigation = () => {
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="home" color={color} size={size} />
           ),
-          headerTitle: () => <LogoHeader name="HomeWithToast" />,
+          headerTitle: () => <LoginHeader name="HomeWithToast" />,
           //   tabBarActiveTintColor: "#FF0000",
           headerStyle: {
             backgroundColor: "#fff",
           },
           headerLeft: null,
+          headerShown: true,
+        }}
+      /> */}
+
+      <Stack.Screen
+        name="LoginPage"
+        component={LoginPage}
+        options={{
+          headerTitle: () => <LoginHeader name="HomeWithToast"/>,
+          headerTitleContainerStyle: {
+            left: 0,
+            right: 0,
+            width: "100%",
+          },
+          headerStyle: {
+            backgroundColor: "transparent",
+            height: 120,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
+          headerLeft: () => null,
           headerShown: true,
         }}
       />

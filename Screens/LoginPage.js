@@ -145,7 +145,7 @@ export const LoginPage = () => {
     },
     {
       id: "4",
-      icon: "stats-chart-outline",
+      icon: "sparkles",
       title: "Success Stories",
       subtitle: statsLoading
         ? "Loading..."
@@ -253,7 +253,7 @@ export const LoginPage = () => {
           {/* Header Greeting Banner */}
           <View style={styles.textContainer}>
             <Text style={styles.welcomeText}>Welcome Back</Text>
-            <Text style={styles.welcome}>Find the meaningful connection within the Arya Vysyas Community</Text>
+            <Text style={styles.welcome}>Find the meaningful connection within the Arya Vysya Community</Text>
           </View>
 
           {/* Form Card Container */}
