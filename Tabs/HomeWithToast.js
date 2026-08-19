@@ -136,6 +136,7 @@ export const HomeWithToast = () => {
 
   // ── User / member info & Button Logic State ──────────────────────────────
   const [userName, setUserName] = useState("");
+  const [planName, setPlanName] = useState("");
   const [userProfileId, setUserProfileId] = useState("");
   const [memberLabel, setMemberLabel] = useState("");
   const [memberSub, setMemberSub] = useState("");
@@ -245,7 +246,8 @@ export const HomeWithToast = () => {
   useEffect(() => {
     const loadUserInfo = async () => {
       try {
-        const name = await AsyncStorage.getItem("loginuser_name");
+        const name = await AsyncStorage.getItem("login_username");
+        const planName = await AsyncStorage.getItem("plan_name");
         const pid = await AsyncStorage.getItem("loginuser_profileId");
         const currentPlanId = await AsyncStorage.getItem("current_plan_id");
         const validityDate = await AsyncStorage.getItem("valid_till_date");
@@ -253,6 +255,11 @@ export const HomeWithToast = () => {
 
         if (name) setUserName(name);
         if (pid) setUserProfileId(pid);
+        if (planName) {
+          setMemberLabel(planName);   // "Platinum"
+        } else {
+          setMemberLabel("FREE MEMBER");
+        }
 
         const planId = parseInt(currentPlanId || "0");
         const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
@@ -281,27 +288,27 @@ export const HomeWithToast = () => {
         }
 
         // Derive member label from plan
-        if (allowedPremiumIds.includes(planId)) {
-          if (planId === 16) {
-            setMemberLabel("PLATINUM MEMBER");
-          } else if ([13, 14, 15, 17].includes(planId)) {
-            setMemberLabel("GOLD MEMBER");
-          } else {
-            setMemberLabel("PREMIUM MEMBER");
-          }
-          const views = contactViews ? `${contactViews} contact views left` : "";
-          const till = validityDate
-            ? `valid till ${new Date(validityDate).toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}`
-            : "";
-          setMemberSub([views, till].filter(Boolean).join(" · "));
-        } else {
-          setMemberLabel("FREE MEMBER");
-          setMemberSub("Upgrade to connect with more profiles");
-        }
+        // if (allowedPremiumIds.includes(planId)) {
+        //   if (planId === 16) {
+        //     setMemberLabel("PLATINUM MEMBER");
+        //   } else if ([13, 14, 15, 17].includes(planId)) {
+        //     setMemberLabel("GOLD MEMBER");
+        //   } else {
+        //     setMemberLabel("PREMIUM MEMBER");
+        //   }
+        //   const views = contactViews ? `${contactViews} contact views left` : "";
+        //   const till = validityDate
+        //     ? `valid till ${new Date(validityDate).toLocaleDateString("en-GB", {
+        //       day: "numeric",
+        //       month: "short",
+        //       year: "numeric",
+        //     })}`
+        //     : "";
+        //   setMemberSub([views, till].filter(Boolean).join(" · "));
+        // } else {
+        //   setMemberLabel("FREE MEMBER");
+        //   setMemberSub("Upgrade to connect with more profiles");
+        // }
       } catch (e) {
         console.error("Error loading user info/determining button type:", e);
         setButtonText("Upgrade");
@@ -728,7 +735,7 @@ export const HomeWithToast = () => {
           onPress={() => navigation.navigate("MembershipPlan")}
         >
           <View style={{ flex: 1 }}>
-            <Text style={styles.memberTitle}>{memberLabel}</Text>
+            <Text style={styles.memberTitle}>{memberLabel?.toUpperCase()} MEMBER</Text>
             {memberSub ? (
               <Text style={styles.memberSubText}>{memberSub}</Text>
             ) : null}
@@ -1619,6 +1626,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 2,
     letterSpacing: 1,
+    
   },
   memberSubText: {
     color: "rgba(255,255,255,0.88)",

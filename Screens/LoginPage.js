@@ -73,9 +73,11 @@ export const LoginPage = () => {
         const {
           token,
           profile_id,
+          login_username,
           plan_limits,
           marital_status,
           cur_plan_id,
+          plan_name,
           valid_till,
           gender,
           birth_star_id,
@@ -88,10 +90,12 @@ export const LoginPage = () => {
 
         console.log("Login Success:");
         console.log("Profile ID:", profile_id);
+        console.log("login_username:", login_username);
         console.log("Token:", token);
         console.log("Plan ID:", plan_limits?.[0]?.plan_id);
         console.log("Marital Status:", marital_status);
         console.log("Current Plan ID:", cur_plan_id);
+        console.log("Plan Name:", plan_name);
         console.log("vaid date:", valid_till);
         console.log("login gender", gender);
         console.log("login birth star id", birth_star_id);
@@ -99,11 +103,13 @@ export const LoginPage = () => {
         console.log("height", height);
 
         await AsyncStorage.setItem("loginuser_profileId", profile_id);
+        await AsyncStorage.setItem("login_username", login_username);
         await AsyncStorage.setItem("profile_id_new", profile_id);
         await AsyncStorage.setItem("auth_token", token);
         await AsyncStorage.setItem("selectedPlanId", plan_limits?.[0]?.plan_id?.toString() || "");
         await AsyncStorage.setItem("martial_status", marital_status?.toString() || "");
         await AsyncStorage.setItem("current_plan_id", cur_plan_id?.toString() || "");
+        await AsyncStorage.setItem("plan_name", plan_name);
         await AsyncStorage.setItem("valid_till_date", valid_till?.toString() || "");
         await AsyncStorage.setItem("gender", gender?.toString() || "");
         await AsyncStorage.setItem("birthStarValue", birth_star_id?.toString() || "");

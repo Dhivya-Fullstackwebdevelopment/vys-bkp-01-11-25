@@ -160,8 +160,10 @@ export const OtpVerifyLogin = () => {
         const {
           token,
           profile_id,
+          login_username,
           notification_count,
           cur_plan_id,
+          plan_name,
           profile_image,
           profile_completion,
           gender,
@@ -178,11 +180,13 @@ export const OtpVerifyLogin = () => {
         } = response.data;
 
         await AsyncStorage.setItem("loginuser_profileId", profile_id || "");
+        await AsyncStorage.setItem("login_username", login_username);
         await AsyncStorage.setItem("profile_id_new", profile_id || "");
         await AsyncStorage.setItem("auth_token", token || "");
         await AsyncStorage.setItem("selectedPlanId", plan_limits?.[0]?.plan_id?.toString() || "");
         await AsyncStorage.setItem("martial_status", marital_status?.toString() || "");
         await AsyncStorage.setItem("current_plan_id", cur_plan_id?.toString() || "");
+        await AsyncStorage.setItem("plan_name", plan_name);
         await AsyncStorage.setItem("valid_till_date", valid_till?.toString() || "");
         await AsyncStorage.setItem("gender", gender?.toString() || "");
         await AsyncStorage.setItem("birthStarValue", birth_star_id?.toString() || "");
@@ -221,7 +225,7 @@ export const OtpVerifyLogin = () => {
       Alert.alert(
         "Error",
         error.response?.data?.message ||
-          "An error occurred while logging in. Please try again."
+        "An error occurred while logging in. Please try again."
       );
     }
   };

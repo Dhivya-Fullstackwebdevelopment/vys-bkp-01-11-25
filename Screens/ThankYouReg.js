@@ -56,12 +56,46 @@ export const ThankYouReg = () => {
                 password,
             });
             if (response.data.status === 1) {
-                const token = response.data.token;
-                const profile_id = response.data.profile_id;
+                const {
+                    token,
+                    profile_id,
+                    login_username,
+                    age,
+                    cur_plan_id,
+                    plan_name,
+                    profile_image,
+                    gender,
+                    height,
+                    marital_status,
+                    custom_message,
+                    birth_star_id,
+                    birth_rasi_id,
+                    plan_limits,
+                    valid_till,
+                    profile_owner,
+                    quick_reg,
+                    profile_completion,
+                    notification_count,
+                } = response.data;
                 await AsyncStorage.setItem("loginuser_profileId", profile_id);
+                await AsyncStorage.setItem("login_username", login_username);
+                await AsyncStorage.setItem("profile_id_new", profile_id);
+                await AsyncStorage.setItem("auth_token", token);
+                await AsyncStorage.setItem("selectedPlanId", plan_limits?.[0]?.plan_id?.toString() || "");
+                await AsyncStorage.setItem("martial_status", marital_status?.toString() || "");
+                await AsyncStorage.setItem("current_plan_id", cur_plan_id?.toString() || "");
+                await AsyncStorage.setItem("plan_name", plan_name);
+                await AsyncStorage.setItem("valid_till_date", valid_till?.toString() || "");
+                await AsyncStorage.setItem("gender", gender?.toString() || "");
+                await AsyncStorage.setItem("birthStarValue", birth_star_id?.toString() || "");
+                await AsyncStorage.setItem("birthStaridValue", birth_rasi_id?.toString() || "");
+                await AsyncStorage.setItem("custom_message", custom_message?.toString() || "");
+                await AsyncStorage.setItem("age", age?.toString() || "");
+                await AsyncStorage.setItem("height", height?.toString() || "");
+                await AsyncStorage.setItem("profile_image", profile_image || "");
                 console.log(profile_id);
                 await AsyncStorage.setItem("auth_token", token);
-                
+
                 // Check if user came from partner settings
                 // const fromPartnerSettings = await AsyncStorage.getItem("from_partner_settings");
                 await AsyncStorage.removeItem("from_partner_settings");
@@ -96,7 +130,7 @@ export const ThankYouReg = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.ThankYouReg} 
+            <Text style={styles.ThankYouReg}
             // onPress={() => navigation.navigate("HomeWithToast")}
             >
                 Thank You!
@@ -109,7 +143,7 @@ export const ThankYouReg = () => {
 
             {/* Centered Button */}
             <Pressable style={styles.loginButton} onPress=
-            {isFromPartnerSettings ? handleLogin : handleLoginDirectly}
+                {isFromPartnerSettings ? handleLogin : handleLoginDirectly}
             >
                 <Text style={styles.buttonText}>Click Here to Login</Text>
                 <Ionicons name="arrow-forward" size={16} color="#fff" style={styles.arrowIcon} />
