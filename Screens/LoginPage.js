@@ -33,6 +33,46 @@ const schema = z.object({
   password: z.string().min(1, "Password is required."),
 });
 
+// Why Vysyamala stats data
+const WHY_STATS = [
+  {
+    id: "1",
+    icon: "heart-outline",
+    title: "Since 2008",
+    subtitle: "Trusted matrimonial platfor...",
+    subtitleHighlight: false,
+  },
+  {
+    id: "2",
+    icon: "people-outline",
+    title: "Active Profiles",
+    subtitle: "50,000+ Active Profiles",
+    subtitleHighlight: true,
+  },
+  {
+    id: "3",
+    icon: "heart-circle-outline",
+    title: "Happy Customers",
+    subtitle: "12,000+ Successful Marriag...",
+    subtitleHighlight: true,
+  },
+  {
+    id: "4",
+    icon: "stats-chart-outline",
+    title: "Success Stories",
+    subtitle: "11,500+ Success Stories",
+    subtitleHighlight: true,
+  },
+];
+
+const WHY_AWARDS = {
+  id: "5",
+  icon: "ribbon-outline",
+  title: "Awards & Recognition",
+  subtitle: "Recognised by the community",
+  subtitleHighlight: true,
+};
+
 export const LoginPage = () => {
   const navigation = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
@@ -153,9 +193,6 @@ export const LoginPage = () => {
         >
           {/* Header Greeting Banner */}
           <View style={styles.textContainer}>
-            {/* <View style={styles.brandBadge}>
-              <Text style={styles.brandBadgeText}>Vysyamala Matrimony</Text>
-            </View> */}
             <Text style={styles.welcomeText}>Welcome Back</Text>
             <Text style={styles.welcome}>Login to continue your search</Text>
           </View>
@@ -304,6 +341,98 @@ export const LoginPage = () => {
                 </Text>
               </Text>
             </View>
+          </View>
+
+          {/* ── Why Vysyamala Section ── */}
+          <View style={styles.whySection}>
+
+            {/* Section Title with side lines */}
+            <View style={styles.whyTitleRow}>
+              <View style={styles.whyTitleLine} />
+              <Text style={styles.whySectionTitle}>WHY VYSYAMALA?</Text>
+              <View style={styles.whyTitleLine} />
+            </View>
+
+            {/* 2-column grid: 4 stat cards */}
+            <View style={styles.whyGrid}>
+              {WHY_STATS.map((item) => (
+                <View key={item.id} style={styles.whyCard}>
+                  <View style={styles.whyIconCircle}>
+                    <Ionicons
+                      name={item.icon}
+                      size={18}
+                      color={Colors.matchingcirclecolor || "#64181F"}
+                    />
+                  </View>
+                  <View style={styles.whyTextBlock}>
+                    <Text style={styles.whyCardTitle} numberOfLines={1}>
+                      {item.title}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.whyCardSubtitle,
+                        item.subtitleHighlight
+                          ? styles.whyCardSubtitleHighlight
+                          : styles.whyCardSubtitleMuted,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {item.subtitle}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            {/* Full-width Awards & Recognition card */}
+            <View style={styles.whyCardFull}>
+              <View style={styles.whyIconCircle}>
+                <Ionicons
+                  name={WHY_AWARDS.icon}
+                  size={18}
+                  color={Colors.matchingcirclecolor || "#64181F"}
+                />
+              </View>
+              <View style={styles.whyTextBlock}>
+                <Text style={styles.whyCardTitle}>{WHY_AWARDS.title}</Text>
+                <Text
+                  style={[
+                    styles.whyCardSubtitle,
+                    styles.whyCardSubtitleHighlight,
+                  ]}
+                >
+                  {WHY_AWARDS.subtitle}
+                </Text>
+              </View>
+            </View>
+
+            {/* CTA Buttons */}
+            <TouchableOpacity
+              style={styles.whyBtn}
+              activeOpacity={0.8}
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  url: "https://vysyamala.com/HappyStoriesMobile",
+                  title: "Santhosha Pendlilu",
+                })
+              }
+            >
+              <Text style={styles.whyBtnText}>View Success Stories</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.whyBtn, { marginBottom: 0 }]}
+              activeOpacity={0.8}
+              onPress={() =>
+                navigation.navigate("WebViewPage", {
+                  url: "https://vysyamala.com/AwardsMobile",
+                  title: "Awards",
+                })
+              }
+            >
+              <Text style={styles.whyBtnText}>View Awards</Text>
+            </TouchableOpacity>
+
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -506,5 +635,118 @@ const styles = StyleSheet.create({
   redText: {
     color: Colors.primary || "#B72024",
     fontWeight: "700",
+  },
+
+  // ── Why Vysyamala styles ──
+  whySection: {
+    width: "100%",
+    paddingHorizontal: rs(16, 20, 24),
+    marginTop: rs(20, 24, 28),
+    paddingBottom: rs(16, 20, 24),
+  },
+  whyTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: rs(14, 16, 18),
+  },
+  whyTitleLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.textMuted || "#71717A",
+    opacity: 0.3,
+  },
+  whySectionTitle: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.textMuted || "#71717A",
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+    paddingHorizontal: 10,
+  },
+  whyGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  whyCard: {
+    width: "48.5%",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.card || "#FFFFFF",
+    borderRadius: 50,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  whyCardFull: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.card || "#FFFFFF",
+    borderRadius: 50,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  whyIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Colors.goldContainer || "#F2DEAC",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+    flexShrink: 0,
+  },
+  whyTextBlock: {
+    flex: 1,
+    paddingRight: 4,
+  },
+  whyCardTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.textDark || "#1E1E1E",
+    marginBottom: 2,
+  },
+  whyCardSubtitle: {
+    fontSize: 10,
+    fontWeight: "400",
+  },
+  whyCardSubtitleMuted: {
+    color: Colors.textMuted || "#71717A",
+  },
+  whyCardSubtitleHighlight: {
+    color: Colors.textMuted || "#71717A",
+    fontWeight: "500",
+  },
+  whyBtn: {
+    width: "100%",
+    backgroundColor: "#FCEDCA",
+    borderRadius: 50,
+    paddingVertical: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  whyBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.chipActiveText || "#7A5C1E",
+    letterSpacing: 0.2,
   },
 });
