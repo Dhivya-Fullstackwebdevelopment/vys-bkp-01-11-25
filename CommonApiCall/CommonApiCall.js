@@ -2763,6 +2763,22 @@ export const savePlanPackage = async (
     }
 };
 
+export const fetchMyProfilePersonal = async (profileId) => {
+    try {
+        const response = await axios.post(
+            `${BASE_URL}/get_myprofile_personal/`,
+            {
+                profile_id: profileId,      // ← body, not params
+                user_profile_id: profileId,
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.log("fetchMyProfilePersonal error:", error?.response?.data || error.message);
+        throw error;
+    }
+};
+
 export const getVysassistList = async (perPage, page, sortBy = "datetime") => {
     try {
         const profileId = await retrieveProfileId();

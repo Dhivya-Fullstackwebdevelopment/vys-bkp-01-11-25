@@ -29,6 +29,7 @@ import {
   updateProfileInterest,
   fetchProfileDataCheck,
   logProfileVisit,
+  fetchMyProfilePersonal,
 } from "../CommonApiCall/CommonApiCall";
 import { TopAlignedImage } from "../Components/ReuseImageAlign/TopAlignedImage";
 import { Colors } from "../Reusable/Theme";
@@ -154,6 +155,9 @@ export const DashBoard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [showPlatinumModal, setShowPlatinumModal] = useState(false);
   const navigation = useNavigation();
+  const [personalPackageName, setPersonalPackageName] = useState("");
+
+
 
   const handleInterestProfileClick = async (viewedProfileId) => {
     try {
@@ -203,20 +207,51 @@ export const DashBoard = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setProfileData([]);
+
     try {
+      // Fetch these first
       const [profiles, dashboard] = await Promise.all([
         fetchProfileInterests(),
         fetchDashboardData(),
       ]);
-      setProfileData(profiles);
+
+      setProfileData(profiles || []);
       setDashboardData(dashboard);
+
+      // Get profile ID from dashboard response
+      const profileId = dashboard?.profile_details?.profile_id;
+
+      console.log("Profile ID:", profileId);
+
+      // Fetch personal details only when profile ID is available
+      if (profileId) {
+        const personalProfile = await fetchMyProfilePersonal(profileId);
+
+        console.log("Personal Profile:", personalProfile);
+
+        setPersonalPackageName(
+          personalProfile?.data?.package_name || ""
+        );
+      } else {
+        console.log("Profile ID not found");
+        setPersonalPackageName("");
+      }
     } catch (err) {
-      Toast.show({ type: "error", text1: "Error", text2: err.message, position: "top" });
+      console.log(
+        "Error loading dashboard:",
+        err?.response?.data || err.message
+      );
+
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: err.message,
+        position: "top",
+      });
     } finally {
       setLoading(false);
     }
   }, []);
-
   useFocusEffect(
     useCallback(() => {
       fetchData();
@@ -266,15 +301,9 @@ export const DashBoard = () => {
     : [];
 
   const completion = parseInt(dashboardData?.profile_details?.completion_per, 10) || 0;
-  const planName = dashboardData?.profile_details?.package_name || "";
-  const isGold = planName.toLowerCase().includes("gold");
-  const isPlatinum = planName.toLowerCase().includes("platinum");
-  const memberLabel = isPlatinum
-    ? "Platinum member"
-    : isGold
-      ? "Gold member"
-      : planName || null;
+  const planName = personalPackageName || "";
 
+  const memberLabel = planName || null;
   // ── Profile header card ───────────────────────────────────────────────────
   const renderProfileHeader = () => (
     <TouchableOpacity
@@ -299,9 +328,12 @@ export const DashBoard = () => {
           </Text>
           {memberLabel ? (
             <View style={styles.memberBadge}>
-              {(isGold || isPlatinum) && (
-                <MaterialIcons name="workspace-premium" size={12} color={C.gold} style={{ marginRight: 3 }} />
-              )}
+              <MaterialCommunityIcons
+                name="crown"
+                size={14}
+                color="#FFFFFF"          // ← white icon
+                style={{ marginRight: 6 }}
+              />
               <Text style={styles.memberBadgeText}>{memberLabel}</Text>
             </View>
           ) : null}
@@ -988,18 +1020,17 @@ const styles = StyleSheet.create({
   memberBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: C.goldLight,
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    backgroundColor: C.gold,        // ← solid gold fill, not light
+    borderRadius: 50,               // ← full pill shape
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     alignSelf: "flex-start",
-    borderWidth: 1,
-    borderColor: C.gold + "40",
+    // remove borderWidth and borderColor
   },
   memberBadgeText: {
-    fontSize: fs(11),
-    fontWeight: "700",
-    color: C.gold,
+    fontSize: fs(13),               // slightly bigger
+    fontWeight: "600",
+    color: "#FFFFFF",               // ← white text
   },
   completionBox: {
     flexDirection: "row",
