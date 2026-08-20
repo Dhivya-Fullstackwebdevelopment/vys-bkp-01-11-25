@@ -31,6 +31,7 @@ import {
   Search_By_profileId_matchingProfile,
   fetchProfiles,
   fetchVysassistRequests,
+  getMyProfilePersonal,
 } from "../CommonApiCall/CommonApiCall";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../API/Apiurl";
@@ -273,12 +274,27 @@ export const HomeWithToast = () => {
     setIsBannerExpanded((prev) => !prev);
   };
 
+  // ── Fetch package name from profile personal API ──────────────────────────
+  useEffect(() => {
+    const loadPackageName = async () => {
+      try {
+        const res = await getMyProfilePersonal();
+        if (res && res.data && res.data.package_name) {
+          setPlanName(res.data.package_name);
+        }
+      } catch (e) {
+        console.error("Error fetching package name:", e);
+      }
+    };
+    loadPackageName();
+  }, []);
+
   // ── Load user info & Determine Button Type from AsyncStorage ──────────────
   useEffect(() => {
     const loadUserInfo = async () => {
       try {
         const name = await AsyncStorage.getItem("login_username");
-        const planName = await AsyncStorage.getItem("plan_name");
+        // const planName = await AsyncStorage.getItem("plan_name");
         const pid = await AsyncStorage.getItem("loginuser_profileId");
         const currentPlanId = await AsyncStorage.getItem("current_plan_id");
         const validityDate = await AsyncStorage.getItem("valid_till_date");
@@ -286,12 +302,12 @@ export const HomeWithToast = () => {
 
         if (name) setUserName(name);
         if (pid) setUserProfileId(pid);
-        if (planName) {
-          setMemberLabel(planName);
-          setPlanName(planName);
-        } else {
-          setMemberLabel("FREE MEMBER");
-        }
+        // if (planName) {
+        //   setMemberLabel(planName);
+        //   setPlanName(planName);
+        // } else {
+        //   setMemberLabel("FREE MEMBER");
+        // }
 
         // Set valid till date
         if (validityDate) {
@@ -555,6 +571,7 @@ export const HomeWithToast = () => {
 
   const handleFilterPress = () => navigation.navigate("MatchingProfileSearch");
   const handleFilterPressMenu = () => navigation.navigate("MyVisitors");
+  const handleFilterPressViewedProfiles = () => navigation.navigate("ViewedProfiles");
 
   // ── Slider helpers ───────────────────────────────────────────────────────
   const combinedData = useMemo(
@@ -865,11 +882,11 @@ export const HomeWithToast = () => {
 
       {/* Bottom info bar: ID | Plan | Valid Date */}
       <View style={styles.bottomInfoBar}>
-        <Text style={styles.bottomInfoId}>{userProfileId || "VM20219"}</Text>
+        <Text style={styles.bottomInfoId}>{userProfileId || "N/A"}</Text>
         <Text style={styles.bottomInfoSep}>|</Text>
-        <Text style={styles.bottomInfoPlan}>{planName || "Platinum Private"}</Text>
+        <Text style={styles.bottomInfoPlan}>{planName || "N/A"}</Text>
         <Text style={styles.bottomInfoSep}>|</Text>
-        <Text style={styles.bottomInfoDate}>{validTillDate || "12 Dec 2026"}</Text>
+        <Text style={styles.bottomInfoDate}>{validTillDate || "N/A"}</Text>
       </View>
     </LinearGradient>
   );
@@ -877,6 +894,13 @@ export const HomeWithToast = () => {
   // ── Menu Cards Dynamic Rendering ──────────────────────────────────────────
   const renderQuickActionsMenu = () => {
     const actions = [
+      {
+        icon: "visibility",
+        isSvg: false,
+        label: "Viewed Profiles",
+        onPress: handleFilterPressViewedProfiles,
+        show: true,
+      },
       {
         icon: "people-outline",
         isSvg: false,
