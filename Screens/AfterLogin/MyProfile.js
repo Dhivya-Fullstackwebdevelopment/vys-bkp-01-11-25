@@ -716,14 +716,18 @@ export const MyProfile = () => {
                 </View>
 
                 {/* PROFILE SUMMARY CARD */}
+                {/* ── CARD 1 : Identity & Plan ── */}
                 <View style={styles.summaryCard}>
                     {profileDetails ? (
                         <>
-                            {/* ROW 1: Name + Share & Print icon buttons (top-right) */}
+                            {/* ROW 1: Name + Share & Download icons */}
+                           // In your JSX, change the nameIconFlex View:
                             <View style={styles.nameIconFlex}>
                                 <Text style={styles.name} numberOfLines={1}>
                                     {profileDetails.personal_profile_name}
                                 </Text>
+                                {/* This spacer pushes icons to far right */}
+                                <View style={{ flex: 1 }} />
                                 <Pressable
                                     style={({ pressed }) => [styles.iconCircleBtn, pressed && styles.iconButtonPressed]}
                                     onPress={() => setShareModalVisible(true)}
@@ -738,28 +742,26 @@ export const MyProfile = () => {
                                 </Pressable>
                             </View>
 
-                            {/* ROW 2: Mobile Verified badge */}
-                            {/* {profileDetails.mobile_verified && ( */}
+                            {/* ROW 2: Mobile Verified badge + Profile ID on same line */}
+                            <View style={styles.verifiedAndIdRow}>
                                 <View style={styles.verifiedBadge}>
                                     <Ionicons name="checkmark-circle-outline" size={14} color="#2E7D32" />
                                     <Text style={styles.verifiedText}>Mobile Verified</Text>
                                 </View>
-                            {/* )} */}
-
-                            {/* ROW 3: Profile ID chip */}
-                            <View style={styles.profileCodeChip}>
-                                <Text style={styles.profileCodeText}>{profileDetails.profile_id}</Text>
+                                <View style={styles.profileCodeChip}>
+                                    <Text style={styles.profileCodeText}>{profileDetails.profile_id}</Text>
+                                </View>
                             </View>
 
-                            {/* ROW 4: Plan badge + Valid Upto inline (same row) */}
+                            {/* ROW 4: Plan badge + Valid Upto on same line */}
                             <View style={styles.planValidRow}>
                                 <LinearGradient
                                     colors={
                                         profileDetails.package_name === 'Platinum'
-                                            ? ['#DCB151', '#DCB151', '#DCB151']
+                                            ? ['#DBAF4B', '#DBAF4B', '#DBAF4B']
                                             : profileDetails.package_name === 'Diamond'
-                                                ? ['#DCB151', '#DCB151', '#DCB151']
-                                                : ['#DCB151', '#DCB151', '#DCB151']
+                                                ? ['#DBAF4B', '#DBAF4B', '#DBAF4B']
+                                                : ['#DBAF4B', '#DBAF4B', '#DBAF4B']
                                     }
                                     locations={[0, 0.5, 1]}
                                     start={{ x: 1, y: 1 }}
@@ -774,7 +776,7 @@ export const MyProfile = () => {
                                     />
                                     <Text style={[
                                         styles.planBadgeText,
-                                        profileDetails.package_name === 'Diamond' && { color: '#DCB151' }
+                                        profileDetails.package_name === 'Diamond' && { color: '#1E293B' }
                                     ]}>
                                         {profileDetails.package_name}
                                     </Text>
@@ -789,16 +791,13 @@ export const MyProfile = () => {
                                     )}
                             </View>
 
-                            {/* ROW 5: Action button — Upgrade / Renew / Add on packages */}
+                            {/* ROW 5: Upgrade / Renew / Add on packages */}
                             {profileDetails.package_name === 'Free' || profileDetails.package_name === 'Unapproved' ? (
                                 <TouchableOpacity
                                     style={styles.renewButtonWrapper}
                                     onPress={() => navigation.navigate('MembershipPlan')}
                                 >
-                                    <LinearGradient
-                                        colors={[Colors.primary, Colors.primary]}
-                                        style={styles.renewButton}
-                                    >
+                                    <LinearGradient colors={[Colors.primary, Colors.primary]} style={styles.renewButton}>
                                         <Text style={styles.renewButtonText}>Upgrade</Text>
                                     </LinearGradient>
                                 </TouchableOpacity>
@@ -809,10 +808,7 @@ export const MyProfile = () => {
                                     style={styles.renewButtonWrapper}
                                     onPress={() => navigation.navigate('PayNow')}
                                 >
-                                    <LinearGradient
-                                        colors={[Colors.primary, Colors.primary]}
-                                        style={styles.renewButton}
-                                    >
+                                    <LinearGradient colors={[Colors.primary, Colors.primary]} style={styles.renewButton}>
                                         <Text style={styles.renewButtonText}>Renew</Text>
                                     </LinearGradient>
                                 </TouchableOpacity>
@@ -825,48 +821,6 @@ export const MyProfile = () => {
                                     <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
                                 </TouchableOpacity>
                             )}
-
-                            {/* Keep existing InfoPillRow + factsGrid below unchanged */}
-                            <InfoPillRow
-                                items={[
-                                    {
-                                        label: 'age',
-                                        value: profileDetails.personal_age ? `${profileDetails.personal_age} Yrs` : null,
-                                        icon: <MaterialCommunityIcons name="cake-variant-outline" size={14} color={Colors.primary} />,
-                                    },
-                                    {
-                                        label: 'height',
-                                        value: profileDetails.personal_profile_height?.height_desc,
-                                        icon: <MaterialCommunityIcons name="human-male-height" size={14} color={Colors.primary} />,
-                                    },
-                                    {
-                                        label: 'star',
-                                        value: profileDetails.star,
-                                        icon: <MaterialCommunityIcons name="star-four-points-outline" size={14} color={Colors.primary} />,
-                                    },
-                                ]}
-                            />
-
-                            <View style={styles.factsGrid}>
-                                <View style={styles.factCardFull}>
-                                    <View style={styles.factIconBg}>
-                                        <FontAwesome5 name="briefcase" size={14} color={Colors.primary} />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.factLabel}>Profession</Text>
-                                        <Text style={styles.factValue} numberOfLines={1}>{profileDetails.prosession || 'N/A'}</Text>
-                                    </View>
-                                </View>
-                                <View style={styles.factCardFull}>
-                                    <View style={styles.factIconBg}>
-                                        <MaterialCommunityIcons name="school-outline" size={16} color={Colors.primary} />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.factLabel}>Education</Text>
-                                        <Text style={styles.factValue} numberOfLines={1}>{profileDetails.heightest_education || 'N/A'}</Text>
-                                    </View>
-                                </View>
-                            </View>
                         </>
                     ) : (
                         <View style={{ paddingVertical: 10 }}>
@@ -878,6 +832,55 @@ export const MyProfile = () => {
                     )}
                 </View>
 
+                {/* ── CARD 2 : Age / Height / Star + Profession / Education ── */}
+                {profileDetails && (
+                    <View style={styles.infoCard}>
+                        <InfoPillRow
+                            items={[
+                                {
+                                    label: 'age',
+                                    value: profileDetails.personal_age ? `${profileDetails.personal_age} Yrs` : null,
+                                    icon: <MaterialCommunityIcons name="cake-variant-outline" size={14} color={Colors.primary} />,
+                                },
+                                {
+                                    label: 'height',
+                                    value: profileDetails.personal_profile_height?.height_desc,
+                                    icon: <MaterialCommunityIcons name="human-male-height" size={14} color={Colors.primary} />,
+                                },
+                                {
+                                    label: 'star',
+                                    value: profileDetails.star,
+                                    icon: <MaterialCommunityIcons name="star-four-points-outline" size={14} color={Colors.primary} />,
+                                },
+                            ]}
+                        />
+
+                        <View style={styles.factsGrid}>
+                            <View style={styles.factCardFull}>
+                                <View style={styles.factIconBg}>
+                                    <FontAwesome5 name="briefcase" size={14} color={Colors.primary} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.factLabel}>Profession</Text>
+                                    <Text style={styles.factValue} numberOfLines={1}>
+                                        {profileDetails.prosession || 'N/A'}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View style={styles.factCardFull}>
+                                <View style={styles.factIconBg}>
+                                    <MaterialCommunityIcons name="school-outline" size={16} color={Colors.primary} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.factLabel}>Education</Text>
+                                    <Text style={styles.factValue} numberOfLines={1}>
+                                        {profileDetails.heightest_education || 'N/A'}
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+                )}
                 {/* HORIZONTAL INLINE MENU BAR */}
                 <View
                     ref={tabBarRef}
@@ -1063,17 +1066,20 @@ const styles = StyleSheet.create({
         lineSpacing: -1,
     },
     summaryCard: {
-        width: "100%",
         marginTop: -18,
         paddingHorizontal: 16,
-        paddingVertical: 18,
+        paddingVertical: 14,
+        paddingRight: 20,        // ← extra right breathing room
         backgroundColor: Colors.cardBackground,
         zIndex: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
         shadowRadius: 6,
         elevation: 3,
+        borderRadius: 14,
+        marginLeft: 12,
+        marginRight: 12,
     },
     loadingOverlay: {
         position: 'absolute',
@@ -1088,8 +1094,8 @@ const styles = StyleSheet.create({
     },
     name: {
         color: Colors.textDark,
-        fontSize: fs(21),
-        fontWeight: "700",
+        fontSize: fs(19),        // was 20 — slightly smaller to fit row
+        fontWeight: '700',
         flexShrink: 1,
         fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
         letterSpacing: -1,
@@ -1098,7 +1104,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
-        paddingVertical: 4,
+        paddingVertical: 2,
+        gap: 6,
+        flexWrap: 'nowrap',
     },
     verificationIcon: {
         marginLeft: -4,
@@ -1112,8 +1120,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 4,
         borderRadius: 10,
-        marginBottom: 12,
-        marginTop: 4,
+        marginBottom: 0,   // was 12
+        marginTop: 0,      // was 4
     },
     profileCodeText: {
         fontSize: fs(13),
@@ -1161,7 +1169,7 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         paddingVertical: 10,
         paddingHorizontal: 12,
-        marginTop: 14,
+        marginTop: 4,
     },
     pillItem: {
         flexDirection: 'row',
@@ -1467,25 +1475,25 @@ const styles = StyleSheet.create({
     },
     // ── NEW styles for updated summary card layout ──
     iconCircleBtn: {
-        width: 38,
-        height: 38,
-        borderRadius: 19,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         backgroundColor: '#F6EFE5',
         justifyContent: 'center',
         alignItems: 'center',
-        marginLeft: 8,
+        // remove marginLeft: 8 — gap handles spacing now
     },
     verifiedBadge: {
         flexDirection: 'row',
         alignItems: 'center',
         alignSelf: 'flex-start',
-        borderWidth: 1.2,
+        borderWidth: 1,
         borderColor: '#81C784',
-        borderRadius: 20,
+        borderRadius: 18,
         paddingHorizontal: 10,
         paddingVertical: 4,
-        marginTop: 8,
-        marginBottom: 10,
+        marginTop: 2,
+        marginBottom: 2,
         gap: 5,
         backgroundColor: '#F1F8F1',
     },
@@ -1517,5 +1525,26 @@ const styles = StyleSheet.create({
         fontSize: fs(13),
         fontWeight: '500',
         color: Colors.textMuted,
+    },
+    infoCard: {
+        marginHorizontal: 12,       // left & right space — matches summaryCard
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: Colors.cardBackground,
+        marginTop: 8,
+        marginBottom: 3,
+        borderRadius: 14,           // same reduced radius
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    verifiedAndIdRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        marginTop: 4,
+        marginBottom: 4,
     },
 });
