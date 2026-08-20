@@ -260,6 +260,18 @@ export const HomeWithToast = () => {
         } else {
           setMemberLabel("FREE MEMBER");
         }
+        const views = contactViews
+          ? `${contactViews} contact views left`
+          : "";
+
+        const till = validityDate
+          ? `Valid till ${new Date(validityDate).toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })}`
+          : "";
+        setMemberSub([views, till].filter(Boolean).join(" · "));
 
         const planId = parseInt(currentPlanId || "0");
         const allowedPremiumIds = [1, 2, 3, 10, 11, 13, 14, 15, 16, 17];
@@ -1626,7 +1638,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 2,
     letterSpacing: 1,
-    
+
   },
   memberSubText: {
     color: "rgba(255,255,255,0.88)",
