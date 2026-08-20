@@ -563,89 +563,114 @@ export const HomeWithToast = () => {
   };
 
   // ── Slider card renderers ────────────────────────────────────────────────
-  const renderInterestItem = ({ item, index }) => (
-    <View style={styles.cardContainer} key={index}>
-      <View style={styles.cardStyle}>
-        <View style={styles.ProfileContentFlex}>
-          <Image
-            style={styles.ProfileImgStyle}
-            source={{
-              uri: item.int_Profile_img
-                ? item.int_Profile_img
-                : `${config.apiUrl}/media/default_photo_protect.png`,
-            }}
-          />
-          <View style={styles.profileContent}>
-            <Text style={styles.nameStyle} numberOfLines={1}>
-              {item.int_profile_name
-                ? item.int_profile_name.length > 12
-                  ? item.int_profile_name.substring(0, 12) + "..."
-                  : item.int_profile_name
-                : "N/A"}
-              {` (${item.int_profileid})`}
-            </Text>
-            <Text style={styles.ageStyle}>{item.int_profile_age} yrs</Text>
+  // Update the renderInterestItem function to handle the image URL correctly
+  const renderInterestItem = ({ item, index }) => {
+    // Get the image URL - handle both full URL and relative path
+    const getImageUrl = (imgPath) => {
+      if (!imgPath) return `${config.apiUrl}/media/default_photo_protect.png`;
+      // If it's already a full URL (starts with http), use it as is
+      if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+        return imgPath;
+      }
+      // Otherwise, prepend the API URL
+      return `${config.apiUrl}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`;
+    };
+
+    return (
+      <View style={styles.cardContainer} key={index}>
+        <View style={styles.cardStyle}>
+          <View style={styles.ProfileContentFlex}>
+            <Image
+              style={styles.ProfileImgStyle}
+              source={{
+                uri: getImageUrl(item.int_Profile_img)
+              }}
+              onError={(e) => {
+                // Fallback to default image on error
+                e.target.source = { uri: `${config.apiUrl}/media/default_photo_protect.png` };
+              }}
+            />
+            <View style={styles.profileContent}>
+              <Text style={styles.nameStyle} numberOfLines={1}>
+                {item.int_profile_name
+                  ? item.int_profile_name.length > 12
+                    ? item.int_profile_name.substring(0, 12) + "..."
+                    : item.int_profile_name
+                  : "N/A"}
+                {` (${item.int_profileid})`}
+              </Text>
+              <Text style={styles.ageStyle}>{item.int_profile_age} yrs</Text>
+            </View>
           </View>
-        </View>
 
-        <Text style={styles.interestedText}>
-          I am interested in your profile. If you are interested in my profile, please contact me.
-        </Text>
+          <Text style={styles.interestedText}>
+            {item.int_profile_notes || "I am interested in your profile. If you are interested in my profile, please contact me."}
+          </Text>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.viewProfileBtn}
-            onPress={() => handleViewProfile(item.int_profileid)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.viewProfileBtnText}>View Profile</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.messageBtn}
-            onPress={() => handlePress(item.int_profileid)}
-            activeOpacity={0.85}
-          >
-            <MaterialCommunityIcons name="chat-outline" size={15} color={Colors.primary || "#A00014"} style={{ marginRight: 5 }} />
-            <Text style={styles.messageBtnText}>Message</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderVysassistItem = ({ item, index }) => (
-    <View style={styles.cardContainer} key={`vysassist-${index}`}>
-      <View style={styles.cardStyle}>
-        <View style={styles.vysassistRow}>
-          <View style={styles.vysassistLeft}>
-            <Text style={styles.fromLabel}>FROM</Text>
-            <Text style={styles.fromProfileId}>{item.profile_from}</Text>
-            <View style={styles.divider} />
-            <Text style={styles.dateText}>
-              {new Date(item.req_datetime).toISOString().split("T")[0]}
-            </Text>
-          </View>
-          <View style={styles.vysassistRight}>
-            <Text style={styles.vysassistMessage}>"{item.to_message}"</Text>
+          <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.btn}
-              onPress={() => handleViewProfile(item.profile_from)}
+              style={styles.viewProfileBtn}
+              onPress={() => handleViewProfile(item.int_profileid)}
+              activeOpacity={0.85}
             >
-              <LinearGradient
-                colors={["#BD1225", "#FF4050"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.linearGradient}
-              >
-                <Text style={styles.login}>View Details</Text>
-              </LinearGradient>
+              <Text style={styles.viewProfileBtnText}>View Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.messageBtn}
+              onPress={() => handlePress(item.int_profileid)}
+              activeOpacity={0.85}
+            >
+              <MaterialCommunityIcons name="chat-outline" size={15} color="#A00014" style={{ marginRight: 5 }} />
+              <Text style={styles.messageBtnText}>Message</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
+
+  // Update the renderVysassistItem to match the interest design
+  const renderVysassistItem = ({ item, index }) => {
+    // Get the image URL for vysassist
+    const getImageUrl = (imgPath) => {
+      if (!imgPath) return `${config.apiUrl}/media/default_photo_protect.png`;
+      if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+        return imgPath;
+      }
+      return `${config.apiUrl}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`;
+    };
+
+    return (
+      <View style={styles.cardContainer} key={`vysassist-${index}`}>
+        <View style={styles.cardStyle}>
+          <View style={styles.ProfileContentFlex}>
+            <View style={styles.profileContent}>
+              <Text style={styles.nameStyle} numberOfLines={1}>
+               
+                {` (${item.profile_from})`}
+              </Text>
+
+            </View>
+          </View>
+
+          <Text style={styles.interestedText}>
+            {item.to_message || "I am interested in your profile. If you are interested in my profile, please contact me."}
+          </Text>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.viewProfileBtn}
+              onPress={() => handleViewProfile(item.profile_from)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.viewProfileBtnText}>View Profile</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   const renderSliderItem = ({ item, index }) => {
     if (!item) return null;
@@ -708,7 +733,7 @@ export const HomeWithToast = () => {
             autoCorrect={false}
           />
           {searchProfileId.length > 0 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => {
                 setSearchProfileId("");
                 setSearchResults([]);
@@ -722,7 +747,7 @@ export const HomeWithToast = () => {
         </View>
 
         {/* Filter Options - Show when searching */}
-    
+
 
         {/* Search results count - Show when searching */}
         {searchProfileId.length > 0 && searchResults && searchResults.length > 0 && (
@@ -1402,6 +1427,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 6,
     minHeight: 140,
     justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   ProfileContentFlex: {
     flexDirection: "row",
@@ -1414,12 +1444,17 @@ const styles = StyleSheet.create({
     width: 56,
     height: 66,
     borderRadius: 10,
+    backgroundColor: "#F0F0F0",
   },
-  profileContent: { flex: 1 },
+  profileContent: {
+    flex: 1,
+    justifyContent: "center",
+  },
   nameStyle: {
     color: "#212121",
     fontSize: 16,
     fontWeight: "600",
+    marginBottom: 2,
   },
   ageStyle: {
     color: "#757575",
@@ -1430,12 +1465,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 10,
     lineHeight: 16,
+    paddingVertical: 4,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "center",
     width: "100%",
+    gap: 10,
   },
   viewProfileBtn: {
     flex: 1,
@@ -1444,7 +1481,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
   },
   viewProfileBtnText: {
     color: "#FFFFFF",
