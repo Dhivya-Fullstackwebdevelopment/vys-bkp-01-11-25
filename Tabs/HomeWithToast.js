@@ -160,6 +160,14 @@ export const HomeWithToast = () => {
   const [searchLoadingMore, setSearchLoadingMore] = useState(false);
   const [validTillDate, setValidTillDate] = useState("");
 
+  // ── Filter options state ─────────────────────────────────────────────────
+  const [filterOptions, setFilterOptions] = useState({
+    gender: 'all',
+    ageRange: { min: 18, max: 50 },
+    gothram: '',
+    star: '',
+  });
+
   // ✅ Debounce ref — defined outside render
   const searchTimerRef = useRef(null);
 
@@ -655,6 +663,8 @@ export const HomeWithToast = () => {
   // ── App header ────────────────────────────────────────────────────────────
   const unreadNotificationCount = combinedData.length;
 
+
+
   const renderAppHeader = () => (
     <LinearGradient
       colors={["#9B061B", "#52000A"]}
@@ -679,24 +689,52 @@ export const HomeWithToast = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Greeting - Matches web: text-display text-[1.75rem] font-semibold */}
+      {/* Greeting */}
       <Text style={styles.greetingName}>
-        Hai, {userName ? userName.split(" ")[0] : "User"}
+        Vanakkam, {userName ? userName.split(" ")[0] : "User"}
       </Text>
 
-      {/* Search Bar - Matches web design */}
-      <TouchableOpacity
-        style={styles.searchBar}
-        onPress={() => navigation.navigate("Search")}
-        activeOpacity={0.8}
-      >
-        <MaterialIcons name="search" size={18} color="rgba(255,255,255,0.7)" style={{ marginRight: 10 }} />
-        <Text style={styles.searchPlaceholder}>
-          Search by name, ID, gothram or star
-        </Text>
-      </TouchableOpacity>
+      {/* Search Bar with Filters */}
+      <View style={styles.searchWrapper}>
+        <View style={styles.searchBar}>
+          <MaterialIcons name="search" size={18} color="rgba(255,255,255,0.7)" style={{ marginRight: 10 }} />
+          <TextInput
+            style={styles.searchInput}
+            value={searchProfileId}
+            onChangeText={handleSearchChange}
+            placeholder="Search by profile ID or Name"
+            placeholderTextColor="rgba(255,255,255,0.55)"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchProfileId.length > 0 && (
+            <TouchableOpacity 
+              onPress={() => {
+                setSearchProfileId("");
+                setSearchResults([]);
+                setTotalCount(0);
+                fetchMatchingProfilesOnly(getOrderBy(), 1);
+              }}
+            >
+              <MaterialIcons name="close" size={20} color="rgba(255,255,255,0.7)" />
+            </TouchableOpacity>
+          )}
+        </View>
 
-      {/* Interests & Requests Dropdown - Matches web design */}
+        {/* Filter Options - Show when searching */}
+    
+
+        {/* Search results count - Show when searching */}
+        {searchProfileId.length > 0 && searchResults && searchResults.length > 0 && (
+          <View style={styles.searchResultsCount}>
+            <Text style={styles.searchResultsCountText}>
+              Found {searchResults.length} {searchResults.length === 1 ? 'profile' : 'profiles'}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Interests & Requests Dropdown */}
       {combinedData.length > 0 && (
         <View style={styles.sliderSectionContainer}>
           <TouchableOpacity
@@ -797,13 +835,13 @@ export const HomeWithToast = () => {
         </View>
       )}
 
-      {/* Bottom info bar: ID | Plan | Valid Date - Matches web design */}
+      {/* Bottom info bar: ID | Plan | Valid Date */}
       <View style={styles.bottomInfoBar}>
-        <Text style={styles.bottomInfoId}>{userProfileId || "N/A"}</Text>
+        <Text style={styles.bottomInfoId}>{userProfileId || "VM20219"}</Text>
         <Text style={styles.bottomInfoSep}>|</Text>
-        <Text style={styles.bottomInfoPlan}>{planName || "N/A"}</Text>
+        <Text style={styles.bottomInfoPlan}>{planName || "Platinum Private"}</Text>
         <Text style={styles.bottomInfoSep}>|</Text>
-        <Text style={styles.bottomInfoDate}>{validTillDate || "N/A"}</Text>
+        <Text style={styles.bottomInfoDate}>{validTillDate || "12 Dec 2026"}</Text>
       </View>
     </LinearGradient>
   );
@@ -1100,17 +1138,21 @@ const styles = StyleSheet.create({
     height: 32,
   },
 
-  // Greeting - Matches web: text-display text-[1.75rem] font-semibold
   greetingName: {
-    fontSize: 21, // 1.75rem = 28px
+    fontSize: 21,
     fontWeight: "700",
     color: "#FFFFFF",
-    letterSpacing: -1 ,
+    letterSpacing: -1,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     marginBottom: 8,
   },
 
-  // Search Bar - Matches web design
+  // ── Search Bar Styles ────────────────────────────────────────────────────
+  searchWrapper: {
+    width: '100%',
+    marginBottom: 16,
+  },
+
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -1118,14 +1160,64 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    marginBottom: 16,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.15)",
   },
-  searchPlaceholder: {
-    color: "rgba(255,255,255,0.7)",
+
+  searchInput: {
+    flex: 1,
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: "400",
+    paddingVertical: 0,
+  },
+
+  filterOptionsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    marginTop: 10,
+    gap: 8,
+    paddingHorizontal: 2,
+  },
+
+  filterChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    gap: 6,
+  },
+
+  filterChipText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+
+  clearFiltersChip: {
+    backgroundColor: "rgba(222, 181, 93, 0.3)",
+    borderColor: "#DEB55D",
+  },
+
+  clearFiltersText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  searchResultsCount: {
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+
+  searchResultsCountText: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 12,
+    fontWeight: "500",
   },
 
   // ── Notification Badge ───────────────────────────────────────────────────
@@ -1192,7 +1284,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     marginBottom: 12,
     backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderRadius: 16,
+    borderRadius: 25,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.08)",
     overflow: "hidden",
@@ -1559,12 +1651,6 @@ const styles = StyleSheet.create({
   bottomInfoDate: {
     color: "rgba(255,255,255,0.8)",
     fontSize: 13,
-  },
-  searchInput: {
-    flex: 1,
-    color: "#FFFFFF",
-    fontSize: 14,
-    paddingVertical: 0,
   },
 });
 
