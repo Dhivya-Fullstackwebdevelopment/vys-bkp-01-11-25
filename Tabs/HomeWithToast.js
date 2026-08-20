@@ -120,6 +120,29 @@ const InitialShimmerLoader = () => {
   );
 };
 
+const DEFAULT_PROFILE_IMG = 'https://vysyamat.blob.core.windows.net/vysyamala/default_bride.png';
+
+const InterestProfileImage = ({ uri }) => {
+  const [imgUri, setImgUri] = useState(uri || DEFAULT_PROFILE_IMG);
+
+  useEffect(() => {
+    setImgUri(uri || DEFAULT_PROFILE_IMG);
+  }, [uri]);
+
+  return (
+    <Image
+      style={styles.ProfileImgStyle}
+      source={{ uri: imgUri }}
+      resizeMode="cover"
+      onError={() => {
+        if (imgUri !== DEFAULT_PROFILE_IMG) {
+          setImgUri(DEFAULT_PROFILE_IMG);
+        }
+      }}
+    />
+  );
+};
+
 export const HomeWithToast = () => {
   // ── Slider / interest state ──────────────────────────────────────────────
   const [profiles, setProfiles] = useState([]);
@@ -569,24 +592,7 @@ export const HomeWithToast = () => {
     setCurrentSlideIndex(Math.round(contentOffsetX / CARD_WIDTH));
   };
 
-  const DEFAULT_PROFILE_IMG = 'https://vysyamat.blob.core.windows.net/vysyamala/default_bride.png';
 
-  const InterestProfileImage = ({ uri }) => {
-    const [imgUri, setImgUri] = useState(uri || DEFAULT_PROFILE_IMG);
-
-    return (
-      <Image
-        style={styles.ProfileImgStyle}
-        source={{ uri: imgUri }}
-        resizeMode="cover"
-        onError={() => {
-          if (imgUri !== DEFAULT_PROFILE_IMG) {
-            setImgUri(DEFAULT_PROFILE_IMG);
-          }
-        }}
-      />
-    );
-  };
   // ── Slider card renderers ────────────────────────────────────────────────
   // Update the renderInterestItem function to handle the image URL correctly
   const renderInterestItem = ({ item, index }) => {
