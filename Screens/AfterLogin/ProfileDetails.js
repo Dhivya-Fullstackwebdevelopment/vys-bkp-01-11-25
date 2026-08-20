@@ -1336,7 +1336,7 @@ export const ProfileDetails = () => {
   const renderSuccessView = () => (
     <View style={{ alignItems: 'center', paddingVertical: 20 }}>
       <Ionicons name="checkmark-circle" size={80} color={Colors.success} />
-      <Text style={{ fontSize: 20, fontWeight: 'bold', color: Colors.textDark, marginTop: 10 }}>
+      <Text style={{ fontSize: 20, fontWeight: 'bold', color: Colors.textDark, marginTop: 10, fontFamily: Platform.OS === "ios" ? "Georgia" : "serif", }}>
         Vysassist sent successfully
       </Text>
       <Text style={{ fontSize: 16, color: Colors.textDark, marginVertical: 10 }}>

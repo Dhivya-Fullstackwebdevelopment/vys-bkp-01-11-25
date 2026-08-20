@@ -719,199 +719,114 @@ export const MyProfile = () => {
                 <View style={styles.summaryCard}>
                     {profileDetails ? (
                         <>
+                            {/* ROW 1: Name + Share & Print icon buttons (top-right) */}
                             <View style={styles.nameIconFlex}>
-                                <Text style={styles.name} numberOfLines={1}>{profileDetails.personal_profile_name}</Text>
-                                <TouchableOpacity>
-                                    <Ionicons
-                                        name="shield-checkmark"
-                                        size={18}
-                                        color={Colors.success}
-                                        style={styles.verificationIcon}
-                                    />
-                                </TouchableOpacity>
+                                <Text style={styles.name} numberOfLines={1}>
+                                    {profileDetails.personal_profile_name}
+                                </Text>
                                 <Pressable
-                                    style={({ pressed }) => [styles.actionButton, pressed && styles.iconButtonPressed]}
+                                    style={({ pressed }) => [styles.iconCircleBtn, pressed && styles.iconButtonPressed]}
                                     onPress={() => setShareModalVisible(true)}
                                 >
-                                    <Ionicons
-                                        name="share-social"
-                                        size={20}
-                                        color={Colors.primary}
-                                    />
+                                    <Ionicons name="share-social" size={18} color={Colors.primary} />
                                 </Pressable>
-
                                 <Pressable
-                                    style={({ pressed }) => [{ alignItems: 'center' }, pressed && styles.iconButtonPressed]}
+                                    style={({ pressed }) => [styles.iconCircleBtn, pressed && styles.iconButtonPressed]}
                                     onPress={handleDownloadPdf}
                                 >
-                                    <Ionicons name="print" size={20} color={Colors.primary} />
+                                    <MaterialIcons name="download" size={18} color={Colors.primary} />
                                 </Pressable>
                             </View>
 
+                            {/* ROW 2: Mobile Verified badge */}
+                            {/* {profileDetails.mobile_verified && ( */}
+                                <View style={styles.verifiedBadge}>
+                                    <Ionicons name="checkmark-circle-outline" size={14} color="#2E7D32" />
+                                    <Text style={styles.verifiedText}>Mobile Verified</Text>
+                                </View>
+                            {/* )} */}
+
+                            {/* ROW 3: Profile ID chip */}
                             <View style={styles.profileCodeChip}>
                                 <Text style={styles.profileCodeText}>{profileDetails.profile_id}</Text>
                             </View>
 
-                            <View style={styles.planFlex}>
-                                {profileDetails.package_name === "Free" || profileDetails.package_name === "Unapproved" ? (
-                                    <View style={styles.planFlex}>
-                                        {/* Plan Name Badge - same style as Gold/Diamond/Platinum */}
-                                        <View style={styles.planNameRow}>
-                                            <LinearGradient
-                                                colors={["#D79D32", "#FFB800", "#FDE166"]}
-                                                locations={[0, 0.5, 1]}
-                                                start={{ x: 1, y: 1 }}
-                                                end={{ x: 0, y: 0 }}
-                                                style={styles.goldLinearGradient}
-                                            >
-                                                <Text style={styles.goldText}>
-                                                    {profileDetails.package_name}
-                                                </Text>
-                                            </LinearGradient>
-                                        </View>
+                            {/* ROW 4: Plan badge + Valid Upto inline (same row) */}
+                            <View style={styles.planValidRow}>
+                                <LinearGradient
+                                    colors={
+                                        profileDetails.package_name === 'Platinum'
+                                            ? ['#DCB151', '#DCB151', '#DCB151']
+                                            : profileDetails.package_name === 'Diamond'
+                                                ? ['#DCB151', '#DCB151', '#DCB151']
+                                                : ['#DCB151', '#DCB151', '#DCB151']
+                                    }
+                                    locations={[0, 0.5, 1]}
+                                    start={{ x: 1, y: 1 }}
+                                    end={{ x: 0, y: 0 }}
+                                    style={styles.planBadge}
+                                >
+                                    <MaterialCommunityIcons
+                                        name="crown-outline"
+                                        size={12}
+                                        color={Colors.card}
+                                        style={{ marginRight: 4 }}
+                                    />
+                                    <Text style={[
+                                        styles.planBadgeText,
+                                        profileDetails.package_name === 'Diamond' && { color: '#DCB151' }
+                                    ]}>
+                                        {profileDetails.package_name}
+                                    </Text>
+                                </LinearGradient>
 
-                                        <TouchableOpacity
-                                            style={styles.renewButtonWrapper}
-                                            onPress={() => navigation.navigate('MembershipPlan')}
-                                        >
-                                            <LinearGradient
-                                                colors={[Colors.primary, Colors.primary]}
-                                                start={{ x: 0, y: 0 }}
-                                                end={{ x: 1, y: 1 }}
-                                                style={styles.renewButton}
-                                            >
-                                                <Text style={styles.renewButtonText}>Upgrade</Text>
-                                            </LinearGradient>
-                                        </TouchableOpacity>
-                                    </View>
-                                ) : profileDetails.valid_upto &&
-                                    new Date(profileDetails.valid_upto) < new Date() &&
-                                    allowedPremiumIds.includes(currentPlanId) ? (
-                                    <TouchableOpacity
-                                        style={styles.renewButtonWrapper}
-                                        onPress={() => navigation.navigate('PayNow')}
-                                    >
-                                        <LinearGradient
-                                            colors={[Colors.primary, Colors.primary]}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
-                                            style={styles.renewButton}
-                                        >
-                                            <Text style={styles.renewButtonText}>Renew</Text>
-                                        </LinearGradient>
-                                    </TouchableOpacity>
-                                ) : (
-                                    <View style={styles.planFlex}>
-
-                                        {/* Package Name */}
-                                        <View style={styles.planNameRow}>
-                                            <LinearGradient
-                                                colors={
-                                                    profileDetails.package_name === "Platinum"
-                                                        ? ["#E5E4E2", "#C0C0C0", "#FFFFFF"]
-                                                        : profileDetails.package_name === "Gold"
-                                                            ? ["#D79D32", "#FFB800", "#FDE166"]
-                                                            : profileDetails.package_name === "Diamond"
-                                                                ? ["#B9F2FF", "#FFFFFF", "#B9F2FF"]
-                                                                : ["#D79D32", "#FFB800", "#FDE166"]
-                                                }
-                                                locations={[0, 0.5, 1]}
-                                                start={{ x: 1, y: 1 }}
-                                                end={{ x: 0, y: 0 }}
-                                                style={[
-                                                    styles.goldLinearGradient,
-                                                    profileDetails.package_name === "Diamond" && styles.diamondText
-                                                ]}
-                                            >
-                                                <Text
-                                                    style={[
-                                                        styles.goldText,
-                                                        profileDetails.package_name === "Diamond" && { color: "#fff" }
-                                                    ]}
-                                                >
-                                                    {profileDetails.package_name}
-                                                </Text>
-                                            </LinearGradient>
-                                        </View>
-
-                                        {/* ONE ACTION BUTTON */}
-                                        {profileDetails.package_name === "Free" ||
-                                            profileDetails.package_name === "Unapproved" ? (
-
-                                            // Free / Unapproved → Upgrade
-                                            <TouchableOpacity
-                                                style={styles.renewButtonWrapper}
-                                                onPress={() => navigation.navigate('MembershipPlan')}
-                                            >
-                                                <LinearGradient
-                                                    colors={[Colors.primary, Colors.primary]}
-                                                    style={styles.renewButton}
-                                                >
-                                                    <Text style={styles.renewButtonText}>
-                                                        Upgrade
-                                                    </Text>
-                                                </LinearGradient>
-                                            </TouchableOpacity>
-
-                                        ) : profileDetails.valid_upto &&
-                                            new Date(profileDetails.valid_upto) < new Date() &&
-                                            allowedPremiumIds.includes(currentPlanId) ? (
-
-                                            // Expired Premium → Renew
-                                            <TouchableOpacity
-                                                style={styles.renewButtonWrapper}
-                                                onPress={() => navigation.navigate('PayNow')}
-                                            >
-                                                <LinearGradient
-                                                    colors={[Colors.primary, Colors.primary]}
-                                                    style={styles.renewButton}
-                                                >
-                                                    <Text style={styles.renewButtonText}>
-                                                        Renew
-                                                    </Text>
-                                                </LinearGradient>
-                                            </TouchableOpacity>
-
-                                        ) : (
-
-                                            // Active Premium → Add On
-                                            <TouchableOpacity
-                                                style={styles.completeTextFlex}
-                                                onPress={handleAddOnPackagePress}
-                                            >
-                                                <Text style={styles.completeText}>
-                                                    Add on packages
-                                                </Text>
-                                                <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
-                                            </TouchableOpacity>
-                                        )}
-
-                                        {/* Valid Upto */}
-                                        {profileDetails.valid_upto && (
-                                            <Text
-                                                style={[
-                                                    styles.date,
-                                                    {
-                                                        marginBottom: 8,
-                                                        marginLeft: 10
-                                                    }
-                                                ]}
-                                            >
-                                                Valid Upto : {profileDetails.valid_upto}
-                                            </Text>
-                                        )}
-
-                                    </View>
-                                )}
+                                {profileDetails.valid_upto &&
+                                    profileDetails.package_name !== 'Free' &&
+                                    profileDetails.package_name !== 'Unapproved' && (
+                                        <Text style={styles.validUptoText}>
+                                            Valid Upto : {profileDetails.valid_upto}
+                                        </Text>
+                                    )}
                             </View>
-                            {/* <Pressable
-                                style={styles.completeTextFlex}
-                                onPress={handleAddOnPackagePress}
-                            >
-                                <Text style={styles.completeText}>Add on packages</Text>
-                                <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
-                            </Pressable> */}
 
+                            {/* ROW 5: Action button — Upgrade / Renew / Add on packages */}
+                            {profileDetails.package_name === 'Free' || profileDetails.package_name === 'Unapproved' ? (
+                                <TouchableOpacity
+                                    style={styles.renewButtonWrapper}
+                                    onPress={() => navigation.navigate('MembershipPlan')}
+                                >
+                                    <LinearGradient
+                                        colors={[Colors.primary, Colors.primary]}
+                                        style={styles.renewButton}
+                                    >
+                                        <Text style={styles.renewButtonText}>Upgrade</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            ) : profileDetails.valid_upto &&
+                                new Date(profileDetails.valid_upto) < new Date() &&
+                                allowedPremiumIds.includes(currentPlanId) ? (
+                                <TouchableOpacity
+                                    style={styles.renewButtonWrapper}
+                                    onPress={() => navigation.navigate('PayNow')}
+                                >
+                                    <LinearGradient
+                                        colors={[Colors.primary, Colors.primary]}
+                                        style={styles.renewButton}
+                                    >
+                                        <Text style={styles.renewButtonText}>Renew</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            ) : (
+                                <TouchableOpacity
+                                    style={styles.completeTextFlex}
+                                    onPress={handleAddOnPackagePress}
+                                >
+                                    <Text style={styles.completeText}>Add on packages</Text>
+                                    <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+                                </TouchableOpacity>
+                            )}
+
+                            {/* Keep existing InfoPillRow + factsGrid below unchanged */}
                             <InfoPillRow
                                 items={[
                                     {
@@ -1177,14 +1092,13 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         flexShrink: 1,
         fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        letterSpacing: -1,
     },
     nameIconFlex: {
-        flexDirection: "row",
-        justifyContent: "flex-start",
-        alignItems: "center",
-        width: "100%",
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
         paddingVertical: 4,
-        gap: 12,
     },
     verificationIcon: {
         marginLeft: -4,
@@ -1194,7 +1108,7 @@ const styles = StyleSheet.create({
     },
     profileCodeChip: {
         alignSelf: 'flex-start',
-        backgroundColor: Colors.iconContainerBg,
+        backgroundColor: '#FEF7E6',
         paddingHorizontal: 12,
         paddingVertical: 4,
         borderRadius: 10,
@@ -1204,7 +1118,7 @@ const styles = StyleSheet.create({
     profileCodeText: {
         fontSize: fs(13),
         fontWeight: "700",
-        color: Colors.primary,
+        color: Colors.matchingcirclecolor,
         letterSpacing: 0.3,
     },
     planFlex: {
@@ -1550,5 +1464,58 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.15,
         shadowRadius: 3,
+    },
+    // ── NEW styles for updated summary card layout ──
+    iconCircleBtn: {
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        backgroundColor: '#F6EFE5',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: 8,
+    },
+    verifiedBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        borderWidth: 1.2,
+        borderColor: '#81C784',
+        borderRadius: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        marginTop: 8,
+        marginBottom: 10,
+        gap: 5,
+        backgroundColor: '#F1F8F1',
+    },
+    verifiedText: {
+        fontSize: fs(12),
+        color: '#2E7D32',
+        fontWeight: '600',
+    },
+    planValidRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
+        marginBottom: 2,
+        gap: 12,
+    },
+    planBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 20,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+    },
+    planBadgeText: {
+        color: '#FFFFFF',
+        fontSize: fs(13),
+        fontWeight: '700',
+    },
+    validUptoText: {
+        fontSize: fs(13),
+        fontWeight: '500',
+        color: Colors.textMuted,
     },
 });
