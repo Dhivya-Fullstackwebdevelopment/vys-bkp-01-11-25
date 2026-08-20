@@ -736,7 +736,7 @@ export const HomeWithToast = () => {
 
       {/* Greeting */}
       <Text style={styles.greetingName}>
-        Hai, {userName ? userName.split(" ")[0] : "User"}
+        Hi, {userName ? userName.split(" ")[0] : "User"}
       </Text>
 
       {/* Search Bar with Filters */}
