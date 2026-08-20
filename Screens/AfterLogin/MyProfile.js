@@ -39,6 +39,7 @@ import { BottomTabBarComponent } from "../../Navigation/ReuseTabNavigation";
 import { Colors } from "../../Reusable/Theme";
 import { openCachedPdf } from '../../Screens/AfterLogin/PdfViewerModal';
 import { InAppPdfModal } from "../../Screens/AfterLogin/InAppPdfModal";
+import Svg, { Path } from "react-native-svg";
 
 // Responsive helpers
 const { width: SCREEN_WIDTH, height: SCREEN_H } = Dimensions.get('window');
@@ -229,6 +230,66 @@ export const MyProfile = () => {
     const [showLanguagePopup, setShowLanguagePopup] = useState(false);
     const [pdfModalVisible, setPdfModalVisible] = useState(false);
     const [selectedPdfUrl, setSelectedPdfUrl] = useState(null);
+
+    const DownloadFileIcon = ({ size = 20, color = "#A00014" }) => (
+        <Svg
+            width={size}
+            height={size}
+            viewBox="0 0 512 512"
+            fill="none"
+        >
+            {/* Back document */}
+            <Path
+                d="M138 118H374C380 118 384 123 384 130V425C384 431 380 437 374 437H138C132 437 128 432 128 425V395"
+                stroke={color}
+                strokeWidth={20}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+
+            {/* Front document */}
+            <Path
+                d="M85 159L168 85H320C326 85 331 90 331 96V383C331 390 326 395 320 395H86C80 395 75 390 75 383V164C75 162 78 160 85 159Z"
+                stroke={color}
+                strokeWidth={20}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+
+            {/* Folded corner */}
+            <Path
+                d="M168 85V159H85"
+                stroke={color}
+                strokeWidth={20}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+
+            {/* Download arrow */}
+            <Path
+                d="M235 153V278"
+                stroke={color}
+                strokeWidth={20}
+                strokeLinecap="round"
+            />
+
+            <Path
+                d="M192 243L235 286L278 243"
+                stroke={color}
+                strokeWidth={20}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+
+            {/* Bottom download line */}
+            <Path
+                d="M182 318H288"
+                stroke={color}
+                strokeWidth={20}
+                strokeLinecap="round"
+            />
+        </Svg>
+    );
 
     const handleAddOnPackagePress = () => {
         if (profileDetails?.package_name === "Free" || "Unapproved") {
@@ -738,7 +799,7 @@ export const MyProfile = () => {
                                     style={({ pressed }) => [styles.iconCircleBtn, pressed && styles.iconButtonPressed]}
                                     onPress={handleDownloadPdf}
                                 >
-                                    <MaterialIcons name="download" size={18} color={Colors.primary} />
+                                    <DownloadFileIcon size={19} color={Colors.primary} />
                                 </Pressable>
                             </View>
 
