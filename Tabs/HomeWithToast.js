@@ -342,7 +342,13 @@ export const HomeWithToast = () => {
       ]);
 
       if (pageNum === 1) {
-        if (profileInterests) setProfiles(profileInterests);
+        // ✅ Fix: fetchProfileInterests already returns the profiles array from data.profiles
+        if (profileInterests && Array.isArray(profileInterests)) {
+          setProfiles(profileInterests);
+        } else {
+          setProfiles([]);
+        }
+
         if (vysassistRes) setVysassistData(vysassistRes);
       }
 
@@ -384,6 +390,7 @@ export const HomeWithToast = () => {
       setLoadingMore(false);
     }
   };
+
 
   // ✅ Fixed useEffect - fetch only once on mount
   useEffect(() => {
@@ -562,34 +569,32 @@ export const HomeWithToast = () => {
     setCurrentSlideIndex(Math.round(contentOffsetX / CARD_WIDTH));
   };
 
+  const DEFAULT_PROFILE_IMG = 'https://vysyamat.blob.core.windows.net/vysyamala/default_bride.png';
+
+  const InterestProfileImage = ({ uri }) => {
+    const [imgUri, setImgUri] = useState(uri || DEFAULT_PROFILE_IMG);
+
+    return (
+      <Image
+        style={styles.ProfileImgStyle}
+        source={{ uri: imgUri }}
+        resizeMode="cover"
+        onError={() => {
+          if (imgUri !== DEFAULT_PROFILE_IMG) {
+            setImgUri(DEFAULT_PROFILE_IMG);
+          }
+        }}
+      />
+    );
+  };
   // ── Slider card renderers ────────────────────────────────────────────────
   // Update the renderInterestItem function to handle the image URL correctly
   const renderInterestItem = ({ item, index }) => {
-    // Get the image URL - handle both full URL and relative path
-    const getImageUrl = (imgPath) => {
-      if (!imgPath) return `${config.apiUrl}/media/default_photo_protect.png`;
-      // If it's already a full URL (starts with http), use it as is
-      if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
-        return imgPath;
-      }
-      // Otherwise, prepend the API URL
-      return `${config.apiUrl}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`;
-    };
-
     return (
       <View style={styles.cardContainer} key={index}>
         <View style={styles.cardStyle}>
           <View style={styles.ProfileContentFlex}>
-            <Image
-              style={styles.ProfileImgStyle}
-              source={{
-                uri: getImageUrl(item.int_Profile_img)
-              }}
-              onError={(e) => {
-                // Fallback to default image on error
-                e.target.source = { uri: `${config.apiUrl}/media/default_photo_protect.png` };
-              }}
-            />
+            <InterestProfileImage uri={item.int_Profile_img} />
             <View style={styles.profileContent}>
               <Text style={styles.nameStyle} numberOfLines={1}>
                 {item.int_profile_name
@@ -632,14 +637,6 @@ export const HomeWithToast = () => {
 
   // Update the renderVysassistItem to match the interest design
   const renderVysassistItem = ({ item, index }) => {
-    // Get the image URL for vysassist
-    const getImageUrl = (imgPath) => {
-      if (!imgPath) return `${config.apiUrl}/media/default_photo_protect.png`;
-      if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
-        return imgPath;
-      }
-      return `${config.apiUrl}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`;
-    };
 
     return (
       <View style={styles.cardContainer} key={`vysassist-${index}`}>
@@ -647,7 +644,7 @@ export const HomeWithToast = () => {
           <View style={styles.ProfileContentFlex}>
             <View style={styles.profileContent}>
               <Text style={styles.nameStyle} numberOfLines={1}>
-               
+
                 {` (${item.profile_from})`}
               </Text>
 
@@ -716,7 +713,7 @@ export const HomeWithToast = () => {
 
       {/* Greeting */}
       <Text style={styles.greetingName}>
-        Vanakkam, {userName ? userName.split(" ")[0] : "User"}
+        Hai, {userName ? userName.split(" ")[0] : "User"}
       </Text>
 
       {/* Search Bar with Filters */}
