@@ -158,7 +158,7 @@ export const HomeWithToast = () => {
   const [searchPage, setSearchPage] = useState(1);
   const [searchHasMore, setSearchHasMore] = useState(true);
   const [searchLoadingMore, setSearchLoadingMore] = useState(false);
-
+  const [validTillDate, setValidTillDate] = useState("");
 
   // ✅ Debounce ref — defined outside render
   const searchTimerRef = useRef(null);
@@ -256,10 +256,19 @@ export const HomeWithToast = () => {
         if (name) setUserName(name);
         if (pid) setUserProfileId(pid);
         if (planName) {
-          setMemberLabel(planName);   // "Platinum"
+          setMemberLabel(planName);
+          setPlanName(planName);
         } else {
           setMemberLabel("FREE MEMBER");
         }
+
+        // Set valid till date
+        if (validityDate) {
+          const d = new Date(validityDate);
+          const formatted = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+          setValidTillDate(formatted);
+        }
+
         const views = contactViews
           ? `${contactViews} contact views left`
           : "";
@@ -298,29 +307,6 @@ export const HomeWithToast = () => {
           }
           setButtonText(buttonType);
         }
-
-        // Derive member label from plan
-        // if (allowedPremiumIds.includes(planId)) {
-        //   if (planId === 16) {
-        //     setMemberLabel("PLATINUM MEMBER");
-        //   } else if ([13, 14, 15, 17].includes(planId)) {
-        //     setMemberLabel("GOLD MEMBER");
-        //   } else {
-        //     setMemberLabel("PREMIUM MEMBER");
-        //   }
-        //   const views = contactViews ? `${contactViews} contact views left` : "";
-        //   const till = validityDate
-        //     ? `valid till ${new Date(validityDate).toLocaleDateString("en-GB", {
-        //       day: "numeric",
-        //       month: "short",
-        //       year: "numeric",
-        //     })}`
-        //     : "";
-        //   setMemberSub([views, till].filter(Boolean).join(" · "));
-        // } else {
-        //   setMemberLabel("FREE MEMBER");
-        //   setMemberSub("Upgrade to connect with more profiles");
-        // }
       } catch (e) {
         console.error("Error loading user info/determining button type:", e);
         setButtonText("Upgrade");
@@ -352,7 +338,7 @@ export const HomeWithToast = () => {
         if (vysassistRes) setVysassistData(vysassistRes);
       }
 
-      // Check if API returned profiles successfully (Status === 1 or non-empty profiles array)
+      // Check if API returned profiles successfully
       if (
         response &&
         (response.Status === 1 || response.status === "1") &&
@@ -372,7 +358,7 @@ export const HomeWithToast = () => {
       } else {
         // API returned Status: 0 / "No matching records"
         if (!isLoadMore) {
-          setMatchingProfilesList(null); // Setting to null triggers <ProfileNotFound />
+          setMatchingProfilesList([]); // Changed from null to empty array
           setTotalCount(0);
         }
         setHasMorePages(false);
@@ -380,7 +366,7 @@ export const HomeWithToast = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
       if (!isLoadMore) {
-        setMatchingProfilesList(null);
+        setMatchingProfilesList([]); // Changed from null to empty array
         setTotalCount(0);
       }
       setHasMorePages(false);
@@ -391,16 +377,21 @@ export const HomeWithToast = () => {
     }
   };
 
+  // ✅ Fixed useEffect - fetch only once on mount
   useEffect(() => {
     fetchAllData(getOrderBy(), 1, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ✅ Fixed navigation focus effect
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
-      if (searchProfileId.length === 0) fetchAllData(getOrderBy(), 1, false);
+      if (searchProfileId.length === 0) {
+        fetchAllData(getOrderBy(), 1, false);
+      }
     });
     return unsubscribe;
-  }, [navigation, searchProfileId]);
+  }, [navigation, searchProfileId, getOrderBy]); // Added getOrderBy as dependency
 
   // Load More Functionality for Matching Profiles
   const handleLoadMoreProfiles = () => {
@@ -467,14 +458,14 @@ export const HomeWithToast = () => {
       } else {
         // Handles Status: 0 / "No matching records"
         if (!isLoadMore) {
-          setSearchResults(null); // Triggers <ProfileNotFound />
+          setSearchResults([]); // Changed from null to empty array
           setTotalCount(0);
         }
         setSearchHasMore(false);
       }
     } catch (error) {
       if (!isLoadMore) {
-        setSearchResults(null);
+        setSearchResults([]); // Changed from null to empty array
         setTotalCount(0);
       }
     } finally {
@@ -577,10 +568,10 @@ export const HomeWithToast = () => {
             }}
           />
           <View style={styles.profileContent}>
-            <Text style={styles.nameStyle}>
+            <Text style={styles.nameStyle} numberOfLines={1}>
               {item.int_profile_name
-                ? item.int_profile_name.length > 10
-                  ? item.int_profile_name.substring(0, 10) + "..."
+                ? item.int_profile_name.length > 12
+                  ? item.int_profile_name.substring(0, 12) + "..."
                   : item.int_profile_name
                 : "N/A"}
               {` (${item.int_profileid})`}
@@ -588,28 +579,29 @@ export const HomeWithToast = () => {
             <Text style={styles.ageStyle}>{item.int_profile_age} yrs</Text>
           </View>
         </View>
+
         <Text style={styles.interestedText}>
-          I am interested in your profile. If you are interested in my profile,
-          please contact me.
+          I am interested in your profile. If you are interested in my profile, please contact me.
         </Text>
+
         <View style={styles.buttonContainer}>
+          {/* View Profile — filled red pill */}
           <TouchableOpacity
-            style={styles.btn}
+            style={styles.viewProfileBtn}
             onPress={() => handleViewProfile(item.int_profileid)}
+            activeOpacity={0.85}
           >
-            <LinearGradient
-              colors={[Colors.primary || "#9B061B", Colors.primary || "#9B061B"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.linearGradient}
-            >
-              <Text style={styles.login}>View Profile</Text>
-            </LinearGradient>
+            <Text style={styles.viewProfileBtnText}>View Profile</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handlePress(item.int_profileid)}>
-            <View style={styles.loginContainer}>
-              <Text style={styles.cancel}>Message</Text>
-            </View>
+
+          {/* Message — outlined pill with chat icon */}
+          <TouchableOpacity
+            style={styles.messageBtn}
+            onPress={() => handlePress(item.int_profileid)}
+            activeOpacity={0.85}
+          >
+            <MaterialCommunityIcons name="chat-outline" size={15} color={Colors.primary || "#A00014"} style={{ marginRight: 5 }} />
+            <Text style={styles.messageBtnText}>Message</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -672,7 +664,7 @@ export const HomeWithToast = () => {
       end={{ x: 0, y: 1 }}
       style={styles.appHeader}
     >
-      {/* Top Row */}
+      {/* Top Row: Logo + Notification */}
       <View style={styles.topHeaderRow}>
         <View style={styles.logoBadgeContainer}>
           <Image source={VysyamalaLogo} style={styles.appLogo} resizeMode="contain" />
@@ -684,34 +676,19 @@ export const HomeWithToast = () => {
         >
           <MaterialIcons name="notifications-none" size={22} color="#FFFFFF" />
           {unreadNotificationCount > 0 && (
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationBadgeText}>
-                {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
-              </Text>
-            </View>
+            <View style={styles.notificationBadge} />
           )}
         </TouchableOpacity>
       </View>
 
-      {/* Greeting Row */}
-      <View style={styles.greetingContainer}>
-        <Text style={styles.greetingName}>
-          Hai, {userName || "User"}
-        </Text>
-        <Text style={styles.greetingId}>
-          {userProfileId || "NO ID"}
-        </Text>
-      </View>
+      {/* Greeting */}
+      <Text style={styles.greetingName}>
+        Hai, {userName || "User"}
+      </Text>
 
       {/* Search Bar */}
       <View style={styles.searchBar}>
-        <MaterialIcons
-          name="search"
-          size={20}
-          color="rgba(255,255,255,0.7)"
-          style={{ marginRight: 8 }}
-        />
-
+        <MaterialIcons name="search" size={20} color="rgba(255,255,255,0.7)" style={{ marginRight: 8 }} />
         <TextInput
           style={styles.searchInput}
           value={searchProfileId}
@@ -721,45 +698,19 @@ export const HomeWithToast = () => {
           autoCapitalize="none"
           autoCorrect={false}
         />
-
         {searchProfileId.length > 0 && (
-          <TouchableOpacity
-            onPress={() => {
-              setSearchProfileId("");
-              setSearchResults([]);
-              setTotalCount(0);
-              fetchMatchingProfilesOnly(getOrderBy(), 1);  // ✅ only profiles, not full page
-            }}
-          >
-            <MaterialIcons
-              name="close"
-              size={20}
-              color="rgba(255,255,255,0.7)"
-            />
+          <TouchableOpacity onPress={() => {
+            setSearchProfileId("");
+            setSearchResults([]);
+            setTotalCount(0);
+            fetchMatchingProfilesOnly(getOrderBy(), 1);
+          }}>
+            <MaterialIcons name="close" size={20} color="rgba(255,255,255,0.7)" />
           </TouchableOpacity>
         )}
       </View>
 
-      {memberLabel ? (
-        <TouchableOpacity
-          style={styles.memberBanner}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate("MembershipPlan")}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={styles.memberTitle}>{memberLabel?.toUpperCase()} MEMBER</Text>
-            {memberSub ? (
-              <Text style={styles.memberSubText}>{memberSub}</Text>
-            ) : null}
-          </View>
-          <View style={styles.upgradeButtonView}>
-            <Text style={styles.upgradeButtonText}>{buttonText}</Text>
-            <Text style={styles.upgradeArrow}>→</Text>
-          </View>
-        </TouchableOpacity>
-      ) : null}
-
-      {/* Integrated Interest/VysAssist Slider Section */}
+      {/* Interests & Requests Dropdown */}
       {combinedData.length > 0 && (
         <View style={styles.sliderSectionContainer}>
           <TouchableOpacity
@@ -768,38 +719,30 @@ export const HomeWithToast = () => {
             activeOpacity={0.8}
           >
             <View style={styles.bannerHeaderLeft}>
-              <Image
-                style={styles.MessageImg}
-                source={require("../assets/img/MessageImg.png")}
-              />
+              {/* Heart icon circle */}
+              <View style={styles.heartIconCircle}>
+                <MaterialCommunityIcons name="heart" size={14} color="#fff" />
+              </View>
               <Text style={styles.newInterest}>
                 {isBannerExpanded ? sliderHeaderText : "Interests & Requests"}
               </Text>
               {!isBannerExpanded && (
                 <View style={styles.badgeCount}>
-                  <Text style={styles.badgeCountText}>
-                    {combinedData.length} New
-                  </Text>
+                  <Text style={styles.badgeCountText}>{combinedData.length} New</Text>
                 </View>
               )}
             </View>
 
-            <TouchableOpacity
-              style={styles.expandIconButton}
-              onPress={toggleBannerExpand}
-              activeOpacity={0.7}
-            >
-              <MaterialCommunityIcons
-                name={isBannerExpanded ? "chevron-up-circle" : "star-face"}
-                size={24}
-                color="#FFD700"
-              />
+            <View style={styles.expandIconButton}>
+              <View style={styles.countCircle}>
+                <Text style={styles.countCircleText}>{combinedData.length}</Text>
+              </View>
               <MaterialIcons
                 name={isBannerExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
                 size={22}
                 color="#FFFFFF"
               />
-            </TouchableOpacity>
+            </View>
           </TouchableOpacity>
 
           {isBannerExpanded && (
@@ -808,18 +751,10 @@ export const HomeWithToast = () => {
                 <TouchableOpacity
                   onPress={handleSlidePrev}
                   disabled={currentSlideIndex === 0}
-                  style={[
-                    styles.arrowButton,
-                    currentSlideIndex === 0 && styles.arrowDisabled,
-                  ]}
+                  style={[styles.arrowButton, currentSlideIndex === 0 && styles.arrowDisabled]}
                 >
-                  <MaterialIcons
-                    name="chevron-left"
-                    size={32}
-                    color={
-                      currentSlideIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"
-                    }
-                  />
+                  <MaterialIcons name="chevron-left" size={32}
+                    color={currentSlideIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"} />
                 </TouchableOpacity>
 
                 <FlatList
@@ -831,9 +766,7 @@ export const HomeWithToast = () => {
                   data={combinedData}
                   renderItem={renderSliderItem}
                   keyExtractor={(item, index) =>
-                    item.type === "vysassist"
-                      ? `vysassist-${item.id}`
-                      : `interest-${index}`
+                    item.type === "vysassist" ? `vysassist-${item.id}` : `interest-${index}`
                   }
                   contentContainerStyle={styles.interestList}
                   showsHorizontalScrollIndicator={false}
@@ -850,21 +783,12 @@ export const HomeWithToast = () => {
                 <TouchableOpacity
                   onPress={handleSlideNext}
                   disabled={currentSlideIndex === combinedData.length - 1}
-                  style={[
-                    styles.arrowButton,
-                    currentSlideIndex === combinedData.length - 1 &&
-                    styles.arrowDisabled,
-                  ]}
+                  style={[styles.arrowButton,
+                  currentSlideIndex === combinedData.length - 1 && styles.arrowDisabled]}
                 >
-                  <MaterialIcons
-                    name="chevron-right"
-                    size={32}
-                    color={
-                      currentSlideIndex === combinedData.length - 1
-                        ? "rgba(255,255,255,0.3)"
-                        : "#fff"
-                    }
-                  />
+                  <MaterialIcons name="chevron-right" size={32}
+                    color={currentSlideIndex === combinedData.length - 1
+                      ? "rgba(255,255,255,0.3)" : "#fff"} />
                 </TouchableOpacity>
               </View>
 
@@ -887,9 +811,25 @@ export const HomeWithToast = () => {
           )}
         </View>
       )}
+
+      {/* Bottom info bar: ID | Plan | Valid Date */}
+      <View style={styles.bottomInfoBar}>
+        <Text style={styles.bottomInfoId}>{userProfileId}</Text>
+        {planName ? (
+          <>
+            <Text style={styles.bottomInfoSep}>  |  </Text>
+            <Text style={styles.bottomInfoPlan}>{planName}</Text>
+          </>
+        ) : null}
+        {validTillDate ? (
+          <>
+            <Text style={styles.bottomInfoSep}>  |  </Text>
+            <Text style={styles.bottomInfoDate}>{validTillDate}</Text>
+          </>
+        ) : null}
+      </View>
     </LinearGradient>
   );
-
   // ── Menu Cards Dynamic Rendering ──────────────────────────────────────────
   const renderQuickActionsMenu = () => {
     const actions = [
@@ -1025,7 +965,6 @@ export const HomeWithToast = () => {
         </View>
       );
     }
-    // if (!hasMorePages && matchingProfilesList.length > 0 && searchProfileId.length === 0) {
     if (!hasMorePages && matchingProfilesList?.length > 0 && searchProfileId.length === 0) {
       return (
         <View style={styles.footerLoader}>
@@ -1274,16 +1213,7 @@ const styles = StyleSheet.create({
   },
 
   // ── Integrated Slider Banner ──────────────────────────────────────────────
-  sliderSectionContainer: {
-    width: "100%",
-    paddingVertical: 8,
-    marginTop: 6,
-    backgroundColor: "rgba(0, 0, 0, 0.18)",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    overflow: "hidden",
-  },
+ 
   bannerHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1310,7 +1240,7 @@ const styles = StyleSheet.create({
     lineSpacing: -0.5,
   },
   badgeCount: {
-    backgroundColor: "#FFD700",
+    backgroundColor: "#DEB55D",
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -1321,14 +1251,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
   },
-  expandIconButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
-    borderRadius: 16,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
+ 
   expandedContentContainer: {
     marginTop: 4,
   },
@@ -1392,12 +1315,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  ProfileImgStyle: {
-    marginRight: 10,
-    width: 70,
-    height: 70,
-    borderRadius: 0,
-  },
+ 
   profileContent: { flex: 1 },
   nameStyle: {
     color: Colors.textDark || "#212121",
@@ -1663,6 +1581,118 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginLeft: 4,
   },
+  bottomInfoBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 14,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.15)",
+},
+bottomInfoId: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
+},
+bottomInfoSep: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 13,
+},
+bottomInfoPlan: {
+    color: "#DEB55D",
+    fontSize: 13,
+    fontWeight: "600",
+},
+bottomInfoDate: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 13,
+},
+heartIconCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "#DEB55D",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.3)",
+},
+
+// Count circle (right side of banner)
+countCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "#DEB55D",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 4,
+},
+
+countCircleText: {
+    color: "#52000A",
+    fontSize: 12,
+    fontWeight: "800",
+},
+
+// Updated expandIconButton (no background now, just flex row)
+expandIconButton: {
+    flexDirection: "row",
+    alignItems: "center",
+},
+
+// New card buttons
+viewProfileBtn: {
+    flex: 1,
+    backgroundColor: Colors.primary || "#A00014",
+    borderRadius: 25,
+    paddingVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+},
+viewProfileBtnText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
+},
+messageBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 25,
+    paddingVertical: 10,
+    borderWidth: 1.5,
+    borderColor: Colors.primary || "#A00014",
+    backgroundColor: "#FFFFFF",
+},
+messageBtnText: {
+    color: Colors.primary || "#A00014",
+    fontSize: 14,
+    fontWeight: "700",
+},
+
+// Update ProfileImgStyle to rounded
+ProfileImgStyle: {
+    marginRight: 10,
+    width: 60,
+    height: 70,
+    borderRadius: 8,
+},
+
+// Update sliderSectionContainer — remove old background
+sliderSectionContainer: {
+    width: "100%",
+    paddingVertical: 6,
+    marginTop: 6,
+    backgroundColor: "rgba(0, 0, 0, 0.18)",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    overflow: "hidden",
+},
 });
 
 export default HomeWithToast;
