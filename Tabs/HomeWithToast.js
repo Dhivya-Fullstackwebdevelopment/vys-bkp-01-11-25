@@ -358,7 +358,7 @@ export const HomeWithToast = () => {
       } else {
         // API returned Status: 0 / "No matching records"
         if (!isLoadMore) {
-          setMatchingProfilesList([]); // Changed from null to empty array
+          setMatchingProfilesList([]);
           setTotalCount(0);
         }
         setHasMorePages(false);
@@ -366,7 +366,7 @@ export const HomeWithToast = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
       if (!isLoadMore) {
-        setMatchingProfilesList([]); // Changed from null to empty array
+        setMatchingProfilesList([]);
         setTotalCount(0);
       }
       setHasMorePages(false);
@@ -391,7 +391,7 @@ export const HomeWithToast = () => {
       }
     });
     return unsubscribe;
-  }, [navigation, searchProfileId, getOrderBy]); // Added getOrderBy as dependency
+  }, [navigation, searchProfileId, getOrderBy]);
 
   // Load More Functionality for Matching Profiles
   const handleLoadMoreProfiles = () => {
@@ -458,14 +458,14 @@ export const HomeWithToast = () => {
       } else {
         // Handles Status: 0 / "No matching records"
         if (!isLoadMore) {
-          setSearchResults([]); // Changed from null to empty array
+          setSearchResults([]);
           setTotalCount(0);
         }
         setSearchHasMore(false);
       }
     } catch (error) {
       if (!isLoadMore) {
-        setSearchResults([]); // Changed from null to empty array
+        setSearchResults([]);
         setTotalCount(0);
       }
     } finally {
@@ -585,7 +585,6 @@ export const HomeWithToast = () => {
         </Text>
 
         <View style={styles.buttonContainer}>
-          {/* View Profile — filled red pill */}
           <TouchableOpacity
             style={styles.viewProfileBtn}
             onPress={() => handleViewProfile(item.int_profileid)}
@@ -594,7 +593,6 @@ export const HomeWithToast = () => {
             <Text style={styles.viewProfileBtnText}>View Profile</Text>
           </TouchableOpacity>
 
-          {/* Message — outlined pill with chat icon */}
           <TouchableOpacity
             style={styles.messageBtn}
             onPress={() => handlePress(item.int_profileid)}
@@ -659,7 +657,7 @@ export const HomeWithToast = () => {
 
   const renderAppHeader = () => (
     <LinearGradient
-      colors={[Colors.primary || "#9B061B", Colors.primaryGradientEnd || "#52000A"]}
+      colors={["#9B061B", "#52000A"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.appHeader}
@@ -674,43 +672,31 @@ export const HomeWithToast = () => {
           onPress={() => navigation.navigate("Notifications")}
           activeOpacity={0.7}
         >
-          <MaterialIcons name="notifications-none" size={22} color="#FFFFFF" />
+          <MaterialIcons name="notifications-none" size={24} color="#FFFFFF" />
           {unreadNotificationCount > 0 && (
             <View style={styles.notificationBadge} />
           )}
         </TouchableOpacity>
       </View>
 
-      {/* Greeting */}
+      {/* Greeting - Matches web: text-display text-[1.75rem] font-semibold */}
       <Text style={styles.greetingName}>
-        Hai, {userName || "User"}
+        Hai, {userName ? userName.split(" ")[0] : "User"}
       </Text>
 
-      {/* Search Bar */}
-      <View style={styles.searchBar}>
-        <MaterialIcons name="search" size={20} color="rgba(255,255,255,0.7)" style={{ marginRight: 8 }} />
-        <TextInput
-          style={styles.searchInput}
-          value={searchProfileId}
-          onChangeText={handleSearchChange}
-          placeholder="Search by profile ID or Name"
-          placeholderTextColor="rgba(255,255,255,0.55)"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        {searchProfileId.length > 0 && (
-          <TouchableOpacity onPress={() => {
-            setSearchProfileId("");
-            setSearchResults([]);
-            setTotalCount(0);
-            fetchMatchingProfilesOnly(getOrderBy(), 1);
-          }}>
-            <MaterialIcons name="close" size={20} color="rgba(255,255,255,0.7)" />
-          </TouchableOpacity>
-        )}
-      </View>
+      {/* Search Bar - Matches web design */}
+      <TouchableOpacity
+        style={styles.searchBar}
+        onPress={() => navigation.navigate("Search")}
+        activeOpacity={0.8}
+      >
+        <MaterialIcons name="search" size={18} color="rgba(255,255,255,0.7)" style={{ marginRight: 10 }} />
+        <Text style={styles.searchPlaceholder}>
+          Search by name, ID, gothram or star
+        </Text>
+      </TouchableOpacity>
 
-      {/* Interests & Requests Dropdown */}
+      {/* Interests & Requests Dropdown - Matches web design */}
       {combinedData.length > 0 && (
         <View style={styles.sliderSectionContainer}>
           <TouchableOpacity
@@ -719,9 +705,8 @@ export const HomeWithToast = () => {
             activeOpacity={0.8}
           >
             <View style={styles.bannerHeaderLeft}>
-              {/* Heart icon circle */}
               <View style={styles.heartIconCircle}>
-                <MaterialCommunityIcons name="heart" size={14} color="#fff" />
+                <MaterialCommunityIcons name="heart" size={14} color="#52000A" />
               </View>
               <Text style={styles.newInterest}>
                 {isBannerExpanded ? sliderHeaderText : "Interests & Requests"}
@@ -739,7 +724,7 @@ export const HomeWithToast = () => {
               </View>
               <MaterialIcons
                 name={isBannerExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-                size={22}
+                size={20}
                 color="#FFFFFF"
               />
             </View>
@@ -753,7 +738,7 @@ export const HomeWithToast = () => {
                   disabled={currentSlideIndex === 0}
                   style={[styles.arrowButton, currentSlideIndex === 0 && styles.arrowDisabled]}
                 >
-                  <MaterialIcons name="chevron-left" size={32}
+                  <MaterialIcons name="chevron-left" size={28}
                     color={currentSlideIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"} />
                 </TouchableOpacity>
 
@@ -786,7 +771,7 @@ export const HomeWithToast = () => {
                   style={[styles.arrowButton,
                   currentSlideIndex === combinedData.length - 1 && styles.arrowDisabled]}
                 >
-                  <MaterialIcons name="chevron-right" size={32}
+                  <MaterialIcons name="chevron-right" size={28}
                     color={currentSlideIndex === combinedData.length - 1
                       ? "rgba(255,255,255,0.3)" : "#fff"} />
                 </TouchableOpacity>
@@ -812,24 +797,17 @@ export const HomeWithToast = () => {
         </View>
       )}
 
-      {/* Bottom info bar: ID | Plan | Valid Date */}
+      {/* Bottom info bar: ID | Plan | Valid Date - Matches web design */}
       <View style={styles.bottomInfoBar}>
-        <Text style={styles.bottomInfoId}>{userProfileId}</Text>
-        {planName ? (
-          <>
-            <Text style={styles.bottomInfoSep}>  |  </Text>
-            <Text style={styles.bottomInfoPlan}>{planName}</Text>
-          </>
-        ) : null}
-        {validTillDate ? (
-          <>
-            <Text style={styles.bottomInfoSep}>  |  </Text>
-            <Text style={styles.bottomInfoDate}>{validTillDate}</Text>
-          </>
-        ) : null}
+        <Text style={styles.bottomInfoId}>{userProfileId || "N/A"}</Text>
+        <Text style={styles.bottomInfoSep}>|</Text>
+        <Text style={styles.bottomInfoPlan}>{planName || "N/A"}</Text>
+        <Text style={styles.bottomInfoSep}>|</Text>
+        <Text style={styles.bottomInfoDate}>{validTillDate || "N/A"}</Text>
       </View>
     </LinearGradient>
   );
+
   // ── Menu Cards Dynamic Rendering ──────────────────────────────────────────
   const renderQuickActionsMenu = () => {
     const actions = [
@@ -890,8 +868,8 @@ export const HomeWithToast = () => {
         <Text style={styles.sortByText}>Sort by Date:</Text>
         <Switch
           style={styles.toggleSwitchcontainer}
-          trackColor={{ false: "#767577", true: Colors.primary }}
-          thumbColor={isEnabled ? Colors.gold : "#f4f3f4"}
+          trackColor={{ false: "#767577", true: "#A00014" }}
+          thumbColor={isEnabled ? "#DEB55D" : "#f4f3f4"}
           ios_backgroundColor="#3e3e3e"
           onValueChange={toggleSwitch}
           value={isEnabled}
@@ -899,7 +877,6 @@ export const HomeWithToast = () => {
       </View>
 
       <View style={styles.viewToggleRow}>
-        {/* List / Grid Toggle */}
         <View style={styles.viewToggleContainer}>
           <TouchableOpacity
             onPress={() => setViewMode("list")}
@@ -913,8 +890,8 @@ export const HomeWithToast = () => {
               size={24}
               color={
                 viewMode === "list"
-                  ? Colors.primary
-                  : Colors.textMuted
+                  ? "#A00014"
+                  : "#888888"
               }
             />
           </TouchableOpacity>
@@ -931,14 +908,13 @@ export const HomeWithToast = () => {
               size={24}
               color={
                 viewMode === "grid"
-                  ? Colors.primary
-                  : Colors.textMuted
+                  ? "#A00014"
+                  : "#888888"
               }
             />
           </TouchableOpacity>
         </View>
 
-        {/* Filter Icon - Right End */}
         <TouchableOpacity
           style={styles.filterButton}
           onPress={handleFilterPress}
@@ -947,12 +923,10 @@ export const HomeWithToast = () => {
           <MaterialIcons
             name="tune"
             size={23}
-            color={Colors.primary}
+            color="#A00014"
           />
         </TouchableOpacity>
       </View>
-
-
     </View>
   );
 
@@ -960,7 +934,7 @@ export const HomeWithToast = () => {
     if (loadingMore) {
       return (
         <View style={styles.footerLoader}>
-          <ActivityIndicator size="small" color={Colors.primary || "#A00014"} />
+          <ActivityIndicator size="small" color="#A00014" />
           <Text style={styles.loadingMoreText}>Loading more profiles…</Text>
         </View>
       );
@@ -1046,7 +1020,7 @@ export const HomeWithToast = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background || "#FAF6F0",
+    backgroundColor: "#FAF6F0",
   },
   flatListContent: {
     flexGrow: 1,
@@ -1055,13 +1029,13 @@ const styles = StyleSheet.create({
   // ── Shimmer Loading Mock Layout Styles ───────────────────────────────────
   shimmerScreenContainer: {
     flex: 1,
-    backgroundColor: Colors.background || "#FAF6F0",
+    backgroundColor: "#FAF6F0",
   },
   shimmerHeader: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 20,
-    backgroundColor: Colors.primary || "#9B061B",
+    backgroundColor: "#9B061B",
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
@@ -1106,11 +1080,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   logoBadgeContainer: {
     backgroundColor: "rgba(255, 255, 255, 0.92)",
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 14,
     borderWidth: 1,
@@ -1125,55 +1099,55 @@ const styles = StyleSheet.create({
     width: 120,
     height: 32,
   },
-  greetingContainer: {
-    marginBottom: 12,
-  },
+
+  // Greeting - Matches web: text-display text-[1.75rem] font-semibold
   greetingName: {
-    fontSize: 21,
+    fontSize: 21, // 1.75rem = 28px
     fontWeight: "700",
-    color: Colors.textLight || "#FFFFFF",
-    letterSpacing: -1,
+    color: "#FFFFFF",
+    letterSpacing: -1 ,
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    marginBottom: 8,
   },
-  greetingId: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.7)",
-    marginTop: 2,
-  },
+
+  // Search Bar - Matches web design
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.25)",
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
     borderRadius: 25,
     paddingHorizontal: 16,
-    paddingVertical: 11,
-    marginBottom: 14,
+    paddingVertical: 14,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.15)",
   },
   searchPlaceholder: {
-    color: "rgba(255,255,255,0.55)",
+    color: "rgba(255,255,255,0.7)",
     fontSize: 14,
+    fontWeight: "400",
   },
 
   // ── Notification Badge ───────────────────────────────────────────────────
   notificationBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
   },
   notificationBadge: {
     position: "absolute",
-    top: 9,
-    right: 10,
+    top: 10,
+    right: 11,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#4A000A",
+    backgroundColor: "#DEB55D",
+    borderWidth: 1.5,
+    borderColor: "#9B061B",
   },
 
   // ── Redesigned Menu Cards ──────────────────────────────────────────────────
@@ -1208,36 +1182,47 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: "400",
     textAlign: "center",
-    fontSize: 12,
-    color: Colors.textMuted || "#888888",
+    fontSize: 11,
+    color: "#888888",
   },
 
   // ── Integrated Slider Banner ──────────────────────────────────────────────
- 
+  sliderSectionContainer: {
+    width: "100%",
+    paddingVertical: 4,
+    marginBottom: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    overflow: "hidden",
+  },
   bannerHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
   },
   bannerHeaderLeft: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
   },
-  MessageImg: {
-    width: 22,
-    height: 22,
-    resizeMode: "contain",
-    marginRight: 8,
+  heartIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#DEB55D",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
   },
   newInterest: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "700",
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    lineSpacing: -0.5,
   },
   badgeCount: {
     backgroundColor: "#DEB55D",
@@ -1248,10 +1233,27 @@ const styles = StyleSheet.create({
   },
   badgeCountText: {
     color: "#52000A",
+    fontSize: 10,
+    fontWeight: "800",
+  },
+  countCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "#DEB55D",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 4,
+  },
+  countCircleText: {
+    color: "#52000A",
     fontSize: 11,
     fontWeight: "800",
   },
- 
+  expandIconButton: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   expandedContentContainer: {
     marginTop: 4,
   },
@@ -1280,17 +1282,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 3,
+    paddingVertical: 6,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "rgba(255,255,255,0.4)",
+    backgroundColor: "rgba(255,255,255,0.3)",
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     width: 20,
     borderRadius: 4,
   },
@@ -1301,10 +1303,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   cardStyle: {
-    backgroundColor: Colors.card || "#FFFFFF",
+    backgroundColor: "#FFFFFF",
     width: CARD_WIDTH,
-    padding: 12,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 14,
     marginHorizontal: 6,
     minHeight: 140,
     justifyContent: "space-between",
@@ -1315,21 +1317,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
- 
+  ProfileImgStyle: {
+    marginRight: 12,
+    width: 56,
+    height: 66,
+    borderRadius: 10,
+  },
   profileContent: { flex: 1 },
   nameStyle: {
-    color: Colors.textDark || "#212121",
-    fontSize: 18,
+    color: "#212121",
+    fontSize: 16,
     fontWeight: "600",
   },
   ageStyle: {
-    color: Colors.textMuted || "#757575",
+    color: "#757575",
     fontSize: 12,
   },
   interestedText: {
-    color: Colors.textDark || "#212121",
+    color: "#212121",
     fontSize: 12,
-    marginBottom: 8,
+    marginBottom: 10,
+    lineHeight: 16,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -1337,25 +1345,39 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
   },
-  btn: {
-    alignSelf: "center",
-    borderRadius: 6,
+  viewProfileBtn: {
+    flex: 1,
+    backgroundColor: "#A00014",
+    borderRadius: 25,
+    paddingVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
   },
-  loginContainer: {
+  viewProfileBtnText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  messageBtn: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 25,
+    paddingVertical: 10,
+    borderWidth: 1.5,
+    borderColor: "#A00014",
+    backgroundColor: "#FFFFFF",
   },
-  cancel: {
-    color: Colors.primary || "#A00014",
-    fontSize: 14,
-    fontWeight: "600",
-    borderWidth: 2,
-    borderColor: Colors.primary || "#A00014",
-    borderRadius: 5,
-    paddingHorizontal: 15,
-    paddingVertical: 8.5,
-    letterSpacing: 1,
+  messageBtnText: {
+    color: "#A00014",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  btn: {
+    alignSelf: "center",
+    borderRadius: 6,
   },
   login: {
     textAlign: "center",
@@ -1375,7 +1397,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   vysassistLeft: {
-    backgroundColor: Colors.surface2 || "#F2EBE1",
+    backgroundColor: "#F2EBE1",
     borderRadius: 8,
     padding: 10,
     marginRight: 10,
@@ -1385,7 +1407,7 @@ const styles = StyleSheet.create({
   fromLabel: {
     fontSize: 10,
     letterSpacing: 2,
-    color: Colors.textMuted || "#757575",
+    color: "#757575",
     fontWeight: "bold",
     textTransform: "uppercase",
     marginBottom: 2,
@@ -1393,16 +1415,16 @@ const styles = StyleSheet.create({
   fromProfileId: {
     fontSize: 20,
     fontWeight: "bold",
-    color: Colors.textDark || "#212121",
+    color: "#212121",
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.border || "#E0E0E0",
+    backgroundColor: "#E0E0E0",
     marginVertical: 6,
   },
   dateText: {
     fontSize: 12,
-    color: Colors.textMuted || "#757575",
+    color: "#757575",
   },
   vysassistRight: {
     flex: 1,
@@ -1412,7 +1434,7 @@ const styles = StyleSheet.create({
   vysassistMessage: {
     fontSize: 13,
     fontStyle: "italic",
-    color: Colors.textDark || "#212121",
+    color: "#212121",
     marginBottom: 8,
     lineHeight: 18,
     flexShrink: 1,
@@ -1420,11 +1442,11 @@ const styles = StyleSheet.create({
 
   // ── Sticky matching header ─────────────────────────────────────────────────
   stickyHeader: {
-    backgroundColor: Colors.background || "#FAF6F0",
+    backgroundColor: "#FAF6F0",
     paddingTop: 12,
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border || "#E0E0E0",
+    borderBottomColor: "#E0E0E0",
   },
   matchingContainer: {
     flexDirection: "row",
@@ -1436,16 +1458,16 @@ const styles = StyleSheet.create({
   matching: {
     fontSize: 16,
     fontWeight: "700",
-    color: Colors.textDark || "#212121",
+    color: "#212121",
     fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
   },
   matchNumber: {
-    color: Colors.primary || "#A00014",
+    color: "#A00014",
   },
   sortByText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
-    color: Colors.primary || "#A00014",
+    color: "#A00014",
     marginHorizontal: 6,
   },
   toggleSwitchcontainer: {
@@ -1454,24 +1476,38 @@ const styles = StyleSheet.create({
   viewToggleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.surface1 || "#EFE7DC",
+    backgroundColor: "#EFE7DC",
     borderRadius: 8,
     padding: 2,
-    marginHorizontal: 10,
-    marginTop: 2,
-    alignSelf: "flex-start",
   },
   viewToggleButton: {
     padding: 8,
     borderRadius: 6,
   },
   activeViewButton: {
-    backgroundColor: Colors.card || "#FFFFFF",
+    backgroundColor: "#FFFFFF",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 2,
     elevation: 1,
+  },
+  viewToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingHorizontal: 10,
+    marginTop: 2,
+  },
+  filterButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: "#EFE7DC",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
   },
 
   // ── Profile cards container ───────────────────────────────────────────────
@@ -1487,212 +1523,49 @@ const styles = StyleSheet.create({
   loadingMoreText: {
     marginTop: 8,
     fontSize: 13,
-    color: Colors.textMuted || "#757575",
+    color: "#757575",
     fontWeight: "600",
   },
   endMessage: {
     fontSize: 13,
-    color: Colors.textMuted || "#757575",
+    color: "#757575",
     fontStyle: "italic",
   },
-  headerActionsContainer: {
+
+  // ── Bottom info bar ──────────────────────────────────────────────────────
+  bottomInfoBar: {
     flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 10,
-    marginTop: 2,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.12)",
   },
-
-  viewToggleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.surface1 || "#EFE7DC",
-    borderRadius: 8,
-    padding: 2,
+  bottomInfoId: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
   },
-
-  filterButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: Colors.surface1 || "#EFE7DC",
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: 8,
+  bottomInfoSep: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 13,
+    marginHorizontal: 4,
   },
-
-  viewToggleButton: {
-    padding: 8,
-    borderRadius: 6,
+  bottomInfoPlan: {
+    color: "#DEB55D",
+    fontSize: 13,
+    fontWeight: "600",
   },
-
-  activeViewButton: {
-    backgroundColor: Colors.card || "#FFFFFF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 1,
+  bottomInfoDate: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 13,
   },
-  viewToggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", paddingHorizontal: 10, marginTop: 2, },
   searchInput: {
     flex: 1,
     color: "#FFFFFF",
     fontSize: 14,
     paddingVertical: 0,
   },
-  memberBanner: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: Colors.gold,
-    borderRadius: 29,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginBottom: 18,
-  },
-  memberTitle: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "700",
-    marginBottom: 2,
-    letterSpacing: 1,
-
-  },
-  memberSubText: {
-    color: "rgba(255,255,255,0.88)",
-    fontSize: 12,
-  },
-  upgradeButtonView: {
-    backgroundColor: "#DCB352",
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  upgradeButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  upgradeArrow: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
-    marginLeft: 4,
-  },
-  bottomInfoBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 14,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.15)",
-},
-bottomInfoId: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "700",
-},
-bottomInfoSep: {
-    color: "rgba(255,255,255,0.5)",
-    fontSize: 13,
-},
-bottomInfoPlan: {
-    color: "#DEB55D",
-    fontSize: 13,
-    fontWeight: "600",
-},
-bottomInfoDate: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 13,
-},
-heartIconCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#DEB55D",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.3)",
-},
-
-// Count circle (right side of banner)
-countCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#DEB55D",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 4,
-},
-
-countCircleText: {
-    color: "#52000A",
-    fontSize: 12,
-    fontWeight: "800",
-},
-
-// Updated expandIconButton (no background now, just flex row)
-expandIconButton: {
-    flexDirection: "row",
-    alignItems: "center",
-},
-
-// New card buttons
-viewProfileBtn: {
-    flex: 1,
-    backgroundColor: Colors.primary || "#A00014",
-    borderRadius: 25,
-    paddingVertical: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-},
-viewProfileBtnText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "700",
-},
-messageBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 25,
-    paddingVertical: 10,
-    borderWidth: 1.5,
-    borderColor: Colors.primary || "#A00014",
-    backgroundColor: "#FFFFFF",
-},
-messageBtnText: {
-    color: Colors.primary || "#A00014",
-    fontSize: 14,
-    fontWeight: "700",
-},
-
-// Update ProfileImgStyle to rounded
-ProfileImgStyle: {
-    marginRight: 10,
-    width: 60,
-    height: 70,
-    borderRadius: 8,
-},
-
-// Update sliderSectionContainer — remove old background
-sliderSectionContainer: {
-    width: "100%",
-    paddingVertical: 6,
-    marginTop: 6,
-    backgroundColor: "rgba(0, 0, 0, 0.18)",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    overflow: "hidden",
-},
 });
 
 export default HomeWithToast;
