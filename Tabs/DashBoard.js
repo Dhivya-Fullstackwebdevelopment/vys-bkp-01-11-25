@@ -310,10 +310,13 @@ export const DashBoard = () => {
     </TouchableOpacity>
   );
 
-  const renderProfileCompletion = () => (
-    <View style={styles.profileCompletion}>
-      {/* Profile completion bar */}
-      {completion < 100 && (
+  const renderProfileCompletion = () => {
+    if (completion >= 100) {
+      return null;
+    }
+
+    return (
+      <View style={styles.profileCompletion}>
         <TouchableOpacity
           style={styles.completionBox}
           onPress={() => navigation.navigate("ProfileCompletionForm")}
@@ -324,7 +327,10 @@ export const DashBoard = () => {
               value={completion}
               valueSuffix="%"
               progressValueColor={Colors.primary}
-              progressValueStyle={{ fontSize: fs(13), fontWeight: "700" }}
+              progressValueStyle={{
+                fontSize: fs(13),
+                fontWeight: "700",
+              }}
               radius={28}
               duration={1500}
               activeStrokeWidth={6}
@@ -335,18 +341,18 @@ export const DashBoard = () => {
               inActiveStrokeOpacity={0.15}
             />
           </View>
+
           <View style={styles.completionRight}>
             <Text style={styles.completionTitle}>
               Your profile is {completion}% complete
             </Text>
+
             <Text style={styles.completionSub}>
               Complete your profile and we will suggest better matches for you.
             </Text>
           </View>
         </TouchableOpacity>
-      )}
 
-      {completion < 100 && (
         <TouchableOpacity
           style={styles.completeBtn}
           onPress={() => navigation.navigate("ProfileCompletionForm")}
@@ -358,12 +364,14 @@ export const DashBoard = () => {
             end={{ x: 1, y: 0 }}
             style={styles.completeBtnGradient}
           >
-            <Text style={styles.completeBtnText}>Complete Your Profile →</Text>
+            <Text style={styles.completeBtnText}>
+              Complete Your Profile →
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
-      )}
-    </View>
-  );
+      </View>
+    );
+  };
 
   // ── Quick Action SVGs ─────────────────────────────────────────────────────────
   const PersonalNotesSvg = ({ size = 24, color }) => (
