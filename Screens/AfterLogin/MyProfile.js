@@ -782,7 +782,7 @@ export const MyProfile = () => {
                     {profileDetails ? (
                         <>
                             {/* ROW 1: Name + Share & Download icons */}
-                           // In your JSX, change the nameIconFlex View:
+                           
                             <View style={styles.nameIconFlex}>
                                 <Text style={styles.name} numberOfLines={1}>
                                     {profileDetails.personal_profile_name}
