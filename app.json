@@ -32,7 +32,7 @@
       },
       "usesCleartextTraffic": true,
       "package": "com.vysmala.app",
-      "versionCode": 53,
+      "versionCode": 54,
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -59,10 +59,10 @@
             "compileSdkVersion": 36,
             "targetSdkVersion": 36,
             "minSdkVersion": 24,
-            "ndkVersion": "27.2.12479018",
+            "ndkVersion": "28.0.13004108",
             "packagingOptions": {
               "jniLibs": {
-                "useLegacyPackaging": false
+                "useLegacyPackaging": true
               }
             },
             "extraProguardRules": "-keep class * { *; }"
