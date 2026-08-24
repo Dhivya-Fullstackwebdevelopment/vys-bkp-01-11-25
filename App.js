@@ -38,7 +38,7 @@ export default function App() {
     }
 
     const token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log("Push Token:", token);
+    console.log("Push Notifications Token :", token);
     return token;
   };
 

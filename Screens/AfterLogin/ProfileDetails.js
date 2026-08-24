@@ -1276,12 +1276,12 @@ export const ProfileDetails = () => {
         ? [{ icon: "account-voice", text: "Vys Assist", onPress: () => { setMenuOpen(false); openPopup(); }, type: "MaterialCommunityIcons" }]
         : []),
       { icon: 'document-text', text: 'Personal Notes', onPress: () => { setMenuOpen(false); toggleModal(); }, type: 'Ionicons' },
-      {
-        icon: 'block', text: 'Block Profile',
-        onPress: () => { setMenuOpen(false); setBlockModalVisible(true); },
-        type: 'MaterialIcons',
-        danger: true,
-      },
+      // {
+      //   icon: 'block', text: 'Block Profile',
+      //   onPress: () => { setMenuOpen(false); setBlockModalVisible(true); },
+      //   type: 'MaterialIcons',
+      //   danger: true,
+      // },
     ];
 
     return (
@@ -1334,32 +1334,66 @@ export const ProfileDetails = () => {
   };
 
   const renderSuccessView = () => (
-    <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-      <Ionicons name="checkmark-circle" size={80} color={Colors.success} />
-      <Text style={{ fontSize: 20, fontWeight: 'bold', color: Colors.textDark, marginTop: 10, fontFamily: Platform.OS === "ios" ? "Georgia" : "serif", }}>
-        Vysassist sent successfully
-      </Text>
-      <Text style={{ fontSize: 16, color: Colors.textDark, marginVertical: 10 }}>
-        Remaining VysAssist Count:
-        <Text style={{ color: Colors.primary, fontWeight: 'bold' }}> {remainCount}</Text>
-      </Text>
-      <TouchableOpacity
-        style={[styles.submitButtonpop, { width: '40%', marginTop: 20, borderRadius: 20, padding: 10 }]}
-        onPress={async () => {
-          setIsSuccess(false);
-          setShowVysassist(false);
-          setSelectedOptions([]);
-          const refreshed = await fetchProfileData(viewedProfileId);
-          setProfileData(refreshed);
-          setVysassistEnable(refreshed.basic_details.vysy_assist_enable);
-          setVysassits(refreshed.basic_details.vys_assits);
-        }}
-      >
-        <Text style={styles.buttonText}>OK</Text>
-      </TouchableOpacity>
+    <View style={styles.successModalOverlay}>
+      <View style={styles.successModalCard}>
+
+        {/* Green Check Circle */}
+        <View style={styles.successIconCircle}>
+          <Ionicons
+            name="checkmark"
+            size={58}
+            color="#FFFFFF"
+          />
+        </View>
+
+        {/* Success Message */}
+        <Text style={styles.successTitle}>
+          Vysassist sent successfully
+        </Text>
+
+        {/* Remaining Count */}
+        <Text style={styles.successCountText}>
+          Remaining VysAssist Count:
+          <Text style={styles.successCount}>
+            {" "}{remainCount}
+          </Text>
+        </Text>
+
+        {/* OK Button */}
+        <TouchableOpacity
+          style={styles.successOkButton}
+          activeOpacity={0.8}
+          onPress={async () => {
+            setIsSuccess(false);
+            setShowVysassist(false);
+            setSelectedOptions([]);
+
+            try {
+              const refreshed = await fetchProfileData(viewedProfileId);
+
+              setProfileData(refreshed);
+              setVysassistEnable(
+                refreshed.basic_details.vysy_assist_enable
+              );
+              setVysassits(
+                refreshed.basic_details.vys_assits
+              );
+            } catch (error) {
+              console.error(
+                "Error refreshing profile:",
+                error
+              );
+            }
+          }}
+        >
+          <Text style={styles.successOkText}>
+            OK
+          </Text>
+        </TouchableOpacity>
+
+      </View>
     </View>
   );
-
   const primaryImageUri = getSafeImage((fetchedUserImages ? Object.values(fetchedUserImages) : Object.values(user_images))[0]);
   // const isLocked = !isProfileUnlocked && photoProtection === 1;
   // const isNoPhoto = !isLocked && (!hasRealPhoto || imageLoadError);
@@ -2803,16 +2837,27 @@ export const ProfileDetails = () => {
 
       {showVysassist &&
         VysassistEnable === 1 && vysassits === false && (
-          <Modal visible={showVysassist} transparent animationType="fade">
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              style={styles.overlay}
-            >
-              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.popupContainer}>
-                  {isSuccess ? (
-                    renderSuccessView()
-                  ) : (
+          <Modal
+            visible={showVysassist}
+            transparent
+            animationType="fade"
+            onRequestClose={() => {
+              if (isSuccess) {
+                setIsSuccess(false);
+              } else {
+                setShowVysassist(false);
+              }
+            }}
+          >
+            {isSuccess ? (
+              renderSuccessView()
+            ) : (
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={styles.overlay}
+              >
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                  <View style={styles.popupContainer}>
                     <>
 
                       <View style={styles.header}>
@@ -2876,12 +2921,12 @@ export const ProfileDetails = () => {
                         </TouchableOpacity>
                       </View>
                     </>
-                  )}
-                </View>
-              </TouchableWithoutFeedback>
-            </KeyboardAvoidingView>
-          </Modal>
 
+                  </View>
+                </TouchableWithoutFeedback>
+              </KeyboardAvoidingView>
+            )}
+          </Modal>
         )}
 
       {showVysassist &&
@@ -4472,5 +4517,94 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textMuted,
     fontStyle: "italic",
+  },
+  successPopupContent: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 45,
+    minHeight: 400,
+  },
+
+  successTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#222222",
+    textAlign: "center",
+    marginBottom: 14,
+    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
+    letterSpacing: -1,
+  },
+
+  successCountText: {
+    fontSize: 20,
+    color: "#333333",
+    textAlign: "center",
+    marginBottom: 35,
+  },
+  successModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.55)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+
+  successModalCard: {
+    width: "92%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 28,
+    paddingHorizontal: 24,
+    paddingVertical: 35,
+    alignItems: "center",
+
+    // Android shadow
+    elevation: 12,
+
+    // iOS shadow
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+  },
+
+  successIconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#22C55E",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 25,
+  },
+
+  successCountText: {
+    fontSize: 18,
+    color: "#333333",
+    textAlign: "center",
+    marginBottom: 30,
+  },
+
+  successCount: {
+    color: "#B91C1C",
+    fontWeight: "700",
+  },
+
+  successOkButton: {
+    width: 220,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  successOkText: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "700",
   },
 });
