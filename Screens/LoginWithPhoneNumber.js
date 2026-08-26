@@ -9,6 +9,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useForm, Controller } from "react-hook-form";

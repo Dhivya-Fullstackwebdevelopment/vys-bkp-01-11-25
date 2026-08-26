@@ -23,6 +23,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import { Colors, rs } from "../Reusable/Theme";
 import config from "../API/Apiurl";
+import { registerForPushNotificationsAsync } from "../utils/PushNotification";
 
 export const OtpVerifyLogin = () => {
   const navigation = useNavigation();
@@ -34,8 +35,7 @@ export const OtpVerifyLogin = () => {
   const isAutofilling = useRef(false);
   const [MobileNo, setMobileNo] = useState("");
   const [timer, setTimer] = useState(60);
-  const [isResending, setIsResending] = useState(false);
-
+  const [isResending, setIsResending] = useState(false);  // ← ADD THIS
   // ================= 60 SEC TIMER =================
   useEffect(() => {
     let interval;
@@ -209,12 +209,23 @@ export const OtpVerifyLogin = () => {
       return;
     }
 
+
     try {
+      const pushToken = await registerForPushNotificationsAsync();
+
+      console.log("Full Expo Push Token:", pushToken);
+
+      // Remove ExponentPushToken[ ]
+      const fcm_token = pushToken
+        ? pushToken.replace("ExponentPushToken[", "").replace("]", "")
+        : "";
+      console.log("otp verify fcm_token", fcm_token)
       const response = await axios.post(
         `${config.apiUrl}/auth/Login_verifyotp/`,
         {
           Mobile_no: MobileNo,
           Otp: enteredOtp,
+          fcm_token: fcm_token,
         },
         {
           headers: {
@@ -255,7 +266,7 @@ export const OtpVerifyLogin = () => {
         await AsyncStorage.setItem("selectedPlanId", plan_limits?.[0]?.plan_id?.toString() || "");
         await AsyncStorage.setItem("martial_status", marital_status?.toString() || "");
         await AsyncStorage.setItem("current_plan_id", cur_plan_id?.toString() || "");
-        await AsyncStorage.setItem("plan_name", plan_name);
+        await AsyncStorage.setItem("plan_name", plan_name ?? "");
         await AsyncStorage.setItem("valid_till_date", valid_till?.toString() || "");
         await AsyncStorage.setItem("gender", gender?.toString() || "");
         await AsyncStorage.setItem("birthStarValue", birth_star_id?.toString() || "");
@@ -294,7 +305,7 @@ export const OtpVerifyLogin = () => {
       Alert.alert(
         "Error",
         error.response?.data?.message ||
-          "An error occurred while logging in. Please try again."
+        "An error occurred while logging in. Please try again."
       );
     }
   };

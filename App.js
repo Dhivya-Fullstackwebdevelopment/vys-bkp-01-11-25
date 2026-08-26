@@ -11,35 +11,47 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context'; // ← ADD THIS
+import TidioChat from "./Components/TidioChat";
 
 export default function App() {
 
   const registerForPushNotificationsAsync = async () => {
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
+    try {
+      if (Platform.OS === "android") {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "default",
+          importance: Notifications.AndrousidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: "#FF231F7C",
+        });
+      }
+
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== "granted") {
+        console.log("Notification permission not granted");
+        return null;
+      }
+
+      const token = (
+        await Notifications.getExpoPushTokenAsync()
+      ).data;
+
+      console.log("Push Notifications Token:", token);
+
+      return token;
+    } catch (error) {
+      console.error("Push token error:", error);
+      return null;
     }
-
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      alert('Failed to get push token for push notification!');
-      return;
-    }
-
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log("Push Notifications Token :", token);
-    return token;
   };
 
   useEffect(() => {
@@ -81,7 +93,7 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>                                     
+    <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <ProfileProvider>
           <NavigationContainer>
@@ -89,6 +101,7 @@ export default function App() {
             <AppNavigation />
             <Toast />
           </NavigationContainer>
+          <TidioChat />
         </ProfileProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>

@@ -26,7 +26,7 @@ import config from "../API/Apiurl";
 import ForgetPassword from "./ForgetPassword";
 import { Colors, rs } from "../Reusable/Theme";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { registerForPushNotificationsAsync } from "../utils/PushNotification";
 // ================= VALIDATION =================
 
 const schema = z.object({
@@ -163,12 +163,24 @@ export const LoginPage = () => {
     const { username, password } = data;
     setIsLoading(true);
 
+    const pushToken = await registerForPushNotificationsAsync();
+
+    const fcm_token = pushToken
+      ? pushToken.replace("ExponentPushToken[", "").replace("]", "")
+      : "";
+
+
+    console.log("Username:", username);
+    console.log("Password:", password);
+    console.log("FCM / Push Token:", fcm_token);
+
     try {
       console.log("Login Attempt:", { username, password });
 
-      const response = await axios.post(`${config.apiUrl}/auth/login/`, {
+      const response = await axios.post(`${config.apiUrl}//auth/login`, {
         username,
         password,
+        fcm_token,
       });
 
       console.log("Full Login Response:", response.data);

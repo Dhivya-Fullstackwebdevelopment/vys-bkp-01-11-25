@@ -6,6 +6,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import config from "../API/Apiurl";
 import Toast from "react-native-toast-message";
+import { registerForPushNotificationsAsync } from "../utils/PushNotification";
+
 export const ThankYouReg = () => {
     const navigation = useNavigation();
     const [profileId, setProfileId] = useState("");
@@ -50,10 +52,16 @@ export const ThankYouReg = () => {
         try {
             const username = await AsyncStorage.getItem("profile_id_new");
             const password = await AsyncStorage.getItem("password");
+            const pushToken = await registerForPushNotificationsAsync();
+            const fcm_token = pushToken
+                ? pushToken.replace("ExponentPushToken[", "").replace("]", "")
+                : "";
+
             console.log("username, pwd ===>", username, password)
             const response = await axios.post(`${config.apiUrl}/auth/login/`, {
                 username,
                 password,
+                fcm_token,
             });
             if (response.data.status === 1) {
                 const {
