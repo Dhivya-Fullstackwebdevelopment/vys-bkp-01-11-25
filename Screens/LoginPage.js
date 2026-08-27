@@ -177,7 +177,7 @@ export const LoginPage = () => {
     try {
       console.log("Login Attempt:", { username, password });
 
-      const response = await axios.post(`${config.apiUrl}//auth/login`, {
+      const response = await axios.post(`${config.apiUrl}/auth/login`, {
         username,
         password,
         fcm_token,
