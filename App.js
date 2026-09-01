@@ -12,6 +12,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context'; // ← ADD THIS
 import TidioChat from "./Components/TidioChat";
+import UpdateChecker  from "./Components/UpdateChecker";
 
 export default function App() {
 
@@ -100,6 +101,7 @@ export default function App() {
             <StatusBar hidden />
             <AppNavigation />
             <Toast />
+            <UpdateChecker /> 
           </NavigationContainer>
           <TidioChat />
         </ProfileProvider>

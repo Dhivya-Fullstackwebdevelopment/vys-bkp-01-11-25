@@ -2386,47 +2386,116 @@ export const ProfileDetails = () => {
             )}
           </View>
 
+
           {/* ── Contact ── */}
           <View
             ref={sectionRefs.Contact}
             onLayout={(e) => {
-              sectionOffsets.current['Contact'] = e.nativeEvent.layout.y;
+              sectionOffsets.current["Contact"] = e.nativeEvent.layout.y;
             }}
           >
             <View style={styles.card}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.sectionIconCircle}>
-                  <Ionicons name="call-outline" size={16} color={Colors.primary} />
+                  <Ionicons
+                    name="call-outline"
+                    size={16}
+                    color={Colors.primary}
+                  />
                 </View>
+
                 <Text style={styles.cardSectionTitle}>Contact</Text>
               </View>
 
-              {Object.values({
-                address: contact_details?.address,
-                city: contact_details?.city,
-                state: contact_details?.state,
-                country: contact_details?.country,
-                phone: contact_details?.phone,
-                mobile: contact_details?.mobile,
-                whatsapp: contact_details?.whatsapp,
-                email: contact_details?.email,
-              }).every((v) => !v) ? (
-                <View style={styles.noDetailsRow}>
-                  <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
-                  <Text style={styles.noDetailsText}>Contact details not provided</Text>
-                </View>
-              ) : (
-                <>
-                  {renderDetailRow("Address", contact_details?.address)}
-                  {renderDetailRow("City", contact_details?.city)}
-                  {renderDetailRow("State", contact_details?.state)}
-                  {renderDetailRow("Country", contact_details?.country)}
-                  {renderDetailRow("Phone", contact_details?.phone)}
-                  {renderDetailRow("Mobile", contact_details?.mobile)}
-                  {renderDetailRow("WhatsApp", contact_details?.whatsapp)}
-                  {renderDetailRow("Email", contact_details?.email)}
-                </>
-              )}
+              {(() => {
+                const contactFields = {
+                  address: contact_details?.address,
+                  city: contact_details?.city,
+                  state: contact_details?.state,
+                  country: contact_details?.country,
+                  phone: contact_details?.phone,
+                  mobile: contact_details?.mobile,
+                  whatsapp: contact_details?.whatsapp,
+                  email: contact_details?.email,
+                };
+
+                const hasContactDetails = Object.values(contactFields).some(
+                  (value) => value !== null && value !== undefined && String(value).trim() !== ""
+                );
+
+                // Check if contact_details object itself exists
+                const contactDetailsExist = contact_details !== null && contact_details !== undefined;
+
+                if (hasContactDetails) {
+                  // Has real data — show all rows normally
+                  return (
+                    <>
+                      {renderDetailRow("Address", contact_details?.address)}
+                      {renderDetailRow("City", contact_details?.city)}
+                      {renderDetailRow("State", contact_details?.state)}
+                      {renderDetailRow("Country", contact_details?.country)}
+                      {renderDetailRow("Phone", contact_details?.phone)}
+                      {renderDetailRow("Mobile", contact_details?.mobile)}
+                      {renderDetailRow("WhatsApp", contact_details?.whatsapp)}
+                      {renderDetailRow("Email", contact_details?.email)}
+                    </>
+                  );
+                }
+
+                if (!contactDetailsExist) {
+                  // contact_details is null/undefined — show upgrade prompt
+                  return (
+                    <View style={{ alignItems: "center", paddingVertical: 20 }}>
+                      <Ionicons
+                        name="lock-closed-outline"
+                        size={28}
+                        color={Colors.primary}
+                        style={{ marginBottom: 8 }}
+                      />
+                      <Text
+                        style={[
+                          styles.noDetailsText,
+                          {
+                            textAlign: "center",
+                            marginBottom: 12,
+                          },
+                        ]}
+                      >
+                        Please Upgrade the plan to view Contact Details
+                      </Text>
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: Colors.primary,
+                          paddingVertical: 10,
+                          paddingHorizontal: 24,
+                          borderRadius: 20,
+                        }}
+                        activeOpacity={0.8}
+                        onPress={() => navigation.navigate("MembershipPlan")}
+                      >
+                        <Text
+                          style={{
+                            color: "#FFFFFF",
+                            fontSize: 14,
+                            fontWeight: "700",
+                          }}
+                        >
+                          Upgrade
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                }
+
+                // contact_details exists but all fields are empty/null — show Contact details not provided
+                return (
+
+                  <View style={styles.noDetailsRow}>
+                    <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
+                    <Text style={styles.noDetailsText}>Contact details not provided</Text>
+                  </View>
+                );
+              })()}
             </View>
           </View>
 
@@ -2723,27 +2792,29 @@ export const ProfileDetails = () => {
             )}
 
             {(!interestMessage || interestMessage.length === 0) && (
-              <Picker
-                selectedValue={selectedCategory}
-                style={styles.categoryPicker}
-                onValueChange={(itemValue) => {
-                  setSelectedCategory(itemValue);
-                }}
-              >
-                <Picker.Item label="Select Category" value="" />
-                <Picker.Item
-                  label="Horscope matched and I would love to know more about you"
-                  value="Horscope matched and I would love to know more about you"
-                />
-                <Picker.Item
-                  label="I am interested in knowing more about you"
-                  value="I am interested in knowing more about you"
-                />
-                <Picker.Item
-                  label="It seems our stars align. I'm eager to get to know you better"
-                  value="It seems our stars align. I'm eager to get to know you better"
-                />
-              </Picker>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={selectedCategory}
+                  style={styles.categoryPicker}
+                  onValueChange={(itemValue) => {
+                    setSelectedCategory(itemValue);
+                  }}
+                >
+                  <Picker.Item label="Select Category" value="" />
+                  <Picker.Item
+                    label="Horscope matched and I would love to know more about you"
+                    value="Horscope matched and I would love to know more about you"
+                  />
+                  <Picker.Item
+                    label="I am interested in knowing more about you"
+                    value="I am interested in knowing more about you"
+                  />
+                  <Picker.Item
+                    label="It seems our stars align. I'm eager to get to know you better"
+                    value="It seems our stars align. I'm eager to get to know you better"
+                  />
+                </Picker>
+              </View>
             )}
 
             {expressInterestError ? (
@@ -3113,6 +3184,7 @@ export const ProfileDetails = () => {
         )}
 
       {/* Vysassist Error Modal */}
+      {/* Vysassist Error Modal — Upgrade style */}
       <Modal
         visible={showVysassistErrorModal}
         transparent
@@ -3120,52 +3192,54 @@ export const ProfileDetails = () => {
         onRequestClose={() => setShowVysassistErrorModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={{
-            backgroundColor: Colors.card,
-            borderRadius: 12,
-            padding: 24,
-            width: '80%',
-            alignItems: 'center',
-            elevation: 10,
-          }}>
-            <TouchableOpacity
-              onPress={() => setShowVysassistErrorModal(false)}
-              style={{ position: 'absolute', top: 12, right: 12 }}
-            >
-              <MaterialIcons name="warning" size={32} color={Colors.destructive} />
-            </TouchableOpacity>
-
-            <View style={{
-              backgroundColor: Colors.destructive,   // was '#ED1E24'
-              borderRadius: 50,
-              padding: 14,
-              marginBottom: 16,
-              marginTop: 10,
-            }}>
-              <MaterialIcons name="info" size={32} color="white" />
+          <View style={styles.alreadyReqCard}>
+            <View style={[styles.alreadyReqIconRing, { backgroundColor: 'rgba(240,195,109,0.18)' }]}>
+              <View style={styles.alreadyReqIconCircle}>
+                <MaterialCommunityIcons name="crown-outline" size={26} color="#FFFFFF" />
+              </View>
             </View>
 
-            <Text style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: Colors.textDark,   // was '#282C3F'
-              textAlign: 'center',
-              marginBottom: 20,
-            }}>
-              {vysassistErrorMsg}
+            <Text style={styles.alreadyReqTitle}>Upgrade Required</Text>
+            <Text style={styles.alreadyReqBody}>
+              {vysassistErrorMsg || "Please upgrade your plan to access VysAssist."}
             </Text>
+            <View style={styles.alreadyReqGoldRule} />
 
-            <TouchableOpacity
-              style={{
-                backgroundColor: Colors.destructive,   // was '#ED1E24'
-                borderRadius: 8,
-                paddingVertical: 12,
-                paddingHorizontal: 40,
-              }}
-              onPress={() => setShowVysassistErrorModal(false)}
-            >
-              <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>OK</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginTop: 22 }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  height: 46,
+                  borderRadius: 23,
+                  borderWidth: 1,
+                  borderColor: Colors.border,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={() => setShowVysassistErrorModal(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: Colors.textMuted, fontWeight: '700', fontSize: 14 }}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  height: 46,
+                  borderRadius: 23,
+                  backgroundColor: Colors.primary,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={() => {
+                  setShowVysassistErrorModal(false);
+                  navigation.navigate('MembershipPlan');
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14 }}>Upgrade</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -3926,14 +4000,22 @@ const styles = StyleSheet.create({
   },
   messageInput: {
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.textMuted,
     borderRadius: 8,
     padding: 10,
     marginBottom: 12,
     textAlignVertical: 'top',
     minHeight: 80,
   },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: Colors.textMuted,
+    borderRadius: 8,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
   categoryPicker: {
+    width: '100%',
     marginBottom: 12,
   },
   modalButtons: {
