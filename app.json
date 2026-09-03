@@ -2,7 +2,7 @@
   "expo": {
     "name": "VysyamalaApp",
     "slug": "vysyamala",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -32,7 +32,7 @@
       },
       "usesCleartextTraffic": true,
       "package": "com.vysmala.app",
-      "versionCode": 56,
+      "versionCode": 59,
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
