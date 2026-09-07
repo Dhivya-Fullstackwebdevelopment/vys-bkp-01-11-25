@@ -107,12 +107,12 @@ export default function UpdateChecker() {
           </TouchableOpacity>
 
           {/* Remove the button below if you want to FORCE update */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.laterBtn}
             onPress={() => setShowModal(false)}
           >
             <Text style={styles.laterText}>Maybe Later</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </Modal>

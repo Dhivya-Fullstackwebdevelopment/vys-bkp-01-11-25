@@ -169,7 +169,8 @@ export const ProfileDetails = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [pdfModalVisible, setPdfModalVisible] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState(null);
-
+  const AllowedCallPlanIds = ["1", "2", "3", "14", "15", "16", "17"];
+  const isCallAllowed = AllowedCallPlanIds.includes(storedPlanId);
   // ─── NEW: refs for scroll-to-section ────────────────────────────────────────
   const mainScrollRef = useRef(null);
   const sectionRefs = {
@@ -1228,6 +1229,13 @@ export const ProfileDetails = () => {
   };
 
   const handlePhoneCall = async () => {
+    // Show upgrade popup for restricted plans
+    if (!isCallAllowed) {
+      setResponseMsg("Please upgrade your plan to access the call feature.");
+      setShowUpgradeModal(true);
+      return;
+    }
+
     try {
       setLoading(true);
       const storedLoginId = await AsyncStorage.getItem("loginuser_profileId");
@@ -1265,7 +1273,7 @@ export const ProfileDetails = () => {
       console.error('Error opening dialer:', error);
     } finally {
       setLoading(false);
-      bottomSheetRef.current.close();
+      bottomSheetRef.current?.close();
     }
   };
 
