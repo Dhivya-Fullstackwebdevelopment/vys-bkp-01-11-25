@@ -2,31 +2,20 @@ import React from "react";
 import {
   Modal,
   View,
-  Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   Image,
   StyleSheet,
   Dimensions,
+  Text,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
-// Replace with your actual banner image
 const bannerImage = require("../../assets/img/vinayagarpopup-img.png");
 
-interface VinayagarChaturthiPopupProps {
-  visible: boolean;
-  onContinue: () => void;
-  onClose: () => void;
-}
-
-const VinayagarChaturthiPopup: React.FC<VinayagarChaturthiPopupProps> = ({
-  visible,
-  onContinue,
-  onClose,
-}) => {
+const VinayagarChaturthiPopup = ({ visible, onContinue, onClose }) => {
   return (
     <Modal
       visible={visible}
@@ -39,12 +28,10 @@ const VinayagarChaturthiPopup: React.FC<VinayagarChaturthiPopupProps> = ({
         <View style={styles.backdrop}>
           <TouchableWithoutFeedback>
             <View style={styles.card}>
-              {/* Close Button */}
               <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.8}>
                 <Ionicons name="close" size={18} color="#fff" />
               </TouchableOpacity>
 
-              {/* Banner — tap to go to event page */}
               <TouchableOpacity onPress={onContinue} activeOpacity={0.93}>
                 <Image
                   source={bannerImage}
@@ -53,10 +40,9 @@ const VinayagarChaturthiPopup: React.FC<VinayagarChaturthiPopupProps> = ({
                 />
               </TouchableOpacity>
 
-              {/* CTA Button */}
-              <TouchableOpacity style={styles.ctaBtn} onPress={onContinue} activeOpacity={0.85}>
+              {/* <TouchableOpacity style={styles.ctaBtn} onPress={onContinue} activeOpacity={0.85}>
                 <Text style={styles.ctaText}>VIEW EVENT →</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </TouchableWithoutFeedback>
         </View>

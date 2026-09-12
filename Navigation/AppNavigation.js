@@ -54,6 +54,8 @@ import { FeaturedOrSuggestProfiles } from "../Screens/AfterLogin/FeaturedOrSugge
 import { ProfileCompletionForm } from "../Screens/AfterLogin/ProfileCompletionForm";
 import { HelpSupport } from "../Tabs/HelpSupport";
 import { UploadWedding } from "../Tabs/UploadWedding";
+import  VVCC2026Screen  from "../Screens/VVCC2026Screen";
+
 // import { ForgetPassword } from "../Components/ForgotPassword";
 
 
@@ -541,7 +543,7 @@ export const AppNavigation = () => {
         component={WebViewPage}
         options={{ headerShown: false }}
       />
-      
+
       <Stack.Screen
         name="WebViewHeader"
         component={WebViewHeader}
@@ -573,6 +575,11 @@ export const AppNavigation = () => {
         name="UploadWedding"
         component={UploadWedding}
         options={{ headerShown: false }} // Hides default header to use your custom back button design
+      />
+      <Stack.Screen
+        name="VVCC2026"
+        component={VVCC2026Screen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

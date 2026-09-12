@@ -8,7 +8,6 @@ import {
   Linking,
   StyleSheet,
   Dimensions,
-  Animated,
   StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,8 +15,8 @@ import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
-const vinayagarImage = require("../assets/images/vinayagar.jpg");
-const VysyamalaLogo = require("../assets/images/Vysyamalalogo.png");
+const vinayagarImage = require("../assets/img/vinayagar.jpg");
+const VysyamalaLogo = require("../assets/img/VysyamalaLogo.png");
 
 const WHATSAPP_NUMBER = "9043085524";
 const WHATSAPP_BASE = "https://wa.me/919043085524";
@@ -88,7 +87,7 @@ const STEPS = [
   { no: "04", title: "Submit via WhatsApp", icon: "send" },
 ];
 
-function useCountdown(target: number) {
+function useCountdown(target) {
   const [parts, setParts] = useState({ d: 0, h: 0, m: 0, s: 0 });
   useEffect(() => {
     const tick = () => {
@@ -108,21 +107,21 @@ function useCountdown(target: number) {
   return parts;
 }
 
-function pad(n: number) {
+function pad(n) {
   return String(n).padStart(2, "0");
 }
 
-function getWhatsAppLink(theme?: (typeof THEMES)[0]) {
+function getWhatsAppLink(theme) {
   const msg = theme
-    ? `Vysyamala Vinayaga Chaturthi Competition season15\n\nSelected Theme: ${theme.label}\nTheme Name: ${theme.name}\n\nEnter your Description:\n\nEnter your Name, Gothram, City and mobile number.`
+    ? `Vysyamala Vinayaga Chaturthi Competition season15\n\nSelected Theme: ${theme.label}\nTheme Name: ${theme.name}\n\nEnter your Description: ${theme.desc}\n\nEnter your Name, Gothram, City and mobile number.`
     : `Vysyamala Vinayaga Chaturthi Competition season15\n\nEnter your Theme Name:\n\nEnter your Description:\n\nEnter your Name, Gothram, City and mobile number.`;
   return `${WHATSAPP_BASE}?text=${encodeURIComponent(msg)}`;
 }
 
-export default function VVCC2026Screen({ navigation }: any) {
+export default function VVCC2026Screen({ navigation }) {
   const countdown = useCountdown(DEADLINE);
-  const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
-  const scrollRef = useRef<ScrollView>(null);
+  const [selectedTheme, setSelectedTheme] = useState(null);
+  const scrollRef = useRef(null);
   const chosen = THEMES.find((t) => t.id === selectedTheme);
 
   const openWhatsApp = () => Linking.openURL(getWhatsAppLink(chosen));
@@ -215,7 +214,7 @@ export default function VVCC2026Screen({ navigation }: any) {
                 ]}
               >
                 <View style={[styles.themeIconBox, { borderColor: theme.accent + "66" }]}>
-                  <FontAwesome5 name={theme.icon as any} size={18} color={theme.accent} />
+                  <FontAwesome5 name={theme.icon} size={18} color={theme.accent} />
                 </View>
                 <Text style={styles.themeLabel}>{theme.label}</Text>
                 <Text style={styles.themeName}>{theme.name}</Text>
@@ -257,7 +256,7 @@ export default function VVCC2026Screen({ navigation }: any) {
             {STEPS.map((step) => (
               <View key={step.no} style={styles.stepItem}>
                 <View style={styles.stepIcon}>
-                  <Ionicons name={step.icon as any} size={22} color="#d9b569" />
+                  <Ionicons name={step.icon} size={22} color="#d9b569" />
                 </View>
                 <Text style={styles.stepNo}>STEP {step.no}</Text>
                 <Text style={styles.stepTitle}>{step.title}</Text>
@@ -268,11 +267,11 @@ export default function VVCC2026Screen({ navigation }: any) {
 
         {/* ── Rules ── */}
         <View style={[styles.section, { backgroundColor: "#f3e7cf" }]}>
-          <Text style={styles.sectionTitle}>RULES &amp; REGULATIONS</Text>
+          <Text style={styles.sectionTitle}>RULES & REGULATIONS</Text>
           <View style={styles.rulesCard}>
             {RULES.map((rule, i) => (
               <View
-                key={rule}
+                key={i}
                 style={[styles.ruleRow, i === RULES.length - 1 && { borderBottomWidth: 0 }]}
               >
                 <View style={styles.ruleBadge}>
