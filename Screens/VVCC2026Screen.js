@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Dimensions,
   StatusBar,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
@@ -87,6 +88,14 @@ const STEPS = [
   { no: "04", title: "Submit via WhatsApp", icon: "send" },
 ];
 
+// Hamburger menu item list (label shown in the dropdown -> which section ref to scroll to)
+const MENU_ITEMS = [
+  { key: "home", label: "Home" },
+  { key: "themes", label: "5 Themes" },
+  { key: "rules", label: "Rules" },
+  { key: "submit", label: "Submit" },
+];
+
 function useCountdown(target) {
   const [parts, setParts] = useState({ d: 0, h: 0, m: 0, s: 0 });
   useEffect(() => {
@@ -121,10 +130,28 @@ function getWhatsAppLink(theme) {
 export default function VVCC2026Screen({ navigation }) {
   const countdown = useCountdown(DEADLINE);
   const [selectedTheme, setSelectedTheme] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const scrollRef = useRef(null);
   const chosen = THEMES.find((t) => t.id === selectedTheme);
 
+  // Store the actual measured Y offset of each section so the scroll
+  // lands exactly at the top of that section (no hardcoded numbers).
+  const sectionY = useRef({ home: 0, themes: 0, rules: 0, submit: 0 });
+
   const openWhatsApp = () => Linking.openURL(getWhatsAppLink(chosen));
+
+  const handleSectionLayout = (key) => (event) => {
+    sectionY.current[key] = event.nativeEvent.layout.y;
+  };
+
+  const scrollToSection = (key) => {
+    setMenuOpen(false);
+    // slight delay lets the modal close animation finish before scrolling
+    setTimeout(() => {
+      const y = sectionY.current[key] ?? 0;
+      scrollRef.current?.scrollTo({ y, animated: true });
+    }, 200);
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#faf5ea" }}>
@@ -133,21 +160,68 @@ export default function VVCC2026Screen({ navigation }) {
       {/* ── Sticky Header ── */}
       <SafeAreaView edges={["top"]} style={styles.header}>
         <View style={styles.headerInner}>
-          <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={20} color="#7a1418" />
-          </TouchableOpacity>
+         
           <Image source={VysyamalaLogo} style={styles.logo} resizeMode="contain" />
-          <TouchableOpacity style={styles.headerCta} onPress={openWhatsApp}>
-            <FontAwesome5 name="whatsapp" size={13} color="#fff" />
-            <Text style={styles.headerCtaText}>Submit</Text>
+          <TouchableOpacity style={styles.hamburgerBtn} onPress={() => setMenuOpen(true)}>
+            <Ionicons name="menu" size={24} color="#7a1418" />
           </TouchableOpacity>
         </View>
       </SafeAreaView>
 
+      {/* ── Hamburger Dropdown Menu ── */}
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.menuOverlay}
+          activeOpacity={1}
+          onPress={() => setMenuOpen(false)}
+        >
+          <SafeAreaView edges={["top"]} style={styles.menuPanelWrap}>
+            <TouchableOpacity activeOpacity={1} style={styles.menuPanel}>
+              <View style={styles.menuHeader}>
+                <Image source={VysyamalaLogo} style={styles.logo} resizeMode="contain" />
+                <TouchableOpacity onPress={() => setMenuOpen(false)} style={styles.menuCloseBtn}>
+                  <Ionicons name="close" size={20} color="#3a1414" />
+                </TouchableOpacity>
+              </View>
+
+              {MENU_ITEMS.map((item, i) => (
+                <TouchableOpacity
+                  key={item.key}
+                  style={[
+                    styles.menuItem,
+                    i === MENU_ITEMS.length - 1 && { borderBottomWidth: 0 },
+                  ]}
+                  onPress={() => scrollToSection(item.key)}
+                >
+                  <Text style={styles.menuItemText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+
+              <TouchableOpacity
+                style={styles.menuSubmitBtn}
+                onPress={() => {
+                  setMenuOpen(false);
+                  setTimeout(openWhatsApp, 200);
+                }}
+                activeOpacity={0.85}
+              >
+                <FontAwesome5 name="whatsapp" size={16} color="#fff" />
+                <Text style={styles.menuSubmitBtnText}>Submit Your Entry</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </SafeAreaView>
+        </TouchableOpacity>
+      </Modal>
+
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
 
         {/* ── Hero ── */}
-        <View style={styles.hero}>
+        <View style={styles.hero} onLayout={handleSectionLayout("home")}>
           <View style={styles.heroBadge}>
             <Ionicons name="sparkles" size={11} color="#ecdcb0" />
             <Text style={styles.heroBadgeText}>EXCLUSIVE FOR ARYA VYSYA COMMUNITY</Text>
@@ -167,13 +241,13 @@ export default function VVCC2026Screen({ navigation }) {
           <View style={styles.heroBtns}>
             <TouchableOpacity
               style={styles.heroBtnGold}
-              onPress={() => scrollRef.current?.scrollTo({ y: 520, animated: true })}
+              onPress={() => scrollToSection("themes")}
             >
               <Text style={styles.heroBtnGoldText}>Explore 5 Themes</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.heroBtnOutline}
-              onPress={() => scrollRef.current?.scrollTo({ y: 1100, animated: true })}
+              onPress={() => scrollToSection("rules")}
             >
               <MaterialIcons name="article" size={14} color="#ecdcb0" />
               <Text style={styles.heroBtnOutlineText}>View Rules</Text>
@@ -194,7 +268,7 @@ export default function VVCC2026Screen({ navigation }) {
         </View>
 
         {/* ── Themes ── */}
-        <View style={styles.section}>
+        <View style={styles.section} onLayout={handleSectionLayout("themes")}>
           <Text style={styles.sectionTitle}>CHOOSE YOUR THEME</Text>
           <Text style={styles.sectionSub}>
             Select ONE of our five exciting themes and bring your imagination to life.
@@ -266,7 +340,7 @@ export default function VVCC2026Screen({ navigation }) {
         </View>
 
         {/* ── Rules ── */}
-        <View style={[styles.section, { backgroundColor: "#f3e7cf" }]}>
+        <View style={[styles.section, { backgroundColor: "#f3e7cf" }]} onLayout={handleSectionLayout("rules")}>
           <Text style={styles.sectionTitle}>RULES & REGULATIONS</Text>
           <View style={styles.rulesCard}>
             {RULES.map((rule, i) => (
@@ -311,7 +385,7 @@ export default function VVCC2026Screen({ navigation }) {
         </View>
 
         {/* ── Submit Section ── */}
-        <View style={[styles.hero, { paddingBottom: 32 }]}>
+        <View style={[styles.hero, { paddingBottom: 32 }]} onLayout={handleSectionLayout("submit")}>
           <Text style={[styles.sectionTitle, { color: "#fff" }]}>READY TO SHOW YOUR TALENT?</Text>
           <Text style={{ color: "rgba(255,255,255,0.75)", textAlign: "center", marginBottom: 20 }}>
             Send your competition video through WhatsApp along with your details.
@@ -379,8 +453,30 @@ const styles = StyleSheet.create({
   headerInner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
   backBtn: { padding: 4 },
   logo: { height: 30, width: 110 },
-  headerCta: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#7a1418", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
-  headerCtaText: { color: "#fff", fontWeight: "700", fontSize: 12 },
+  hamburgerBtn: { padding: 6 },
+
+  // Hamburger dropdown menu styles
+  menuOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.35)" },
+  menuPanelWrap: { alignItems: "flex-end" },
+  menuPanel: {
+    width: width * 0.78,
+    backgroundColor: "#fdf7ec",
+    marginTop: 8,
+    marginRight: 12,
+    borderRadius: 18,
+    paddingBottom: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 10,
+  },
+  menuHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10 },
+  menuCloseBtn: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: "#e8dcc0", alignItems: "center", justifyContent: "center" },
+  menuItem: { paddingHorizontal: 18, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#e8dcc0" },
+  menuItemText: { color: "#3a1414", fontSize: 15, fontWeight: "600" },
+  menuSubmitBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#7a1418", marginHorizontal: 14, marginTop: 12, paddingVertical: 12, borderRadius: 24 },
+  menuSubmitBtnText: { color: "#fff", fontWeight: "800", fontSize: 13 },
 
   hero: { backgroundColor: "#5c1216", padding: 24, alignItems: "center" },
   heroBadge: { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderColor: "rgba(217,181,105,0.45)", backgroundColor: "rgba(217,181,105,0.12)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginBottom: 16 },
