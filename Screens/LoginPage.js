@@ -1005,7 +1005,7 @@ export const LoginPage = () => {
 
   // ================= EXPANDED CARD =================
   const [expandedCard, setExpandedCard] = useState(null);
-
+  // const [debugToken, setDebugToken] = useState("");
   // ================= PASSWORD =================
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -1024,6 +1024,13 @@ export const LoginPage = () => {
     },
   });
 
+  // useEffect(() => {
+  //   const fetchToken = async () => {
+  //     const token = await registerForPushNotificationsAsync();
+  //     setDebugToken(token || "NO TOKEN");  // No stripping needed
+  //   };
+  //   fetchToken();
+  // }, []);
   // ================= FETCH STATS =================
   useEffect(() => {
     const fetchStats = async () => {
@@ -1111,18 +1118,21 @@ export const LoginPage = () => {
       ? pushToken.replace("ExponentPushToken[", "").replace("]", "")
       : "";
 
+    // const fcm_token = pushToken ?? "";
+
 
     console.log("Username:", username);
     console.log("Password:", password);
     console.log("FCM / Push Token:", fcm_token);
 
     try {
-      console.log("Login Attempt:", { username, password });
+      console.log("Login Attempt:", { username, password, fcm_token });
 
       const response = await axios.post(`${config.apiUrl}/auth/login/`, {
         username,
         password,
-         fcm_token,
+        fcm_token,
+        // mobile_login: true,
       });
 
       console.log("Full Login Response:", response.data);
@@ -1208,7 +1218,7 @@ export const LoginPage = () => {
   // ================= UI =================
   return (
     <SafeAreaView style={styles.container}>
-      
+
       <KeyboardAvoidingView
         style={{ flex: 1, width: "100%" }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -1228,6 +1238,22 @@ export const LoginPage = () => {
 
           {/* ================= LOGIN CARD ================= */}
           <View style={styles.cardContainer}>
+            {/* ================= DEBUG FCM TOKEN ================= */}
+            {/* <View style={{
+              backgroundColor: "#fff3cd",
+              borderRadius: 10,
+              padding: 10,
+              marginBottom: 14,
+              borderWidth: 1,
+              borderColor: "#ffc107",
+            }}>
+              <Text style={{ fontSize: 11, fontWeight: "700", color: "#856404", marginBottom: 4 }}>
+                DEBUG - FCM TOKEN:
+              </Text>
+              <Text selectable style={{ fontSize: 10, color: "#333", wordBreak: "break-all" }}>
+                {debugToken || "Fetching..."}
+              </Text>
+            </View> */}
             {/* PROFILE ID */}
             <View style={styles.inputContainer}>
               <Text style={styles.fieldLabel}>Profile ID</Text>

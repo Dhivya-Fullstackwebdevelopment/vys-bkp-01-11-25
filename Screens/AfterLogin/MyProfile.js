@@ -292,7 +292,10 @@ export const MyProfile = () => {
     );
 
     const handleAddOnPackagePress = () => {
-        if (profileDetails?.package_name === "Free" || "Unapproved") {
+        if (
+            profileDetails?.package_name === "Free" ||
+            profileDetails?.package_name === "Unapproved"
+        ) {
             navigation.navigate('MembershipPlan');
         } else {
             navigation.navigate('PayNow', { isAddOnOnly: true });
@@ -782,7 +785,7 @@ export const MyProfile = () => {
                     {profileDetails ? (
                         <>
                             {/* ROW 1: Name + Share & Download icons */}
-                           
+
                             <View style={styles.nameIconFlex}>
                                 <Text style={styles.name} numberOfLines={1}>
                                     {profileDetails.personal_profile_name}

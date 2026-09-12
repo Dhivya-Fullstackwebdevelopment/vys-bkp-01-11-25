@@ -1,61 +1,26 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, ActivityIndicator } from "react-native";
 import { useFonts } from "expo-font";
 import { NavigationContainer } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { ProfileProvider } from "./Components/ProfileContext";
 import { AppNavigation } from "./Navigation/AppNavigation";
-import * as Notifications from 'expo-notifications';
-import { Platform, ActivityIndicator } from 'react-native';
-import { useEffect } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context'; // ← ADD THIS
+import * as Notifications from "expo-notifications";
+import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import TidioChat from "./Components/TidioChat";
-import UpdateChecker  from "./Components/UpdateChecker";
+import UpdateChecker from "./Components/UpdateChecker";
+
+// Use the shared utility — do NOT duplicate registration logic here
+import { registerForPushNotificationsAsync } from "./utils/PushNotification";
 
 export default function App() {
 
-  const registerForPushNotificationsAsync = async () => {
-    try {
-      if (Platform.OS === "android") {
-        await Notifications.setNotificationChannelAsync("default", {
-          name: "default",
-          importance: Notifications.AndrousidImportance.MAX,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: "#FF231F7C",
-        });
-      }
-
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
-
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== "granted") {
-        console.log("Notification permission not granted");
-        return null;
-      }
-
-      const token = (
-        await Notifications.getExpoPushTokenAsync()
-      ).data;
-
-      console.log("Push Notifications Token:", token);
-
-      return token;
-    } catch (error) {
-      console.error("Push token error:", error);
-      return null;
-    }
-  };
-
+  // ── Push notification setup ──────────────────────────────────────────────
   useEffect(() => {
+    // Register once on app mount; token is logged inside the utility
     registerForPushNotificationsAsync();
   }, []);
 
@@ -68,20 +33,25 @@ export default function App() {
       }),
     });
 
-    const notificationReceivedListener = Notifications.addNotificationReceivedListener(notification => {
-      console.log("Notification Received:", notification);
-    });
+    const receivedSub = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log("[App] Notification received:", notification);
+      }
+    );
 
-    const notificationResponseListener = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log("Notification Response Received:", response);
-    });
+    const responseSub = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        console.log("[App] Notification response:", response);
+      }
+    );
 
     return () => {
-      if (notificationReceivedListener) notificationReceivedListener.remove();
-      if (notificationResponseListener) notificationResponseListener.remove();
+      receivedSub.remove();
+      responseSub.remove();
     };
   }, []);
 
+  // ── Fonts ────────────────────────────────────────────────────────────────
   const [fontsLoaded] = useFonts({
     kaush: require("./assets/fonts/KaushanScript-Regular.ttf"),
     inter: require("./assets/fonts/Inter-VariableFont_slnt,wght.ttf"),
@@ -101,7 +71,7 @@ export default function App() {
             <StatusBar hidden />
             <AppNavigation />
             <Toast />
-            <UpdateChecker /> 
+            <UpdateChecker />
           </NavigationContainer>
           <TidioChat />
         </ProfileProvider>

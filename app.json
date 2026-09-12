@@ -26,6 +26,7 @@
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/fixed-icon-vysyamala.png",
         "backgroundColor": "#ffffff"
@@ -37,7 +38,8 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.DOWNLOAD_WITHOUT_NOTIFICATION",
-        "android.permission.ACCESS_MEDIA_LOCATION"
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.POST_NOTIFICATIONS"
       ]
     },
     "web": {
@@ -49,9 +51,17 @@
       }
     },
     "updates": {
-      "url": "https://u.expo.dev/524bae3e-64b1-46a5-bbbc-6a0d84357d8e"
+      "url": "https://u.expo.dev/ec179e54-62e0-4044-ae3b-11e485cc4d43"
     },
     "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/fixed-icon-vysyamala.png",
+          "color": "#ffffff",
+          "androidMode": "default"
+        }
+      ],
       [
         "expo-build-properties",
         {

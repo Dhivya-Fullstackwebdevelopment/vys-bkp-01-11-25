@@ -911,7 +911,15 @@ export const HomeWithToast = () => {
       {
         isSvg: true,
         label: `${buttonText}\nPlan`,
-        onPress: () => navigation.navigate("MembershipPlan"),
+        onPress: () => {
+          if (buttonText === "Upgrade") {
+            navigation.navigate("MembershipPlan");  // Free / Unapproved
+          } else if (buttonText === "Renew") {
+            navigation.navigate("PayNow");          // Expired plan
+          } else {
+            navigation.navigate("PayNow", { isAddOnOnly: true }); // Add-On
+          }
+        },
         show: !hidePlanButton,
       },
       {

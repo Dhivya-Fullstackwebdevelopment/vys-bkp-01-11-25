@@ -36,6 +36,7 @@ export const OtpVerifyLogin = () => {
   const [MobileNo, setMobileNo] = useState("");
   const [timer, setTimer] = useState(60);
   const [isResending, setIsResending] = useState(false);  // ← ADD THIS
+  // const [debugToken, setDebugToken] = useState("");
   // ================= 60 SEC TIMER =================
   useEffect(() => {
     let interval;
@@ -67,6 +68,14 @@ export const OtpVerifyLogin = () => {
       otpRefs.current[focusTarget]?.focus();
     }
   };
+
+  // useEffect(() => {
+  //   const fetchToken = async () => {
+  //     const token = await registerForPushNotificationsAsync();
+  //     setDebugToken(token || "NO TOKEN");  // No stripping needed
+  //   };
+  //   fetchToken();
+  // }, []);
 
   const fillOtpRef = useRef(fillOtp);
   useEffect(() => {
@@ -216,16 +225,20 @@ export const OtpVerifyLogin = () => {
       console.log("Full Expo Push Token:", pushToken);
 
       // Remove ExponentPushToken[ ]
-      const fcm_token = pushToken
+       const fcm_token = pushToken
         ? pushToken.replace("ExponentPushToken[", "").replace("]", "")
         : "";
+
+      // const fcm_token = pushToken ?? "";
       console.log("otp verify fcm_token", fcm_token)
+      console.log("Verify Params:", { Mobile_no: MobileNo, Otp: enteredOtp, fcm_token });
       const response = await axios.post(
         `${config.apiUrl}/auth/Login_verifyotp/`,
         {
           Mobile_no: MobileNo,
           Otp: enteredOtp,
           fcm_token: fcm_token,
+          // mobile_login: true,
         },
         {
           headers: {
@@ -331,6 +344,21 @@ export const OtpVerifyLogin = () => {
 
           {/* Form Card */}
           <View style={styles.cardContainer}>
+            {/* <View style={{
+              backgroundColor: "#fff3cd",
+              borderRadius: 10,
+              padding: 10,
+              marginBottom: 14,
+              borderWidth: 1,
+              borderColor: "#ffc107",
+            }}>
+              <Text style={{ fontSize: 11, fontWeight: "700", color: "#856404", marginBottom: 4 }}>
+                DEBUG - FCM TOKEN:
+              </Text>
+              <Text selectable style={{ fontSize: 10, color: "#333" }}>
+                {debugToken || "Fetching..."}
+              </Text>
+            </View> */}
             <View style={styles.otpHeaderContainer}>
               <Text style={styles.fieldLabel}>OTP Verification</Text>
               <Text style={styles.otpSubText}>

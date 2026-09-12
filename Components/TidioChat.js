@@ -99,7 +99,7 @@ const TidioChat = () => {
 const styles = StyleSheet.create({
   collapsed: {
     position: "absolute",
-    bottom: 150, // Sits above your bottom navigation tabs
+    bottom: 180, // Sits above your bottom navigation tabs
     right: 5,    
     width: 100,  // Prevents chat circle from being cut off
     height: 100,

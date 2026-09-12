@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "340537097829",
+    "project_id": "vysyamalaapp-45ed5",
+    "storage_bucket": "vysyamalaapp-45ed5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:340537097829:android:472d480d6bb8e721a4508c",
+        "android_client_info": {
+          "package_name": "com.vysmala.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjuIZfW4IwmfC6_k7V8f11KL8hHMkWk4E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
