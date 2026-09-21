@@ -28,9 +28,29 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CountryButton, CountryPicker } from "react-native-country-codes-picker";
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { Colors } from "../../Reusable/Theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+function ListHeaderComponent({ countries, lang, onPress }) {
+    return (
+        <View style={{ paddingBottom: 20 }}>
+            <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: Colors.textDark }}>
+                Popular countries
+            </Text>
+            {countries?.map((country, index) => (
+                <CountryButton
+                    key={index}
+                    item={country}
+                    name={country?.name?.[lang || 'en']}
+                    onPress={() => onPress(country)}
+                />
+            ))}
+        </View>
+    );
+}
 
 export const ProfileIconsBar = ({ onSelectSection, activeSection, sections }) => {
     const tabScrollViewRef = useRef(null);
@@ -95,6 +115,10 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
     const [hour, setHour] = useState('');
     const [minute, setMinute] = useState('');
     const [period, setPeriod] = useState('AM');
+
+    // Country picker state
+    const [countryCode, setCountryCode] = useState("+91");
+    const [showPicker, setShowPicker] = useState(false);
 
     const [formValues, setFormValues] = useState({
         personal_profile_name: '',
@@ -199,6 +223,19 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
             const initialAge = personalDetails.personal_profile_dob
                 ? calculateAge(personalDetails.personal_profile_dob)
                 : '';
+
+            // Extract country code if already prefixed or present in response
+            const initialCountryCode = personalDetails.mobile_country || personalDetails.country_code || '91';
+            const cleanCountry = String(initialCountryCode).replace('+', '');
+            setCountryCode(`+${cleanCountry}`);
+
+            let rawMobile = personalDetails.mobile_no || '';
+            if (rawMobile.startsWith(`+${cleanCountry}`)) {
+                rawMobile = rawMobile.replace(`+${cleanCountry}`, '');
+            } else if (rawMobile.startsWith(cleanCountry)) {
+                rawMobile = rawMobile.slice(cleanCountry.length);
+            }
+
             setFormValues({
                 ...formValues,
                 personal_profile_name: personalDetails.personal_profile_name || '',
@@ -222,7 +259,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                 profile_created_by: personalDetails.profile_created_by || '',
                 personal_body_type: personalDetails.personal_body_type || '',
                 personal_video_url: personalDetails.personal_video_url || '',
-                Mobile_no: personalDetails.mobile_no || ''
+                Mobile_no: rawMobile
             });
             setIsFetched(true);
         }
@@ -336,7 +373,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
 
     const validateForm = () => {
         const errors = {};
-        const isTenDigits = (value) => /^\d{10}$/.test(value);
+        const isTenDigits = (value) => /^\d{10}$/.test(value.replace(/\D/g, ''));
         if (!formValues.personal_profile_name || formValues.personal_profile_name.trim() === '') {
             errors.personal_profile_name = 'Name is required';
         }
@@ -364,6 +401,12 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
 
     const handleSave = async () => {
         const timeOfBirth = hour && minute ? `${hour}:${minute} ${period}` : '';
+        const cleanedCountry = countryCode.replace('+', '');
+
+        // Combine country code with phone number into the single Mobile_no param
+        const fullMobile = formValues.Mobile_no
+            ? `${cleanedCountry}${formValues.Mobile_no.replace(/\D/g, '')}`
+            : '';
 
         if (validateForm()) {
             const profileData = {
@@ -389,7 +432,7 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                         : "",
 
                 Profile_for: formValues.personal_profile_for_id,
-                Mobile_no: formValues.Mobile_no
+                Mobile_no: fullMobile // Only single parameter sent to backend
             };
             try {
                 if (setLoading) setLoading(true);
@@ -702,14 +745,43 @@ export const ProfileSectionsContent = ({ sectionOffsetsRef, setLoading }) => {
                                 </>
                             )}
 
+                            {/* Registered Mobile with Country Picker */}
                             <Text style={styles.labelNew}>Registered Mobile</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Registered Mobile"
-                                value={formValues.Mobile_no}
-                                onChangeText={(text) => handleChange('Mobile_no', text)}
-                                keyboardType="numeric"
-                            />
+                            <View style={styles.mobileInputWrapper}>
+                                <TouchableOpacity
+                                    onPress={() => setShowPicker(true)}
+                                    style={styles.countryCodeContainer}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={styles.countryCode}>{countryCode}</Text>
+                                    <Icon name="chevron-down" size={14} color={Colors.textMuted} style={styles.downArrow} />
+                                </TouchableOpacity>
+
+                                <CountryPicker
+                                    countryCodesPickerSearchInput
+                                    show={showPicker}
+                                    pickerButtonOnPress={(item) => {
+                                        setCountryCode(item.dial_code);
+                                        setShowPicker(false);
+                                    }}
+                                    ListHeaderComponent={ListHeaderComponent}
+                                    popularCountries={['en', 'in']}
+                                    lang="en"
+                                    style={{
+                                        modal: { backgroundColor: Colors.cardBackground || '#FFFFFF' },
+                                        searchInput: { backgroundColor: Colors.selectedBg || '#F4F4F5' },
+                                    }}
+                                />
+
+                                <TextInput
+                                    style={[styles.mobileInput, validationErrors.Mobile_no && styles.inputError]}
+                                    placeholder="Registered Mobile"
+                                    placeholderTextColor={Colors.textMuted}
+                                    value={formValues.Mobile_no}
+                                    onChangeText={(text) => handleChange('Mobile_no', text)}
+                                    keyboardType="phone-pad"
+                                />
+                            </View>
                             {validationErrors.Mobile_no && (
                                 <Text style={styles.error}>{validationErrors.Mobile_no}</Text>
                             )}
@@ -813,32 +885,6 @@ const styles = StyleSheet.create({
     tabPillTextActive: {
         color: '#FFFFFF',
     },
-    iconsRowContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        paddingHorizontal: 16,
-        backgroundColor: Colors.cardBackground,
-        paddingVertical: 14,
-        borderBottomWidth: 1,
-        borderColor: Colors.border,
-        zIndex: 12,
-        elevation: 8,
-    },
-    iconContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    iconStyle: {
-        marginHorizontal: 8,
-    },
-    iconText: {
-        fontSize: 11,
-        marginTop: 4,
-        textAlign: 'center',
-        fontWeight: '700',
-        color: Colors.textDark,
-    },
     menuChanges: {
         width: '100%',
         backgroundColor: Colors.selectedBg,
@@ -937,6 +983,48 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: Colors.textDark,
         backgroundColor: Colors.surface,
+    },
+    inputError: {
+        borderColor: Colors.destructive,
+    },
+    mobileInputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    countryCodeContainer: {
+        backgroundColor: Colors.surface,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        borderRightWidth: 0,
+        borderTopLeftRadius: 12,
+        borderBottomLeftRadius: 12,
+        justifyContent: 'center',
+        paddingHorizontal: 10,
+        height: 48,
+        minWidth: 72,
+    },
+    countryCode: {
+        fontSize: 14,
+        color: Colors.textDark,
+    },
+    downArrow: {
+        position: 'absolute',
+        right: 8,
+        top: '50%',
+        transform: [{ translateY: -7 }],
+    },
+    mobileInput: {
+        flex: 1,
+        height: 48,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        borderTopRightRadius: 12,
+        borderBottomRightRadius: 12,
+        backgroundColor: Colors.surface,
+        paddingHorizontal: 12,
+        fontSize: 15,
+        color: Colors.textDark,
     },
     scrollViewContentContainer: {
         flexGrow: 1,
