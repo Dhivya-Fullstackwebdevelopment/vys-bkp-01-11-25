@@ -32,7 +32,7 @@ export const ProfileDetailsView = ({ viewedProfileId }) => {
             setLoading(true);
             try {
                 const response = await axios.post(
-                    `${config.apiUrl}/auth/Get_profile_det_match/`,
+                    `${config.apiUrl}/auth/Get_profile_det_matchv2/`,
                     {
                         profile_id: loginuser_profileId,
                         user_profile_id: viewedProfileId,
