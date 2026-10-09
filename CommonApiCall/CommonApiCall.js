@@ -111,7 +111,7 @@ export const fetchProfileData = async (viewedProfileId) => {
             return null;
         }
 
-        const response = await axios.post(`${BASE_URL}/Get_profile_det_match/`, {
+        const response = await axios.post(`${BASE_URL}/Get_profile_det_matchv2/`, {
             profile_id: profileId,
             user_profile_id: viewedProfileId
         });
@@ -1240,7 +1240,7 @@ export const getProfileDetailsMatch = async () => {
         return null;
     }
     try {
-        const response = await axios.post(`${BASE_URL}/Get_profile_det_match/`, {
+        const response = await axios.post(`${BASE_URL}/Get_profile_det_matchv2/`, {
             profile_id: profileId,
             user_profile_id: profileId,
 
@@ -3449,7 +3449,7 @@ export const fetchProfileDataCheck = async (viewedProfileId, pageID) => {
             return null;
         }
 
-        const response = await axios.post(`${BASE_URL}/Get_profile_det_match/`, {
+        const response = await axios.post(`${BASE_URL}/Get_profile_det_matchv2/`, {
             profile_id: profileId,
             user_profile_id: viewedProfileId,
             page_id: pageID
